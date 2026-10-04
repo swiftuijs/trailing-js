@@ -223,15 +223,17 @@ VS Code supports syntax highlighting, comments, brackets, TypeScript diagnostics
 
 The extension reads the nearest `tsconfig.json` and `twill.config.json`. It recovers common incomplete member expressions while typing; builds always reject invalid syntax. A bundled TS-server bridge supplies diagnostics, hover, completion, signatures and definitions to native TS/JS documents in configured mixed projects. Unsaved Twill and native changes are synchronized, and definitions map back to original files. The extension bundles standard-library declarations for its standalone checker. Use `twill check` for authoritative project checks. Formatting, rename across dialect files, automatic imports, and React Fast Refresh integration are not yet provided.
 
-TextMate grammars in `editors/vscode/syntaxes` can be reused by other editors that supply TypeScript/JavaScript base grammars. GitHub's Linguist does not recognize these new extensions automatically.
+TextMate grammars in `editors/vscode/syntaxes` can be reused by other editors that supply TypeScript/JavaScript base grammars. This repository's `.gitattributes` selects TypeScript/TSX highlighting on GitHub. See [GitHub integration](docs/github.md) to enable it in other repositories and understand the requirements for official Twill recognition.
 
 ## Performance and language direction
 
-Ordinary closures become native arrow functions; guards become native branches and bindings. They add no runtime helpers. Tests compare minified output with equivalent handwritten JS. Component children closures allocate arrays and push values and use the framework’s normal JSX runtime; `defer` uses a local callback stack. These costs are explicit and measured, rather than presented as zero overhead.
+Ordinary closures become native arrow functions; guards become native branches and bindings. They add no runtime helpers. Tests compare minified output with equivalent handwritten JS. Single-expression React children are direct JSX values; general child collection uses arrays and may use an IIFE, while Vue slots remain lazy. UI uses the framework's normal JSX runtime; `defer` uses a local callback stack. These costs are explicit and measured, rather than presented as zero overhead.
 
 The compiler adds build-time work. It parses the dialect, emits high-resolution maps, and erases types/lowers JSX when necessary. Plain JS skips the TS transpilation stage. Parser classes, source-map decoding, and unchanged editor snapshots are reused; completion documentation resolves on selection rather than for every suggestion.
 
 See [measured results and methodology](docs/performance.md) and [language design / Swift feature decisions](docs/language.md). Twill implements trailing closures, single-expression closure returns, guards, nullish bindings, automatic UI child collection and `defer`. If/switch expressions and shorthand parameters remain design candidates. JS/TS supplies optional chaining, nullish coalescing, async/await and types already.
+
+See [readiness and remaining work](docs/readiness.md) for current editor boundaries, performance gaps and the priorities before a stable production claim.
 
 ```sh
 npm run build

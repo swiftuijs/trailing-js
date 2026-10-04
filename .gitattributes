@@ -1,3 +1,7 @@
 * text=auto eol=lf
 *.tgz binary
 *.vsix binary
+
+# Use GitHub's existing grammars until Twill is registered with Linguist.
+*.twill linguist-language=TypeScript
+*.twillx linguist-language=TSX
