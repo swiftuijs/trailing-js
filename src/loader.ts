@@ -2,14 +2,14 @@ import { readFileSync, existsSync } from 'node:fs';
 import { dirname, resolve as resolvePath } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { ResolveHook, LoadHook } from 'node:module';
-import { extensions, isTrailingFile } from './compiler';
+import { extensions, isTwillFile } from './compiler';
 import { transpile } from './transpile';
 import { loadConfig } from './config';
 
 function configuration(filename: string) {
   let root = dirname(filename);
   for (;;) {
-    if (existsSync(resolvePath(root, 'trailing.config.json'))) return loadConfig(root);
+    if (existsSync(resolvePath(root, 'twill.config.json'))) return loadConfig(root);
     const parent = dirname(root);
     if (parent === root) return {};
     root = parent;
@@ -40,7 +40,7 @@ export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
 export const load: LoadHook = async (url, context, nextLoad) => {
   if (!url.startsWith('file:')) return nextLoad(url, context);
   const filename = fileURLToPath(url);
-  if (!isTrailingFile(filename)) return nextLoad(url, context);
+  if (!isTwillFile(filename)) return nextLoad(url, context);
   const result = transpile(readFileSync(filename, 'utf8'), {
     ...configuration(filename),
     filename,

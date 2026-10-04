@@ -1,5 +1,5 @@
 import { defineComponent, h, ref } from 'vue';
-import { components } from '@swiftuijs/trailing-js/vue';
+import { components } from '@swiftuijs/twill/vue';
 
 // Stand-ins for components imported from any Vue library. Default slots stay
 // lazy, so the child tracks reactive values during its render.
@@ -23,7 +23,7 @@ const { Panel, Action } = components({ Panel: PanelComponent, Action: ActionComp
 export default defineComponent({
   setup() {
     const count = ref(0);
-    return () => Panel({ title: 'Trailing JS + Vue' }) {
+    return () => Panel({ title: 'Twill + Vue' }) {
       h('p', `Count: ${count.value}`);
       Action({ onClick: () => count.value++ }) { 'Increment' };
     };

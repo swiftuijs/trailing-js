@@ -6,5 +6,5 @@
     "moduleResolution": "Bundler",
     "skipLibCheck": true
   },
-  "include": ["*.tts", "*.ts"]
+  "include": ["*.twill", "*.ts"]
 }

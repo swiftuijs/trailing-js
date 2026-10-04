@@ -1,21 +1,21 @@
 import { existsSync } from 'node:fs';
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { createUnplugin } from 'unplugin';
-import { extensions, isTrailingFile, type TransformOptions } from './compiler';
+import { extensions, isTwillFile, type TransformOptions } from './compiler';
 import { loadConfig } from './config';
 import { transpile } from './transpile';
 
 export interface PluginOptions extends Omit<TransformOptions, 'filename' | 'language'> {
   root?: string;
-  /** Extensionless imports search trailing extensions after normal resolution. */
+  /** Extensionless imports search Twill extensions after normal resolution. */
   resolveExtensions?: boolean;
 }
 
-export const trailingPlugin = createUnplugin<PluginOptions | undefined>((options = {}) => {
+export const twillPlugin = createUnplugin<PluginOptions | undefined>((options = {}) => {
   let root = options.root ?? process.cwd();
   let config = { ...loadConfig(root), ...options };
   return {
-    name: 'trailing-js',
+    name: 'twill',
     enforce: 'pre',
     vite: {
       configResolved(viteConfig) {
@@ -30,9 +30,9 @@ export const trailingPlugin = createUnplugin<PluginOptions | undefined>((options
         };
       },
       configureServer(server) {
-        server.watcher.add(resolve(root, 'trailing.config.json'));
+        server.watcher.add(resolve(root, 'twill.config.json'));
         server.watcher.on('change', (filename) => {
-          if (filename === resolve(root, 'trailing.config.json')) {
+          if (filename === resolve(root, 'twill.config.json')) {
             config = { ...loadConfig(root), ...options };
             server.ws.send({ type: 'full-reload' });
           }
@@ -56,12 +56,12 @@ export const trailingPlugin = createUnplugin<PluginOptions | undefined>((options
       return null;
     },
     transformInclude(id) {
-      return isTrailingFile(id) && !/(?:^|\/)node_modules\//.test(id);
+      return isTwillFile(id) && !/(?:^|\/)node_modules\//.test(id);
     },
     transform(source, id) {
-      if (!isTrailingFile(id)) return null;
+      if (!isTwillFile(id)) return null;
       const filename = id.split(/[?#]/)[0]!;
-      this.addWatchFile(resolve(root, 'trailing.config.json'));
+      this.addWatchFile(resolve(root, 'twill.config.json'));
       return transpile(source, { ...config, filename });
     },
   };

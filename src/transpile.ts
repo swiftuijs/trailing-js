@@ -3,7 +3,7 @@ import remapping from '@ampproject/remapping';
 import { transform, inferLanguage, type TransformOptions } from './compiler';
 
 export function transpile(source: string, options: TransformOptions = {}) {
-  const filename = options.filename ?? 'input.tts';
+  const filename = options.filename ?? 'input.twill';
   const result = transform(source, options);
   const language = options.language ?? inferLanguage(filename);
   // Plain JavaScript needs no type erasure or JSX transform. Leave modern JS

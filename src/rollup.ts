@@ -1,3 +1,3 @@
-import { trailingPlugin } from './plugin';
-export default trailingPlugin.rollup;
+import { twillPlugin } from './plugin';
+export default twillPlugin.rollup;
 export type { PluginOptions } from './plugin';

@@ -5,7 +5,7 @@ import type { TransformOptions } from './compiler';
 export function loadConfig(
   root = process.cwd(),
 ): Pick<TransformOptions, 'builders' | 'implicitReturn'> {
-  const filename = resolve(root, 'trailing.config.json');
+  const filename = resolve(root, 'twill.config.json');
   if (!existsSync(filename)) return {};
   const value = JSON.parse(readFileSync(filename, 'utf8'));
   if (!value || typeof value !== 'object' || Array.isArray(value))

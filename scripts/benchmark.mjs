@@ -4,14 +4,15 @@ import { mkdirSync, writeFileSync, readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { dirname } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import assert from 'node:assert/strict';
 import ts from 'typescript';
 import { transform, originalPosition } from '../dist/index.js';
 import { transform as minify } from 'esbuild';
-import trailing from '../dist/rollup.js';
+import twill from '../dist/rollup.js';
 
 const samples = 15;
-function measure(task) {
-  for (let i = 0; i < 5; i++) task();
+function measure(task, warmups = 5) {
+  for (let i = 0; i < warmups; i++) task();
   const timings = [];
   for (let i = 0; i < samples; i++) {
     const start = performance.now();
@@ -21,7 +22,7 @@ function measure(task) {
   timings.sort((a, b) => a - b);
   return { medianMs: timings[Math.floor(samples / 2)], p95Ms: timings.at(-1) };
 }
-const plugin = trailing({ root: process.cwd() });
+const plugin = twill({ root: process.cwd() });
 const pluginTransform =
   typeof plugin.transform === 'function' ? plugin.transform : plugin.transform.handler;
 const context = { addWatchFile() {} };
@@ -35,14 +36,14 @@ for (const count of [10, 100, 1000]) {
     '.map() { value in value * 2 }',
     '.map((value) => { return value * 2; })',
   );
-  const options = { filename: 'benchmark.tts' };
+  const options = { filename: 'benchmark.twill' };
   const mapped = transform(sugar, options);
   const stages = {
     transformTS: measure(() => transform(sugar, options)),
-    transformJS: measure(() => transform(sugar, { filename: 'benchmark.tjs' })),
+    transformJS: measure(() => transform(sugar, { filename: 'benchmark.twill.js' })),
     unchangedTS: measure(() => transform(plain, options)),
-    pluginJS: measure(() => pluginTransform.call(context, sugar, 'benchmark.tjs')),
-    pluginTS: measure(() => pluginTransform.call(context, sugar, 'benchmark.tts')),
+    pluginJS: measure(() => pluginTransform.call(context, sugar, 'benchmark.twill.js')),
+    pluginTS: measure(() => pluginTransform.call(context, sugar, 'benchmark.twill')),
     typescriptOnly: measure(() =>
       ts.transpileModule(plain, {
         compilerOptions: {
@@ -65,9 +66,50 @@ for (const count of [10, 100, 1000]) {
 const input = 'export function run(values) { return values.map() { value in value * 2 }; }';
 const expected =
   'export function run(values) { return values.map((value) => { return value * 2; }); }';
-const emitted = await minify(transform(input, { filename: 'runtime.tjs' }).code, { minify: true });
+const emitted = await minify(transform(input, { filename: 'runtime.twill.js' }).code, {
+  minify: true,
+});
 const reference = await minify(expected, { minify: true });
 if (emitted.code !== reference.code) throw new Error('Runtime equivalence check failed');
+// A native finally loop is the allocation-free reference for this workload.
+// Defer deliberately adds registration closures and a lazy stack. Keep results
+// observable and warm both functions; report overhead rather than hiding it.
+const cleanupResults = [];
+const iterations = 10000;
+for (const registrations of [1, 10, 100]) {
+  const source = `function run(state) {
+    for (let i = 0; i < ${registrations}; i++) defer { state.cleanup += i + 1; }
+    state.body++; return state.body;
+  }`;
+  const native = `function run(state) {
+    try { state.body++; return state.body; }
+    finally { for (let i = ${registrations} - 1; i >= 0; i--) state.cleanup += i + 1; }
+  }`;
+  const compiled = Function(
+    transform(source, { filename: 'cleanup.twill.js' }).code + '; return run;',
+  )();
+  const handwritten = Function(native + '; return run;')();
+  const batch = (run) => {
+    const state = { body: 0, cleanup: 0 };
+    let observed = 0;
+    for (let i = 0; i < iterations; i++) observed ^= run(state);
+    assert.equal(state.body, iterations);
+    assert.equal(state.cleanup, (iterations * registrations * (registrations + 1)) / 2);
+    return observed;
+  };
+  // More runtime warmup batches let the engine settle its optimization tiers;
+  // the compiler stages above retain their original five-warmup methodology.
+  const defer = measure(() => batch(compiled), 50);
+  const nativeFinally = measure(() => batch(handwritten), 50);
+  cleanupResults.push({
+    registrations,
+    iterations,
+    defer,
+    nativeFinally,
+    medianRatio: defer.medianMs / nativeFinally.medianMs,
+  });
+  console.log(JSON.stringify(cleanupResults.at(-1)));
+}
 const report = {
   timestamp: new Date().toISOString(),
   version: JSON.parse(readFileSync('package.json', 'utf8')).version,
@@ -86,11 +128,15 @@ const report = {
   methodology: {
     samples,
     warmups: 5,
+    cleanupWarmups: 50,
     sourceMaps: 'high-resolution with embedded source',
     includesStartup: false,
-    runtimeCodeIdentical: true,
+    ordinaryClosureRuntimeCodeIdentical: true,
+    cleanupReference:
+      'Handwritten native finally loop; same observable additions, no registration closures or stack. Batch assertions included in both timings.',
   },
   results,
+  cleanupResults,
 };
 const outputIndex = process.argv.indexOf('--output');
 if (outputIndex >= 0) {

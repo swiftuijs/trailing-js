@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { transform as minify } from 'esbuild';
-import { transform, originalPosition, TrailingSyntaxError } from '../src/compiler';
+import { transform, originalPosition, TwillSyntaxError } from '../src/compiler';
 import { parse } from '../src/parser.js';
 
 function run(source: string, ...values: unknown[]) {
-  const result = transform(`function run(value, record) { ${source} }`, { filename: 'test.tjs' });
+  const result = transform(`function run(value, record) { ${source} }`, {
+    filename: 'test.twill.js',
+  });
   parse(result.code, 'js');
   return Function(result.code + '; return run;')()(...values);
 }
@@ -78,7 +80,7 @@ describe('general-purpose guards', () => {
     expect(events).toEqual(['cleanup']);
     const result = transform(
       'async function f(input) { guard const value = await input else { return 0; } return value; }',
-      { filename: 'async.tjs' },
+      { filename: 'async.twill.js' },
     );
     const fn = Function(result.code + ';return f;')();
     expect(await fn(Promise.resolve(2))).toBe(2);
@@ -88,7 +90,7 @@ describe('general-purpose guards', () => {
       /Every guard else path/,
     );
     expect(() => transform('function f(v) { guard v else { (()=>{return;})(); } }')).toThrow(
-      TrailingSyntaxError,
+      TwillSyntaxError,
     );
     expect(() => transform('function f(v) { guard const {x} = v else { return; } }')).toThrow(
       /one identifier/,
@@ -113,14 +115,14 @@ describe('general-purpose guards', () => {
   it('keeps guard as an ordinary identifier in existing JS', () => {
     const source =
       'let guard = () => 1; guard(); guard = () => 2\nif (guard()) {} else {}\nguard: { break guard; }\nconst o={guard() {return 1}}; o.guard();';
-    expect(transform(source, { filename: 'plain.tjs' }).code).toBe(source);
+    expect(transform(source, { filename: 'plain.twill.js' }).code).toBe(source);
   });
   it('reports mappings and change metadata without introducing runtime helpers', async () => {
     const source =
       'export function run(value) { guard value != null else { return []; } return value.map() { x in x * 2 }; }';
     const equivalent =
       'export function run(value) { if (!(value != null)) { return []; } return value.map(x => { return x * 2; }); }';
-    const result = transform(source, { filename: 'source.tjs' });
+    const result = transform(source, { filename: 'source.twill.js' });
     expect(result).toMatchObject({ changed: true, guards: 1, closures: 1 });
     expect(originalPosition(result, 1, result.code.indexOf('value !='))).toMatchObject({
       column: source.indexOf('value !='),

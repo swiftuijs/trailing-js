@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url';
 import assert from 'node:assert/strict';
 import { build, createServer } from 'vite';
 import { renderToStaticMarkup } from 'react-dom/server';
-import trailing from '../dist/vite.js';
+import twill from '../dist/vite.js';
 
 const npm = (args, options = {}) =>
   execFileSync(process.execPath, [process.env.npm_execpath, ...args], options);
@@ -15,7 +15,7 @@ for (const entry of Object.values(metadata.exports)) {
   const paths = typeof entry === 'string' ? [entry] : Object.values(entry);
   for (const path of paths) assert(existsSync(path), `Missing export ${path}`);
 }
-const root = mkdtempSync(join(tmpdir(), 'trailing-package-'));
+const root = mkdtempSync(join(tmpdir(), 'twill-package-'));
 try {
   const [packed] = JSON.parse(
     npm(['pack', '--ignore-scripts', '--json', '--pack-destination', root], { encoding: 'utf8' }),
@@ -29,10 +29,11 @@ try {
     cwd: root,
     stdio: 'pipe',
   });
-  const base = join(root, 'node_modules/@swiftuijs/trailing-js/dist');
+  const base = join(root, 'node_modules/@swiftuijs/twill/dist');
   const { transform } = await import(pathToFileURL(join(base, 'index.js')).href);
   assert.equal(transform('fn() { 42 }').closures, 1);
   assert.equal(transform('function f(v) { guard v else { return 0; } return 1; }').guards, 1);
+  assert.equal(transform('function f() { defer { console.log("done"); } }').defers, 1);
   for (const name of ['vite', 'rollup', 'esbuild', 'webpack', 'rspack', 'project'])
     await import(pathToFileURL(join(base, name + '.js')).href);
   writeFileSync(
@@ -44,12 +45,16 @@ try {
         module: 'ESNext',
         moduleResolution: 'Bundler',
       },
-      include: ['*.tts'],
+      include: ['*.twill'],
     }),
   );
   writeFileSync(
-    join(root, 'main.tts'),
-    'export const values = [1,2].map() { x in guard x > 1 else { return 0; } return x*2; };',
+    join(root, 'main.twill'),
+    'import {twice} from "./twice.twill.js"; export const values = [1,2].map() { x in defer {} guard x > 1 else { return 0; } return twice(x); };',
+  );
+  writeFileSync(
+    join(root, 'twice.twill.js'),
+    'export function twice(value) { defer {} return value*2; }',
   );
   execFileSync(process.execPath, [join(base, 'cli.js'), 'check', '-p', 'tsconfig.json'], {
     cwd: root,
@@ -63,12 +68,12 @@ try {
       pathToFileURL(join(base, 'register.js')).href,
       '--input-type=module',
       '-e',
-      'import {values} from "./main.tts"; console.log(JSON.stringify(values))',
+      'import {values} from "./main.twill"; console.log(JSON.stringify(values))',
     ],
     { cwd: root, encoding: 'utf8' },
   );
   assert.equal(output.trim(), '[0,4]');
-  writeFileSync(join(root, 'bad.tts'), 'export const x: string = [1].map() { n in n*2 };');
+  writeFileSync(join(root, 'bad.twill'), 'export const x: string = [1].map() { n in n*2 };');
   let status = 0;
   try {
     execFileSync(process.execPath, [join(base, 'cli.js'), 'check', '-p', 'tsconfig.json'], {
@@ -84,7 +89,7 @@ try {
   rmSync(root, { recursive: true, force: true });
 }
 
-for (const name of ['basic', 'general', 'react', 'vue']) {
+for (const name of ['basic', 'general', 'defer', 'react', 'vue']) {
   execFileSync(process.execPath, ['dist/cli.js', 'check', '-p', `examples/${name}/tsconfig.json`], {
     stdio: 'pipe',
   });
@@ -98,15 +103,24 @@ const general = JSON.parse(
 );
 assert.deepEqual(general.result, ['1. B: 30', '2. A: 12']);
 assert.deepEqual(general.query, ['SELECT', 'id', 'name', 'FROM users', 'WHERE active = true']);
+const cleanup = JSON.parse(
+  execFileSync(
+    process.execPath,
+    ['--import', pathToFileURL(resolve('dist/register.js')).href, 'run.mjs'],
+    { cwd: resolve('examples/defer'), encoding: 'utf8' },
+  ),
+);
+assert.equal(cleanup.content, 'Hello from Twill');
+assert.deepEqual(cleanup.events, ['file closed', 'body complete', 'directory removed']);
 for (const name of ['react', 'vue']) {
   const root = resolve(`examples/${name}`);
-  const outDir = mkdtempSync(join(tmpdir(), `trailing-${name}-`));
+  const outDir = mkdtempSync(join(tmpdir(), `twill-${name}-`));
   try {
     await build({
       root,
       configFile: false,
       logLevel: 'silent',
-      plugins: [trailing()],
+      plugins: [twill()],
       build: { outDir, emptyOutDir: true, sourcemap: true },
     });
   } finally {
@@ -115,12 +129,12 @@ for (const name of ['react', 'vue']) {
   const server = await createServer({
     root,
     configFile: false,
-    plugins: [trailing()],
+    plugins: [twill()],
     ssr: { noExternal: name === 'react' ? ['@swiftuijs/ui'] : [] },
     server: { middlewareMode: true },
   });
   try {
-    const { default: App } = await server.ssrLoadModule('/App.tts');
+    const { default: App } = await server.ssrLoadModule('/App.twill');
     if (name === 'react') {
       const { createElement } = await import('react');
       const html = renderToStaticMarkup(createElement(App));

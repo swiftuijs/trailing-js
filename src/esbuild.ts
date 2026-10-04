@@ -1,3 +1,3 @@
-import { trailingPlugin } from './plugin';
-export default trailingPlugin.esbuild;
+import { twillPlugin } from './plugin';
+export default twillPlugin.esbuild;
 export type { PluginOptions } from './plugin';

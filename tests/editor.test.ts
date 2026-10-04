@@ -5,14 +5,14 @@ import { join } from 'node:path';
 import { createRequire } from 'node:module';
 import { Registry, INITIAL } from 'vscode-textmate';
 import { loadWASM, OnigScanner, OnigString } from 'vscode-oniguruma';
-import { TrailingProject, virtualFilename } from '../src/project';
+import { TwillProject, virtualFilename } from '../src/project';
 
 it('offers members while the user is typing an incomplete closure', () => {
-  const root = mkdtempSync(join(tmpdir(), 'trailing-editor-'));
+  const root = mkdtempSync(join(tmpdir(), 'twill-editor-'));
   const source = 'const values = [1].map() { value in value. }';
-  const filename = join(root, 'main.tts');
+  const filename = join(root, 'main.twill');
   writeFileSync(filename, source);
-  const project = new TrailingProject(
+  const project = new TwillProject(
     join(root, 'tsconfig.json'),
     {},
     { inferred: true, recover: true },
@@ -40,7 +40,7 @@ it('loads the shipped TextMate grammar and highlights the closure delimiter', as
   const require = createRequire(import.meta.url);
   const wasm = readFileSync(require.resolve('vscode-oniguruma/release/onig.wasm'));
   await loadWASM(wasm.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength));
-  const grammar = JSON.parse(readFileSync('editors/vscode/syntaxes/tts.tmLanguage.json', 'utf8'));
+  const grammar = JSON.parse(readFileSync('editors/vscode/syntaxes/twill.tmLanguage.json', 'utf8'));
   const registry = new Registry({
     onigLib: Promise.resolve({
       createOnigScanner: (patterns) => new OnigScanner(patterns),
@@ -59,8 +59,18 @@ it('loads the shipped TextMate grammar and highlights the closure delimiter', as
       tokens.some(
         (token) =>
           line.slice(token.startIndex, token.endIndex) === 'in' &&
-          token.scopes.includes('keyword.control.trailing'),
+          token.scopes.includes('keyword.control.twill'),
       ),
+    ).toBe(true);
+    const deferLine = 'function f() { defer /* cleanup */ { close(); } }';
+    expect(
+      loaded!
+        .tokenizeLine(deferLine, INITIAL)
+        .tokens.some(
+          (token) =>
+            deferLine.slice(token.startIndex, token.endIndex) === 'defer' &&
+            token.scopes.includes('keyword.control.twill'),
+        ),
     ).toBe(true);
     const guardLine = 'function f(value) { guard value != null else { return 0; } }';
     expect(
@@ -69,7 +79,7 @@ it('loads the shipped TextMate grammar and highlights the closure delimiter', as
         .tokens.some(
           (token) =>
             guardLine.slice(token.startIndex, token.endIndex) === 'guard' &&
-            token.scopes.includes('keyword.control.trailing'),
+            token.scopes.includes('keyword.control.twill'),
         ),
     ).toBe(true);
   } finally {

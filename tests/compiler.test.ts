@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { transform, TrailingSyntaxError, originalPosition } from '../src/compiler';
+import { transform, TwillSyntaxError, originalPosition } from '../src/compiler';
 import { parse } from '../src/parser.js';
 
 function evaluate(source: string, bindings: Record<string, unknown> = {}, builders?: string[]) {
-  const result = transform(`function __test() { ${source} }`, { filename: 'test.tjs', builders });
+  const result = transform(`function __test() { ${source} }`, {
+    filename: 'test.twill.js',
+    builders,
+  });
   parse(result.code, 'js');
   return Function(
     ...Object.keys(bindings),
@@ -16,7 +19,9 @@ describe('trailing closures', () => {
     ['fn() { 42 }', 'fn( () => { return (42) })'],
     ['fn { x in x + 1 }', 'fn( ( x ) => { return (x + 1) })'],
   ])('transforms %s', (source, expected) => {
-    expect(transform(source, { filename: 'test.tjs' }).code.replace(/\s+/g, ' ')).toBe(expected);
+    expect(transform(source, { filename: 'test.twill.js' }).code.replace(/\s+/g, ' ')).toBe(
+      expected,
+    );
   });
   it('executes normal callbacks and lexical this', () => {
     expect(evaluate('return [1,2,3].map() { x in x * 2 }')).toEqual([2, 4, 6]);
@@ -90,17 +95,17 @@ describe('trailing closures', () => {
     expect(transform('fn() { 1 }', { implicitReturn: false }).code).not.toContain('return');
   });
   it('reports precise syntax errors and binding collisions', () => {
-    expect(() => transform('fn() { x in const x=2 }', { filename: 'broken.tts' })).toThrow(
-      TrailingSyntaxError,
+    expect(() => transform('fn() { x in const x=2 }', { filename: 'broken.twill' })).toThrow(
+      TwillSyntaxError,
     );
-    expect(() => transform('fn() {')).toThrow(/input.tts:1:/);
+    expect(() => transform('fn() {')).toThrow(/input.twill:1:/);
   });
   it('maps unmodified expression tokens to the original file', () => {
     const source = 'const answer = fn() { value in value + 1 };';
-    const result = transform(source, { filename: 'source.tts' });
+    const result = transform(source, { filename: 'source.twill' });
     const position = originalPosition(result, 1, result.code.indexOf('value +'));
     expect(position).toMatchObject({
-      source: 'source.tts',
+      source: 'source.twill',
       line: 1,
       column: source.indexOf('value +'),
     });
@@ -116,20 +121,21 @@ describe('TypeScript and JSX compatibility', () => {
     'const identity = <const T,>(value: T): T => value; identity<number>(1);',
     'export const f = <T extends number>(v:T) => [v].map() { x in x };',
     'class Store { #value=1; readonly name="store"; read(){return this.#value;} }',
+    'class Base { read(){return 1;} } class Store extends Base { override read(){return super.read();} }',
     'import data from "./data.json" with { type: "json" }; using resource = open();',
   ])('preserves or lowers common TS syntax: %s', (source) => {
-    const result = transform(source, { filename: 'file.tts' });
+    const result = transform(source, { filename: 'file.twill' });
     parse(result.code, 'ts');
     if (!source.includes(' in x }')) expect(result.code).toBe(source);
   });
-  it.each(['file.tjsx', 'file.ttsx'])(
+  it.each(['file.twill.jsx', 'file.twillx'])(
     'supports JSX and closures inside JSX expressions in %s',
     (filename) => {
       const result = transform(
         'export const content = <div>{[1].map() { x in <span>{x}</span> }}</div>',
         { filename },
       );
-      parse(result.code, filename.endsWith('ttsx') ? 'tsx' : 'jsx');
+      parse(result.code, filename.endsWith('twillx') ? 'tsx' : 'jsx');
       expect(result.closures).toBe(1);
     },
   );
@@ -149,7 +155,7 @@ describe('explicit builders', () => {
   it('uses hygienic collectors and excludes nested functions', () => {
     expect(
       evaluate(
-        'return VStack { const __trailingChildren0="ok"; const f=()=>{return "nested"}; f(); Text(__trailingChildren0); }',
+        'return VStack { const __twillChildren0="ok"; const f=()=>{return "nested"}; f(); Text(__twillChildren0); }',
         bindings,
         ['VStack'],
       ),

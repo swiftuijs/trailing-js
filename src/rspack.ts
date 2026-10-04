@@ -1,3 +1,3 @@
-import { trailingPlugin } from './plugin';
-export default trailingPlugin.rspack;
+import { twillPlugin } from './plugin';
+export default twillPlugin.rspack;
 export type { PluginOptions } from './plugin';

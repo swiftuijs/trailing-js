@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { components } from '@swiftuijs/trailing-js/react';
+import { components } from '@swiftuijs/twill/react';
 import { VStack as ReactVStack, HStack as ReactHStack, Text as ReactText, Button as ReactButton } from '@swiftuijs/ui';
 
 // The compiler knows nothing about @swiftuijs/ui. These are ordinary adapters

@@ -1,23 +1,23 @@
 import * as vscode from 'vscode';
 import ts from 'typescript';
 import { dirname, join } from 'node:path';
-import { TrailingProject, virtualFilename, sourceFilename } from '../../../src/project';
-import { isTrailingFile } from '../../../src/compiler';
+import { TwillProject, virtualFilename, sourceFilename } from '../../../src/project';
+import { isTwillFile } from '../../../src/compiler';
 
-const languages = ['trailing-typescript', 'trailing-javascript', 'trailing-tsx', 'trailing-jsx'];
+const languages = ['twill-typescript', 'twill-javascript', 'twill-tsx', 'twill-jsx'];
 const selector = languages.map((language) => ({ language, scheme: 'file' }));
 
 export function activate(context: vscode.ExtensionContext) {
-  const projects = new Map<string, TrailingProject>();
-  const diagnostics = vscode.languages.createDiagnosticCollection('trailing-js');
-  const output = vscode.window.createOutputChannel('Trailing JS');
+  const projects = new Map<string, TwillProject>();
+  const diagnostics = vscode.languages.createDiagnosticCollection('twill');
+  const output = vscode.window.createOutputChannel('Twill');
   const timers = new Map<string, ReturnType<typeof setTimeout>>();
   const completionDetails = new WeakMap<
     vscode.CompletionItem,
     {
       document: vscode.TextDocument;
       version: number;
-      project: TrailingProject;
+      project: TwillProject;
       offset: number;
       entry: ts.CompletionEntry;
     }
@@ -33,7 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
     );
     let project = projects.get(root);
     if (!project) {
-      project = new TrailingProject(
+      project = new TwillProject(
         config ?? join(root, 'tsconfig.json'),
         {},
         { inferred: true, recover: true },
@@ -42,7 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
       for (const open of vscode.workspace.textDocuments) {
         if (
           open.uri.scheme === 'file' &&
-          /\.(?:tts|tjs|ttsx|tjsx|[cm]?tsx?|[cm]?jsx?)$/.test(open.fileName) &&
+          /\.(?:twill(?:x|\.jsx?)?|[cm]?tsx?|[cm]?jsx?)$/.test(open.fileName) &&
           sourceFilename(open.fileName).startsWith(root + '/')
         )
           project.update(open.fileName, open.getText());
@@ -54,7 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const safely = <T>(
     document: vscode.TextDocument,
-    operation: (project: TrailingProject) => T,
+    operation: (project: TwillProject) => T,
   ): T | undefined => {
     try {
       return operation(getProject(document));
@@ -65,7 +65,7 @@ export function activate(context: vscode.ExtensionContext) {
   };
 
   function refresh(document: vscode.TextDocument) {
-    if (document.uri.scheme !== 'file' || !isTrailingFile(document.fileName)) return;
+    if (document.uri.scheme !== 'file' || !isTwillFile(document.fileName)) return;
     const items = safely(document, (project) => project.diagnostics(document.fileName));
     if (!items) return;
     diagnostics.set(
@@ -83,7 +83,7 @@ export function activate(context: vscode.ExtensionContext) {
               : vscode.DiagnosticSeverity.Warning,
           );
           diagnostic.code = item.code;
-          diagnostic.source = 'trailing-js';
+          diagnostic.source = 'twill';
           return diagnostic;
         }),
     );
@@ -109,7 +109,7 @@ export function activate(context: vscode.ExtensionContext) {
       for (const project of projects.values())
         if (
           event.document.uri.scheme === 'file' &&
-          /\.(?:tts|tjs|ttsx|tjsx|[cm]?tsx?|[cm]?jsx?)$/.test(event.document.fileName) &&
+          /\.(?:twill(?:x|\.jsx?)?|[cm]?tsx?|[cm]?jsx?)$/.test(event.document.fileName) &&
           sourceFilename(event.document.fileName).startsWith(project.root + '/')
         )
           project.update(event.document.fileName, event.document.getText());
@@ -119,7 +119,7 @@ export function activate(context: vscode.ExtensionContext) {
       clearTimeout(timers.get(document.uri.toString()));
       timers.delete(document.uri.toString());
       diagnostics.delete(document.uri);
-      if (/\.(?:tts|tjs|ttsx|tjsx|[cm]?tsx?|[cm]?jsx?)$/.test(document.fileName))
+      if (/\.(?:twill(?:x|\.jsx?)?|[cm]?tsx?|[cm]?jsx?)$/.test(document.fileName))
         projects.forEach((project) => {
           if (sourceFilename(document.fileName).startsWith(project.root + '/'))
             project.update(document.fileName);
@@ -134,7 +134,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   const watcher = vscode.workspace.createFileSystemWatcher(
-    '**/*.{tts,tjs,ttsx,tjsx,ts,tsx,js,jsx,json}',
+    '**/*.{twill,twillx,ts,tsx,js,jsx,json}',
   );
   const reset = () => {
     projects.forEach((project) => project.dispose());
@@ -340,9 +340,9 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    vscode.commands.registerCommand('trailing-js.showGenerated', async () => {
+    vscode.commands.registerCommand('twill.showGenerated', async () => {
       const source = vscode.window.activeTextEditor?.document;
-      if (!source || !isTrailingFile(source.fileName)) return;
+      if (!source || !isTwillFile(source.fileName)) return;
       const result = safely(source, (project) => project.transformed(source.fileName));
       if (result)
         await vscode.window.showTextDocument(

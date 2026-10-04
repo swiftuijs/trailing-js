@@ -3,7 +3,7 @@ import { resolve, dirname, extname } from 'node:path';
 import {
   transform,
   extensions,
-  isTrailingFile,
+  isTwillFile,
   inferLanguage,
   originalPosition,
   generatedPosition,
@@ -41,12 +41,15 @@ const extraExtensions = extensions.map((extension) => ({
 }));
 export function virtualFilename(filename: string): string {
   filename = filename.replaceAll('\\', '/');
-  return isTrailingFile(filename)
+  return isTwillFile(filename)
     ? filename + { ts: '.ts', tsx: '.tsx', js: '.js', jsx: '.jsx' }[inferLanguage(filename)]
     : filename;
 }
 export function sourceFilename(filename: string): string {
-  return filename.replaceAll('\\', '/').replace(/(\.(?:tts|tjs|ttsx|tjsx))\.(?:tsx?|jsx?)$/, '$1');
+  filename = filename.replaceAll('\\', '/');
+  // .twill.js/.twill.jsx are source formats, not virtual TS/JS suffixes.
+  if (isTwillFile(filename)) return filename;
+  return filename.replace(/(\.twill(?:x|\.jsx?)?)\.(?:tsx?|jsx?)$/, '$1');
 }
 
 export interface ProjectDiagnostic {
@@ -60,7 +63,7 @@ export interface ProjectDiagnostic {
 }
 
 /** A virtual-source TypeScript project shared by the CLI and VS Code extension. */
-export class TrailingProject {
+export class TwillProject {
   readonly root: string;
   readonly service: ts.LanguageService;
   readonly compilerOptions: ts.CompilerOptions;
@@ -119,7 +122,7 @@ export class TrailingProject {
           start: undefined,
           length: undefined,
           messageText:
-            'TypeScript project references are not supported by trailing-js check. Check each referenced project separately.',
+            'TypeScript project references are not supported by twill check. Check each referenced project separately.',
         },
       ];
     this.compilerOptions = parsed.options;
@@ -128,7 +131,7 @@ export class TrailingProject {
       const original = sourceFilename(name);
       const source = this.overlays.get(original) ?? ts.sys.readFile(original);
       if (source === undefined) return undefined;
-      if (!isTrailingFile(original)) return source;
+      if (!isTwillFile(original)) return source;
       // Syntax failures are reported separately, with original source positions.
       // Keep the service alive so other open documents still work.
       try {
@@ -164,10 +167,11 @@ export class TrailingProject {
             this.compilerOptions,
             resolutionHost,
           ).resolvedModule;
-          if (resolved) return resolved;
+          if (resolved)
+            return { ...resolved, resolvedFileName: virtualFilename(resolved.resolvedFileName) };
           if (name.startsWith('.') || name.startsWith('/')) {
             const base = resolve(dirname(sourceFilename(importer)), name);
-            const candidates = isTrailingFile(base)
+            const candidates = isTwillFile(base)
               ? [base]
               : extensions.flatMap((extension) => [
                   base + extension,
@@ -179,9 +183,11 @@ export class TrailingProject {
                 const extension =
                   extname(file) === '.tsx'
                     ? ts.Extension.Tsx
-                    : extname(file) === '.js'
-                      ? ts.Extension.Js
-                      : ts.Extension.Ts;
+                    : extname(file) === '.jsx'
+                      ? ts.Extension.Jsx
+                      : extname(file) === '.js'
+                        ? ts.Extension.Js
+                        : ts.Extension.Ts;
                 return { resolvedFileName: file, extension, isExternalLibraryImport: false };
               }
             }
@@ -235,7 +241,7 @@ export class TrailingProject {
   transformed(filename: string): TransformResult | undefined {
     filename = sourceFilename(resolve(filename));
     const source = this.text(filename);
-    return source !== undefined && isTrailingFile(filename)
+    return source !== undefined && isTwillFile(filename)
       ? this.result(filename, source)
       : undefined;
   }
@@ -303,7 +309,7 @@ export class TrailingProject {
     for (const file of files) {
       if (/\.d\.[cm]?ts$/.test(file)) continue;
       try {
-        if (this.recover && isTrailingFile(sourceFilename(file)))
+        if (this.recover && isTwillFile(sourceFilename(file)))
           transform(this.text(file) ?? '', { ...this.options, filename: sourceFilename(file) });
         this.transformed(file);
         result.push(

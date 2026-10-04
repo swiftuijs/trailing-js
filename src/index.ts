@@ -1,8 +1,8 @@
 export {
   transform,
-  TrailingSyntaxError,
+  TwillSyntaxError,
   extensions,
-  isTrailingFile,
+  isTwillFile,
   inferLanguage,
   originalPosition,
   generatedPosition,

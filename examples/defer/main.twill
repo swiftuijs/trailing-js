@@ -1,0 +1,33 @@
+import { open, mkdtemp, writeFile, rm, type FileHandle } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+
+export async function withFile<T>(
+  filename: string,
+  events: string[],
+  body: (file: FileHandle) => Promise<T>,
+): Promise<T> {
+  const file = await open(filename, 'r');
+  defer {
+    await file.close();
+    events.push('file closed');
+  }
+  // Await the operation before leaving the scope and closing the file.
+  return await body(file);
+}
+
+export async function demo() {
+  const events: string[] = [];
+  const directory = await mkdtemp(join(tmpdir(), 'twill-defer-'));
+  defer {
+    await rm(directory, { recursive: true, force: true });
+    events.push('directory removed');
+  }
+  const filename = join(directory, 'message.txt');
+  await writeFile(filename, 'Hello from Twill');
+  const content = await withFile(filename, events) { async file in
+    await file.readFile('utf8')
+  };
+  events.push('body complete');
+  return { content, events };
+}

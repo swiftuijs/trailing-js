@@ -1,7 +1,7 @@
 {
-  "name": "@swiftuijs/trailing-js",
-  "version": "0.2.0",
-  "description": "Trailing: a framework-independent JS/TS syntax-sugar language with trailing closures, guards, build plugins, type checking, and editor support.",
+  "name": "@swiftuijs/twill",
+  "version": "0.3.0",
+  "description": "Twill: a JS/TS syntax-sugar language with trailing closures, guards, block-scoped defer, build plugins, type checking, and editor support.",
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsup",
@@ -12,19 +12,20 @@
     "check": "npm run typecheck && npm test && npm run build && npm run test:package && npm run editor:package",
     "test:package": "node scripts/verify-package.mjs",
     "editor:build": "node scripts/build-editor.mjs",
-    "editor:package": "npm run editor:build && cd editors/vscode && vsce package --allow-missing-repository --out ../../dist/trailing-js.vsix",
+    "editor:package": "npm run editor:build && cd editors/vscode && vsce package --allow-missing-repository --out ../../dist/twill.vsix",
     "prepack": "npm run build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "dev:react": "vite examples/react",
     "dev:vue": "vite examples/vue",
-    "example:check": "node dist/cli.js check -p examples/basic/tsconfig.json && node dist/cli.js check -p examples/general/tsconfig.json && node dist/cli.js check -p examples/react/tsconfig.json && node dist/cli.js check -p examples/vue/tsconfig.json",
+    "example:check": "node dist/cli.js check -p examples/basic/tsconfig.json && node dist/cli.js check -p examples/general/tsconfig.json && node dist/cli.js check -p examples/defer/tsconfig.json && node dist/cli.js check -p examples/react/tsconfig.json && node dist/cli.js check -p examples/vue/tsconfig.json",
     "benchmark": "node scripts/benchmark.mjs",
-    "dev:general": "node --enable-source-maps --import ./dist/register.js examples/general/run.mjs"
+    "dev:general": "node --enable-source-maps --import ./dist/register.js examples/general/run.mjs",
+    "dev:defer": "node --enable-source-maps --import ./dist/register.js examples/defer/run.mjs"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/swiftuijs/trailing-js.git"
+    "url": "git+https://github.com/swiftuijs/twill.git"
   },
   "keywords": [
     "javascript",
@@ -40,9 +41,9 @@
   "license": "MIT",
   "type": "module",
   "bugs": {
-    "url": "https://github.com/swiftuijs/trailing-js/issues"
+    "url": "https://github.com/swiftuijs/twill/issues"
   },
-  "homepage": "https://github.com/swiftuijs/trailing-js#readme",
+  "homepage": "https://github.com/swiftuijs/twill#readme",
   "dependencies": {
     "@ampproject/remapping": "^2.3.0",
     "@jridgewell/trace-mapping": "^0.3.31",
@@ -90,7 +91,7 @@
     "LICENSE"
   ],
   "bin": {
-    "trailing-js": "./dist/cli.js"
+    "twill": "./dist/cli.js"
   },
   "exports": {
     ".": {
@@ -133,7 +134,7 @@
       "types": "./dist/register.d.ts",
       "import": "./dist/register.js"
     },
-    "./schema": "./schemas/trailing.schema.json"
+    "./schema": "./schemas/twill.schema.json"
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",

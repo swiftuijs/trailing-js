@@ -33,10 +33,10 @@ jobs:
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: trailing-js-packages
+          name: twill-packages
           path: |
             *.tgz
-            dist/trailing-js.vsix
+            dist/twill.vsix
             coverage/
             benchmark-results.json
   node20-consumer:

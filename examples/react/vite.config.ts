@@ -1,4 +1,4 @@
 import { defineConfig } from 'vite';
-import trailing from '@swiftuijs/trailing-js/vite';
+import twill from '@swiftuijs/twill/vite';
 
-export default defineConfig({ plugins: [trailing()] });
+export default defineConfig({ plugins: [twill()] });

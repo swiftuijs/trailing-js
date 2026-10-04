@@ -5,7 +5,7 @@ import { parseArgs } from 'node:util';
 import { transform } from './compiler';
 import { transpile } from './transpile';
 import { loadConfig } from './config';
-import { TrailingProject } from './project';
+import { TwillProject } from './project';
 
 export async function main(args = process.argv.slice(2)): Promise<number> {
   const { values, positionals } = parseArgs({
@@ -22,14 +22,14 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
   const [command, input, ...extra] = positionals;
   if (values.help || !command) {
     console.log(
-      'trailing-js compile <file> [-o output.ts] [--js]\ntrailing-js check [-p tsconfig.json] [--json]\n\ncompile keeps TypeScript types by default; --js erases types and lowers JSX.\nBoth commands read trailing.config.json from the project root.',
+      'twill compile <file> [-o output.ts] [--js]\ntwill check [-p tsconfig.json] [--json]\n\ncompile keeps TypeScript types by default; --js erases types and lowers JSX.\nBoth commands read twill.config.json from the project root.',
     );
     return 0;
   }
   if (extra.length) throw new Error('Unexpected arguments: ' + extra.join(' '));
   if (command === 'check') {
     if (input) throw new Error('Use --project <tsconfig.json> with check');
-    const project = new TrailingProject(resolve(values.project ?? 'tsconfig.json'));
+    const project = new TwillProject(resolve(values.project ?? 'tsconfig.json'));
     try {
       const diagnostics = project.diagnostics();
       if (values.json) console.log(JSON.stringify(diagnostics, null, 2));

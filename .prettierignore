@@ -4,7 +4,7 @@ coverage
 editors/vscode/dist
 editors/vscode/licenses
 package-lock.json
-examples/**/*.tts
-examples/**/*.tjs
-examples/**/*.ttsx
-examples/**/*.tjsx
+examples/**/*.twill
+examples/**/*.twill.js
+examples/**/*.twillx
+examples/**/*.twill.jsx

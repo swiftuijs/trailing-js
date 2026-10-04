@@ -8,7 +8,10 @@ import { components as vueComponents } from '../src/vue';
 import { transform } from '../src/compiler';
 
 function compile(body: string, bindings: Record<string, unknown>, builders: string[]) {
-  const result = transform(`function example(){${body}}`, { filename: 'example.tjs', builders });
+  const result = transform(`function example(){${body}}`, {
+    filename: 'example.twill.js',
+    builders,
+  });
   return Function(
     ...Object.keys(bindings),
     result.code + '; return example();',

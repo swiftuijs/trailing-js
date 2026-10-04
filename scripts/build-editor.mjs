@@ -5,15 +5,18 @@ import { join } from 'node:path';
 mkdirSync('editors/vscode/dist', { recursive: true });
 mkdirSync('editors/vscode/syntaxes', { recursive: true });
 for (const [extension, language] of Object.entries({
-  tts: 'ts',
-  tjs: 'js',
-  ttsx: 'tsx',
-  tjsx: 'js.jsx',
+  twill: 'ts',
+  'twill.js': 'js',
+  twillx: 'tsx',
+  'twill.jsx': 'js.jsx',
 })) {
   const grammar = {
-    name: 'Trailing ' + language,
-    scopeName: 'source.trailing.' + { tts: 'ts', tjs: 'js', ttsx: 'tsx', tjsx: 'jsx' }[extension],
+    name: 'Twill ' + language,
+    scopeName:
+      'source.twill.' +
+      { twill: 'ts', 'twill.js': 'js', twillx: 'tsx', 'twill.jsx': 'jsx' }[extension],
     patterns: [
+      { include: '#defer' },
       { include: '#guard' },
       // A real closure header has `in` before its first statement. The body
       // delegates strings, comments, templates, JSX and nested syntax to VS Code.
@@ -21,23 +24,27 @@ for (const [extension, language] of Object.entries({
       {
         match: '(?<=\\})\\s*\\b([A-Za-z_$][\\w$]*)(\\s*:)(?=\\s*\\{)',
         captures: {
-          1: { name: 'entity.name.function.trailing' },
-          2: { name: 'punctuation.separator.trailing' },
+          1: { name: 'entity.name.function.twill' },
+          2: { name: 'punctuation.separator.twill' },
         },
       },
       { include: 'source.' + language },
     ],
     repository: {
+      defer: {
+        match: '\\bdefer\\b(?=(?:[^\\S\\r\\n]|/\\*[^\\r\\n]*?\\*/)*\\{)',
+        name: 'keyword.control.twill',
+      },
       guard: {
         match: '\\bguard\\b(?=\\s+(?:const\\b|[^\\s;=:.]))',
-        name: 'keyword.control.trailing',
+        name: 'keyword.control.twill',
       },
       'closure-header': {
         begin:
           '(\\{)(?=\\s*(?:async\\s+)?(?:[A-Za-z_$][\\w$]*(?:\\s*,\\s*[A-Za-z_$][\\w$]*)*|\\([^;{}]*\\))\\s+in\\b)',
-        beginCaptures: { 1: { name: 'punctuation.section.block.begin.trailing' } },
+        beginCaptures: { 1: { name: 'punctuation.section.block.begin.twill' } },
         end: '\\bin\\b',
-        endCaptures: { 0: { name: 'keyword.control.trailing' } },
+        endCaptures: { 0: { name: 'keyword.control.twill' } },
         patterns: [{ include: 'source.' + language }],
       },
     },
@@ -45,7 +52,7 @@ for (const [extension, language] of Object.entries({
   // Reach custom syntax inside the base grammar's function/block regions.
   grammar.injections = {
     [`L:${grammar.scopeName} -comment -string`]: {
-      patterns: [{ include: '#guard' }, { include: '#closure-header' }],
+      patterns: [{ include: '#defer' }, { include: '#guard' }, { include: '#closure-header' }],
     },
   };
   writeFileSync(
@@ -86,4 +93,4 @@ for (const name of [...packages].sort()) {
 }
 writeFileSync('editors/vscode/THIRD_PARTY_NOTICES.md', notices);
 copyFileSync('LICENSE', 'editors/vscode/LICENSE');
-copyFileSync('schemas/trailing.schema.json', 'editors/vscode/trailing.schema.json');
+copyFileSync('schemas/twill.schema.json', 'editors/vscode/twill.schema.json');

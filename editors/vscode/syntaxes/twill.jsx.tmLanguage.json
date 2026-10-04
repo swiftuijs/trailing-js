@@ -1,7 +1,10 @@
 {
-  "name": "Trailing js",
-  "scopeName": "source.trailing.js",
+  "name": "Twill js.jsx",
+  "scopeName": "source.twill.jsx",
   "patterns": [
+    {
+      "include": "#defer"
+    },
     {
       "include": "#guard"
     },
@@ -12,45 +15,52 @@
       "match": "(?<=\\})\\s*\\b([A-Za-z_$][\\w$]*)(\\s*:)(?=\\s*\\{)",
       "captures": {
         "1": {
-          "name": "entity.name.function.trailing"
+          "name": "entity.name.function.twill"
         },
         "2": {
-          "name": "punctuation.separator.trailing"
+          "name": "punctuation.separator.twill"
         }
       }
     },
     {
-      "include": "source.js"
+      "include": "source.js.jsx"
     }
   ],
   "repository": {
+    "defer": {
+      "match": "\\bdefer\\b(?=(?:[^\\S\\r\\n]|/\\*[^\\r\\n]*?\\*/)*\\{)",
+      "name": "keyword.control.twill"
+    },
     "guard": {
       "match": "\\bguard\\b(?=\\s+(?:const\\b|[^\\s;=:.]))",
-      "name": "keyword.control.trailing"
+      "name": "keyword.control.twill"
     },
     "closure-header": {
       "begin": "(\\{)(?=\\s*(?:async\\s+)?(?:[A-Za-z_$][\\w$]*(?:\\s*,\\s*[A-Za-z_$][\\w$]*)*|\\([^;{}]*\\))\\s+in\\b)",
       "beginCaptures": {
         "1": {
-          "name": "punctuation.section.block.begin.trailing"
+          "name": "punctuation.section.block.begin.twill"
         }
       },
       "end": "\\bin\\b",
       "endCaptures": {
         "0": {
-          "name": "keyword.control.trailing"
+          "name": "keyword.control.twill"
         }
       },
       "patterns": [
         {
-          "include": "source.js"
+          "include": "source.js.jsx"
         }
       ]
     }
   },
   "injections": {
-    "L:source.trailing.js -comment -string": {
+    "L:source.twill.jsx -comment -string": {
       "patterns": [
+        {
+          "include": "#defer"
+        },
         {
           "include": "#guard"
         },

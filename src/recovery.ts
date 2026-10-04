@@ -2,7 +2,7 @@ import MagicString from 'magic-string';
 import remapping from '@ampproject/remapping';
 import {
   transform,
-  TrailingSyntaxError,
+  TwillSyntaxError,
   type TransformOptions,
   type TransformResult,
 } from './compiler';
@@ -28,11 +28,11 @@ export function recoverTransform(source: string, options: TransformOptions): Tra
       );
       return { ...result, map: map as unknown as TransformResult['map'] };
     } catch (error) {
-      if (!(error instanceof TrailingSyntaxError)) throw error;
+      if (!(error instanceof TwillSyntaxError)) throw error;
       const before = text.slice(0, error.offset);
       let insertion: string;
       let offset = error.offset;
-      if (/\.\s*$/.test(before)) insertion = '__trailingIncomplete';
+      if (/\.\s*$/.test(before)) insertion = '__twillIncomplete';
       else if (offset >= text.length) {
         // Match lexical delimiters via the original source. This path only
         // handles suffix completion; it never makes build output valid.

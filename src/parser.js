@@ -68,6 +68,39 @@ function exits(node) {
   }
 }
 
+function awaits(node) {
+  if (!node || typeof node !== 'object') return false;
+  if (node.type === 'AwaitExpression' || node.await === true || node.kind === 'await using')
+    return true;
+  if (node.type === 'DeferStatement') return node.awaited;
+  if (['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression'].includes(node.type))
+    return false;
+  if (['ClassDeclaration', 'ClassExpression'].includes(node.type)) {
+    return (
+      awaits(node.superClass) ||
+      node.body.body.some((member) => member.computed && awaits(member.key))
+    );
+  }
+  return Object.entries(node).some(([key, value]) => {
+    if (key === 'loc' || key === 'trailing') return false;
+    return Array.isArray(value) ? value.some(awaits) : !!value?.type && awaits(value);
+  });
+}
+
+function deferAt(input, offset) {
+  try {
+    const next = Parser.tokenizer(input.slice(offset), { ecmaVersion: 'latest' }).getToken();
+    return (
+      next.type === tt.braceL &&
+      !/[\r\n\u2028\u2029]/.test(input.slice(offset, offset + next.start))
+    );
+  } catch {
+    // The isolated tokenizer may read JS division as a regexp. Let the real
+    // expression parser handle ordinary uses of the identifier instead.
+    return false;
+  }
+}
+
 // Inspect only the possible parameter header, using real tokens so comments,
 // strings, default arguments and destructuring cannot confuse the delimiter.
 function headerAt(input, offset) {
@@ -126,10 +159,13 @@ const parsers = new Map();
 function parserFor(language) {
   if (parsers.has(language)) return parsers.get(language);
   const Base = bases[language];
-  class TrailingParser extends Base {
+  class TwillParser extends Base {
     skipHeader = null;
     closures = [];
     lineStarts = null;
+    classSuperDepth = null;
+    subscriptDepth = 0;
+    derivedClassElement = false;
 
     locate(offset) {
       if (!this.lineStarts) {
@@ -149,6 +185,18 @@ function parserFor(language) {
     }
 
     parseStatement(context, ...args) {
+      if (this.isContextual('defer') && deferAt(this.input, this.end)) {
+        // A newline leaves an ordinary identifier expression and separate JS
+        // block. Calls, member access, assignments and labels are unchanged.
+        const node = this.startNode();
+        const async = this.canAwait;
+        this.next();
+        const cleanup = this.parseArrowExpression(this.startNode(), [], async, false);
+        node.awaited = awaits(cleanup.body);
+        cleanup.async = node.awaited;
+        node.cleanup = cleanup;
+        return this.finishNode(node, 'DeferStatement');
+      }
       if (!this.isContextual('guard') || !guardAt(this.input, this.end))
         return super.parseStatement(context, ...args);
       const node = this.startNode();
@@ -194,8 +242,50 @@ function parserFor(language) {
       return parameter;
     }
 
+    parseExprSubscripts(...args) {
+      this.subscriptDepth++;
+      try {
+        return super.parseExprSubscripts(...args);
+      } finally {
+        this.subscriptDepth--;
+      }
+    }
+
+    parseClassSuper(...args) {
+      const previous = this.classSuperDepth;
+      this.classSuperDepth = this.subscriptDepth;
+      try {
+        return super.parseClassSuper(...args);
+      } finally {
+        this.classSuperDepth = previous;
+      }
+    }
+
+    parseClassElement(...args) {
+      const previous = this.derivedClassElement;
+      this.derivedClassElement = !!args[0];
+      try {
+        return super.parseClassElement(...args);
+      } finally {
+        this.derivedClassElement = previous;
+      }
+    }
+
+    raise(position, message, ...args) {
+      // acorn-typescript 1.4.13 inverts the subclass check for `override`.
+      // Permit this valid syntax; TypeScript still checks override semantics.
+      if (
+        language.startsWith('ts') &&
+        this.derivedClassElement &&
+        typeof message === 'string' &&
+        message.includes("cannot have an 'override' modifier")
+      )
+        return;
+      return super.raise(position, message, ...args);
+    }
+
     readToken(code) {
-      // acorn-typescript enables JSX by default. Plain .tts follows TypeScript's
+      // acorn-typescript enables JSX by default. Plain .twill follows TypeScript's
       // non-JSX grammar, including angle-bracket assertions.
       if (language === 'ts' && code === 60 && !this.inType && this.exprAllowed)
         return this.readToken_lt_gt(code);
@@ -268,7 +358,11 @@ function parserFor(language) {
 
     parseSubscript(base, startPos, startLoc, noCalls, maybeAsyncArrow, optionalChained, forInit) {
       const supported = ['CallExpression', 'Identifier', 'MemberExpression'].includes(base.type);
-      if (!noCalls && supported && this.type === tt.braceL) {
+      // Only the outer heritage expression owns the class body brace. Nested
+      // calls, parenthesized expressions and computed lookups allow callbacks.
+      const classBody =
+        this.classSuperDepth !== null && this.subscriptDepth === this.classSuperDepth + 1;
+      if (!noCalls && supported && this.type === tt.braceL && !classBody) {
         if (base.trailing)
           this.raise(
             this.start,
@@ -316,22 +410,28 @@ function parserFor(language) {
       );
     }
   }
-  parsers.set(language, TrailingParser);
-  return TrailingParser;
+  parsers.set(language, TwillParser);
+  return TwillParser;
 }
 
 export function parse(source, language = 'ts', sourceType = 'module') {
-  const TrailingParser = parserFor(language);
-  const parser = new TrailingParser({ ...options, sourceType, allowHashBang: true }, source);
+  const TwillParser = parserFor(language);
+  const comments = [];
+  const parser = new TwillParser(
+    { ...options, sourceType, allowHashBang: true, onComment: comments },
+    source,
+  );
   const ast = parser.parse();
   const live = new Set();
   const calls = [];
   const guards = [];
+  const defers = [];
   const visit = (node) => {
     if (!node || typeof node !== 'object') return;
     if (node.type === 'ArrowFunctionExpression') live.add(node);
     if (node.trailing) calls.push(node);
     if (node.type === 'GuardStatement') guards.push(node);
+    if (node.type === 'DeferStatement') defers.push(node);
     for (const [key, value] of Object.entries(node)) {
       if (key === 'trailing' || key === 'loc') continue;
       if (Array.isArray(value)) value.forEach(visit);
@@ -343,6 +443,8 @@ export function parse(source, language = 'ts', sourceType = 'module') {
     ast,
     calls,
     guards,
+    defers,
+    comments,
     closures: parser.closures.filter((closure) => live.has(closure.node)),
   };
 }

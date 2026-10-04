@@ -1,13 +1,13 @@
 {
-  "name": "trailing-js",
-  "displayName": "Trailing JS",
-  "description": "Syntax highlighting and TypeScript language support for the Trailing JS/TS syntax-sugar language.",
-  "version": "0.2.0",
+  "name": "twill",
+  "displayName": "Twill",
+  "description": "Syntax highlighting and TypeScript language support for the Twill JS/TS syntax-sugar language.",
+  "version": "0.3.0",
   "publisher": "swiftuijs",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/swiftuijs/trailing-js"
+    "url": "https://github.com/swiftuijs/twill"
   },
   "engines": {
     "vscode": "^1.95.0"
@@ -17,90 +17,90 @@
   ],
   "main": "./dist/extension.cjs",
   "activationEvents": [
-    "onLanguage:trailing-typescript",
-    "onLanguage:trailing-javascript",
-    "onLanguage:trailing-tsx",
-    "onLanguage:trailing-jsx"
+    "onLanguage:twill-typescript",
+    "onLanguage:twill-javascript",
+    "onLanguage:twill-tsx",
+    "onLanguage:twill-jsx"
   ],
   "contributes": {
     "languages": [
       {
-        "id": "trailing-typescript",
+        "id": "twill-typescript",
         "aliases": [
-          "Trailing TypeScript",
-          "tts"
+          "Twill TypeScript",
+          "twill"
         ],
         "extensions": [
-          ".tts"
+          ".twill"
         ],
         "configuration": "./language-configuration.json"
       },
       {
-        "id": "trailing-javascript",
+        "id": "twill-javascript",
         "aliases": [
-          "Trailing JavaScript",
-          "tjs"
+          "Twill JavaScript",
+          "twill.js"
         ],
         "extensions": [
-          ".tjs"
+          ".twill.js"
         ],
         "configuration": "./language-configuration.json"
       },
       {
-        "id": "trailing-tsx",
+        "id": "twill-tsx",
         "aliases": [
-          "Trailing TSX",
-          "ttsx"
+          "Twill TSX",
+          "twillx"
         ],
         "extensions": [
-          ".ttsx"
+          ".twillx"
         ],
         "configuration": "./language-configuration.json"
       },
       {
-        "id": "trailing-jsx",
+        "id": "twill-jsx",
         "aliases": [
-          "Trailing JSX",
-          "tjsx"
+          "Twill JSX",
+          "twill.jsx"
         ],
         "extensions": [
-          ".tjsx"
+          ".twill.jsx"
         ],
         "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
       {
-        "language": "trailing-typescript",
-        "scopeName": "source.trailing.ts",
-        "path": "./syntaxes/tts.tmLanguage.json"
+        "language": "twill-typescript",
+        "scopeName": "source.twill.ts",
+        "path": "./syntaxes/twill.tmLanguage.json"
       },
       {
-        "language": "trailing-javascript",
-        "scopeName": "source.trailing.js",
-        "path": "./syntaxes/tjs.tmLanguage.json"
+        "language": "twill-javascript",
+        "scopeName": "source.twill.js",
+        "path": "./syntaxes/twill.js.tmLanguage.json"
       },
       {
-        "language": "trailing-tsx",
-        "scopeName": "source.trailing.tsx",
-        "path": "./syntaxes/ttsx.tmLanguage.json"
+        "language": "twill-tsx",
+        "scopeName": "source.twill.tsx",
+        "path": "./syntaxes/twillx.tmLanguage.json"
       },
       {
-        "language": "trailing-jsx",
-        "scopeName": "source.trailing.jsx",
-        "path": "./syntaxes/tjsx.tmLanguage.json"
+        "language": "twill-jsx",
+        "scopeName": "source.twill.jsx",
+        "path": "./syntaxes/twill.jsx.tmLanguage.json"
       }
     ],
     "commands": [
       {
-        "command": "trailing-js.showGenerated",
-        "title": "Trailing JS: Show Generated TypeScript"
+        "command": "twill.showGenerated",
+        "title": "Twill: Show Generated TypeScript"
       }
     ],
     "jsonValidation": [
       {
-        "fileMatch": "trailing.config.json",
-        "url": "./trailing.schema.json"
+        "fileMatch": "twill.config.json",
+        "url": "./twill.schema.json"
       }
     ]
   }

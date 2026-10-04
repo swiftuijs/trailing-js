@@ -3,7 +3,7 @@ dist/
 coverage/
 *.tgz
 *.vsix
-.trailing/
+.twill/
 .DS_Store
 editors/vscode/licenses/
 examples/**/.vite/

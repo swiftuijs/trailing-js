@@ -1,6 +1,7 @@
 import MagicString from 'magic-string';
 import { Parser, tokTypes } from 'acorn';
 import { parse } from './parser.js';
+import { lowerDefers } from './defer';
 import {
   originalPositionFor,
   generatedPositionFor,
@@ -18,18 +19,18 @@ export interface TransformOptions {
   /** Swift's single-expression implicit return. Defaults to true. */
   implicitReturn?: boolean;
 }
-export const extensions = ['.tjs', '.tts', '.tjsx', '.ttsx'] as const;
-export function isTrailingFile(id: string): boolean {
+export const extensions = ['.twill', '.twillx', '.twill.js', '.twill.jsx'] as const;
+export function isTwillFile(id: string): boolean {
   return extensions.some((extension) => id.split(/[?#]/, 1)[0]!.endsWith(extension));
 }
 export function inferLanguage(filename: string): Language {
-  if (/\.(?:ttsx|tsx)$/.test(filename)) return 'tsx';
-  if (/\.(?:tjsx|jsx)$/.test(filename)) return 'jsx';
-  if (/\.(?:tjs|js|mjs|cjs)$/.test(filename)) return 'js';
+  if (/\.(?:twillx|tsx)$/.test(filename)) return 'tsx';
+  if (/\.jsx$/.test(filename)) return 'jsx';
+  if (/\.(?:js|mjs|cjs)$/.test(filename)) return 'js';
   return 'ts';
 }
 
-export class TrailingSyntaxError extends SyntaxError {
+export class TwillSyntaxError extends SyntaxError {
   readonly filename: string;
   readonly line: number;
   readonly column: number;
@@ -43,7 +44,7 @@ export class TrailingSyntaxError extends SyntaxError {
     const line = error.loc?.line ?? 1;
     const column = error.loc?.column ?? 0;
     super(`${filename}:${line}:${column + 1}: ${error.message.replace(/\s*\(\d+:\d+\)$/, '')}`);
-    this.name = 'TrailingSyntaxError';
+    this.name = 'TwillSyntaxError';
     this.filename = filename;
     this.line = line;
     this.column = column;
@@ -80,8 +81,15 @@ function calleeName(node: Node): string | undefined {
 }
 
 export function transform(source: string, options: TransformOptions = {}) {
-  const filename = options.filename ?? 'input.tts';
-  let parsed: { ast: Node; calls: Node[]; guards: Node[]; closures: ClosureMetadata[] };
+  const filename = options.filename ?? 'input.twill';
+  let parsed: {
+    ast: Node;
+    calls: Node[];
+    guards: Node[];
+    defers: Node[];
+    comments: { start: number; end: number; value: string; type: string }[];
+    closures: ClosureMetadata[];
+  };
   try {
     parsed = parse(
       source,
@@ -89,10 +97,10 @@ export function transform(source: string, options: TransformOptions = {}) {
       options.sourceType ?? 'module',
     );
   } catch (error) {
-    throw new TrailingSyntaxError(
+    throw new TwillSyntaxError(
       source,
       filename,
-      error as ConstructorParameters<typeof TrailingSyntaxError>[2],
+      error as ConstructorParameters<typeof TwillSyntaxError>[2],
     );
   }
   const code = new MagicString(source);
@@ -122,7 +130,7 @@ export function transform(source: string, options: TransformOptions = {}) {
   const metadataByNode = new Map(parsed.closures.map((item) => [item.node, item]));
   let counter = 0;
   const usedNames = new Set<string>();
-  if (builders.size)
+  if (builders.size || parsed.defers.length)
     walk(parsed.ast, (node) => {
       if (node.type === 'Identifier') usedNames.add(node.name);
     });
@@ -156,7 +164,7 @@ export function transform(source: string, options: TransformOptions = {}) {
       const body = closure.body.body as Node[];
       if (builders.has(calleeName(node.callee) ?? '')) {
         let collector: string;
-        do collector = `__trailingChildren${counter++}`;
+        do collector = `__twillChildren${counter++}`;
         while (usedNames.has(collector));
         const bodyStart = metadata.header?.end ?? closure.start + 1;
         code.appendLeft(bodyStart, `const ${collector} = [];`);
@@ -198,7 +206,7 @@ export function transform(source: string, options: TransformOptions = {}) {
               collect(statement.body);
               break;
             case 'ReturnStatement':
-              throw new TrailingSyntaxError(source, filename, {
+              throw new TwillSyntaxError(source, filename, {
                 message: 'Builder closures collect expressions; use expressions instead of return.',
                 pos: statement.start,
                 loc: statement.loc.start,
@@ -224,18 +232,40 @@ export function transform(source: string, options: TransformOptions = {}) {
     // The parser may visit nested trailing calls after this one. Edits use
     // original offsets throughout, so nested scopes compose without reparsing.
   }
+  if (parsed.defers.length) {
+    const starts = new Map<Node, number>();
+    for (const metadata of parsed.closures)
+      if (metadata.header) starts.set(metadata.node.body, metadata.header.end);
+    lowerDefers(
+      source,
+      parsed.ast,
+      code,
+      options.language ?? inferLanguage(filename),
+      usedNames,
+      starts,
+      parsed.comments,
+      (node, message) => {
+        throw new TwillSyntaxError(source, filename, {
+          message,
+          pos: node.start,
+          loc: node.loc.start,
+        });
+      },
+    );
+  }
   const map = code.generateMap({
     source: filename,
-    file: filename.replace(/\.(tts|tjs|ttsx|tjsx)$/, '.js'),
+    file: filename.replace(/\.twill(?:x|\.jsx?)?$/, '.js'),
     includeContent: true,
     hires: true,
   });
   return {
     code: code.toString(),
     map,
-    changed: parsed.closures.length > 0 || parsed.guards.length > 0,
+    changed: parsed.closures.length > 0 || parsed.guards.length > 0 || parsed.defers.length > 0,
     closures: parsed.closures.length,
     guards: parsed.guards.length,
+    defers: parsed.defers.length,
   };
 }
 

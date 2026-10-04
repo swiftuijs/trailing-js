@@ -1,3 +1,3 @@
 import { createApp } from 'vue';
-import App from './App.tts';
+import App from './App.twill';
 createApp(App).mount('#app');
