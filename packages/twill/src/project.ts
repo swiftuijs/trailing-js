@@ -13,6 +13,7 @@ import {
 import { loadConfig } from './config';
 import { recoverTransform } from './recovery';
 import { isDependency } from './files';
+export { isDependency } from './files';
 
 function lineStarts(text: string): number[] {
   const starts = [0];
@@ -67,6 +68,7 @@ export class TwillProject {
   readonly root: string;
   readonly service: ts.LanguageService;
   readonly compilerOptions: ts.CompilerOptions;
+  readonly configFiles: readonly string[];
   private files: string[];
   private overlays = new Map<string, string>();
   private results = new Map<string, { source: string; result: TransformResult }>();
@@ -78,6 +80,7 @@ export class TwillProject {
   private options: TransformOptions;
   private readonly host: ts.LanguageServiceHost;
   private recover: boolean;
+  private discoverFiles: () => string[];
 
   constructor(
     tsconfig: string,
@@ -92,6 +95,17 @@ export class TwillProject {
     this.root = dirname(configFile);
     this.recover = projectOptions.recover ?? false;
     this.options = { ...loadConfig(this.root), ...options };
+    const configReads = new Set([
+      configFile,
+      sourceFilename(resolve(this.root, 'twill.config.json')),
+    ]);
+    const configHost = {
+      ...ts.sys,
+      readFile: (filename: string) => {
+        configReads.add(sourceFilename(filename));
+        return ts.sys.readFile(filename);
+      },
+    };
     const raw =
       projectOptions.inferred && !ts.sys.fileExists(configFile)
         ? {
@@ -105,10 +119,10 @@ export class TwillProject {
               },
             },
           }
-        : ts.readConfigFile(configFile, ts.sys.readFile);
+        : ts.readConfigFile(configFile, configHost.readFile);
     const parsed = ts.parseJsonConfigFileContent(
       raw.config ?? {},
-      ts.sys,
+      configHost,
       this.root,
       { allowJs: true, allowImportingTsExtensions: true, noEmit: true },
       configFile,
@@ -130,8 +144,21 @@ export class TwillProject {
         },
       ];
     this.compilerOptions = parsed.options;
+    this.configFiles = [...configReads];
     this.options.jsxImportSource ??= parsed.options.jsxImportSource;
     this.files = parsed.fileNames.map(virtualFilename);
+    this.discoverFiles = () =>
+      ts
+        .parseJsonConfigFileContent(
+          raw.config ?? {},
+          configHost,
+          this.root,
+          { allowJs: true, allowImportingTsExtensions: true, noEmit: true },
+          configFile,
+          undefined,
+          extraExtensions,
+        )
+        .fileNames.map(virtualFilename);
     const readFile = (name: string) => {
       const original = sourceFilename(name);
       const source = this.overlays.get(original) ?? ts.sys.readFile(original);
@@ -237,6 +264,20 @@ export class TwillProject {
     this.invalidation++;
     this.version++;
     this.results.clear();
+  }
+
+  /** Refresh a disk version without discarding unsaved overlays or other transforms. */
+  refresh(filename: string, discover = false) {
+    filename = sourceFilename(resolve(filename));
+    if (discover)
+      this.files = [
+        ...new Set([...this.discoverFiles(), ...[...this.overlays.keys()].map(virtualFilename)]),
+      ];
+    if (!this.overlays.has(filename)) {
+      this.results.delete(filename);
+      this.fileVersions.set(filename, (this.fileVersions.get(filename) ?? 0) + 1);
+    }
+    this.version++;
   }
 
   text(filename: string): string | undefined {

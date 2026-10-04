@@ -2,13 +2,15 @@ import type ts from 'typescript/lib/tsserverlibrary';
 import { statSync } from 'node:fs';
 import { TwillProject, sourceFilename, virtualFilename } from './project';
 import { isTwillFile } from './compiler';
+import { TwillEditor } from './editor';
 
-/** Read-only bridge for native TS/JS documents in configured mixed projects. */
+/** Semantic bridge for native TS/JS documents in configured mixed projects. */
 export default function init(_modules: { typescript: typeof ts }): ts.server.PluginModule {
   type Context = {
     project: TwillProject;
     info: ts.server.PluginCreateInfo;
     versions: Map<string, string>;
+    editor: TwillEditor;
   };
   const contexts = new Map<ts.server.Project, Context>();
   let overlays: Record<string, string> = {};
@@ -88,17 +90,18 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
     create(info) {
       const config = info.project.getProjectName();
       if (!/\.json$/.test(config)) return info.languageService;
+      const project = new TwillProject(
+        config,
+        {},
+        {
+          defaultLibFileName: (options) => info.languageServiceHost.getDefaultLibFileName(options),
+        },
+      );
       const context: Context = {
-        project: new TwillProject(
-          config,
-          {},
-          {
-            defaultLibFileName: (options) =>
-              info.languageServiceHost.getDefaultLibFileName(options),
-          },
-        ),
+        project,
         info,
         versions: new Map(),
+        editor: new TwillEditor(project),
       };
       contexts.set(info.project, context);
       const proxy = Object.create(null) as ts.LanguageService;
@@ -119,6 +122,12 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
             return execute(file, ...args);
           } catch (error) {
             info.project.projectService.logger.info(`Twill ${String(key)}: ${error}`);
+            if (key === 'findRenameLocations') return undefined;
+            if (key === 'getRenameInfo')
+              return {
+                canRename: false,
+                localizedErrorMessage: 'Twill could not safely map this rename.',
+              };
             return original(file, ...args);
           }
         };
@@ -159,6 +168,56 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
           }
         );
       });
+      use('getRenameInfo', (file, offset) => context.editor.renameInfo(file, offset));
+      use('findRenameLocations', (file, offset, strings, comments, preferences) => {
+        if (strings || comments) return undefined;
+        return context.editor.renameLocations(file, offset, preferences ?? true);
+      });
+      const toChanges = (edits: ReturnType<TwillEditor['mapChanges']>) => {
+        if (!edits) return undefined;
+        const files = new Map<string, { fileName: string; textChanges: ts.TextChange[] }>();
+        for (const edit of edits) {
+          let file = files.get(edit.filename);
+          if (!file)
+            files.set(edit.filename, (file = { fileName: edit.filename, textChanges: [] }));
+          file.textChanges.push({ span: edit.span, newText: edit.newText });
+        }
+        return [...files.values()];
+      };
+      use('getCompletionEntryDetails', (file, offset, ...args) => {
+        const details = (service.getCompletionEntryDetails as any)(
+          virtualFilename(file),
+          context.project.toGeneratedOffset(file, offset),
+          ...args,
+        ) as ts.CompletionEntryDetails | undefined;
+        if (!details) return details;
+        return {
+          ...details,
+          codeActions: details.codeActions?.flatMap((action) => {
+            const changes = toChanges(context.editor.mapChanges(action.changes));
+            return changes ? [{ ...action, changes }] : [];
+          }),
+        };
+      });
+      // OrganizeImports takes a scope object rather than a filename, so it
+      // cannot use the generic native-document request wrapper above.
+      const originalOrganize = proxy.organizeImports;
+      proxy.organizeImports = (scope, format, preferences) => {
+        try {
+          sync(context);
+          if (!context.project.sourceFiles().some(isTwillFile))
+            return originalOrganize(scope, format, preferences);
+          const changes = service.organizeImports(
+            { ...scope, fileName: virtualFilename(scope.fileName) },
+            format,
+            preferences,
+          );
+          return toChanges(context.editor.mapChanges(changes)) ?? [];
+        } catch (error) {
+          info.project.projectService.logger.info(`Twill organizeImports: ${error}`);
+          return [];
+        }
+      };
       for (const key of ['getSemanticDiagnostics', 'getSyntacticDiagnostics'] as const)
         use(key, (file) =>
           service[key](virtualFilename(file)).map((value) => diagnostic(context, value)),

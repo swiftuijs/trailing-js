@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { parseArgs } from 'node:util';
@@ -6,6 +5,7 @@ import { transform } from './compiler';
 import { transpile } from './transpile';
 import { loadConfig } from './config';
 import { TwillProject } from './project';
+import { inspectProject } from './doctor';
 
 export async function main(args = process.argv.slice(2)): Promise<number> {
   const { values, positionals } = parseArgs({
@@ -22,15 +22,33 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
   const [command, input, ...extra] = positionals;
   if (values.help || !command) {
     console.log(
-      'twill compile <file> [-o output.ts] [--js]\ntwill check [-p tsconfig.json] [--json]\n\ncompile keeps TypeScript types by default; --js erases types and lowers JSX.\nBoth commands read twill.config.json from the project root.',
+      'twill compile <file> [-o output.ts] [--js]\ntwill check [-p tsconfig.json] [--json]\ntwill doctor [-p tsconfig.json] [--json]\n\ncompile keeps TypeScript types by default; --js erases types and lowers JSX.\nCommands read twill.config.json from the project root.',
     );
     return 0;
   }
   if (extra.length) throw new Error('Unexpected arguments: ' + extra.join(' '));
-  if (command === 'check') {
-    if (input) throw new Error('Use --project <tsconfig.json> with check');
+  if (command === 'check' || command === 'doctor') {
+    if (input) throw new Error('Use --project <tsconfig.json> with ' + command);
     const project = new TwillProject(resolve(values.project ?? 'tsconfig.json'));
     try {
+      if (command === 'doctor') {
+        const report = inspectProject(project);
+        if (values.json) console.log(JSON.stringify(report, null, 2));
+        else {
+          console.log(
+            `Twill ${report.twillVersion} / TypeScript ${report.typescriptVersion} / Node ${report.nodeVersion}`,
+          );
+          console.log(
+            `Project: ${report.root}\nSources: ${report.files.twill} Twill, ${report.files.native} native\nDiagnostics: ${report.diagnostics.length} (${report.diagnosticTimeMs.toFixed(1)} ms)`,
+          );
+          for (const diagnostic of report.diagnostics)
+            console.log(
+              `${diagnostic.filename ?? 'tsconfig'}:${diagnostic.line}:${diagnostic.column + 1} TS${diagnostic.code}: ${diagnostic.message}`,
+            );
+          console.log('Use --json to save the complete project report.');
+        }
+        return report.ok ? 0 : 1;
+      }
       const diagnostics = project.diagnostics();
       if (values.json) console.log(JSON.stringify(diagnostics, null, 2));
       else

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { transform, TwillSyntaxError, originalPosition } from '../src/compiler';
-import { parse } from '../src/parser.js';
+import { transform, TwillSyntaxError, originalPosition } from '../packages/twill/src/compiler';
+import { parse } from '../packages/twill/src/parser.js';
 
 function evaluate(source: string, bindings: Record<string, unknown> = {}) {
   const result = transform(`function __test() { ${source} }`, {

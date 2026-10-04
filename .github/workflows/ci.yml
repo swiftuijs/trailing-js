@@ -17,19 +17,22 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: ${{ matrix.node }}
-          cache: npm
-      - run: npm ci
-      - run: npm run check
-      - run: npm run format:check
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm format:check
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: npm run test:coverage
+        run: pnpm test:coverage
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: npm pack --ignore-scripts
+        run: pnpm package:core
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: npm run benchmark -- --output benchmark-results.json
+        run: node scripts/verify-package.mjs --packed
+      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        run: pnpm benchmark --output benchmark-results.json
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         uses: actions/upload-artifact@v7.0.1
         with:
@@ -43,15 +46,34 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run build
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm package:core
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: 20
       # Vitest 5 and VSCE 4 require Node 22. The distributed compiler, loader,
       # type checker and build adapters also support Node 20 consumers.
-      - run: npm run test:package
+      - run: node scripts/verify-package.mjs --packed
+  editor:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        vscode: ['1.95.3', stable]
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm editor:package
+      - run: xvfb-run -a pnpm editor:test
+        env:
+          TWILL_TEST_VSCODE_VERSION: ${{ matrix.vscode }}

@@ -6,9 +6,9 @@ import { dirname } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import ts from 'typescript';
-import { transform, originalPosition } from '../dist/index.js';
+import { transform, originalPosition } from '../packages/twill/dist/index.js';
 import { transform as minify } from 'esbuild';
-import twill from '../dist/rollup.js';
+import twill from '../packages/twill/dist/rollup.js';
 
 const samples = 15;
 function measure(task, warmups = 5) {
@@ -150,15 +150,15 @@ for (const registrations of [1, 10, 100]) {
 }
 const report = {
   timestamp: new Date().toISOString(),
-  version: JSON.parse(readFileSync('package.json', 'utf8')).version,
+  version: JSON.parse(readFileSync('packages/twill/package.json', 'utf8')).version,
   commit: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
   workingTreeDirty: !!execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim(),
   buildDigest: createHash('sha256')
     .update(
-      readdirSync('dist')
+      readdirSync('packages/twill/dist')
         .filter((name) => name.endsWith('.js'))
         .sort()
-        .map((name) => name + '\0' + readFileSync('dist/' + name, 'utf8'))
+        .map((name) => name + '\0' + readFileSync('packages/twill/dist/' + name, 'utf8'))
         .join('\0'),
     )
     .digest('hex'),

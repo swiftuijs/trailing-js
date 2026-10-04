@@ -9,20 +9,20 @@ const doubled = [1, 2, 3].map { value in value * 2 };
 
 Ordinary callbacks compile to native arrows. In UI files, component closures compile directly to standard JSX: React children or lazy Vue slots. Import components directly from any library. `@swiftuijs/ui` is one example consumer; the compiler has no component-library lists or special cases.
 
-This is an experimental **0.5 language**, with production-oriented packaging and tests. See [the syntax contract and limitations](docs/syntax.md) before adopting it. Until published to npm and the Marketplace, install a locally built tarball and VSIX.
+This is an experimental **0.6 language**, with production-oriented packaging and tests. See [the syntax contract and limitations](docs/syntax.md) before adopting it. Until published to npm and the Marketplace, install a locally built tarball and VSIX.
 
 ## Quick start
 
-The distributed package requires Node **20.19+ or 22.12+** and is ESM. Use **Node 22.12+** to develop the repository or rebuild the editor extension; its test and VSIX tools require Node 22.
+The distributed package requires Node **20.19+ or 22.12+** and is ESM. Use **Node 22.12+** and the pinned **pnpm 11** to develop the repository; Vite builds every workspace package. Enable pnpm through Corepack (`corepack enable`) or install the version in `packageManager`. See [the monorepo and tooling guide](docs/tooling.md).
 
 ```sh
 git clone https://github.com/swiftuijs/twill.git
 cd twill
-npm ci
-npm run build
-npm pack
+pnpm install --frozen-lockfile
+pnpm build
+pnpm package:core
 # In your application:
-npm install /path/to/swiftuijs-twill-0.5.0.tgz
+npm install /path/to/swiftuijs-twill-0.6.0.tgz
 ```
 
 In Vite:
@@ -77,7 +77,7 @@ const result: number[] = doubled;
 Use the Twill build plugin, `twill check`, and the VSIX for a mixed project. Vite/esbuild retain their native TS pipeline; bare Rollup/webpack/rspack receive standard TS/TSX/JSX emission by default. Set `nativeSources: false` when another plugin owns that emission. Native files never use Twill parsing or implicit-return rules. npm dependencies retain their host's handling.
 
 ```sh
-npm run dev:mixed     # JS → TS → Twill → TS/JS, with exported types and dynamic imports
+pnpm dev:mixed     # JS → TS → Twill → TS/JS, with exported types and dynamic imports
 npx twill check -p tsconfig.json
 node --enable-source-maps --import @swiftuijs/twill/register src/main.js
 ```
@@ -117,7 +117,7 @@ function scoreOf(input: { score: number } | undefined) {
 `guard condition else { ... }` lowers to `if (!(condition)) { ... }`. `guard const name = expression else { ... }` lowers to a normal `const` and a nullish check; it evaluates the initializer once. Every failure path must explicitly exit with `return`, `throw`, `break` or `continue`. Existing variables and functions named `guard` remain valid.
 
 ```sh
-npm run dev:general  # validation, typed array pipelines, async retry
+pnpm dev:general  # validation, typed array pipelines, async retry
 ```
 
 ## Scope cleanup
@@ -135,7 +135,7 @@ async function read(path: string) {
 The compiler emits a lazy local callback stack and `try/finally`. Each reached cleanup allocates a closure; no stack is allocated if registration is skipped. All registered cleanups run even if one throws; the last cleanup error replaces an earlier body or cleanup error. See [the detailed contract](docs/syntax.md#defer) for capture, exception and control-flow rules. Existing `defer()`, assignments, properties and labels retain JS behavior. The keyword and opening brace must be on the same line.
 
 ```sh
-npm run dev:defer  # real file handles and temporary-directory cleanup
+pnpm dev:defer  # real file handles and temporary-directory cleanup
 ```
 
 ## Components without configuration or wrappers
@@ -179,9 +179,9 @@ The normal `compilerOptions.jsxImportSource` setting in `tsconfig.json` (includi
 Runnable examples:
 
 ```sh
-npm run dev:react   # @swiftuijs/ui example
-npm run dev:vue     # independent Vue components
-npm run example:check
+pnpm dev:react   # @swiftuijs/ui example
+pnpm dev:vue     # independent Vue components
+pnpm example:check
 ```
 
 ## Build tools and Node
@@ -215,13 +215,17 @@ The single-file compile command preserves import specifiers; use a bundler for s
 ## Editor
 
 ```sh
-npm run editor:package
+pnpm editor:package
 code --install-extension dist/twill.vsix
 ```
 
-VS Code supports syntax highlighting, comments, brackets, TypeScript diagnostics, hover, member completion, signature help, and go-to-definition in extended files. `Twill: Show Generated TypeScript` opens the lowered source beside your document. The extension bundles its language tooling; it does not require a globally installed compiler.
+VS Code supports syntax highlighting, TypeScript diagnostics, hover, contextual member/React prop completion, signature help, definitions, automatic imports, cross-file rename, import organization and mapped quick fixes. Completion and edits use original Twill coordinates, including unsaved mixed projects. The extension bundles its language tooling; it does not require a globally installed compiler.
 
-The extension reads the nearest `tsconfig.json` and `twill.config.json`. It recovers common incomplete member expressions while typing; builds always reject invalid syntax. A bundled TS-server bridge supplies diagnostics, hover, completion, signatures and definitions to native TS/JS documents in configured mixed projects. Unsaved Twill and native changes are synchronized, and definitions map back to original files. The extension bundles standard-library declarations for its standalone checker. Use `twill check` for authoritative project checks. Formatting, rename across dialect files, automatic imports, and React Fast Refresh integration are not yet provided.
+The extension reads the nearest `tsconfig.json` and `twill.config.json`. It recovers common incomplete member expressions while typing; builds always reject invalid syntax. A bundled TS-server bridge supplies diagnostics, hover, completion, signatures and definitions to native TS/JS documents in configured mixed projects. Unsaved Twill and native changes are synchronized, and definitions map back to original files. The extension bundles standard-library declarations for its standalone checker. Use `twill check` for authoritative project checks. Rename and import organization also map edits from native TS/JS back into Twill. Edits that cannot be safely represented in the original syntax are withheld. Formatting, general refactoring/fix-all and React Fast Refresh integration remain future work.
+
+`Twill: Show Generated TypeScript` opens lowered source; `Twill: Show Project Diagnostics` opens a diagnostic report. `Twill: Debug Current File` starts the built-in Node debugger using source maps and the installed `@swiftuijs/twill/register` loader. Install the compiler in your application before debugging. You can also run `npx twill doctor -p tsconfig.json --json` for a scriptable configuration and diagnostics report.
+
+The packaged VSIX is tested in a real VS Code extension host, including completion edits, imports, mixed-file rename, quick fixes and breakpoints on original Twill lines.
 
 TextMate grammars in `editors/vscode/syntaxes` can be reused by other editors that supply TypeScript/JavaScript base grammars. This repository's `.gitattributes` selects TypeScript/TSX highlighting on GitHub. See [GitHub integration](docs/github.md) to enable it in other repositories and understand the requirements for official Twill recognition.
 
@@ -236,16 +240,16 @@ See [measured results and methodology](docs/performance.md) and [language design
 See [readiness and remaining work](docs/readiness.md) for current editor boundaries, performance gaps and the priorities before a stable production claim.
 
 ```sh
-npm run build
-npm run benchmark -- --output benchmark-results.json
+pnpm build
+pnpm benchmark --output benchmark-results.json
 ```
 
 ## Development and release
 
 ```sh
-npm ci
-npm run check
-npm run test:coverage
+pnpm install --frozen-lockfile
+pnpm check
+pnpm test:coverage
 ```
 
 Checks cover syntax execution, TS/JSX compatibility, mappings, type inference, incomplete-editor input, all five bundlers, framework rendering, independently installed npm tarballs, Node loading, and VSIX packaging. CI repeats them on Linux, Windows, and macOS. See [architecture](docs/architecture.md), [contributing](CONTRIBUTING.md), and [release instructions](docs/releasing.md).

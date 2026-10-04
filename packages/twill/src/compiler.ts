@@ -166,6 +166,11 @@ export function transform(source: string, options: TransformOptions = {}) {
     code.appendLeft(start, `/** @jsxImportSource ${jsxImportSource} */\n`);
   }
   const attributeClosings: number[] = [];
+  const componentProps: {
+    start: number;
+    end: number;
+    properties: { name: string; start: number; end: number; shorthand: boolean }[];
+  }[] = [];
   const stripPunctuation = (start: number, end: number, types: readonly unknown[]) => {
     const text = source.slice(start, end);
     const lexer = Parser.tokenizer(text, { ecmaVersion: 'latest' });
@@ -234,6 +239,18 @@ export function transform(source: string, options: TransformOptions = {}) {
               /^[A-Za-z_$][\w$.:-]*$/.test(String(property.key.name ?? property.key.value))),
         );
       if (directAttributes) {
+        componentProps.push({
+          start: props!.start,
+          end: props!.end,
+          properties: props!.properties
+            .filter((property: Node) => property.type !== 'SpreadElement')
+            .map((property: Node) => ({
+              name: String(property.key.name ?? property.key.value),
+              start: property.key.start,
+              end: property.key.end,
+              shorthand: Boolean(property.shorthand),
+            })),
+        });
         // Literal props become native JSX attributes. This retains contextual
         // callback types and passes keys explicitly, as React's runtime expects.
         code.overwrite(
@@ -478,6 +495,7 @@ export function transform(source: string, options: TransformOptions = {}) {
     closures: parsed.closures.length,
     guards: parsed.guards.length,
     defers: parsed.defers.length,
+    componentProps,
   };
 }
 

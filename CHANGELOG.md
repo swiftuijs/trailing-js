@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.0
+
+Move development into a pnpm workspace monorepo with Vite/Rolldown library builds. The public compiler/toolchain lives in `packages/twill`; the VSIX and its private TS-server bridge build as dependent workspaces. The public package remains `@swiftuijs/twill`, and the only dialect extensions remain `.twill` / `.twillx`. Compiler declarations use Vite's declaration plugin; all published bundles target Node 20 while repository tools use Node 22+.
+
+Improve real editing workflows: partially typed React prop keys, contextual callback completion, automatic imports, cross-file rename in mixed TS/JS/Twill projects, shorthand/quoted prop preservation, import organization and mapped quick fixes. Unmappable generated edits are withheld. Per-file disk refresh retains unrelated transforms and unsaved overlays; project configuration changes reset affected projects.
+
+Add `twill doctor`, project-information and generated-source views, and a Node debugging command with original-source breakpoints. Real VS Code extension-host tests exercise the packaged VSIX, unsaved mixed-file edits and source-map debugging; CI covers minimum and stable VS Code versions alongside cross-platform compiler/package checks. Formatting, lint integration, general refactoring/fix-all and user-library declaration/project-reference builds remain future work.
+
 ## 0.5.0
 
 Natural `.twillx` component closures compile directly to native JSX. Real components are imported and used directly, without component lists, aliases or Twill wrapping functions. React preserves hooks, memo, class identity, refs and native JSX prop/children checking. Vue preserves lazy reactive slots, supports scoped/named slots and rejects duplicate slot names. The standard JSX import source and inherited tsconfig settings select the runtime; direct Vue imports also select Vue when unspecified.

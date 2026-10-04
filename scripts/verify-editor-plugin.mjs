@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { probeTypeScriptPlugin } from './probe-typescript-plugin.mjs';
-await probeTypeScriptPlugin(resolve('editors/vscode'), '@swiftuijs/twill');
+await probeTypeScriptPlugin(resolve('editors/vscode'), '@swiftuijs/twill-vscode-tsserver');
 console.log(
   'Bundled editor plugin passed native TS/JS diagnostics, hover, definitions and unsaved-source checks.',
 );

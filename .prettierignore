@@ -3,8 +3,10 @@ dist
 coverage
 editors/vscode/dist
 editors/vscode/licenses
-package-lock.json
+pnpm-lock.yaml
 examples/**/*.twill
-examples/**/*.twill.js
 examples/**/*.twillx
-examples/**/*.twill.jsx
+packages/twill/README.md
+packages/twill/LICENSE
+.twill
+.vscode-test

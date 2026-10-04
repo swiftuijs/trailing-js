@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { createRequire } from 'node:module';
 import { Registry, INITIAL } from 'vscode-textmate';
 import { loadWASM, OnigScanner, OnigString } from 'vscode-oniguruma';
-import { TwillProject, virtualFilename } from '../src/project';
+import { TwillProject, virtualFilename } from '../packages/twill/src/project';
 
 it('offers members while the user is typing an incomplete closure', () => {
   const root = mkdtempSync(join(tmpdir(), 'twill-editor-'));

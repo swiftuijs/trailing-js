@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { TwillProject, virtualFilename, sourceFilename } from '../src/project';
+import { TwillProject, virtualFilename, sourceFilename } from '../packages/twill/src/project';
 
 const cleanups: (() => void)[] = [];
 afterEach(() => {

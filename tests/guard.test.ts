@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { transform as minify } from 'esbuild';
-import { transform, originalPosition, TwillSyntaxError } from '../src/compiler';
-import { parse } from '../src/parser.js';
+import { transform, originalPosition, TwillSyntaxError } from '../packages/twill/src/compiler';
+import { parse } from '../packages/twill/src/parser.js';
 
 function run(source: string, ...values: unknown[]) {
   const result = transform(`function run(value, record) { ${source} }`, {

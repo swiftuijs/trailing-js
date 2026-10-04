@@ -2,7 +2,14 @@
   "name": "twill",
   "displayName": "Twill",
   "description": "Syntax highlighting and TypeScript language support for the Twill JS/TS syntax-sugar language.",
-  "version": "0.5.0",
+  "version": "0.6.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build && node ../../scripts/prepare-editor.mjs",
+    "package": "pnpm -w editor:package",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
   "publisher": "swiftuijs",
   "license": "MIT",
   "repository": {
@@ -10,7 +17,7 @@
     "url": "https://github.com/swiftuijs/twill"
   },
   "engines": {
-    "vscode": "^1.95.0"
+    "vscode": "^1.95.3"
   },
   "categories": [
     "Programming Languages"
@@ -61,6 +68,14 @@
       {
         "command": "twill.showGenerated",
         "title": "Twill: Show Generated TypeScript"
+      },
+      {
+        "command": "twill.projectInfo",
+        "title": "Twill: Show Project Diagnostics"
+      },
+      {
+        "command": "twill.debugFile",
+        "title": "Twill: Debug Current File"
       }
     ],
     "jsonValidation": [
@@ -71,7 +86,7 @@
     ],
     "typescriptServerPlugins": [
       {
-        "name": "@swiftuijs/twill",
+        "name": "@swiftuijs/twill-vscode-tsserver",
         "enableForWorkspaceTypeScriptVersions": true
       }
     ]
@@ -80,6 +95,13 @@
     "vscode.typescript-language-features"
   ],
   "dependencies": {
-    "@swiftuijs/twill": "file:./twill-typescript-plugin"
+    "@swiftuijs/twill-vscode-tsserver": "workspace:*"
+  },
+  "devDependencies": {
+    "@swiftuijs/twill": "workspace:*",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.2",
+    "@types/node": "^26.6.4",
+    "@types/vscode": "^1.140.0"
   }
 }

@@ -7,9 +7,9 @@ import ts from 'typescript';
 import { createRequire } from 'node:module';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { transform, isTwillFile } from '../src/compiler';
-import { TwillProject } from '../src/project';
-import { loadConfig } from '../src/config';
+import { transform, isTwillFile } from '../packages/twill/src/compiler';
+import { TwillProject } from '../packages/twill/src/project';
+import { loadConfig } from '../packages/twill/src/config';
 
 const require = createRequire(import.meta.url);
 function compile(body: string, bindings: Record<string, unknown>, jsxImportSource = 'react') {

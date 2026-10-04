@@ -1,0 +1,20 @@
+packages:
+  - packages/*
+  - editors/vscode
+  - editors/vscode/twill-typescript-plugin
+
+minimumReleaseAgeExclude:
+  - '@swiftuijs/ui@0.1.1'
+
+# The repository builds with Vite/Rolldown. esbuild is retained only for its
+# supported adapter and consumer tests; its native test binary needs setup.
+allowBuilds:
+  esbuild: true
+  '@parcel/watcher': true
+  '@vscode/vsce-sign': false
+
+# Declaration emission uses the Vite entry, not the optional Rspack entry.
+# Rspack 2 remains installed to verify Twill's own Rspack adapter.
+peerDependencyRules:
+  allowedVersions:
+    'unplugin-dts>@rspack/core': '^2'

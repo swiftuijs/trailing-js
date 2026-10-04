@@ -1,5 +1,5 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": { "types": ["node", "vscode"] },
-  "include": ["src", "../../src"]
+  "include": ["src", "vite.config.ts"]
 }

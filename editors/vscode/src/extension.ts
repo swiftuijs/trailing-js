@@ -1,8 +1,15 @@
 import * as vscode from 'vscode';
 import ts from 'typescript';
-import { dirname, join } from 'node:path';
-import { TwillProject, virtualFilename, sourceFilename } from '../../../src/project';
-import { isTwillFile } from '../../../src/compiler';
+import { basename, dirname, join } from 'node:path';
+import {
+  TwillProject,
+  virtualFilename,
+  sourceFilename,
+  isDependency,
+} from '@swiftuijs/twill/project';
+import { isTwillFile } from '@swiftuijs/twill';
+import { TwillEditor, type SourceEdit } from '@swiftuijs/twill/editor';
+import { inspectProject } from '@swiftuijs/twill/doctor';
 
 const languages = ['twill-typescript', 'twill-tsx'];
 const selector = languages.map((language) => ({ language, scheme: 'file' }));
@@ -28,9 +35,12 @@ export function activate(context: vscode.ExtensionContext) {
         .filter((document) => document.uri.scheme === 'file' && isTwillFile(document.fileName))
         .map((document) => [sourceFilename(document.fileName), document.getText()]),
     );
-    void bridge?.then((api) => api?.configurePlugin('@swiftuijs/twill', { overlays }));
+    void bridge?.then((api) =>
+      api?.configurePlugin('@swiftuijs/twill-vscode-tsserver', { overlays }),
+    );
   };
   const projects = new Map<string, TwillProject>();
+  const editors = new WeakMap<TwillProject, TwillEditor>();
   const diagnostics = vscode.languages.createDiagnosticCollection('twill');
   const output = vscode.window.createOutputChannel('Twill');
   const timers = new Map<string, ReturnType<typeof setTimeout>>();
@@ -42,6 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
       project: TwillProject;
       offset: number;
       entry: ts.CompletionEntry;
+      props?: { start: number; end: number };
     }
   >();
 
@@ -77,6 +88,34 @@ export function activate(context: vscode.ExtensionContext) {
     }
     project.update(document.fileName, document.getText());
     return project;
+  }
+
+  function editor(project: TwillProject) {
+    let value = editors.get(project);
+    if (!value) editors.set(project, (value = new TwillEditor(project)));
+    return value;
+  }
+
+  async function workspaceEdit(edits: SourceEdit[]) {
+    const value = new vscode.WorkspaceEdit();
+    for (const edit of edits) {
+      const document = await vscode.workspace.openTextDocument(vscode.Uri.file(edit.filename));
+      value.replace(
+        document.uri,
+        new vscode.Range(
+          document.positionAt(edit.span.start),
+          document.positionAt(edit.span.start + edit.span.length),
+        ),
+        edit.newText,
+      );
+    }
+    return value;
+  }
+
+  function scheduleRoot(root: string) {
+    vscode.workspace.textDocuments.forEach((document) => {
+      if (sourceFilename(document.fileName).startsWith(root + '/')) schedule(document);
+    });
   }
 
   const safely = <T>(
@@ -142,7 +181,10 @@ export function activate(context: vscode.ExtensionContext) {
           sourceFilename(event.document.fileName).startsWith(project.root + '/')
         )
           project.update(event.document.fileName, event.document.getText());
-      vscode.workspace.textDocuments.forEach(schedule);
+      for (const project of projects.values())
+        if (sourceFilename(event.document.fileName).startsWith(project.root + '/'))
+          scheduleRoot(project.root);
+      schedule(event.document);
     }),
     vscode.workspace.onDidCloseTextDocument((document) => {
       if (isTwillFile(document.fileName)) syncBridge();
@@ -151,8 +193,10 @@ export function activate(context: vscode.ExtensionContext) {
       diagnostics.delete(document.uri);
       if (/\.(?:twillx?|[cm]?tsx?|[cm]?jsx?)$/.test(document.fileName))
         projects.forEach((project) => {
-          if (sourceFilename(document.fileName).startsWith(project.root + '/'))
+          if (sourceFilename(document.fileName).startsWith(project.root + '/')) {
             project.update(document.fileName);
+            scheduleRoot(project.root);
+          }
         });
     }),
     {
@@ -164,18 +208,37 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   const watcher = vscode.workspace.createFileSystemWatcher(
-    '**/*.{twill,twillx,ts,tsx,js,jsx,json}',
+    '**/*.{twill,twillx,ts,tsx,mts,cts,js,jsx,mjs,cjs,json}',
   );
-  const reset = () => {
-    projects.forEach((project) => project.dispose());
-    projects.clear();
-    vscode.workspace.textDocuments.forEach(schedule);
+  const diskChanged = (uri: vscode.Uri, discover = false) => {
+    const filename = sourceFilename(uri.fsPath);
+    if (isDependency(filename)) return;
+    for (const [root, project] of projects) {
+      if (
+        !filename.startsWith(root + '/') &&
+        !project.configFiles.includes(filename) &&
+        !project.sourceFiles().includes(filename)
+      )
+        continue;
+      if (
+        project.configFiles.includes(filename) ||
+        ['package.json', 'tsconfig.json', 'twill.config.json'].includes(basename(filename))
+      ) {
+        // Configuration and package resolution require rebuilding this project.
+        project.dispose();
+        projects.delete(root);
+      } else {
+        if (filename.endsWith('.json') && !project.sourceFiles().includes(filename)) continue;
+        project.refresh(filename, discover);
+      }
+      scheduleRoot(root);
+    }
   };
   context.subscriptions.push(
     watcher,
-    watcher.onDidChange(reset),
-    watcher.onDidCreate(reset),
-    watcher.onDidDelete(reset),
+    watcher.onDidChange((uri) => diskChanged(uri)),
+    watcher.onDidCreate((uri) => diskChanged(uri, true)),
+    watcher.onDidDelete((uri) => diskChanged(uri, true)),
   );
 
   context.subscriptions.push(
@@ -210,16 +273,11 @@ export function activate(context: vscode.ExtensionContext) {
       {
         provideCompletionItems(document, position) {
           return safely(document, (project) => {
-            const offset = project.toGeneratedOffset(
+            const { offset, info, props } = editor(project).completions(
               document.fileName,
               document.offsetAt(position),
             );
-            const completions = project.service.getCompletionsAtPosition(
-              virtualFilename(document.fileName),
-              offset,
-              { includeCompletionsForModuleExports: false, includeCompletionsWithInsertText: true },
-            );
-            return completions?.entries.map((entry) => {
+            return info?.entries.map((entry) => {
               const item = new vscode.CompletionItem(
                 entry.name,
                 entry.kind === 'method' || entry.kind === 'function'
@@ -229,7 +287,23 @@ export function activate(context: vscode.ExtensionContext) {
                     : vscode.CompletionItemKind.Variable,
               );
               item.sortText = entry.sortText;
-              item.insertText = entry.insertText ?? entry.name;
+              item.insertText =
+                entry.isSnippet && entry.insertText
+                  ? new vscode.SnippetString(entry.insertText)
+                  : (entry.insertText ?? entry.name);
+              if (entry.source) item.detail = `Auto import from ${sourceFilename(entry.source)}`;
+              if (props) {
+                const name = /^[A-Za-z_$][\w$]*$/.test(entry.name)
+                  ? entry.name
+                  : JSON.stringify(entry.name);
+                item.insertText = new vscode.SnippetString()
+                  .appendText(name + ': ')
+                  .appendTabstop();
+                item.range = new vscode.Range(
+                  document.positionAt(props.start),
+                  document.positionAt(props.end),
+                );
+              }
               // Resolve documentation only for the selected item, rather
               // than asking TS to describe every entry on each keystroke.
               completionDetails.set(item, {
@@ -238,20 +312,18 @@ export function activate(context: vscode.ExtensionContext) {
                 project,
                 offset,
                 entry,
+                props,
               });
-              if (entry.replacementSpan) {
-                const start = project.toOriginalOffset(
-                  document.fileName,
-                  entry.replacementSpan.start,
-                );
-                const end = project.toOriginalOffset(
-                  document.fileName,
-                  entry.replacementSpan.start + entry.replacementSpan.length,
-                );
-                item.range = new vscode.Range(
-                  document.positionAt(start),
-                  document.positionAt(Math.max(start, end)),
-                );
+              const replacement = entry.replacementSpan ?? info.optionalReplacementSpan;
+              if (replacement && !props) {
+                const span = editor(project).mapSpan(document.fileName, replacement);
+                item.range = span
+                  ? new vscode.Range(
+                      document.positionAt(span.start),
+                      document.positionAt(span.start + span.length),
+                    )
+                  : (document.getWordRangeAtPosition(position) ??
+                    new vscode.Range(position, position));
               }
               return item;
             });
@@ -283,6 +355,25 @@ export function activate(context: vscode.ExtensionContext) {
                 item.documentation = new vscode.MarkdownString(
                   ts.displayPartsToString(details.documentation),
                 );
+                if (details.codeActions?.length) {
+                  const edits = editor(project).mapChanges(
+                    details.codeActions.flatMap((action) => action.changes),
+                  );
+                  if (
+                    edits?.every(
+                      (edit) => sourceFilename(edit.filename) === sourceFilename(document.fileName),
+                    )
+                  )
+                    item.additionalTextEdits = edits.map((edit) =>
+                      vscode.TextEdit.replace(
+                        new vscode.Range(
+                          document.positionAt(edit.span.start),
+                          document.positionAt(edit.span.start + edit.span.length),
+                        ),
+                        edit.newText,
+                      ),
+                    );
+                }
               }
               return item;
             }) ?? item
@@ -290,6 +381,103 @@ export function activate(context: vscode.ExtensionContext) {
         },
       },
       '.',
+      '"',
+      "'",
+      '/',
+    ),
+  );
+
+  context.subscriptions.push(
+    vscode.languages.registerRenameProvider(selector, {
+      prepareRename(document, position) {
+        const info = safely(document, (project) =>
+          editor(project).renameInfo(document.fileName, document.offsetAt(position)),
+        );
+        if (!info?.canRename)
+          throw new Error(info?.localizedErrorMessage ?? 'This symbol cannot be renamed.');
+        return {
+          range: new vscode.Range(
+            document.positionAt(info.triggerSpan.start),
+            document.positionAt(info.triggerSpan.start + info.triggerSpan.length),
+          ),
+          placeholder: info.displayName,
+        };
+      },
+      async provideRenameEdits(document, position, newName) {
+        const edits = safely(document, (project) =>
+          editor(project).rename(document.fileName, document.offsetAt(position), newName),
+        );
+        if (!edits) throw new Error('The rename cannot be mapped safely to source.');
+        return workspaceEdit(edits);
+      },
+    }),
+  );
+
+  const sortImports = vscode.CodeActionKind.Source.append('sortImports');
+  const removeImports = vscode.CodeActionKind.Source.append('removeUnusedImports');
+  context.subscriptions.push(
+    vscode.languages.registerCodeActionsProvider(
+      selector,
+      {
+        async provideCodeActions(document, range, context, token) {
+          const requests = safely(document, (project) => {
+            const tools = editor(project);
+            const actions: { title: string; kind: vscode.CodeActionKind; edits: SourceEdit[] }[] =
+              [];
+            for (const [kind, title, mode] of [
+              [
+                vscode.CodeActionKind.SourceOrganizeImports,
+                'Organize imports',
+                ts.OrganizeImportsMode.All,
+              ],
+              [sortImports, 'Sort imports', ts.OrganizeImportsMode.SortAndCombine],
+              [removeImports, 'Remove unused imports', ts.OrganizeImportsMode.RemoveUnused],
+            ] as const) {
+              if (!context.only || context.only.contains(kind)) {
+                const edits = tools.organizeImports(document.fileName, mode);
+                if (edits?.length) actions.push({ title, kind, edits });
+              }
+            }
+            if (!context.only || context.only.contains(vscode.CodeActionKind.QuickFix)) {
+              const codes = context.diagnostics
+                .map((item) => Number(typeof item.code === 'object' ? item.code.value : item.code))
+                .filter((code) => Number.isFinite(code) && code !== 90001);
+              if (codes.length)
+                actions.push(
+                  ...tools
+                    .fixes(
+                      document.fileName,
+                      document.offsetAt(range.start),
+                      document.offsetAt(range.end),
+                      codes,
+                    )
+                    .map((fix) => ({
+                      title: fix.description,
+                      kind: vscode.CodeActionKind.QuickFix,
+                      edits: fix.edits,
+                    })),
+                );
+            }
+            return actions;
+          });
+          if (!requests || token.isCancellationRequested) return [];
+          return Promise.all(
+            requests.map(async (request) => {
+              const action = new vscode.CodeAction(request.title, request.kind);
+              action.edit = await workspaceEdit(request.edits);
+              return action;
+            }),
+          );
+        },
+      },
+      {
+        providedCodeActionKinds: [
+          vscode.CodeActionKind.QuickFix,
+          vscode.CodeActionKind.SourceOrganizeImports,
+          sortImports,
+          removeImports,
+        ],
+      },
     ),
   );
 
@@ -379,6 +567,44 @@ export function activate(context: vscode.ExtensionContext) {
           await vscode.workspace.openTextDocument({ content: result.code, language: 'typescript' }),
           vscode.ViewColumn.Beside,
         );
+    }),
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('twill.projectInfo', async () => {
+      const source = vscode.window.activeTextEditor?.document;
+      if (!source || source.uri.scheme !== 'file') return;
+      const report = safely(source, (project) => {
+        return {
+          ...inspectProject(project),
+          extensionVersion: context.extension.packageJSON.version,
+          currentFile: source.fileName,
+        };
+      });
+      if (report)
+        await vscode.window.showTextDocument(
+          await vscode.workspace.openTextDocument({
+            content: JSON.stringify(report, null, 2),
+            language: 'json',
+          }),
+          vscode.ViewColumn.Beside,
+        );
+    }),
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand('twill.debugFile', async () => {
+      const source = vscode.window.activeTextEditor?.document;
+      if (!source || source.uri.scheme !== 'file') return;
+      const folder = vscode.workspace.getWorkspaceFolder(source.uri);
+      await vscode.debug.startDebugging(folder, {
+        type: 'node',
+        request: 'launch',
+        name: 'Twill: Debug current file',
+        program: source.fileName,
+        cwd: folder?.uri.fsPath ?? dirname(source.fileName),
+        runtimeArgs: ['--enable-source-maps', '--import', '@swiftuijs/twill/register'],
+        sourceMaps: true,
+        skipFiles: ['<node_internals>/**'],
+      });
     }),
   );
   vscode.workspace.textDocuments.forEach(schedule);

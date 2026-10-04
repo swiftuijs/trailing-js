@@ -6,25 +6,36 @@ import { pathToFileURL } from 'node:url';
 import assert from 'node:assert/strict';
 import { build, createServer } from 'vite';
 import { renderToStaticMarkup } from 'react-dom/server';
-import twill from '../dist/vite.js';
+import twill from '../packages/twill/dist/vite.js';
 import { probeTypeScriptPlugin } from './probe-typescript-plugin.mjs';
+import { npmConsumer as npm } from './npm-consumer.mjs';
 
-const npm = (args, options = {}) =>
-  execFileSync(process.execPath, [process.env.npm_execpath, ...args], options);
-const metadata = JSON.parse(readFileSync('package.json', 'utf8'));
+const metadata = JSON.parse(readFileSync('packages/twill/package.json', 'utf8'));
+const repository = JSON.parse(readFileSync('package.json', 'utf8'));
+const packageRoot = resolve('packages/twill');
 for (const entry of Object.values(metadata.exports)) {
   const paths = typeof entry === 'string' ? [entry] : Object.values(entry);
-  for (const path of paths) assert(existsSync(path), `Missing export ${path}`);
+  for (const path of paths)
+    assert(existsSync(resolve(packageRoot, path)), `Missing export ${path}`);
 }
 const root = mkdtempSync(join(tmpdir(), 'twill-package-'));
 try {
-  const [packed] = JSON.parse(
-    npm(['pack', '--ignore-scripts', '--json', '--pack-destination', root], { encoding: 'utf8' }),
-  );
-  assert(
-    !packed.files.some((file) => /\.vsix$|examples\/|tests\//.test(file.path)),
-    'Unexpected files in npm tarball',
-  );
+  let archive = process.argv.includes('--packed')
+    ? resolve(`swiftuijs-twill-${metadata.version}.tgz`)
+    : process.env.TWILL_TEST_TARBALL && resolve(process.env.TWILL_TEST_TARBALL);
+  if (!archive) {
+    const [packed] = JSON.parse(
+      npm(['pack', '--ignore-scripts', '--json', '--pack-destination', root], {
+        cwd: packageRoot,
+        encoding: 'utf8',
+      }),
+    );
+    assert(
+      !packed.files.some((file) => /\.vsix$|examples\/|tests\//.test(file.path)),
+      'Unexpected files in npm tarball',
+    );
+    archive = join(root, packed.filename);
+  }
   writeFileSync(join(root, 'package.json'), JSON.stringify({ private: true, type: 'module' }));
   npm(
     [
@@ -32,10 +43,10 @@ try {
       '--ignore-scripts',
       '--no-audit',
       '--no-fund',
-      join(root, packed.filename),
-      `react@${metadata.devDependencies.react}`,
-      `@types/react@${metadata.devDependencies['@types/react']}`,
-      `vue@${metadata.devDependencies.vue}`,
+      archive,
+      `react@${repository.devDependencies.react}`,
+      `@types/react@${repository.devDependencies['@types/react']}`,
+      `vue@${repository.devDependencies.vue}`,
     ],
     {
       cwd: root,
@@ -43,6 +54,12 @@ try {
     },
   );
   const base = join(root, 'node_modules/@swiftuijs/twill/dist');
+  const installed = JSON.parse(readFileSync(join(base, '../package.json'), 'utf8'));
+  assert.equal(installed.name, metadata.name);
+  assert.equal(installed.version, metadata.version);
+  for (const entry of Object.values(installed.exports))
+    for (const path of typeof entry === 'string' ? [entry] : Object.values(entry))
+      assert(existsSync(resolve(base, '..', path)), `Missing installed export ${path}`);
   await probeTypeScriptPlugin(root, '@swiftuijs/twill');
   const esm = execFileSync(
     process.execPath,
@@ -58,7 +75,16 @@ try {
   assert.equal(transform('fn() { 42 }').closures, 1);
   assert.equal(transform('function f(v) { guard v else { return 0; } return 1; }').guards, 1);
   assert.equal(transform('function f() { defer { console.log("done"); } }').defers, 1);
-  for (const name of ['vite', 'rollup', 'esbuild', 'webpack', 'rspack', 'project'])
+  for (const name of [
+    'vite',
+    'rollup',
+    'esbuild',
+    'webpack',
+    'rspack',
+    'project',
+    'editor',
+    'doctor',
+  ])
     await import(pathToFileURL(join(base, name + '.js')).href);
   writeFileSync(
     join(root, 'tsconfig.json'),
@@ -86,6 +112,15 @@ try {
     cwd: root,
     stdio: 'pipe',
   });
+  const report = JSON.parse(
+    execFileSync(
+      process.execPath,
+      [resolve(base, '..', installed.bin.twill), 'doctor', '-p', 'tsconfig.json', '--json'],
+      { cwd: root, encoding: 'utf8' },
+    ),
+  );
+  assert.equal(report.ok, true);
+  assert.equal(report.twillVersion, metadata.version);
   const output = execFileSync(
     process.execPath,
     [
@@ -212,20 +247,39 @@ try {
     status = error.status;
   }
   assert.equal(status, 1, 'Type errors must cause a failing exit status');
+  assert.throws(
+    () =>
+      execFileSync(
+        process.execPath,
+        [resolve(base, '..', installed.bin.twill), 'doctor', '-p', 'tsconfig.json', '--json'],
+        { cwd: root, stdio: 'pipe' },
+      ),
+    (error) => {
+      assert.equal(error.status, 1, 'doctor must fail for an invalid project');
+      const report = JSON.parse(String(error.stdout));
+      assert.equal(report.ok, false);
+      assert(report.diagnostics.some((diagnostic) => diagnostic.filename.endsWith('bad.twill')));
+      return true;
+    },
+  );
   console.log('Independent package install, exports, CLI and Node loader passed.');
 } finally {
   rmSync(root, { recursive: true, force: true });
 }
 
 for (const name of ['basic', 'general', 'defer', 'mixed', 'react', 'vue']) {
-  execFileSync(process.execPath, ['dist/cli.js', 'check', '-p', `examples/${name}/tsconfig.json`], {
-    stdio: 'pipe',
-  });
+  execFileSync(
+    process.execPath,
+    ['packages/twill/dist/cli.js', 'check', '-p', `examples/${name}/tsconfig.json`],
+    {
+      stdio: 'pipe',
+    },
+  );
 }
 const general = JSON.parse(
   execFileSync(
     process.execPath,
-    ['--import', pathToFileURL(resolve('dist/register.js')).href, 'run.mjs'],
+    ['--import', pathToFileURL(resolve('packages/twill/dist/register.js')).href, 'run.mjs'],
     { cwd: resolve('examples/general'), encoding: 'utf8' },
   ),
 );
@@ -234,7 +288,7 @@ assert.deepEqual(general.query, ['SELECT', 'id', 'name', 'FROM users', 'WHERE ac
 const cleanup = JSON.parse(
   execFileSync(
     process.execPath,
-    ['--import', pathToFileURL(resolve('dist/register.js')).href, 'run.mjs'],
+    ['--import', pathToFileURL(resolve('packages/twill/dist/register.js')).href, 'run.mjs'],
     { cwd: resolve('examples/defer'), encoding: 'utf8' },
   ),
 );
@@ -243,7 +297,7 @@ assert.deepEqual(cleanup.events, ['file closed', 'body complete', 'directory rem
 const mixed = JSON.parse(
   execFileSync(
     process.execPath,
-    ['--import', pathToFileURL(resolve('dist/register.js')).href, 'main.js'],
+    ['--import', pathToFileURL(resolve('packages/twill/dist/register.js')).href, 'main.js'],
     { cwd: resolve('examples/mixed'), encoding: 'utf8' },
   ),
 );

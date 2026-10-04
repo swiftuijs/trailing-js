@@ -9,13 +9,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run check
-      - run: npm pack --ignore-scripts
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm format:check
+      - run: xvfb-run -a pnpm editor:test
+      - run: pnpm package:core
+      - run: node scripts/verify-package.mjs --packed
       - run: gh release create "$RELEASE_TAG" --verify-tag --generate-notes *.tgz dist/twill.vsix
         env:
           GH_TOKEN: ${{ github.token }}

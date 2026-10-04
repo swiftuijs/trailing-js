@@ -2,9 +2,9 @@ import { afterEach, expect, it } from 'vitest';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { TwillProject, virtualFilename, sourceFilename } from '../src/project';
-import { twillPlugin } from '../src/plugin';
-import { transpileNative } from '../src/transpile';
+import { TwillProject, virtualFilename, sourceFilename } from '../packages/twill/src/project';
+import { twillPlugin } from '../packages/twill/src/plugin';
+import { transpileNative } from '../packages/twill/src/transpile';
 
 const roots: string[] = [];
 afterEach(() => roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })));

@@ -44,7 +44,7 @@ This integration supports ESM `import` and `import()`. Use dynamic `import()` to
 
 ## Editor
 
-Install the VSIX. It includes the `@swiftuijs/twill` TS-server plugin and configures it automatically for native TS/JS documents in projects with a tsconfig. If VS Code already has the project open during installation, restart its TS server. Hover, signatures, completion, diagnostics and definitions read the virtual mixed project, while Twill documents retain their own providers. Unsaved Twill content is shared through the TS extension's configuration API; native snapshots include unsaved TS/JS edits. Definitions and related diagnostics map to original dialect files.
+Install the VSIX. It includes the private `@swiftuijs/twill-vscode-tsserver` TS-server bridge and configures it automatically for native TS/JS documents in projects with a tsconfig. If VS Code already has the project open during installation, restart its TS server. Hover, signatures, completion, diagnostics and definitions read the virtual mixed project, while Twill documents retain their own providers. Unsaved Twill content is shared through the TS extension's configuration API; native snapshots include unsaved TS/JS edits. Definitions and related diagnostics map to original dialect files.
 
 Other TS-server editors can load the installed npm package with this tsconfig setting:
 
@@ -52,6 +52,6 @@ Other TS-server editors can load the installed npm package with this tsconfig se
 { "compilerOptions": { "plugins": [{ "name": "@swiftuijs/twill" }] } }
 ```
 
-The plugin is a CommonJS entry for TS-server loading; the compiler's ESM imports still use the package's normal exports. The bridge uses the Twill TypeScript 5.9 virtual checker and the native host's library paths. It adds a cached language service for configured mixed projects. Unchanged source versions retain snapshots and programs; it does not replace runtime execution. Other editors' unsaved dialect buffers need their own configuration integration. Formatting, automatic imports and rename across Twill files are not supplied by this bridge.
+The plugin is a CommonJS entry for TS-server loading; the compiler's ESM imports still use the package's normal exports. The bridge uses the Twill TypeScript 5.9 virtual checker and the native host's library paths. It adds a cached language service for configured mixed projects. Unchanged source versions retain snapshots and programs; it does not replace runtime execution. Other editors' unsaved dialect buffers need their own configuration integration. Auto-import edits, organize imports and rename also map across dialect boundaries; native TypeScript import-alias rename semantics are preserved. Unmappable edits are withheld. Formatting and general refactoring are not supplied by this bridge.
 
-Run `npm run dev:mixed` for the complete working example in `examples/mixed`.
+Run `pnpm dev:mixed` for the complete working example in `examples/mixed`.

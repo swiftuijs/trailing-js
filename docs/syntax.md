@@ -1,4 +1,4 @@
-# Language syntax contract (0.5)
+# Language syntax contract (0.6)
 
 The extension adds a trailing closure to an identifier, a member expression, or a call expression. The closure becomes the call's final argument. Parenthesized callable results, such as `(factory()) { ... }`, invoke the result. Empty parentheses can be omitted, including tightly written TS type arguments: `items.map<number> { x in x * 2 }`. Spaced comparisons retain the ordinary JS operator grammar. Calls can chain after the closure: `items.map { x in x * 2 }.filter(Boolean)`.
 
@@ -82,4 +82,4 @@ JSX lowers to the selected automatic runtime in build plugins and the Node loade
 
 Local imports are supported. Standard resolver aliases, package exports and bare packages are delegated to the host; custom extensionless aliases should include the full extension when the host cannot resolve them. The opt-in Node loader emits local native ESM TS/TSX/JSX as well as Twill and delegates npm dependencies to Node. Native TS/JS documents in configured VS Code mixed projects use the bundled TS-server bridge for cross-file types and mapped definitions. See [interoperability](interoperability.md) for loader and CommonJS boundaries.
 
-The VS Code extension's common-input recovery is deliberately limited. Arbitrarily malformed input can temporarily suspend semantic assistance; strict syntax diagnostics remain visible. Formatting, rename, auto-import edits, React Fast Refresh are future work.
+The VS Code extension's common-input recovery is deliberately limited. Arbitrarily malformed input can temporarily suspend semantic assistance; strict syntax diagnostics remain visible. Rename, auto-import edits, import organization and safe spelling fixes map back to source. Unmappable edits are withheld. Formatting, general refactoring/fix-all and React Fast Refresh are future work.

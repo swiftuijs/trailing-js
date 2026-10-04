@@ -116,6 +116,20 @@ export async function probeTypeScriptPlugin(probeLocation, pluginName) {
     assert.equal(definitions[0].file.replaceAll('\\', '/'), api.replaceAll('\\', '/'));
     assert.equal(definitions[0].start.line, 1);
     assert.equal(definitions[0].start.offset, 'export function '.length + 1);
+    const rename = await send('rename', {
+      file: api,
+      line: 1,
+      offset: 'export function '.length + 2,
+      findInStrings: false,
+      findInComments: false,
+      providePrefixAndSuffixTextForRename: true,
+    });
+    assert(rename.info.canRename);
+    const dialect = rename.locs.find(
+      (group) => group.file.replaceAll('\\', '/') === api.replaceAll('\\', '/'),
+    );
+    assert(dialect, 'Native TS rename must include the original Twill dependency');
+    assert.equal(dialect.locs[0].start.offset, 'export function '.length + 1);
     send('open', { file: js }, false);
     assert(
       (await send('semanticDiagnosticsSync', { file: js })).some(

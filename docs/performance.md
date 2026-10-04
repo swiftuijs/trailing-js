@@ -67,16 +67,29 @@ These are measured build costs, not runtime timings or hardware-independent guar
 
 The [0.5 report](benchmarks/current-0.5.json) records the working build digest and parent commit, together with the source version and timings. CI provides a fresh report for the committed build. The cleanup workload still has explicit allocation/dispatch costs, approximately 4.8× / 11.5× / 21.9× the allocation-free finally loop for 1 / 10 / 100 registrations on this run. This does not establish real application latency or a universal bound.
 
+### Twill 0.6
+
+The pnpm/Vite build repeats the same fixtures and methodology. The [0.6 report](benchmarks/current-0.6.json) records the working build digest, environment, medians and p95 values.
+
+| Stage              | 10 fixtures | 100 fixtures | 1,000 fixtures |
+| ------------------ | ----------- | ------------ | -------------- |
+| Sugar → TS         | 2.29 ms     | 15.61 ms     | 139.58 ms      |
+| TS plugin pipeline | 4.92 ms     | 20.51 ms     | 206.56 ms      |
+| UI syntax → JSX    | 1.86 ms     | 10.83 ms     | 118.43 ms      |
+| UI plugin pipeline | 6.83 ms     | 29.97 ms     | 323.65 ms      |
+
+This run does not establish a build speedup from the monorepo migration. Shared-host timing varies; the UI metadata needed for source editing also forms part of the compiler's work. Native-output assertions still pass for ordinary callbacks and framework children. The cleanup microbenchmark remains approximately 4.7× / 11.7× / 21.6× the compared allocation-free finally loop; it is not an application slowdown measurement.
+
 ## Editor and regression verification
 
-Repeated submissions of unchanged editor text retain the transform and the TS semantic program. Changes advance only the changed script's version; TypeScript follows dependencies. Explicit invalidation still refreshes all scripts. Mapping decoders and line indexes are weakly cached with their source result, and completion documentation is requested only when an item is selected. Tests check snapshot reuse, changed-file invalidation, disk refresh, mappings across line separators and type narrowing. No editor responsiveness SLA is inferred from a compiler benchmark.
+Repeated submissions of unchanged editor text retain the transform and the TS semantic program. Changes advance only the changed script's version; TypeScript follows dependencies. Disk refresh now invalidates individual files while retaining unrelated transforms and unsaved overlays; create/delete refreshes root discovery. Configuration changes rebuild affected projects. Explicit full invalidation remains available. Mapping decoders and line indexes are weakly cached with their source result, and completion documentation is requested only when an item is selected. Tests check snapshot reuse, changed-file invalidation, disk refresh, mappings across line separators and type narrowing. Real extension-host tests confirm dependency disk changes refresh mapped diagnostics without losing unsaved buffers. No editor responsiveness SLA is inferred from a compiler benchmark.
 
 Reproduce the current measurement from the repository root:
 
 ```sh
-npm ci
-npm run build
-npm run benchmark -- --output benchmark-results.json
+pnpm install --frozen-lockfile
+pnpm build
+pnpm benchmark --output benchmark-results.json
 ```
 
 The report records Node/OS/CPU, package version, commit, working-tree state, built-JS digest, source sizes, samples and all timings. See [0.3 JSON](benchmarks/current-0.3.json), [historical baseline JSON](benchmarks/baseline-0.1.json) and [0.2 JSON](benchmarks/current-0.2.json). To rerun a historical version, use its recorded checkout/build and its original benchmark script, which uses the names and extensions of that version.

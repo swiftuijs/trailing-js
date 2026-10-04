@@ -5,8 +5,8 @@ export default defineConfig({
     testTimeout: 30_000,
     coverage: {
       provider: 'v8',
-      include: ['src/**'],
-      exclude: ['src/{vite,rollup,esbuild,webpack,rspack,index}.ts'],
+      include: ['packages/twill/src/**'],
+      exclude: ['packages/twill/src/{vite,rollup,esbuild,webpack,rspack,index}.ts'],
     },
   },
 });
