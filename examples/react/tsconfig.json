@@ -7,5 +7,5 @@
     "jsx": "react-jsx",
     "skipLibCheck": true
   },
-  "include": ["*.twill", "*.ts"]
+  "include": ["*.twill", "*.ts", "*.twillx"]
 }

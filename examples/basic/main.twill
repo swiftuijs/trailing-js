@@ -1,4 +1,4 @@
-export const doubled = [1, 2, 3].map() { value in value * 2 };
+export const doubled = [1, 2, 3].map { value in value * 2 };
 
 function perform<T>(value: T, work: (value: T) => T, completion: (value: T) => void) {
   completion(work(value));

@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { transform, TwillSyntaxError, originalPosition } from '../src/compiler';
 import { parse } from '../src/parser.js';
 
-function evaluate(source: string, bindings: Record<string, unknown> = {}, builders?: string[]) {
+function evaluate(source: string, bindings: Record<string, unknown> = {}) {
   const result = transform(`function __test() { ${source} }`, {
-    filename: 'test.twill.js',
-    builders,
+    filename: 'test.twill',
+    language: 'js',
   });
   parse(result.code, 'js');
   return Function(
@@ -19,11 +19,12 @@ describe('trailing closures', () => {
     ['fn() { 42 }', 'fn( () => { return (42) })'],
     ['fn { x in x + 1 }', 'fn( ( x ) => { return (x + 1) })'],
   ])('transforms %s', (source, expected) => {
-    expect(transform(source, { filename: 'test.twill.js' }).code.replace(/\s+/g, ' ')).toBe(
-      expected,
-    );
+    expect(transform(source, { filename: 'test.twill' }).code.replace(/\s+/g, ' ')).toBe(expected);
   });
   it('executes normal callbacks and lexical this', () => {
+    expect(evaluate('const doubled = [1,2,3].map { value in value * 2 }; return doubled;')).toEqual(
+      [2, 4, 6],
+    );
     expect(evaluate('return [1,2,3].map() { x in x * 2 }')).toEqual([2, 4, 6]);
     expect(
       evaluate('const o = { value: 4, run() { return fn() { this.value } } }; return o.run();', {
@@ -40,15 +41,12 @@ describe('trailing closures', () => {
     const result = transform('const x = fn<number>(1) { (v: number) in v + 1 }');
     expect(result.code).toContain('fn<number>(1,');
     parse(result.code, 'ts');
+    const bare = transform('const x = [1,2,3].map<number> { value in value * 2 };');
+    expect(bare.code).toContain('.map<number>(');
+    parse(bare.code, 'ts');
   });
   it('supports nested closures and chaining', () => {
     expect(evaluate('return [1,2].map() { x in [x].map() { y in y*3 } }.flat()')).toEqual([3, 6]);
-  });
-  it('collects nested builders and handles expressions without semicolons', () => {
-    const bindings = { Box: (cb: Function) => cb(), Label: (cb: Function) => cb() };
-    expect(evaluate('return Box { Label { "child" } }', bindings, ['Box', 'Label'])).toEqual([
-      ['child'],
-    ]);
   });
   it('invokes parenthesized callable results and rejects unlabelled extra closures', () => {
     expect(
@@ -128,42 +126,12 @@ describe('TypeScript and JSX compatibility', () => {
     parse(result.code, 'ts');
     if (!source.includes(' in x }')) expect(result.code).toBe(source);
   });
-  it.each(['file.twill.jsx', 'file.twillx'])(
-    'supports JSX and closures inside JSX expressions in %s',
-    (filename) => {
-      const result = transform(
-        'export const content = <div>{[1].map() { x in <span>{x}</span> }}</div>',
-        { filename },
-      );
-      parse(result.code, filename.endsWith('twillx') ? 'tsx' : 'jsx');
-      expect(result.closures).toBe(1);
-    },
-  );
-});
-
-describe('explicit builders', () => {
-  const bindings = { VStack: (cb: Function) => cb(), Text: (value: string) => value };
-  it('collects views in order through conditions and loops', () => {
-    expect(
-      evaluate(
-        'return VStack { const flag=true; Text("first"); if(flag) { Text("second"); } for(const n of [1,2]) Text(String(n)); }',
-        bindings,
-        ['VStack'],
-      ),
-    ).toEqual(['first', 'second', '1', '2']);
-  });
-  it('uses hygienic collectors and excludes nested functions', () => {
-    expect(
-      evaluate(
-        'return VStack { const __twillChildren0="ok"; const f=()=>{return "nested"}; f(); Text(__twillChildren0); }',
-        bindings,
-        ['VStack'],
-      ),
-    ).toEqual(['nested', 'ok']);
-  });
-  it('rejects explicit returns with a useful diagnostic', () => {
-    expect(() => transform('VStack { return Text("bad"); }', { builders: ['VStack'] })).toThrow(
-      /Builder closures collect expressions/,
+  it.each(['file.twillx'])('supports JSX and closures inside JSX expressions in %s', (filename) => {
+    const result = transform(
+      'export const content = <div>{[1].map() { x in <span>{x}</span> }}</div>',
+      { filename },
     );
+    parse(result.code, filename.endsWith('twillx') ? 'tsx' : 'jsx');
+    expect(result.closures).toBe(1);
   });
 });

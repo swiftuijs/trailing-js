@@ -1,6 +1,6 @@
 /** @param {string} state */
-export function describe(state) {
+export function describe(state: string) {
   /** @param {() => string} callback */
-  const run = callback => callback();
+  const run = (callback: () => string) => callback();
   return run() { `status: ${state}` };
 }

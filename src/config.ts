@@ -1,26 +1,53 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
+import ts from 'typescript';
 import type { TransformOptions } from './compiler';
 
-export function loadConfig(
-  root = process.cwd(),
-): Pick<TransformOptions, 'builders' | 'implicitReturn'> {
+type Config = Pick<TransformOptions, 'implicitReturn' | 'jsxImportSource'>;
+const jsxConfigs = new Map<string, { files: Map<string, number>; source?: string }>();
+
+/** Use the project's standard JSX setting, including extended tsconfigs. */
+function jsxSource(root: string): string | undefined {
+  const filename = ts.findConfigFile(root, ts.sys.fileExists);
+  if (!filename) return undefined;
+  const cached = jsxConfigs.get(filename);
+  if (
+    cached &&
+    [...cached.files].every(([file, time]) => existsSync(file) && statSync(file).mtimeMs === time)
+  )
+    return cached.source;
+  const files = new Map<string, number>();
+  const parsed = ts.getParsedCommandLineOfConfigFile(
+    filename,
+    {},
+    {
+      ...ts.sys,
+      // Only read configuration, not the project's source tree.
+      readDirectory: () => [],
+      readFile(file) {
+        if (existsSync(file)) files.set(file, statSync(file).mtimeMs);
+        return ts.sys.readFile(file);
+      },
+      getCurrentDirectory: () => root,
+      onUnRecoverableConfigFileDiagnostic() {},
+    },
+  );
+  const source = parsed?.options.jsxImportSource;
+  jsxConfigs.set(filename, { files, source });
+  return source;
+}
+
+export function loadConfig(root = process.cwd()): Config {
   const filename = resolve(root, 'twill.config.json');
-  if (!existsSync(filename)) return {};
+  const jsxImportSource = jsxSource(root);
+  if (!existsSync(filename)) return { jsxImportSource };
   const value = JSON.parse(readFileSync(filename, 'utf8'));
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new Error(`${filename}: expected an object`);
-  if (
-    value.builders !== undefined &&
-    (!Array.isArray(value.builders) ||
-      value.builders.some((name: unknown) => typeof name !== 'string' || !name))
-  ) {
-    throw new Error(`${filename}: builders must be an array of non-empty callee names`);
-  }
   if (value.implicitReturn !== undefined && typeof value.implicitReturn !== 'boolean')
     throw new Error(`${filename}: implicitReturn must be a boolean`);
   for (const key of Object.keys(value))
-    if (!['builders', 'implicitReturn', '$schema'].includes(key))
+    if (!['implicitReturn', '$schema'].includes(key))
       throw new Error(`${filename}: unknown option ${key}`);
-  return { builders: value.builders, implicitReturn: value.implicitReturn };
+  return { implicitReturn: value.implicitReturn, jsxImportSource };
 }

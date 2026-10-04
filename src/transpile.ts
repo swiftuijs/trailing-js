@@ -7,7 +7,13 @@ export function transpile(source: string, options: TransformOptions = {}) {
   const filename = options.filename ?? 'input.twill';
   const result = transform(source, options);
   const language = options.language ?? inferLanguage(filename);
-  return transpileNative(result.code, filename, language, result.map.toString());
+  return transpileNative(
+    result.code,
+    filename,
+    language,
+    result.map.toString(),
+    options.jsxImportSource,
+  );
 }
 
 /** Native source never goes through Twill's parser or implicit-return rules. */
@@ -16,6 +22,7 @@ export function transpileNative(
   filename: string,
   language = inferLanguage(filename),
   syntaxMap?: string,
+  jsxImportSource?: string,
 ) {
   // Plain JavaScript needs no type erasure or JSX transform. Leave modern JS
   // (including comments and import attributes) to the host's target pipeline.
@@ -34,6 +41,7 @@ export function transpileNative(
       target: ts.ScriptTarget.ESNext,
       module: ts.ModuleKind.ESNext,
       jsx: ts.JsxEmit.ReactJSX,
+      jsxImportSource,
       sourceMap: true,
       inlineSources: true,
       isolatedModules: true,

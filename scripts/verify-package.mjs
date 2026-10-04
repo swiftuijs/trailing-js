@@ -26,10 +26,22 @@ try {
     'Unexpected files in npm tarball',
   );
   writeFileSync(join(root, 'package.json'), JSON.stringify({ private: true, type: 'module' }));
-  npm(['install', '--ignore-scripts', '--no-audit', '--no-fund', join(root, packed.filename)], {
-    cwd: root,
-    stdio: 'pipe',
-  });
+  npm(
+    [
+      'install',
+      '--ignore-scripts',
+      '--no-audit',
+      '--no-fund',
+      join(root, packed.filename),
+      `react@${metadata.devDependencies.react}`,
+      `@types/react@${metadata.devDependencies['@types/react']}`,
+      `vue@${metadata.devDependencies.vue}`,
+    ],
+    {
+      cwd: root,
+      stdio: 'pipe',
+    },
+  );
   const base = join(root, 'node_modules/@swiftuijs/twill/dist');
   await probeTypeScriptPlugin(root, '@swiftuijs/twill');
   const esm = execFileSync(
@@ -56,17 +68,19 @@ try {
         target: 'ES2022',
         module: 'ESNext',
         moduleResolution: 'Bundler',
+        jsx: 'react-jsx',
+        skipLibCheck: true,
       },
       include: ['*.twill'],
     }),
   );
   writeFileSync(
     join(root, 'main.twill'),
-    'import {twice} from "./twice.twill.js"; export const values = [1,2].map() { x in defer {} guard x > 1 else { return 0; } return twice(x); };',
+    'import {twice} from "./twice.twill"; export const values = [1,2].map() { x in defer {} guard x > 1 else { return 0; } return twice(x); };',
   );
   writeFileSync(
-    join(root, 'twice.twill.js'),
-    'export function twice(value) { defer {} return value*2; }',
+    join(root, 'twice.twill'),
+    'export function twice(value: number) { defer {} return value*2; }',
   );
   execFileSync(process.execPath, [join(base, 'cli.js'), 'check', '-p', 'tsconfig.json'], {
     cwd: root,
@@ -85,6 +99,58 @@ try {
     { cwd: root, encoding: 'utf8' },
   );
   assert.equal(output.trim(), '[0,4]');
+  writeFileSync(
+    join(root, 'react-view.twillx'),
+    `
+    import {createElement, useState} from 'react';
+    export let calls = 0;
+    function Card(props: {children?: import('react').ReactNode}) {
+      calls++; const [value] = useState(1);
+      return createElement('article', null, value, props.children);
+    }
+    export const view = Card { 'hello'; };
+  `,
+  );
+  writeFileSync(
+    join(root, 'vue-view.twillx'),
+    `
+    import {defineComponent} from 'vue';
+    export let calls = 0;
+    const Panel = defineComponent({props:{title:String}});
+    function child() { calls++; return 'hello'; }
+    export const view = Panel({title:'Vue'}) { child(); } footer: { 'footer'; };
+  `,
+  );
+  writeFileSync(
+    join(root, 'ui-entry.js'),
+    `
+    import {view as react, calls as reactCalls} from './react-view.twillx';
+    import {view as vue, calls as vueCalls} from './vue-view.twillx';
+    console.log(JSON.stringify({reactCalls, vueCalls, children:react.props.children,
+      slot:vue.children.default(), footer:vue.children.footer(), after:vueCalls}));
+  `,
+  );
+  const ui = execFileSync(
+    process.execPath,
+    ['--import', '@swiftuijs/twill/register', 'ui-entry.js'],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.deepEqual(JSON.parse(ui), {
+    reactCalls: 0,
+    vueCalls: 0,
+    children: 'hello',
+    slot: 'hello',
+    footer: 'footer',
+    after: 1,
+  });
+  writeFileSync(
+    join(root, 'ui-consumer.twill'),
+    'import {view} from "./react-view.twillx"; import {view as panel} from "./vue-view.twillx"; export const views = [view, panel];',
+  );
+  execFileSync(process.execPath, [join(base, 'cli.js'), 'check', '-p', 'tsconfig.json'], {
+    cwd: root,
+    stdio: 'pipe',
+  });
   writeFileSync(
     join(root, 'state.ts'),
     'import {read} from "./cycle.twill"; export let count: number = 1; export function increment() { count++; } export const get = () => read();',
@@ -204,7 +270,7 @@ for (const name of ['react', 'vue']) {
     server: { middlewareMode: true },
   });
   try {
-    const { default: App } = await server.ssrLoadModule('/App.twill');
+    const { default: App } = await server.ssrLoadModule('/App.twillx');
     if (name === 'react') {
       const { createElement } = await import('react');
       const html = renderToStaticMarkup(createElement(App));

@@ -8,8 +8,6 @@ export default defineConfig({
     'src/esbuild.ts',
     'src/webpack.ts',
     'src/rspack.ts',
-    'src/react.ts',
-    'src/vue.ts',
     'src/project.ts',
     'src/cli.ts',
     'src/register.ts',

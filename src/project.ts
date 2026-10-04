@@ -48,9 +48,8 @@ export function virtualFilename(filename: string): string {
 }
 export function sourceFilename(filename: string): string {
   filename = filename.replaceAll('\\', '/');
-  // .twill.js/.twill.jsx are source formats, not virtual TS/JS suffixes.
   if (isTwillFile(filename)) return filename;
-  return filename.replace(/(\.twill(?:x|\.jsx?)?)\.(?:tsx?|jsx?)$/, '$1');
+  return filename.replace(/(\.twill)\.ts$/, '$1').replace(/(\.twillx)\.tsx$/, '$1');
 }
 
 export interface ProjectDiagnostic {
@@ -131,6 +130,7 @@ export class TwillProject {
         },
       ];
     this.compilerOptions = parsed.options;
+    this.options.jsxImportSource ??= parsed.options.jsxImportSource;
     this.files = parsed.fileNames.map(virtualFilename);
     const readFile = (name: string) => {
       const original = sourceFilename(name);

@@ -3,7 +3,7 @@ import { transform, originalPosition, TwillSyntaxError } from '../src/compiler';
 import { parse } from '../src/parser.js';
 
 function compile(source: string, sourceType: 'script' | 'module' = 'module') {
-  const result = transform(source, { filename: 'cleanup.twill.js', sourceType });
+  const result = transform(source, { filename: 'cleanup.twill', language: 'js', sourceType });
   parse(result.code, 'js', sourceType);
   return Function(result.code + '; return run;')();
 }
@@ -136,7 +136,7 @@ describe('contextual defer', () => {
   it('preserves normal defer identifiers and allows explicit callback calls', () => {
     const source =
       'const defer = x => x; defer(1); defer / 2; const object={defer:1}; object.defer; defer: { break defer; } defer\n{ const local=2; }';
-    expect(transform(source, { filename: 'identifiers.twill.js' }).code).toBe(source);
+    expect(transform(source, { filename: 'identifiers.twill' }).code).toBe(source);
     const run = compile('function run(){ const defer = cb => cb(); return defer() { 42 }; }');
     expect(run()).toBe(42);
   });
@@ -150,17 +150,17 @@ describe('contextual defer', () => {
       'defer {}',
       'function run(){switch(1){case 1: defer {} break;}}',
     ])
-      expect(() => transform(source, { filename: 'error.twill.js' })).toThrow(TwillSyntaxError);
+      expect(() => transform(source, { filename: 'error.twill' })).toThrow(TwillSyntaxError);
     expect(() =>
       transform('function run(){ switch(1){case 1:{ defer {} break; }} }', {
-        filename: 'ok.twill.js',
+        filename: 'ok.twill',
       }),
     ).not.toThrow();
   });
   it('retains cleanup token mappings and hygienic locals', () => {
     const source =
       'function run(events) { const __twillDefers0 = 7; defer { events.push(__twillDefers0); } return 1; }';
-    const result = transform(source, { filename: 'maps.twill.js' });
+    const result = transform(source, { filename: 'maps.twill' });
     const before = result.code.slice(0, result.code.indexOf('events.push')).split('\n');
     expect(originalPosition(result, before.length, before.at(-1)!.length)).toMatchObject({
       column: source.indexOf('events.push'),
@@ -185,19 +185,13 @@ describe('contextual defer', () => {
     expect(await run(events)).toBe(1);
     expect(events).toEqual(['closed', 3]);
   });
-  it('composes with guards, trailing closures, nested finally and data builders', () => {
+  it('composes with guards, trailing closures, nested finally', () => {
     const events: string[] = [];
     const run = compile(
       'function run(events) { defer { events.push("outer"); } const fn = cb => cb(); try { return fn() { defer { events.push("callback"); } guard true else { return 0; } return 3; }; } finally { events.push("finally"); } }',
     );
     expect(run(events)).toBe(3);
     expect(events).toEqual(['callback', 'finally', 'outer']);
-    const source =
-      'function run(events) { const collect=cb=>cb(); return collect { defer { events.push("cleanup"); } "a"; "b"; }; }';
-    const result = transform(source, { filename: 'builder.twill.js', builders: ['collect'] });
-    const builder = Function(result.code + '; return run;')();
-    expect(builder(events)).toEqual(['a', 'b']);
-    expect(events.at(-1)).toBe('cleanup');
   });
   it('supports static cleanup and trailing callbacks inside computed superclass lookups', () => {
     const run = compile(
@@ -210,7 +204,7 @@ describe('contextual defer', () => {
   it('keeps escaped identifiers ordinary and diagnoses unsupported function-body overloads', () => {
     const source = String.raw`function run(e){ const d\u0065fer=1; d\u0065fer { e.push(2); }; return d\u0065fer; }`;
     // An escaped identifier is a callback call in this dialect, not a cleanup.
-    const result = transform(source, { filename: 'escaped.twill.js' });
+    const result = transform(source, { filename: 'escaped.twill' });
     expect(result.defers).toBe(0);
     expect(result.closures).toBe(1);
     expect(() =>

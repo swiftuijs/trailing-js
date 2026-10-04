@@ -15,10 +15,10 @@ export function decodeUser(input: unknown): User | undefined {
 
 export function leaderboard(input: unknown[], minimum: number): string[] {
   return input
-    .map() { value in decodeUser(value) }
-    .filter() { (value): value is User in value !== undefined && value.score >= minimum }
-    .sort() { left, right in right.score - left.score }
-    .map() { user, index in `${index + 1}. ${user.name}: ${user.score}` };
+    .map { value in decodeUser(value) }
+    .filter { (value): value is User in value !== undefined && value.score >= minimum }
+    .sort { left, right in right.score - left.score }
+    .map { user, index in `${index + 1}. ${user.name}: ${user.score}` };
 }
 
 export async function retry<T>(attempts: number, task: () => Promise<T>): Promise<T> {
@@ -40,14 +40,10 @@ export function scoreOf(input: User | undefined): number {
   return score;
 }
 
-export function collect<T>(content: () => T[]): T[] { return content(); }
 export function queryParts(includeActive: boolean, fields: string[]): string[] {
-  return collect<string>() {
-    'SELECT';
-    for (const field of fields) field;
-    'FROM users';
-    if (includeActive) 'WHERE active = true';
-  };
+  const parts = ['SELECT', ...fields, 'FROM users'];
+  if (includeActive) parts.push('WHERE active = true');
+  return parts;
 }
 
 export async function demo() {

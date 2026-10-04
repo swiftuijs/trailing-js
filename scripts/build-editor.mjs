@@ -14,15 +14,11 @@ for (const filename of readdirSync('node_modules/typescript/lib'))
 mkdirSync('editors/vscode/syntaxes', { recursive: true });
 for (const [extension, language] of Object.entries({
   twill: 'ts',
-  'twill.js': 'js',
   twillx: 'tsx',
-  'twill.jsx': 'js.jsx',
 })) {
   const grammar = {
     name: 'Twill ' + language,
-    scopeName:
-      'source.twill.' +
-      { twill: 'ts', 'twill.js': 'js', twillx: 'tsx', 'twill.jsx': 'jsx' }[extension],
+    scopeName: 'source.twill.' + { twill: 'ts', twillx: 'tsx' }[extension],
     patterns: [
       { include: '#defer' },
       { include: '#guard' },

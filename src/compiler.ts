@@ -14,12 +14,12 @@ export interface TransformOptions {
   filename?: string;
   language?: Language;
   sourceType?: 'module' | 'script';
-  /** Explicit callee names whose closures collect expression statements as children. */
-  builders?: string[];
+  /** Standard JSX runtime source; normally inherited from tsconfig.json. */
+  jsxImportSource?: string;
   /** Swift's single-expression implicit return. Defaults to true. */
   implicitReturn?: boolean;
 }
-export const extensions = ['.twill', '.twillx', '.twill.js', '.twill.jsx'] as const;
+export const extensions = ['.twill', '.twillx'] as const;
 export function isTwillFile(id: string): boolean {
   return extensions.some((extension) => id.split(/[?#]/, 1)[0]!.endsWith(extension));
 }
@@ -126,17 +126,178 @@ export function transform(source: string, options: TransformOptions = {}) {
       code.overwrite(guard.elseStart, guard.elseStart + 'else'.length, '))');
     }
   }
-  const builders = new Set(options.builders ?? []);
+  const uiFile = /\.twillx$/.test(filename.split(/[?#]/, 1)[0]!);
   const metadataByNode = new Map(parsed.closures.map((item) => [item.node, item]));
+  const componentCalls = new Set(
+    parsed.calls.filter((node) => {
+      const name = calleeName(node.callee);
+      // Like JSX tags, uppercase final names opt into component syntax in UI
+      // files. Parenthesized callable expressions retain ordinary callback behavior.
+      return (
+        uiFile &&
+        node.start === node.callee.start &&
+        !!name &&
+        /^[A-Z]/.test(name.split('.').at(-1)!)
+      );
+    }),
+  );
+  // TypeScript only reads file-level leading pragmas, and the last wins.
+  const leadingComments = parsed.comments
+    .filter((comment) => comment.start < (parsed.ast.body[0]?.start ?? source.length))
+    .map((comment) => comment.value)
+    .join('\n');
+  const pragma = [...leadingComments.matchAll(/@jsxImportSource\s+(\S+)/g)].at(-1)?.[1];
+  const imports = parsed.ast.body
+    .filter((node: Node) => node.type === 'ImportDeclaration')
+    .map((node: Node) => node.source.value as string);
+  const vueImport = imports.some((name: string) => name === 'vue' || name.startsWith('@vue/'));
+  const reactImport = imports.some((name: string) => name === 'react' || name.startsWith('react/'));
+  if (componentCalls.size && !pragma && !options.jsxImportSource && vueImport && reactImport)
+    throw new TwillSyntaxError(source, filename, {
+      message:
+        'Both React and Vue are imported. Select the standard JSX runtime with @jsxImportSource or tsconfig jsxImportSource.',
+      pos: parsed.calls[0]!.start,
+      loc: parsed.calls[0]!.loc.start,
+    });
+  const jsxImportSource = pragma ?? options.jsxImportSource ?? (vueImport ? 'vue' : 'react');
+  const vue = jsxImportSource === 'vue';
+  if (uiFile && !pragma && jsxImportSource !== 'react') {
+    const start = source.startsWith('#!') ? source.indexOf('\n') + 1 : 0;
+    code.appendLeft(start, `/** @jsxImportSource ${jsxImportSource} */\n`);
+  }
+  const attributeClosings: number[] = [];
+  const stripPunctuation = (start: number, end: number, types: readonly unknown[]) => {
+    const text = source.slice(start, end);
+    const lexer = Parser.tokenizer(text, { ecmaVersion: 'latest' });
+    const edits = new MagicString(text);
+    for (let token = lexer.getToken(); token.type !== tokTypes.eof; token = lexer.getToken())
+      if (types.includes(token.type)) edits.remove(token.start, token.end);
+    return edits.toString();
+  };
   let counter = 0;
   const usedNames = new Set<string>();
-  if (builders.size || parsed.defers.length)
+  if (componentCalls.size || parsed.defers.length)
     walk(parsed.ast, (node) => {
       if (node.type === 'Identifier') usedNames.add(node.name);
     });
   for (const node of parsed.calls) {
     const { callEnd, hadParens, originalArgs, closures } = node.trailing;
-    if (hadParens) {
+    const component = componentCalls.has(node);
+    if (component) {
+      if (
+        originalArgs.length > 1 ||
+        originalArgs[0]?.type === 'SpreadElement' ||
+        node.optional ||
+        node.callee.optional
+      )
+        throw new TwillSyntaxError(source, filename, {
+          message:
+            'Component syntax accepts one props object and children; optional calls use ordinary callbacks.',
+          pos: node.start,
+          loc: node.loc.start,
+        });
+      if (closures.length > 1 && !vue)
+        throw new TwillSyntaxError(source, filename, {
+          message:
+            'React components accept one children closure. Supply render props in the props object.',
+          pos: closures[1].start,
+          loc: closures[1].loc.start,
+        });
+      if (vue) {
+        const labels = new Set(['default']);
+        for (const closure of closures.slice(1)) {
+          const label = metadataByNode.get(closure)!.label!;
+          const name = source.slice(label.start, label.end);
+          if (labels.has(name))
+            throw new TwillSyntaxError(source, filename, {
+              message: `Duplicate Vue slot: ${name}`,
+              pos: label.start,
+              loc: closure.loc.start,
+            });
+          labels.add(name);
+        }
+      }
+      const opening = vue ? '>{({default: ' : '>{(';
+      const tagEnd = node.typeParameters?.end ?? node.callee.end;
+      code.appendLeft(node.callee.start, '(<');
+      const props = originalArgs[0] as Node | undefined;
+      const directAttributes =
+        !vue &&
+        props?.type === 'ObjectExpression' &&
+        props.properties.every(
+          (property: Node) =>
+            property.type === 'SpreadElement' ||
+            (property.kind === 'init' &&
+              !property.method &&
+              !property.computed &&
+              (property.key.name ?? property.key.value) !== '__proto__' &&
+              /^[A-Za-z_$][\w$.:-]*$/.test(String(property.key.name ?? property.key.value))),
+        );
+      if (directAttributes) {
+        // Literal props become native JSX attributes. This retains contextual
+        // callback types and passes keys explicitly, as React's runtime expects.
+        code.overwrite(
+          tagEnd,
+          props!.start + 1,
+          ' ' + stripPunctuation(tagEnd, props!.start, [tokTypes.parenL]),
+        );
+        let previous = props!.start + 1;
+        for (const property of props!.properties as Node[]) {
+          if (previous < property.start)
+            code.overwrite(
+              previous,
+              property.start,
+              stripPunctuation(previous, property.start, [tokTypes.comma]) + ' ',
+            );
+          if (property.type === 'SpreadElement') code.prependLeft(property.start, '{');
+          else {
+            const name = String(property.key.name ?? property.key.value);
+            if (property.shorthand) code.prependLeft(property.start, `${name}={`);
+            else {
+              code.overwrite(property.key.start, property.key.end, name);
+              const start = property.key.end;
+              const colon = Parser.tokenizer(source.slice(start, property.value.start), {
+                ecmaVersion: 'latest',
+              }).getToken();
+              code.overwrite(start + colon.start, start + colon.end, '={');
+            }
+          }
+          attributeClosings.push(property.end);
+          previous = property.end;
+        }
+        const end = props!.end - 1;
+        code.overwrite(
+          previous,
+          callEnd,
+          stripPunctuation(previous, end, [tokTypes.comma]) +
+            stripPunctuation(props!.end, callEnd, [tokTypes.parenR, tokTypes.comma]) +
+            opening,
+        );
+      } else if (originalArgs.length) {
+        const head = source.slice(tagEnd, originalArgs[0].start);
+        const paren = Parser.tokenizer(head, { ecmaVersion: 'latest' }).getToken();
+        code.overwrite(
+          tagEnd,
+          originalArgs[0].start,
+          ' {...(' + head.slice(0, paren.start) + head.slice(paren.end),
+        );
+        const tailStart = originalArgs[0].end;
+        const tail = Parser.tokenizer(source.slice(tailStart, callEnd - 1), {
+          ecmaVersion: 'latest',
+        });
+        // Parenthesized props may contain closing parentheses before the comma.
+        for (let token = tail.getToken(); token.type !== tokTypes.eof; token = tail.getToken())
+          if (token.type === tokTypes.comma)
+            code.remove(tailStart + token.start, tailStart + token.end);
+        code.overwrite(callEnd - 1, callEnd, ')}' + opening);
+      } else if (hadParens) {
+        const gap = source.slice(tagEnd, callEnd);
+        const tokens = Parser.tokenizer(gap, { ecmaVersion: 'latest' });
+        const first = tokens.getToken();
+        const last = tokens.getToken();
+        code.overwrite(tagEnd, callEnd, opening + gap.slice(first.end, last.start));
+      } else code.appendLeft(callEnd, opening);
+    } else if (hadParens) {
       // Keep comments and trailing commas intact. The closing parenthesis is
       // moved after the closure; remove any comma immediately before it.
       const tailStart = originalArgs.at(-1)?.end ?? callEnd - 1;
@@ -146,9 +307,46 @@ export function transform(source: string, options: TransformOptions = {}) {
         code.remove(tailStart + token.start, tailStart + token.end);
       code.overwrite(callEnd - 1, callEnd, originalArgs.length ? ',' : '');
     } else code.appendLeft(callEnd, '(');
+    let directChild = false;
     for (const closure of closures) {
       const metadata = metadataByNode.get(closure)!;
-      if (metadata.label) code.overwrite(metadata.label.start, closure.start, ', ');
+      const body = closure.body.body as Node[];
+      const content = component && (vue || !metadata.header);
+      const expressions = body.filter((statement) => statement.type === 'ExpressionStatement');
+      const singleContent =
+        content &&
+        expressions.length === 1 &&
+        body.every((statement) =>
+          [
+            'ExpressionStatement',
+            'VariableDeclaration',
+            'FunctionDeclaration',
+            'ClassDeclaration',
+            'DeferStatement',
+            'EmptyStatement',
+          ].includes(statement.type),
+        ) &&
+        body.filter((statement) => statement.type !== 'EmptyStatement').at(-1) === expressions[0];
+      if (singleContent && body.length === 1 && !vue) {
+        // A single JSX child is a value, not an array or an eagerly invoked
+        // callback. This also supports libraries requiring ReactElement children.
+        directChild = true;
+        code.remove(closure.start, closure.start + 1);
+        code.remove(closure.end - 1, closure.end);
+        const statement = expressions[0]!;
+        if (source[statement.end - 1] === ';') code.remove(statement.end - 1, statement.end);
+        continue;
+      }
+      if (metadata.label) {
+        const label = source
+          .slice(metadata.label.start, metadata.label.end)
+          .replace(/\s*:\s*$/, '');
+        code.overwrite(
+          metadata.label.start,
+          closure.start,
+          component && vue ? `, [${JSON.stringify(label)}]: ` : ', ',
+        );
+      }
       if (metadata.header) {
         const header = metadata.header;
         // Preserve parameter tokens in place so types, hover and diagnostics map
@@ -161,8 +359,7 @@ export function transform(source: string, options: TransformOptions = {}) {
         if (metadata.async && !header.parenthesized) code.appendLeft(header.asyncEnd!, ' (');
         code.overwrite(header.inStart, header.end, `${header.parenthesized ? '' : ') '}=> {`);
       } else code.overwrite(closure.start, closure.start + 1, '() => {');
-      const body = closure.body.body as Node[];
-      if (builders.has(calleeName(node.callee) ?? '')) {
+      if (content && !singleContent) {
         let collector: string;
         do collector = `__twillChildren${counter++}`;
         while (usedNames.has(collector));
@@ -207,7 +404,8 @@ export function transform(source: string, options: TransformOptions = {}) {
               break;
             case 'ReturnStatement':
               throw new TwillSyntaxError(source, filename, {
-                message: 'Builder closures collect expressions; use expressions instead of return.',
+                message:
+                  'Component children collect expressions; use expressions instead of return.',
                 pos: statement.start,
                 loc: statement.loc.start,
               });
@@ -216,22 +414,36 @@ export function transform(source: string, options: TransformOptions = {}) {
           }
         };
         body.forEach(collect);
-        code.prependLeft(closure.end - 1, `;return ${collector};`);
+        code.prependLeft(
+          closure.end - 1,
+          vue
+            ? `;return ${collector};`
+            : `;return ${collector}.length === 1 ? ${collector}[0] : ${collector};`,
+        );
       } else if (
-        options.implicitReturn !== false &&
-        body.length === 1 &&
-        body[0]!.type === 'ExpressionStatement'
+        singleContent ||
+        (options.implicitReturn !== false &&
+          body.length === 1 &&
+          body[0]!.type === 'ExpressionStatement')
       ) {
         // Parentheses prevent object literals / comma expressions from changing meaning.
-        const statement = body[0]!;
+        const statement = singleContent ? expressions[0]! : body[0]!;
         code.prependLeft(statement.start, 'return (');
         code.appendLeft(source[statement.end - 1] === ';' ? statement.end - 1 : statement.end, ')');
       }
     }
-    code.appendLeft(closures.at(-1).end, ')');
+    if (component)
+      code.prependLeft(
+        closures.at(-1).end,
+        (vue ? '})}' : directChild || metadataByNode.get(closures[0])!.header ? ')}' : ')()}') +
+          `</${calleeName(node.callee)}>)`,
+      );
+    else code.appendLeft(closures.at(-1).end, ')');
     // The parser may visit nested trailing calls after this one. Edits use
     // original offsets throughout, so nested scopes compose without reparsing.
   }
+  // Apply outer attribute braces after nested call suffixes at the same offset.
+  for (const end of attributeClosings) code.appendLeft(end, '}');
   if (parsed.defers.length) {
     const starts = new Map<Node, number>();
     for (const metadata of parsed.closures)
@@ -255,14 +467,14 @@ export function transform(source: string, options: TransformOptions = {}) {
   }
   const map = code.generateMap({
     source: filename,
-    file: filename.replace(/\.twill(?:x|\.jsx?)?$/, '.js'),
+    file: filename.replace(/\.twillx?$/, '.js'),
     includeContent: true,
     hires: true,
   });
   return {
     code: code.toString(),
     map,
-    changed: parsed.closures.length > 0 || parsed.guards.length > 0 || parsed.defers.length > 0,
+    changed: code.hasChanged(),
     closures: parsed.closures.length,
     guards: parsed.guards.length,
     defers: parsed.defers.length,

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0
+
+Natural `.twillx` component closures compile directly to native JSX. Real components are imported and used directly, without component lists, aliases or Twill wrapping functions. React preserves hooks, memo, class identity, refs and native JSX prop/children checking. Vue preserves lazy reactive slots, supports scoped/named slots and rejects duplicate slot names. The standard JSX import source and inherited tsconfig settings select the runtime; direct Vue imports also select Vue when unspecified.
+
+Only `.twill` and `.twillx` remain source extensions; JS-ending dialect extensions and the unpublished React/Vue wrapper APIs are removed without compatibility aliases. Both formats accept JS syntax with optional types, and native JS/JSDoc and TS sources retain bidirectional mixed imports. `builders` is removed from configuration. Ordinary `.twill` calls and parenthesized UI callable expressions retain function semantics. Documentation and examples use `.map { value in ... }` without empty parentheses and explain component/callback boundaries. Single children retain their original value and type, including single-element slot/asChild APIs. Literal React props become native JSX attributes with explicit keys and contextual callback types. Real-framework rendering, prop diagnostics, generic components, child collection/defer composition and extended JSX settings are verified.
+
 ## 0.4.0
 
 Adds end-to-end native TS/JS ↔ Twill imports: all five bundlers, exported types, JSDoc consumers, type-only imports, re-exports, dynamic imports, cycles and native-first extensionless/index resolution. Vite/esbuild reuse host compilation; bare Rollup/webpack/rspack can emit local native TS/TSX/JSX with an explicit opt-out. Native source never runs through the dialect parser. The ESM loader emits local native TS/TSX/JSX on supported Node versions and preserves native source maps, while delegating JS/CJS and dependencies to Node.

@@ -2,7 +2,7 @@ import { afterEach, expect, it } from 'vitest';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { TwillProject, virtualFilename } from '../src/project';
+import { TwillProject, virtualFilename, sourceFilename } from '../src/project';
 import { twillPlugin } from '../src/plugin';
 import { transpileNative } from '../src/transpile';
 
@@ -25,6 +25,11 @@ it('preserves native JS/TS semantics and maps native TS to its real filename', (
   expect(JSON.parse(output.map).sources).toEqual(['native.ts']);
   expect(JSON.parse(output.map).sourcesContent).toEqual([source]);
   expect(() => transpileNative('fn() { 42 };', 'native.ts')).toThrow();
+  expect(sourceFilename('native.twill.js')).toBe('native.twill.js');
+  expect(sourceFilename('native.twill.jsx')).toBe('native.twill.jsx');
+  const plugin = twillPlugin.raw({}, { framework: 'vite', versions: {} });
+  expect(plugin.transformInclude!('native.twill.js')).toBe(false);
+  expect(plugin.transformInclude!('native.twill.jsx')).toBe(false);
 });
 
 it('resolves native sources before same-stem Twill, and handles directory indexes and query suffixes', () => {

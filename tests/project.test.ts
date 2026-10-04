@@ -79,7 +79,7 @@ describe('virtual TypeScript projects', () => {
   );
   it('checks JS and reports syntax failures without hiding other errors', () => {
     const { project: p } = project({
-      'main.twill.js': 'export const x = [1].map() { value in value.missing() };',
+      'main.twill': 'export const x = [1].map() { value in value.missing() };',
       'broken.twill': 'fn() {',
     });
     expect(p.diagnostics().map((error) => error.code)).toEqual(
@@ -146,11 +146,11 @@ describe('virtual TypeScript projects', () => {
     });
     expect(p.diagnostics()).toEqual([]);
   });
-  it('checks JS defer stacks and preserves JSDoc on local hoisted functions', () => {
+  it('preserves native JS/JSDoc checking alongside Twill files', () => {
     const { project: p } = project({
-      'main.twill.js':
-        'export function f() { defer {} const result = helper(3);\n/** @param {number} value */\nfunction helper(value) { return value * 2; } return result; }',
-      'consumer.ts': 'import {f} from "./main.twill.js"; const result: number = f();',
+      'native.js':
+        'export function f() { const result = helper(3);\n/** @param {number} value */\nfunction helper(value) { return value * 2; } return result; }',
+      'consumer.twill': 'import {f} from "./native.js"; const result: number = f();',
     });
     expect(p.diagnostics()).toEqual([]);
   });

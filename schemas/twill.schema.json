@@ -4,12 +4,8 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "$schema": { "type": "string" },
-    "builders": {
-      "type": "array",
-      "items": { "type": "string", "minLength": 1 },
-      "uniqueItems": true,
-      "description": "Exact callee names whose trailing closures collect child expressions."
+    "$schema": {
+      "type": "string"
     },
     "implicitReturn": {
       "type": "boolean",

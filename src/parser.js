@@ -357,11 +357,34 @@ function parserFor(language) {
     }
 
     parseSubscript(base, startPos, startLoc, noCalls, maybeAsyncArrow, optionalChained, forInit) {
-      const supported = ['CallExpression', 'Identifier', 'MemberExpression'].includes(base.type);
-      // Only the outer heritage expression owns the class body brace. Nested
-      // calls, parenthesized expressions and computed lookups allow callbacks.
+      // The TS parser treats a same-line brace after type arguments as an
+      // expression operand. In this dialect it can instead begin the callback.
       const classBody =
         this.classSuperDepth !== null && this.subscriptDepth === this.classSuperDepth + 1;
+      if (!noCalls && !classBody && this.tsMatchLeftRelational?.() && this.start === base.end) {
+        const parameters = this.tsTryParseAndCatch(() => {
+          const parsed = this.tsParseTypeArgumentsInExpression();
+          return parsed &&
+            this.type === tt.braceL &&
+            !/[\r\n\u2028\u2029]/.test(this.input.slice(parsed.end, this.start))
+            ? parsed
+            : undefined;
+        });
+        if (parameters) {
+          const instantiation = this.startNodeAt(startPos, startLoc);
+          instantiation.expression = base;
+          instantiation.typeParameters = parameters;
+          base = this.finishNode(instantiation, 'TSInstantiationExpression');
+        }
+      }
+      const supported = [
+        'CallExpression',
+        'Identifier',
+        'MemberExpression',
+        'TSInstantiationExpression',
+      ].includes(base.type);
+      // Only the outer heritage expression owns the class body brace. Nested
+      // calls, parenthesized expressions and computed lookups allow callbacks.
       if (!noCalls && supported && this.type === tt.braceL && !classBody) {
         if (base.trailing)
           this.raise(
@@ -372,11 +395,17 @@ function parserFor(language) {
         if (base.type !== 'CallExpression' && /[\r\n]/.test(this.input.slice(base.end, this.start)))
           return base;
         const hadParens = base.type === 'CallExpression' && base.end === this.lastTokEnd;
-        const callee = hadParens ? base.callee : base;
+        const callee = hadParens
+          ? base.callee
+          : base.type === 'TSInstantiationExpression'
+            ? base.expression
+            : base;
         const node = this.startNodeAt(startPos, startLoc);
         node.callee = callee;
         node.arguments = hadParens ? [...base.arguments] : [];
         node.optional = base.optional ?? false;
+        if ((hadParens || base.type === 'TSInstantiationExpression') && base.typeParameters)
+          node.typeParameters = base.typeParameters;
         const callEnd = this.lastTokEnd;
         const args = [this.parseTrailingClosure(callee, null)];
         while (this.type === tt.name) {

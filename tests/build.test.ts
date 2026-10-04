@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { mkdtempSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-import { tmpdir } from 'node:os';
 import { pathToFileURL } from 'node:url';
 import { build as esbuild } from 'esbuild';
 import { rollup } from 'rollup';
@@ -14,27 +13,33 @@ import { rspack } from '@rspack/core';
 import webpackPlugin from '../src/webpack';
 import rspackPlugin from '../src/rspack';
 import { createRequire } from 'node:module';
+import { renderToStaticMarkup } from 'react-dom/server';
+import type { ReactNode } from 'react';
 
 const roots: string[] = [];
 afterEach(() => roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })));
 function fixture() {
-  const root = mkdtempSync(join(tmpdir(), 'twill-build-'));
+  const root = mkdtempSync(join(process.cwd(), '.twill-build-'));
   roots.push(root);
   writeFileSync(join(root, 'numbers.ts'), 'export const values: number[] = [1,2,3];');
   writeFileSync(join(root, 'offset.js'), 'export const offset = 0;');
   writeFileSync(join(root, 'types.ts'), 'export interface Value { amount: number }');
   writeFileSync(
-    join(root, 'double.twill.js'),
-    'import {offset} from "./offset.js"; export function double(x) { guard x > 0 else { return 0; } let result = x * 2 + offset; defer { result = 0; } return result; }',
+    join(root, 'double.twill'),
+    'import {offset} from "./offset.js"; export function double(x: number) { guard x > 0 else { return 0; } let result = x * 2 + offset; defer { result = 0; } return result; }',
   );
   writeFileSync(
     join(root, 'main.twill'),
     'import {values} from "./numbers"; import {double} from "./double"; import type {Value} from "./types.ts"; export const result = values.map() { (x: number) in defer {} guard x > 0 else { throw new Error(); } const value: Value = {amount: double(x)}; return value.amount; };',
   );
+  writeFileSync(
+    join(root, 'ui.twillx'),
+    'function Card(props: {children?: import("react").ReactNode}) { return <article>{props.children}</article>; } export const view = Card { [1,2].map { value in <span key={value}>{value}</span> }; };',
+  );
   writeFileSync(join(root, 'consumer.js'), 'export {result} from "./main.twill";');
   writeFileSync(
     join(root, 'entry.ts'),
-    'import {result as numbers} from "./consumer.js"; export const result: number[] = numbers;',
+    'import {result as numbers} from "./consumer.js"; export const result: number[] = numbers; export {view} from "./ui.twillx";',
   );
   return root;
 }
@@ -50,9 +55,12 @@ describe('real build tools', () => {
       sourcemap: 'inline',
       plugins: [esbuildPlugin({ root })],
     });
-    const module = { exports: {} as { result: number[] } };
+    const module = { exports: {} as { result: number[]; view: ReactNode } };
     Function('module', 'exports', result.outputFiles![0]!.text)(module, module.exports);
     expect(module.exports.result).toEqual([2, 4, 6]);
+    expect(renderToStaticMarkup(module.exports.view)).toBe(
+      '<article><span>1</span><span>2</span></article>',
+    );
     expect(result.outputFiles![0]!.text).toContain('sourceMappingURL=data:');
   });
   it('bundles with Rollup and preserves original sources in maps', async () => {
@@ -60,16 +68,20 @@ describe('real build tools', () => {
     const bundle = await rollup({
       input: join(root, 'entry.ts'),
       plugins: [rollupPlugin({ root })],
+      external: ['react/jsx-runtime'],
     });
     try {
       const { output } = await bundle.generate({ format: 'cjs', sourcemap: true });
       const chunk = output[0]!;
       if (chunk.type !== 'chunk') throw new Error('Expected chunk');
-      const exports = {} as { result: number[] };
-      Function('exports', chunk.code)(exports);
+      const exports = {} as { result: number[]; view: ReactNode };
+      Function('exports', 'require', chunk.code)(exports, createRequire(import.meta.url));
       expect(exports.result).toEqual([2, 4, 6]);
+      expect(renderToStaticMarkup(exports.view)).toBe(
+        '<article><span>1</span><span>2</span></article>',
+      );
       expect(chunk.map?.sources.map((source) => source.split('/').at(-1))).toEqual(
-        expect.arrayContaining(['main.twill', 'numbers.ts']),
+        expect.arrayContaining(['main.twill', 'numbers.ts', 'ui.twillx']),
       );
     } finally {
       await bundle.close();
@@ -84,7 +96,11 @@ describe('real build tools', () => {
       server: { middlewareMode: true },
     });
     try {
-      expect((await server.ssrLoadModule('/entry.ts')).result).toEqual([2, 4, 6]);
+      const loaded = await server.ssrLoadModule('/entry.ts');
+      expect(loaded.result).toEqual([2, 4, 6]);
+      expect(renderToStaticMarkup(loaded.view)).toBe(
+        '<article><span>1</span><span>2</span></article>',
+      );
     } finally {
       await server.close();
     }
@@ -101,6 +117,9 @@ describe('real build tools', () => {
     });
     const module = await import(pathToFileURL(join(root, 'dist', 'main.mjs')).href);
     expect(module.result).toEqual([2, 4, 6]);
+    expect(renderToStaticMarkup(module.view)).toBe(
+      '<article><span>1</span><span>2</span></article>',
+    );
     expect(
       JSON.parse(readFileSync(join(root, 'dist', 'main.mjs.map'), 'utf8')).sourcesContent.join(''),
     ).toContain('value');
@@ -128,9 +147,11 @@ describe('real build tools', () => {
           else resolve();
         }),
       );
-      expect(createRequire(import.meta.url)(join(root, 'dist', 'main.cjs')).result).toEqual([
-        2, 4, 6,
-      ]);
+      const loaded = createRequire(import.meta.url)(join(root, 'dist', 'main.cjs'));
+      expect(renderToStaticMarkup(loaded.view)).toBe(
+        '<article><span>1</span><span>2</span></article>',
+      );
+      expect(loaded.result).toEqual([2, 4, 6]);
     } finally {
       await new Promise<void>((resolve, reject) =>
         compiler.close((error) => (error ? reject(error) : resolve())),

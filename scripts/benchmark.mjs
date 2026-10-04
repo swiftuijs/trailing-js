@@ -38,12 +38,17 @@ for (const count of [10, 100, 1000]) {
   );
   const options = { filename: 'benchmark.twill' };
   const mapped = transform(sugar, options);
+  const uiSource = Array.from(
+    { length: count },
+    (_, i) => `export const view${i} = Card { Label { "child" }; if (true) "tail"; };`,
+  ).join('\n');
   const stages = {
     transformTS: measure(() => transform(sugar, options)),
-    transformJS: measure(() => transform(sugar, { filename: 'benchmark.twill.js' })),
+    transformJS: measure(() => transform(sugar, { filename: 'benchmark.twill', language: 'js' })),
     unchangedTS: measure(() => transform(plain, options)),
-    pluginJS: measure(() => pluginTransform.call(context, sugar, 'benchmark.twill.js')),
     pluginTS: measure(() => pluginTransform.call(context, sugar, 'benchmark.twill')),
+    transformUI: measure(() => transform(uiSource, { filename: 'benchmark.twillx' })),
+    pluginUI: measure(() => pluginTransform.call(context, uiSource, 'benchmark.twillx')),
     typescriptOnly: measure(() =>
       ts.transpileModule(plain, {
         compilerOptions: {
@@ -58,7 +63,13 @@ for (const count of [10, 100, 1000]) {
       for (let i = 0; i < 100; i++) originalPosition(mapped, (i % count) + 1, 45);
     }),
   };
-  results.push({ callbacks: count, bytes: Buffer.byteLength(sugar), stages });
+  results.push({
+    callbacks: count,
+    bytes: Buffer.byteLength(sugar),
+    uiViews: count,
+    uiBytes: Buffer.byteLength(uiSource),
+    stages,
+  });
   console.log(JSON.stringify(results.at(-1)));
 }
 // Code identity after ordinary host minification is stronger evidence than a
@@ -66,11 +77,38 @@ for (const count of [10, 100, 1000]) {
 const input = 'export function run(values) { return values.map() { value in value * 2 }; }';
 const expected =
   'export function run(values) { return values.map((value) => { return value * 2; }); }';
-const emitted = await minify(transform(input, { filename: 'runtime.twill.js' }).code, {
+const emitted = await minify(transform(input, { filename: 'runtime.twill', language: 'js' }).code, {
   minify: true,
 });
 const reference = await minify(expected, { minify: true });
 if (emitted.code !== reference.code) throw new Error('Runtime equivalence check failed');
+// Component sugar uses only the same operations as handwritten native JSX.
+for (const runtime of ['react', 'vue']) {
+  const sugar = 'export function App() { return Card { "child"; "tail"; }; }';
+  const native =
+    runtime === 'vue'
+      ? 'export function App() { return (<Card>{({default:()=>{const __twillChildren0=[];__twillChildren0.push("child");__twillChildren0.push("tail");return __twillChildren0;}})}</Card>); }'
+      : 'export function App() { return (<Card>{(()=>{const __twillChildren0=[];__twillChildren0.push("child");__twillChildren0.push("tail");return __twillChildren0.length===1?__twillChildren0[0]:__twillChildren0;})()}</Card>); }';
+  const emittedTS = transform(sugar, { filename: 'runtime.twillx', jsxImportSource: runtime }).code;
+  const compile = async (source) =>
+    minify(
+      ts.transpileModule(source, {
+        fileName: 'runtime.tsx',
+        compilerOptions: {
+          target: ts.ScriptTarget.ESNext,
+          module: ts.ModuleKind.ESNext,
+          jsx: ts.JsxEmit.ReactJSX,
+          jsxImportSource: runtime,
+        },
+      }).outputText,
+      { minifyWhitespace: true, minifySyntax: true, minifyIdentifiers: false },
+    );
+  assert.equal(
+    (await compile(emittedTS)).code,
+    (await compile(native)).code,
+    `${runtime} component runtime must match equivalent native JSX`,
+  );
+}
 // A native finally loop is the allocation-free reference for this workload.
 // Defer deliberately adds registration closures and a lazy stack. Keep results
 // observable and warm both functions; report overhead rather than hiding it.
@@ -86,7 +124,7 @@ for (const registrations of [1, 10, 100]) {
     finally { for (let i = ${registrations} - 1; i >= 0; i--) state.cleanup += i + 1; }
   }`;
   const compiled = Function(
-    transform(source, { filename: 'cleanup.twill.js' }).code + '; return run;',
+    transform(source, { filename: 'cleanup.twill', language: 'js' }).code + '; return run;',
   )();
   const handwritten = Function(native + '; return run;')();
   const batch = (run) => {
@@ -132,6 +170,7 @@ const report = {
     sourceMaps: 'high-resolution with embedded source',
     includesStartup: false,
     ordinaryClosureRuntimeCodeIdentical: true,
+    componentRuntimeCodeIdenticalToNativeJSX: ['react', 'vue'],
     cleanupReference:
       'Handwritten native finally loop; same observable additions, no registration closures or stack. Batch assertions included in both timings.',
   },

@@ -6,5 +6,5 @@
     "moduleResolution": "Bundler",
     "checkJs": true
   },
-  "include": ["*.twill", "*.twill.js"]
+  "include": ["*.twill"]
 }

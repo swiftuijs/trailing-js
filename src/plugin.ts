@@ -53,9 +53,12 @@ export const twillPlugin = createUnplugin<PluginOptions | undefined, false>(
           };
         },
         configureServer(server) {
-          server.watcher.add(resolve(root, 'twill.config.json'));
+          server.watcher.add([resolve(root, 'twill.config.json'), resolve(root, 'tsconfig.json')]);
           server.watcher.on('change', (filename) => {
-            if (filename === resolve(root, 'twill.config.json')) {
+            if (
+              filename === resolve(root, 'twill.config.json') ||
+              filename === resolve(root, 'tsconfig.json')
+            ) {
               config = { ...loadConfig(root), ...options };
               server.ws.send({ type: 'full-reload' });
             }
@@ -86,10 +89,11 @@ export const twillPlugin = createUnplugin<PluginOptions | undefined, false>(
         if (isDependency(filename)) return null;
         if (isTwillFile(filename)) {
           this.addWatchFile(resolve(root, 'twill.config.json'));
+          this.addWatchFile(resolve(root, 'tsconfig.json'));
           return transpile(source, { ...config, filename });
         }
         return nativeSources && needsTypeEmission(filename)
-          ? transpileNative(source, filename)
+          ? transpileNative(source, filename, undefined, undefined, config.jsxImportSource)
           : null;
       },
     };

@@ -2,7 +2,7 @@
   "name": "twill",
   "displayName": "Twill",
   "description": "Syntax highlighting and TypeScript language support for the Twill JS/TS syntax-sugar language.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "publisher": "swiftuijs",
   "license": "MIT",
   "repository": {
@@ -18,9 +18,7 @@
   "main": "./dist/extension.cjs",
   "activationEvents": [
     "onLanguage:twill-typescript",
-    "onLanguage:twill-javascript",
-    "onLanguage:twill-tsx",
-    "onLanguage:twill-jsx"
+    "onLanguage:twill-tsx"
   ],
   "contributes": {
     "languages": [
@@ -36,17 +34,6 @@
         "configuration": "./language-configuration.json"
       },
       {
-        "id": "twill-javascript",
-        "aliases": [
-          "Twill JavaScript",
-          "twill.js"
-        ],
-        "extensions": [
-          ".twill.js"
-        ],
-        "configuration": "./language-configuration.json"
-      },
-      {
         "id": "twill-tsx",
         "aliases": [
           "Twill TSX",
@@ -54,17 +41,6 @@
         ],
         "extensions": [
           ".twillx"
-        ],
-        "configuration": "./language-configuration.json"
-      },
-      {
-        "id": "twill-jsx",
-        "aliases": [
-          "Twill JSX",
-          "twill.jsx"
-        ],
-        "extensions": [
-          ".twill.jsx"
         ],
         "configuration": "./language-configuration.json"
       }
@@ -76,19 +52,9 @@
         "path": "./syntaxes/twill.tmLanguage.json"
       },
       {
-        "language": "twill-javascript",
-        "scopeName": "source.twill.js",
-        "path": "./syntaxes/twill.js.tmLanguage.json"
-      },
-      {
         "language": "twill-tsx",
         "scopeName": "source.twill.tsx",
         "path": "./syntaxes/twillx.tmLanguage.json"
-      },
-      {
-        "language": "twill-jsx",
-        "scopeName": "source.twill.jsx",
-        "path": "./syntaxes/twill.jsx.tmLanguage.json"
       }
     ],
     "commands": [

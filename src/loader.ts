@@ -10,7 +10,11 @@ import { isDependency, needsTypeEmission, resolveSourceFile } from './files';
 function configuration(filename: string) {
   let root = dirname(filename);
   for (;;) {
-    if (existsSync(resolvePath(root, 'twill.config.json'))) return loadConfig(root);
+    if (
+      existsSync(resolvePath(root, 'twill.config.json')) ||
+      existsSync(resolvePath(root, 'tsconfig.json'))
+    )
+      return loadConfig(root);
     const parent = dirname(root);
     if (parent === root) return {};
     root = parent;
@@ -50,7 +54,13 @@ export const load: LoadHook = async (url, context, nextLoad) => {
   const source = readFileSync(filename, 'utf8');
   const result = dialect
     ? transpile(source, { ...configuration(filename), filename })
-    : transpileNative(source, filename);
+    : transpileNative(
+        source,
+        filename,
+        undefined,
+        undefined,
+        configuration(filename).jsxImportSource,
+      );
   return {
     format: 'module',
     source:

@@ -4,7 +4,7 @@ import { dirname, join } from 'node:path';
 import { TwillProject, virtualFilename, sourceFilename } from '../../../src/project';
 import { isTwillFile } from '../../../src/compiler';
 
-const languages = ['twill-typescript', 'twill-javascript', 'twill-tsx', 'twill-jsx'];
+const languages = ['twill-typescript', 'twill-tsx'];
 const selector = languages.map((language) => ({ language, scheme: 'file' }));
 
 export function activate(context: vscode.ExtensionContext) {
@@ -69,7 +69,7 @@ export function activate(context: vscode.ExtensionContext) {
       for (const open of vscode.workspace.textDocuments) {
         if (
           open.uri.scheme === 'file' &&
-          /\.(?:twill(?:x|\.jsx?)?|[cm]?tsx?|[cm]?jsx?)$/.test(open.fileName) &&
+          /\.(?:twillx?|[cm]?tsx?|[cm]?jsx?)$/.test(open.fileName) &&
           sourceFilename(open.fileName).startsWith(root + '/')
         )
           project.update(open.fileName, open.getText());
@@ -138,7 +138,7 @@ export function activate(context: vscode.ExtensionContext) {
       for (const project of projects.values())
         if (
           event.document.uri.scheme === 'file' &&
-          /\.(?:twill(?:x|\.jsx?)?|[cm]?tsx?|[cm]?jsx?)$/.test(event.document.fileName) &&
+          /\.(?:twillx?|[cm]?tsx?|[cm]?jsx?)$/.test(event.document.fileName) &&
           sourceFilename(event.document.fileName).startsWith(project.root + '/')
         )
           project.update(event.document.fileName, event.document.getText());
@@ -149,7 +149,7 @@ export function activate(context: vscode.ExtensionContext) {
       clearTimeout(timers.get(document.uri.toString()));
       timers.delete(document.uri.toString());
       diagnostics.delete(document.uri);
-      if (/\.(?:twill(?:x|\.jsx?)?|[cm]?tsx?|[cm]?jsx?)$/.test(document.fileName))
+      if (/\.(?:twillx?|[cm]?tsx?|[cm]?jsx?)$/.test(document.fileName))
         projects.forEach((project) => {
           if (sourceFilename(document.fileName).startsWith(project.root + '/'))
             project.update(document.fileName);

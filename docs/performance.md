@@ -4,7 +4,7 @@
 
 Ordinary trailing closures lower to native arrows. Guards lower to native branches and, for bindings, native `const` declarations. These two features add no callback dispatch wrapper, resource stack or scheduler. The compiler is not an application runtime dependency. Code-identity tests minify the generated code and equivalent handwritten JS using the same host transform and compare their output. This is evidence for the tested lowerings, not a claim that arbitrary programs become faster or that every JS engine has identical timing.
 
-Explicit result builders allocate an array and call `push` for each collected expression; compare them with equivalent handwritten collection code. React/Vue adapters add their normal element/slot operations and callback execution. Avoid builders in a hot numerical loop unless collection is actually required. `defer` explicitly creates a lazy local registration array and one capturing arrow per reached registration. A mixed sync/async scope also stores a descriptor per registration. Cleanups drain through native finally; async cleanup awaits serially. Unreached registration allocates no array or callback. A block without defer emits no cleanup code. Native try/finally remains useful in allocation-sensitive code. If/switch expressions remain unimplemented.
+Single-expression React children lower directly to a JSX expression, without a collector or callback. Vue single-expression slots return their value lazily. Blocks requiring collection allocate an array and call `push` for each collected expression, collapsing one collected React child to its original value; compare them with equivalent handwritten collection code. React/Vue use their standard JSX element/slot runtime operations. There are no Twill component wrappers or extra component functions. Ordinary callbacks do not collect children. `defer` explicitly creates a lazy local registration array and one capturing arrow per reached registration. A mixed sync/async scope also stores a descriptor per registration. Cleanups drain through native finally; async cleanup awaits serially. Unreached registration allocates no array or callback. A block without defer emits no cleanup code. Native try/finally remains useful in allocation-sensitive code. If/switch expressions remain unimplemented.
 
 ### Defer workload
 
@@ -20,7 +20,7 @@ This synthetic hot loop makes allocation and callback dispatch visible; the nati
 
 ## Compilation
 
-The extra syntax requires parsing and mapping. For TS/JSX the build pipeline also runs the normal TypeScript emitter and composes maps. Plain `.twill.js` skips that emitter. The compiler does not perform whole-program optimization and does not replace the host's target lowering, tree shaking or minification.
+The extra syntax requires parsing and mapping. For TS/JSX the build pipeline also runs the normal TypeScript emitter and composes maps. Both source extensions use the TS emitter; an explicit `language: "js"` compiler API call can perform JS-only syntax transformation. Historical JS-dialect plugin measurements below describe the old experimental formats, which are no longer registered. The compiler does not perform whole-program optimization and does not replace the host's target lowering, tree shaking or minification.
 
 Measurements below were taken on Linux x64, Node 24.19.0, an AMD EPYC 9V74 shared host, on 2026-10-04. Each stage gets 5 warmups and 15 timed samples in one process. Values are medians in milliseconds. Both versions emit high-resolution maps with embedded source. Source sizes are 599 / 6,089 / 61,889 bytes, with 10 / 100 / 1,000 repeated array callbacks. The baseline is repository commit `0dd9f6e659df7926d51175f4c3c3a8aa4ed0b06d` (0.1.0); the historical optimized result is the 0.2 working build recorded with its SHA-256 build digest.
 
@@ -34,7 +34,7 @@ Measurements below were taken on Linux x64, Node 24.19.0, an AMD EPYC 9V74 share
 
 For the largest fixture, TS syntax transformation is about 2.5× faster and the JS plugin pipeline about 5.4× faster than 0.1. Small-file TS pipeline timing varies and was slower in this particular run; the changes do not improve every workload. TypeScript's emitter alone on the equivalent plain JS fixture took 66.95 ms at 1,000 callbacks in the current run. It is a useful reference for ordinary emission cost, not an equivalent full dialect pipeline or a type-checking measurement.
 
-Parser subclass reuse, one line index for parameter locations and removal of unnecessary AST traversals account for much of the syntax improvement. Skipping the TS emitter benefits JS. Reusing a decoded trace map changes repeated mapping queries from repeated full decoding to indexed lookups. The archived reports include this warm mapping stage and p95 timings; it excludes first decoding by design.
+Parser subclass reuse, one line index for parameter locations and removal of unnecessary AST traversals account for much of the syntax improvement. Historical JS-dialect builds skipped the TS emitter. Reusing a decoded trace map changes repeated mapping queries from repeated full decoding to indexed lookups. The archived reports include this warm mapping stage and p95 timings; it excludes first decoding by design.
 
 These numbers exclude process startup, dependency loading, whole-project type checking, filesystem work, bundler optimization, framework rendering, and editor UI latency. They are synthetic callback-density measurements, not a production-project SLA. Shared-host scheduling and garbage collection affect results; evaluate representative application code on the intended hardware. The 61.9 KB fixture still adds roughly 203 ms in the TS plugin pipeline, so build overhead should not be described as zero.
 
@@ -50,6 +50,22 @@ The fresh 0.3 run uses the same callback fixtures and host. The new contextual c
 | TS build-plugin pipeline | 4.44 ms      | 22.97 ms      | 184.97 ms       |
 
 These remain build costs, with the same exclusions and host variability described above. The report includes runtime cleanup medians and p95 alongside build-stage timings. Historical versions are retained for comparison; they are not supported compatibility entry points.
+
+### Twill 0.5
+
+The current source formats are `.twill` and `.twillx`. The JS syntax API measurement explicitly selects `language: "js"`; there is no JS-ending dialect extension or separate JS-file plugin pipeline. The UI fixture contains the same number of views as the callback fixture contains callbacks: each view has nested `Card`/`Label` closures and an `if` child. UI source sizes are 679 / 6,889 / 69,889 bytes. Each stage uses the same five warmups and fifteen samples on the host above.
+
+| Stage              | 10 fixtures | 100 fixtures | 1,000 fixtures |
+| ------------------ | ----------- | ------------ | -------------- |
+| Sugar → TS         | 2.49 ms     | 14.09 ms     | 126.36 ms      |
+| JS syntax API      | 0.79 ms     | 6.07 ms      | 60.93 ms       |
+| TS plugin pipeline | 4.11 ms     | 19.23 ms     | 210.60 ms      |
+| UI syntax → JSX    | 1.36 ms     | 8.73 ms      | 120.59 ms      |
+| UI plugin pipeline | 4.30 ms     | 25.25 ms     | 294.94 ms      |
+
+These are measured build costs, not runtime timings or hardware-independent guarantees. UI single-expression children compile directly to JSX values; blocks with declarations retain their value type, and general collectors collapse a single React child so single-element component APIs continue working. Vue content stays lazy. Runtime comparisons verify ordinary callbacks against handwritten JS and both frameworks against equivalent handwritten JSX child collection after the same emission and whitespace/syntax minification; identifier spelling is held constant for this comparison. No Twill wrapping component or dispatch helper appears in UI bundles.
+
+The [0.5 report](benchmarks/current-0.5.json) records the working build digest and parent commit, together with the source version and timings. CI provides a fresh report for the committed build. The cleanup workload still has explicit allocation/dispatch costs, approximately 4.8× / 11.5× / 21.9× the allocation-free finally loop for 1 / 10 / 100 registrations on this run. This does not establish real application latency or a universal bound.
 
 ## Editor and regression verification
 
