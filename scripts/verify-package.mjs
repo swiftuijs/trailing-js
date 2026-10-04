@@ -56,7 +56,7 @@ try {
     [
       '--enable-source-maps',
       '--import',
-      join(base, 'register.js'),
+      pathToFileURL(join(base, 'register.js')).href,
       '--input-type=module',
       '-e',
       'import {values} from "./main.tts"; console.log(JSON.stringify(values))',
