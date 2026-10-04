@@ -1,0 +1,124 @@
+{
+  "timestamp": "2026-10-04T13:01:55.745Z",
+  "version": "0.2.0",
+  "commit": "0dd9f6e659df7926d51175f4c3c3a8aa4ed0b06d",
+  "workingTreeDirty": true,
+  "buildDigest": "74807676500eebd005c502a3b8332aa40d89dceb9ad131191964921fc7f74ffd",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "arch": "x64",
+    "cpu": "AMD EPYC 9V74 80-Core Processor"
+  },
+  "methodology": {
+    "samples": 15,
+    "warmups": 5,
+    "sourceMaps": "high-resolution with embedded source",
+    "includesStartup": false,
+    "runtimeCodeIdentical": true
+  },
+  "results": [
+    {
+      "callbacks": 10,
+      "bytes": 599,
+      "stages": {
+        "transformTS": {
+          "medianMs": 2.220387999999957,
+          "p95Ms": 3.927870999999982
+        },
+        "transformJS": {
+          "medianMs": 0.7745819999999526,
+          "p95Ms": 1.9711020000000303
+        },
+        "unchangedTS": {
+          "medianMs": 1.4169679999999971,
+          "p95Ms": 4.085899999999981
+        },
+        "pluginJS": {
+          "medianMs": 0.9870029999999588,
+          "p95Ms": 1.5428440000000023
+        },
+        "pluginTS": {
+          "medianMs": 5.271353999999974,
+          "p95Ms": 12.901291000000015
+        },
+        "typescriptOnly": {
+          "medianMs": 1.6476529999999912,
+          "p95Ms": 4.207905000000096
+        },
+        "map100Positions": {
+          "medianMs": 0.017966999999998734,
+          "p95Ms": 0.10302599999999984
+        }
+      }
+    },
+    {
+      "callbacks": 100,
+      "bytes": 6089,
+      "stages": {
+        "transformTS": {
+          "medianMs": 13.181859000000031,
+          "p95Ms": 21.800603000000024
+        },
+        "transformJS": {
+          "medianMs": 5.658509999999978,
+          "p95Ms": 9.65341199999989
+        },
+        "unchangedTS": {
+          "medianMs": 8.944380000000137,
+          "p95Ms": 16.511613000000125
+        },
+        "pluginJS": {
+          "medianMs": 5.640552000000071,
+          "p95Ms": 6.91926599999988
+        },
+        "pluginTS": {
+          "medianMs": 18.87340999999992,
+          "p95Ms": 36.342395000000124
+        },
+        "typescriptOnly": {
+          "medianMs": 6.5997429999999895,
+          "p95Ms": 15.585745999999972
+        },
+        "map100Positions": {
+          "medianMs": 0.007791999999881227,
+          "p95Ms": 0.023075000000062573
+        }
+      }
+    },
+    {
+      "callbacks": 1000,
+      "bytes": 61889,
+      "stages": {
+        "transformTS": {
+          "medianMs": 127.40004499999986,
+          "p95Ms": 140.6287599999996
+        },
+        "transformJS": {
+          "medianMs": 60.13560099999995,
+          "p95Ms": 90.59396299999935
+        },
+        "unchangedTS": {
+          "medianMs": 92.38255800000024,
+          "p95Ms": 129.83060600000044
+        },
+        "pluginJS": {
+          "medianMs": 56.797513999999865,
+          "p95Ms": 64.04044900000008
+        },
+        "pluginTS": {
+          "medianMs": 202.93670799999927,
+          "p95Ms": 270.4568070000005
+        },
+        "typescriptOnly": {
+          "medianMs": 66.94556100000045,
+          "p95Ms": 97.53519099999903
+        },
+        "map100Positions": {
+          "medianMs": 0.005687999999281601,
+          "p95Ms": 0.006859999999505817
+        }
+      }
+    }
+  ]
+}

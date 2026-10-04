@@ -62,6 +62,16 @@ it('loads the shipped TextMate grammar and highlights the closure delimiter', as
           token.scopes.includes('keyword.control.trailing'),
       ),
     ).toBe(true);
+    const guardLine = 'function f(value) { guard value != null else { return 0; } }';
+    expect(
+      loaded!
+        .tokenizeLine(guardLine, INITIAL)
+        .tokens.some(
+          (token) =>
+            guardLine.slice(token.startIndex, token.endIndex) === 'guard' &&
+            token.scopes.includes('keyword.control.trailing'),
+        ),
+    ).toBe(true);
   } finally {
     registry.dispose();
   }

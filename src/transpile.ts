@@ -6,6 +6,9 @@ export function transpile(source: string, options: TransformOptions = {}) {
   const filename = options.filename ?? 'input.tts';
   const result = transform(source, options);
   const language = options.language ?? inferLanguage(filename);
+  // Plain JavaScript needs no type erasure or JSX transform. Leave modern JS
+  // (including comments and import attributes) to the host's target pipeline.
+  if (language === 'js') return { code: result.code, map: result.map.toString() };
   const output = ts.transpileModule(result.code, {
     fileName: filename + (language.endsWith('x') ? '.tsx' : '.ts'),
     compilerOptions: {

@@ -29,6 +29,8 @@ jobs:
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         run: npm pack --ignore-scripts
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        run: npm run benchmark -- --output benchmark-results.json
+      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         uses: actions/upload-artifact@v7.0.1
         with:
           name: trailing-js-packages
@@ -36,6 +38,7 @@ jobs:
             *.tgz
             dist/trailing-js.vsix
             coverage/
+            benchmark-results.json
   node20-consumer:
     runs-on: ubuntu-latest
     steps:

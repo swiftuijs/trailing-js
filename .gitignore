@@ -7,3 +7,4 @@ coverage/
 .DS_Store
 editors/vscode/licenses/
 examples/**/.vite/
+benchmark-results.json

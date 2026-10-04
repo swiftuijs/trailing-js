@@ -54,6 +54,12 @@ export class TrailingSyntaxError extends SyntaxError {
 
 // The parser boundary uses ESTree, including TS/JSX nodes from Acorn plugins.
 type Node = { type: string; start: number; end: number; [key: string]: any };
+type ClosureMetadata = {
+  node: Node;
+  label: { start: number; end: number } | null;
+  header: { end: number; inStart: number; asyncEnd: number | null; parenthesized: boolean } | null;
+  async: boolean;
+};
 function walk(node: Node, visit: (node: Node) => void): void {
   visit(node);
   for (const [key, value] of Object.entries(node)) {
@@ -75,7 +81,7 @@ function calleeName(node: Node): string | undefined {
 
 export function transform(source: string, options: TransformOptions = {}) {
   const filename = options.filename ?? 'input.tts';
-  let parsed;
+  let parsed: { ast: Node; calls: Node[]; guards: Node[]; closures: ClosureMetadata[] };
   try {
     parsed = parse(
       source,
@@ -90,15 +96,31 @@ export function transform(source: string, options: TransformOptions = {}) {
     );
   }
   const code = new MagicString(source);
+  for (const guard of parsed.guards) {
+    if (guard.binding) {
+      const binding = guard.binding.declarations[0].id;
+      // Nullish checks preserve false, 0 and empty strings. The original
+      // initializer runs once and the binding stays in the surrounding scope.
+      code.remove(guard.start, guard.start + 'guard'.length);
+      code.overwrite(
+        guard.elseStart,
+        guard.elseStart + 'else'.length,
+        `; if (${binding.name} == null)`,
+      );
+    } else {
+      code.overwrite(guard.start, guard.start + 'guard'.length, 'if (!(');
+      code.overwrite(guard.elseStart, guard.elseStart + 'else'.length, '))');
+    }
+  }
   const builders = new Set(options.builders ?? []);
   const metadataByNode = new Map(parsed.closures.map((item) => [item.node, item]));
   let counter = 0;
   const usedNames = new Set<string>();
-  walk(parsed.ast, (node) => {
-    if (node.type === 'Identifier') usedNames.add(node.name);
-  });
-  walk(parsed.ast, (node) => {
-    if (!node.trailing) return;
+  if (builders.size)
+    walk(parsed.ast, (node) => {
+      if (node.type === 'Identifier') usedNames.add(node.name);
+    });
+  for (const node of parsed.calls) {
     const { callEnd, hadParens, originalArgs, closures } = node.trailing;
     if (hadParens) {
       // Keep comments and trailing commas intact. The closing parenthesis is
@@ -148,6 +170,9 @@ export function transform(source: string, options: TransformOptions = {}) {
               collect(statement.consequent);
               if (statement.alternate) collect(statement.alternate);
               break;
+            case 'GuardStatement':
+              collect(statement.failure);
+              break;
             case 'ForStatement':
             case 'ForOfStatement':
             case 'ForInStatement':
@@ -192,7 +217,7 @@ export function transform(source: string, options: TransformOptions = {}) {
     code.appendLeft(closures.at(-1).end, ')');
     // The parser may visit nested trailing calls after this one. Edits use
     // original offsets throughout, so nested scopes compose without reparsing.
-  });
+  }
   const map = code.generateMap({
     source: filename,
     file: filename.replace(/\.(tts|tjs|ttsx|tjsx)$/, '.js'),
@@ -202,21 +227,31 @@ export function transform(source: string, options: TransformOptions = {}) {
   return {
     code: code.toString(),
     map,
-    changed: parsed.closures.length > 0,
+    changed: parsed.closures.length > 0 || parsed.guards.length > 0,
     closures: parsed.closures.length,
+    guards: parsed.guards.length,
   };
 }
 
 export type TransformResult = ReturnType<typeof transform>;
+const traceMaps = new WeakMap<TransformResult, TraceMap>();
+function traceMap(result: TransformResult): TraceMap {
+  let map = traceMaps.get(result);
+  if (!map) {
+    map = new TraceMap(result.map as any);
+    traceMaps.set(result, map);
+  }
+  return map;
+}
 export function originalPosition(result: TransformResult, line: number, column: number) {
-  return originalPositionFor(new TraceMap(result.map as any), {
+  return originalPositionFor(traceMap(result), {
     line,
     column,
     bias: GREATEST_LOWER_BOUND,
   });
 }
 export function generatedPosition(result: TransformResult, line: number, column: number) {
-  return generatedPositionFor(new TraceMap(result.map as any), {
+  return generatedPositionFor(traceMap(result), {
     source: result.map.sources[0]!,
     line,
     column,

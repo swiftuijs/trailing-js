@@ -1,9 +1,13 @@
 # Trailing JS
 
-Swift-style trailing closures in `.tts`, `.tjs`, `.ttsx`, and `.tjsx` files.
+The Trailing JS/TS syntax-sugar language in `.tts`, `.tjs`, `.ttsx`, and `.tjsx` files: Swift-style trailing closures, early-exit guards, nullish bindings and explicit builders for ordinary code and UI.
 
 ```ts
 const doubled = [1, 2, 3].map() { value in value * 2 };
+function scoreOf(input: { score: number } | undefined) {
+  guard const score = input?.score else { return 0; }
+  return score;
+}
 ```
 
 Includes highlighting, bracket/comment support, TypeScript diagnostics, hover, member completion, signature help, and go-to-definition. **Trailing JS: Show Generated TypeScript** opens the compiled source alongside the document.

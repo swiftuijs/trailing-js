@@ -12,6 +12,16 @@ export function activate(context: vscode.ExtensionContext) {
   const diagnostics = vscode.languages.createDiagnosticCollection('trailing-js');
   const output = vscode.window.createOutputChannel('Trailing JS');
   const timers = new Map<string, ReturnType<typeof setTimeout>>();
+  const completionDetails = new WeakMap<
+    vscode.CompletionItem,
+    {
+      document: vscode.TextDocument;
+      version: number;
+      project: TrailingProject;
+      offset: number;
+      entry: ts.CompletionEntry;
+    }
+  >();
 
   function getProject(document: vscode.TextDocument) {
     const config = ts.findConfigFile(dirname(document.fileName), ts.sys.fileExists);
@@ -109,7 +119,11 @@ export function activate(context: vscode.ExtensionContext) {
       clearTimeout(timers.get(document.uri.toString()));
       timers.delete(document.uri.toString());
       diagnostics.delete(document.uri);
-      projects.forEach((project) => project.update(document.fileName));
+      if (/\.(?:tts|tjs|ttsx|tjsx|[cm]?tsx?|[cm]?jsx?)$/.test(document.fileName))
+        projects.forEach((project) => {
+          if (sourceFilename(document.fileName).startsWith(project.root + '/'))
+            project.update(document.fileName);
+        });
     }),
     {
       dispose() {
@@ -186,21 +200,15 @@ export function activate(context: vscode.ExtensionContext) {
               );
               item.sortText = entry.sortText;
               item.insertText = entry.insertText ?? entry.name;
-              const details = project.service.getCompletionEntryDetails(
-                virtualFilename(document.fileName),
+              // Resolve documentation only for the selected item, rather
+              // than asking TS to describe every entry on each keystroke.
+              completionDetails.set(item, {
+                document,
+                version: document.version,
+                project,
                 offset,
-                entry.name,
-                {},
-                entry.source,
-                {},
-                entry.data,
-              );
-              if (details) {
-                item.detail = ts.displayPartsToString(details.displayParts);
-                item.documentation = new vscode.MarkdownString(
-                  ts.displayPartsToString(details.documentation),
-                );
-              }
+                entry,
+              });
               if (entry.replacementSpan) {
                 const start = project.toOriginalOffset(
                   document.fileName,
@@ -218,6 +226,37 @@ export function activate(context: vscode.ExtensionContext) {
               return item;
             });
           });
+        },
+        resolveCompletionItem(item, token) {
+          const request = completionDetails.get(item);
+          if (!request || token.isCancellationRequested) return item;
+          const { document, version, project, offset, entry } = request;
+          if (
+            document.isClosed ||
+            document.version !== version ||
+            projects.get(project.root) !== project
+          )
+            return item;
+          return (
+            safely(document, () => {
+              const details = project.service.getCompletionEntryDetails(
+                virtualFilename(document.fileName),
+                offset,
+                entry.name,
+                {},
+                entry.source,
+                {},
+                entry.data,
+              );
+              if (details) {
+                item.detail = ts.displayPartsToString(details.displayParts);
+                item.documentation = new vscode.MarkdownString(
+                  ts.displayPartsToString(details.documentation),
+                );
+              }
+              return item;
+            }) ?? item
+          );
         },
       },
       '.',

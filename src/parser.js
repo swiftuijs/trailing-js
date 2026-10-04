@@ -1,6 +1,6 @@
 // Acorn's extension hooks intentionally use its internal AST shape. Keep that
 // boundary here; the public compiler API is typed in compiler.ts.
-import { Parser, tokTypes as tt, getLineInfo } from 'acorn';
+import { Parser, tokTypes as tt } from 'acorn';
 import { tsPlugin } from 'acorn-typescript';
 import jsx from 'acorn-jsx';
 
@@ -11,6 +11,62 @@ const bases = {
   ts: Parser.extend(tsPlugin({ allowSatisfies: true })),
   tsx: Parser.extend(tsPlugin({ allowSatisfies: true })),
 };
+
+// `guard` remains an ordinary JS identifier unless its expression is followed
+// by a top-level `else`. Token lookahead ignores strings/comments and balanced
+// groups; it never rewrites source or attempts to parse the expression itself.
+function guardAt(input, offset) {
+  const lexer = Parser.tokenizer(input.slice(offset), { ecmaVersion: 'latest' });
+  const stack = [];
+  let first = true;
+  try {
+    for (;;) {
+      const token = lexer.getToken();
+      const label = token.type.label;
+      if (
+        first &&
+        ['=', '.', '?.', ':', '++/--', '*', '/', '%', '==/!=/===/!==', 'in', 'instanceof'].includes(
+          label,
+        )
+      )
+        return false;
+      if (
+        !stack.length &&
+        ['if', 'for', 'while', 'switch', 'try', 'return', 'throw', 'var', 'export'].includes(label)
+      )
+        return false;
+      if (!first && !stack.length && label === 'const') return false;
+      first = false;
+      if (!stack.length && label === 'else') return true;
+      if (!stack.length && ['eof', ';', '}'].includes(label)) return false;
+      if (['(', '[', '{', '${'].includes(label)) stack.push(label);
+      else if ([')', ']', '}'].includes(label)) {
+        if (!stack.length) return false;
+        stack.pop();
+      }
+    }
+  } catch {
+    return false;
+  }
+}
+
+// Deliberately conservative: do not infer exits from calls, loops or a nested
+// function's return. JS/TS still checks the legality of break/continue/return.
+function exits(node) {
+  switch (node.type) {
+    case 'ReturnStatement':
+    case 'ThrowStatement':
+    case 'BreakStatement':
+    case 'ContinueStatement':
+      return true;
+    case 'BlockStatement':
+      return node.body.some(exits);
+    case 'IfStatement':
+      return !!node.alternate && exits(node.consequent) && exits(node.alternate);
+    default:
+      return false;
+  }
+}
 
 // Inspect only the possible parameter header, using real tokens so comments,
 // strings, default arguments and destructuring cannot confuse the delimiter.
@@ -52,25 +108,76 @@ function headerAt(input, offset) {
   }
 }
 
-function moveNodes(node, delta, input) {
+function moveNodes(node, delta, locate) {
   if (!node || typeof node !== 'object') return;
   if (typeof node.start === 'number') {
     node.start += delta;
     node.end += delta;
-    node.loc = { start: getLineInfo(input, node.start), end: getLineInfo(input, node.end) };
+    node.loc = { start: locate(node.start), end: locate(node.end) };
   }
   for (const [key, value] of Object.entries(node)) {
     if (key === 'loc') continue;
-    if (Array.isArray(value)) value.forEach((item) => moveNodes(item, delta, input));
-    else if (value && typeof value === 'object') moveNodes(value, delta, input);
+    if (Array.isArray(value)) value.forEach((item) => moveNodes(item, delta, locate));
+    else if (value && typeof value === 'object') moveNodes(value, delta, locate);
   }
 }
 
-export function parse(source, language = 'ts', sourceType = 'module') {
+const parsers = new Map();
+function parserFor(language) {
+  if (parsers.has(language)) return parsers.get(language);
   const Base = bases[language];
-  const closures = [];
   class TrailingParser extends Base {
     skipHeader = null;
+    closures = [];
+    lineStarts = null;
+
+    locate(offset) {
+      if (!this.lineStarts) {
+        this.lineStarts = [0];
+        const breaks = /\r\n?|\n|\u2028|\u2029/g;
+        let match;
+        while ((match = breaks.exec(this.input))) this.lineStarts.push(breaks.lastIndex);
+      }
+      let low = 0;
+      let high = this.lineStarts.length;
+      while (low + 1 < high) {
+        const mid = (low + high) >>> 1;
+        if (this.lineStarts[mid] <= offset) low = mid;
+        else high = mid;
+      }
+      return { line: low + 1, column: offset - this.lineStarts[low] };
+    }
+
+    parseStatement(context, ...args) {
+      if (!this.isContextual('guard') || !guardAt(this.input, this.end))
+        return super.parseStatement(context, ...args);
+      const node = this.startNode();
+      this.next();
+      node.binding = null;
+      if (this.type === tt._const) {
+        if (context)
+          this.raise(node.start, 'A guard binding requires a block; add braces around this body.');
+        const declaration = this.startNode();
+        this.next();
+        this.parseVar(declaration, false, 'const');
+        node.binding = this.finishNode(declaration, 'VariableDeclaration');
+        if (
+          node.binding.declarations.length !== 1 ||
+          node.binding.declarations[0].id.type !== 'Identifier'
+        )
+          this.raise(node.start, 'guard const requires one identifier binding.');
+      } else node.test = this.parseExpression();
+      node.elseStart = this.start;
+      this.expect(tt._else);
+      if (this.type !== tt.braceL) this.unexpected();
+      node.failure = this.parseBlock();
+      if (!exits(node.failure))
+        this.raise(
+          node.failure.start,
+          'Every guard else path must exit with return, throw, break or continue.',
+        );
+      return this.finishNode(node, 'GuardStatement');
+    }
 
     tsParseTypeParameter(...args) {
       const start = this.start;
@@ -133,13 +240,17 @@ export function parse(source, language = 'ts', sourceType = 'module') {
         parameterText = text.startsWith('(') ? text : `(${text})`;
         const prefix = async ? 'async ' : '';
         try {
-          const arrow = Base.parse(`${prefix}${parameterText} => {}`, { ...options, sourceType })
-            .body[0].expression;
+          const arrow = Base.parse(`${prefix}${parameterText} => {}`, {
+            ...options,
+            sourceType: this.options.sourceType,
+          }).body[0].expression;
           params = arrow.params;
           const sourceStart = header.textStart + header.text.indexOf(text);
           const addedParen = text.startsWith('(') ? 0 : 1;
           params.forEach((param) =>
-            moveNodes(param, sourceStart - prefix.length - addedParen, source),
+            moveNodes(param, sourceStart - prefix.length - addedParen, (offset) =>
+              this.locate(offset),
+            ),
           );
         } catch (error) {
           this.raise(start, `Invalid trailing closure parameters: ${error.message}`);
@@ -150,7 +261,7 @@ export function parse(source, language = 'ts', sourceType = 'module') {
       // await, lexical this/super, duplicate bindings and strict-mode checks.
       this.skipHeader = header?.end ?? null;
       const arrow = this.parseArrowExpression(node, params, async, false);
-      closures.push({ node: arrow, callee, label, header, parameterText, async });
+      this.closures.push({ node: arrow, callee, label, header, parameterText, async });
       return arrow;
     }
 
@@ -204,11 +315,22 @@ export function parse(source, language = 'ts', sourceType = 'module') {
       );
     }
   }
-  const ast = TrailingParser.parse(source, { ...options, sourceType, allowHashBang: true });
+  parsers.set(language, TrailingParser);
+  return TrailingParser;
+}
+
+export function parse(source, language = 'ts', sourceType = 'module') {
+  const TrailingParser = parserFor(language);
+  const parser = new TrailingParser({ ...options, sourceType, allowHashBang: true }, source);
+  const ast = parser.parse();
   const live = new Set();
+  const calls = [];
+  const guards = [];
   const visit = (node) => {
     if (!node || typeof node !== 'object') return;
-    if (node.type) live.add(node);
+    if (node.type === 'ArrowFunctionExpression') live.add(node);
+    if (node.trailing) calls.push(node);
+    if (node.type === 'GuardStatement') guards.push(node);
     for (const [key, value] of Object.entries(node)) {
       if (key === 'trailing' || key === 'loc') continue;
       if (Array.isArray(value)) value.forEach(visit);
@@ -216,5 +338,10 @@ export function parse(source, language = 'ts', sourceType = 'module') {
     }
   };
   visit(ast);
-  return { ast, closures: closures.filter((closure) => live.has(closure.node)) };
+  return {
+    ast,
+    calls,
+    guards,
+    closures: parser.closures.filter((closure) => live.has(closure.node)),
+  };
 }

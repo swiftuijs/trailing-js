@@ -3,6 +3,9 @@
   "scopeName": "source.trailing.tsx",
   "patterns": [
     {
+      "include": "#guard"
+    },
+    {
       "include": "#closure-header"
     },
     {
@@ -21,6 +24,10 @@
     }
   ],
   "repository": {
+    "guard": {
+      "match": "\\bguard\\b(?=\\s+(?:const\\b|[^\\s;=:.]))",
+      "name": "keyword.control.trailing"
+    },
     "closure-header": {
       "begin": "(\\{)(?=\\s*(?:async\\s+)?(?:[A-Za-z_$][\\w$]*(?:\\s*,\\s*[A-Za-z_$][\\w$]*)*|\\([^;{}]*\\))\\s+in\\b)",
       "beginCaptures": {
@@ -37,6 +44,18 @@
       "patterns": [
         {
           "include": "source.tsx"
+        }
+      ]
+    }
+  },
+  "injections": {
+    "L:source.trailing.tsx -comment -string": {
+      "patterns": [
+        {
+          "include": "#guard"
+        },
+        {
+          "include": "#closure-header"
         }
       ]
     }

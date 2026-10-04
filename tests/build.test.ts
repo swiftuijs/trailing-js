@@ -22,8 +22,12 @@ function fixture() {
   roots.push(root);
   writeFileSync(join(root, 'numbers.tts'), 'export const values: number[] = [1,2,3];');
   writeFileSync(
+    join(root, 'double.tjs'),
+    'export function double(x) { guard x > 0 else { return 0; } return x * 2; }',
+  );
+  writeFileSync(
     join(root, 'main.tts'),
-    'import {values} from "./numbers"; export const result = values.map() { (x: number) in x * 2 };',
+    'import {values} from "./numbers"; import {double} from "./double"; export const result = values.map() { (x: number) in guard x > 0 else { throw new Error(); } return double(x); };',
   );
   return root;
 }

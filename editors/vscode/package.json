@@ -1,8 +1,8 @@
 {
   "name": "trailing-js",
   "displayName": "Trailing JS",
-  "description": "Swift-style trailing closures for JavaScript and TypeScript: highlighting, diagnostics, completion and navigation.",
-  "version": "0.1.0",
+  "description": "Syntax highlighting and TypeScript language support for the Trailing JS/TS syntax-sugar language.",
+  "version": "0.2.0",
   "publisher": "swiftuijs",
   "license": "MIT",
   "repository": {

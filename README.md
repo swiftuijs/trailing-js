@@ -1,6 +1,6 @@
 # trailing-js
 
-Swift-style trailing closures for JavaScript and TypeScript. A small syntax extension that compiles to ordinary arrow functions, with source maps, build plugins, a type checker, and a VS Code extension.
+**Trailing** is a general-purpose syntax-sugar language built on JavaScript and TypeScript. It borrows concise syntax from Swift and compiles to ordinary JS/TS, with source maps, build plugins, a type checker, and a VS Code extension. Data processing, Node services, async workflows and UI code use the same language.
 
 ```ts
 const doubled = [1, 2, 3].map() { value in value * 2 };
@@ -9,7 +9,7 @@ const doubled = [1, 2, 3].map() { value in value * 2 };
 
 The compiler is framework-independent. Optional React and Vue adapters bridge closures to children and slots. `@swiftuijs/ui` is one example consumer; there are no component-library names or imports built into the compiler.
 
-This is an experimental **0.1 syntax**, with production-oriented packaging and tests. See [the syntax contract and limitations](docs/syntax.md) before adopting it. **npm and Marketplace publication are separate from repository delivery**; until published, install a locally built tarball and VSIX.
+This is an experimental **0.2 language**, with production-oriented packaging and tests. See [the syntax contract and limitations](docs/syntax.md) before adopting it. **npm and Marketplace publication are separate from repository delivery**; until published, install a locally built tarball and VSIX.
 
 ## Quick start
 
@@ -22,7 +22,7 @@ npm ci
 npm run build
 npm pack
 # In your application:
-npm install /path/to/swiftuijs-trailing-js-0.1.0.tgz
+npm install /path/to/swiftuijs-trailing-js-0.2.0.tgz
 ```
 
 In Vite:
@@ -66,9 +66,29 @@ perform(21) { value in value * 2 } completion: { value in
 
 Multiple closure labels are readable names; JavaScript receives positional callbacks in written order. Multi-statement ordinary closures require an explicit `return`. Closures use arrow-function lexical `this`, `arguments`, and `super`.
 
-## Component builders
+## Early exits and nullish bindings
 
-Explicitly opt callee names into child collection in `trailing.config.json`:
+```ts
+function greeting(input: string | null) {
+  guard input != null else { return 'Hello'; }
+  return `Hello, ${input.toUpperCase()}`; // TS knows input is a string
+}
+
+function scoreOf(input: { score: number } | undefined) {
+  guard const score = input?.score else { return 0; }
+  return score; // checks null/undefined, keeps 0
+}
+```
+
+`guard condition else { ... }` lowers to `if (!(condition)) { ... }`. `guard const name = expression else { ... }` lowers to a normal `const` and a nullish check; it evaluates the initializer once. Every failure path must explicitly exit with `return`, `throw`, `break` or `continue`. Existing variables and functions named `guard` remain valid.
+
+```sh
+npm run dev:general  # validation, typed array pipelines, async retry, non-UI builder
+```
+
+## Explicit builders (data or UI)
+
+Builders also construct query fragments, lists and other ordinary data; see `examples/general`. Explicitly opt callee names into expression collection in `trailing.config.json`:
 
 ```json
 { "builders": ["Stack", "Text", "Button"] }
@@ -143,6 +163,19 @@ VS Code supports syntax highlighting, comments, brackets, TypeScript diagnostics
 The extension reads the nearest `tsconfig.json` and `trailing.config.json`. It recovers common incomplete member expressions while typing; builds always reject invalid syntax. The standard TS server is not patched: use `trailing-js check` for the full project's authoritative diagnostics, including ordinary TS files importing extended files. Formatting, rename, automatic imports, and React Fast Refresh integration are not yet provided.
 
 TextMate grammars in `editors/vscode/syntaxes` can be reused by other editors that supply TypeScript/JavaScript base grammars. GitHub's Linguist does not recognize these new extensions automatically.
+
+## Performance and language direction
+
+Ordinary closures become native arrow functions; guards become native branches and bindings. They add no runtime helpers. Tests compare minified output with equivalent handwritten JS. This preserves the performance characteristics of that JS; it does not promise to make the underlying algorithm faster. Builders allocate arrays and push values; optional component adapters also perform framework work.
+
+The compiler adds build-time work. It parses the dialect, emits high-resolution maps, and erases types/lowers JSX when necessary. Plain JS skips the TS transpilation stage. Parser classes, source-map decoding, and unchanged editor snapshots are reused; completion documentation resolves on selection rather than for every suggestion.
+
+See [measured results and methodology](docs/performance.md) and [language design / Swift feature decisions](docs/language.md). The current language implements trailing closures, single-expression closure returns, guards, nullish bindings and explicit result builders. `defer`, if/switch expressions and shorthand parameters are design candidates, **not implemented syntax**. JS/TS supplies optional chaining, nullish coalescing, async/await and types already.
+
+```sh
+npm run build
+npm run benchmark -- --output benchmark-results.json
+```
 
 ## Development and release
 

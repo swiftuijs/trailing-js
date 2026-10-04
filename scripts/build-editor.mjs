@@ -14,6 +14,7 @@ for (const [extension, language] of Object.entries({
     name: 'Trailing ' + language,
     scopeName: 'source.trailing.' + { tts: 'ts', tjs: 'js', ttsx: 'tsx', tjsx: 'jsx' }[extension],
     patterns: [
+      { include: '#guard' },
       // A real closure header has `in` before its first statement. The body
       // delegates strings, comments, templates, JSX and nested syntax to VS Code.
       { include: '#closure-header' },
@@ -27,6 +28,10 @@ for (const [extension, language] of Object.entries({
       { include: 'source.' + language },
     ],
     repository: {
+      guard: {
+        match: '\\bguard\\b(?=\\s+(?:const\\b|[^\\s;=:.]))',
+        name: 'keyword.control.trailing',
+      },
       'closure-header': {
         begin:
           '(\\{)(?=\\s*(?:async\\s+)?(?:[A-Za-z_$][\\w$]*(?:\\s*,\\s*[A-Za-z_$][\\w$]*)*|\\([^;{}]*\\))\\s+in\\b)',
@@ -35,6 +40,12 @@ for (const [extension, language] of Object.entries({
         endCaptures: { 0: { name: 'keyword.control.trailing' } },
         patterns: [{ include: 'source.' + language }],
       },
+    },
+  };
+  // Reach custom syntax inside the base grammar's function/block regions.
+  grammar.injections = {
+    [`L:${grammar.scopeName} -comment -string`]: {
+      patterns: [{ include: '#guard' }, { include: '#closure-header' }],
     },
   };
   writeFileSync(

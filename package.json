@@ -1,7 +1,7 @@
 {
   "name": "@swiftuijs/trailing-js",
-  "version": "0.1.0",
-  "description": "Swift-style trailing closures for JavaScript and TypeScript with build plugins, type checking, editor support, and optional React/Vue adapters.",
+  "version": "0.2.0",
+  "description": "Trailing: a framework-independent JS/TS syntax-sugar language with trailing closures, guards, build plugins, type checking, and editor support.",
   "main": "./dist/index.js",
   "scripts": {
     "build": "tsup",
@@ -18,7 +18,9 @@
     "format:check": "prettier --check .",
     "dev:react": "vite examples/react",
     "dev:vue": "vite examples/vue",
-    "example:check": "node dist/cli.js check -p examples/basic/tsconfig.json && node dist/cli.js check -p examples/react/tsconfig.json && node dist/cli.js check -p examples/vue/tsconfig.json"
+    "example:check": "node dist/cli.js check -p examples/basic/tsconfig.json && node dist/cli.js check -p examples/general/tsconfig.json && node dist/cli.js check -p examples/react/tsconfig.json && node dist/cli.js check -p examples/vue/tsconfig.json",
+    "benchmark": "node scripts/benchmark.mjs",
+    "dev:general": "node --enable-source-maps --import ./dist/register.js examples/general/run.mjs"
   },
   "repository": {
     "type": "git",

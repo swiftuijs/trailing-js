@@ -64,6 +64,19 @@ describe('virtual TypeScript projects', () => {
     );
     expect(info?.displayParts?.map((part) => part.text).join('')).toContain('value: number');
   });
+  it.each(['\n', '\r\n', '\r', '\u2028', '\u2029'])(
+    'maps cached offsets across %j line separators',
+    (separator) => {
+      const source =
+        'export const prefix = 1;' +
+        separator +
+        'export const values = [1].map() { (value: number) in value + 1 };';
+      const { project: p, root } = project({ 'main.tts': source });
+      const file = join(root, 'main.tts');
+      const offset = source.indexOf('value:');
+      expect(p.toOriginalOffset(file, p.toGeneratedOffset(file, offset))).toBe(offset);
+    },
+  );
   it('checks JS and reports syntax failures without hiding other errors', () => {
     const { project: p } = project({
       'main.tjs': 'export const x = [1].map() { value in value.missing() };',
@@ -84,5 +97,40 @@ describe('virtual TypeScript projects', () => {
       'export const x: number = fn() { 42 }; function fn<T>(body:()=>T):T{return body();}',
     );
     expect(p.diagnostics()).toEqual([]);
+  });
+  it('narrows guard conditions and nullish bindings across ordinary TS imports', () => {
+    const { project: p } = project({
+      'main.tts':
+        'export function f(input: string | null) { guard input != null else { return 0; } guard const size = input.length else { throw new Error(); } return size; }',
+      'consumer.ts': 'import { f } from "./main.tts"; const result: number = f(null);',
+    });
+    expect(p.diagnostics()).toEqual([]);
+  });
+  it('retains transforms and semantic snapshots when an overlay is unchanged', () => {
+    const source = 'export const value = [1].map() { x in x * 2 };';
+    const { project: p, root } = project({ 'main.tts': source, 'other.ts': 'export const y = 2;' });
+    const file = join(root, 'main.tts');
+    p.update(file, source);
+    const result = p.transformed(file);
+    const program = p.service.getProgram();
+    p.update(file, source);
+    expect(p.transformed(file)).toBe(result);
+    expect(p.service.getProgram()).toBe(program);
+    p.update(join(root, 'other.ts'), 'export const y = 3;');
+    expect(p.service.getProgram()?.getSourceFile(virtualFilename(file))).toBe(
+      program?.getSourceFile(virtualFilename(file)),
+    );
+  });
+  it('refreshes disk edits when clearing an overlay or explicitly updating a file', () => {
+    const { project: p, root } = project({ 'main.tts': 'export const value = 1;' });
+    const file = join(root, 'main.tts');
+    expect(p.transformed(file)?.code).toContain('1');
+    writeFileSync(file, 'export const value = 2;');
+    p.update(file);
+    expect(p.transformed(file)?.code).toContain('2');
+    p.update(file, 'export const value = 3;');
+    expect(p.transformed(file)?.code).toContain('3');
+    p.update(file);
+    expect(p.transformed(file)?.code).toContain('2');
   });
 });

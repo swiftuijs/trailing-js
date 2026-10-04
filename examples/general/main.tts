@@ -1,0 +1,62 @@
+// Ordinary data processing, validation and async code; no UI dependencies.
+export interface User {
+  id: string;
+  name: string;
+  score: number;
+}
+
+export function decodeUser(input: unknown): User | undefined {
+  guard typeof input === 'object' && input !== null else { return undefined; }
+  guard 'id' in input && typeof input.id === 'string' else { return undefined; }
+  guard 'name' in input && typeof input.name === 'string' else { return undefined; }
+  guard 'score' in input && typeof input.score === 'number' else { return undefined; }
+  return { id: input.id, name: input.name, score: input.score };
+}
+
+export function leaderboard(input: unknown[], minimum: number): string[] {
+  return input
+    .map() { value in decodeUser(value) }
+    .filter() { (value): value is User in value !== undefined && value.score >= minimum }
+    .sort() { left, right in right.score - left.score }
+    .map() { user, index in `${index + 1}. ${user.name}: ${user.score}` };
+}
+
+export async function retry<T>(attempts: number, task: () => Promise<T>): Promise<T> {
+  guard Number.isInteger(attempts) && attempts > 0 else {
+    throw new RangeError('attempts must be a positive integer');
+  }
+  for (let index = 0; index < attempts; index++) {
+    try { return await task(); }
+    catch (error) {
+      guard index < attempts - 1 else { throw error; }
+    }
+  }
+  throw new Error('Unreachable');
+}
+
+// Nullish binding keeps 0 and avoids evaluating the initializer twice.
+export function scoreOf(input: User | undefined): number {
+  guard const score = input?.score else { return 0; }
+  return score;
+}
+
+export function collect<T>(content: () => T[]): T[] { return content(); }
+export function queryParts(includeActive: boolean, fields: string[]): string[] {
+  return collect<string>() {
+    'SELECT';
+    for (const field of fields) field;
+    'FROM users';
+    if (includeActive) 'WHERE active = true';
+  };
+}
+
+export async function demo() {
+  const result = await retry(2) { async () in
+    await Promise.resolve(leaderboard([
+      { id: 'a', name: 'A', score: 12 },
+      { id: 'b', name: 'B', score: 30 },
+      null,
+    ], 10))
+  };
+  return { result, query: queryParts(true, ['id', 'name']) };
+}

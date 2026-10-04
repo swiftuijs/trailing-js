@@ -32,6 +32,7 @@ try {
   const base = join(root, 'node_modules/@swiftuijs/trailing-js/dist');
   const { transform } = await import(pathToFileURL(join(base, 'index.js')).href);
   assert.equal(transform('fn() { 42 }').closures, 1);
+  assert.equal(transform('function f(v) { guard v else { return 0; } return 1; }').guards, 1);
   for (const name of ['vite', 'rollup', 'esbuild', 'webpack', 'rspack', 'project'])
     await import(pathToFileURL(join(base, name + '.js')).href);
   writeFileSync(
@@ -46,7 +47,10 @@ try {
       include: ['*.tts'],
     }),
   );
-  writeFileSync(join(root, 'main.tts'), 'export const values = [1,2].map() { x in x*2 };');
+  writeFileSync(
+    join(root, 'main.tts'),
+    'export const values = [1,2].map() { x in guard x > 1 else { return 0; } return x*2; };',
+  );
   execFileSync(process.execPath, [join(base, 'cli.js'), 'check', '-p', 'tsconfig.json'], {
     cwd: root,
     stdio: 'pipe',
@@ -63,7 +67,7 @@ try {
     ],
     { cwd: root, encoding: 'utf8' },
   );
-  assert.equal(output.trim(), '[2,4]');
+  assert.equal(output.trim(), '[0,4]');
   writeFileSync(join(root, 'bad.tts'), 'export const x: string = [1].map() { n in n*2 };');
   let status = 0;
   try {
@@ -80,11 +84,20 @@ try {
   rmSync(root, { recursive: true, force: true });
 }
 
-for (const name of ['basic', 'react', 'vue']) {
+for (const name of ['basic', 'general', 'react', 'vue']) {
   execFileSync(process.execPath, ['dist/cli.js', 'check', '-p', `examples/${name}/tsconfig.json`], {
     stdio: 'pipe',
   });
 }
+const general = JSON.parse(
+  execFileSync(
+    process.execPath,
+    ['--import', pathToFileURL(resolve('dist/register.js')).href, 'run.mjs'],
+    { cwd: resolve('examples/general'), encoding: 'utf8' },
+  ),
+);
+assert.deepEqual(general.result, ['1. B: 30', '2. A: 12']);
+assert.deepEqual(general.query, ['SELECT', 'id', 'name', 'FROM users', 'WHERE active = true']);
 for (const name of ['react', 'vue']) {
   const root = resolve(`examples/${name}`);
   const outDir = mkdtempSync(join(tmpdir(), `trailing-${name}-`));

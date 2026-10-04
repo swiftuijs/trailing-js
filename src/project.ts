@@ -13,6 +13,25 @@ import {
 import { loadConfig } from './config';
 import { recoverTransform } from './recovery';
 
+function lineStarts(text: string): number[] {
+  const starts = [0];
+  // MagicString maps count LF-delimited lines. TS language-service APIs here
+  // take absolute offsets, so keep the map's coordinates at this boundary.
+  const breaks = /\n/g;
+  while (breaks.exec(text)) starts.push(breaks.lastIndex);
+  return starts;
+}
+function positionAt(starts: number[], offset: number) {
+  let low = 0;
+  let high = starts.length;
+  while (low + 1 < high) {
+    const mid = (low + high) >>> 1;
+    if (starts[mid]! <= offset) low = mid;
+    else high = mid;
+  }
+  return { line: low + 1, column: offset - starts[low]! };
+}
+
 // TypeScript's config discovery accepts custom TS extensions only as Deferred;
 // each virtual filename below supplies the actual script kind to the service.
 const extraExtensions = extensions.map((extension) => ({
@@ -48,7 +67,10 @@ export class TrailingProject {
   private files: string[];
   private overlays = new Map<string, string>();
   private results = new Map<string, { source: string; result: TransformResult }>();
+  private lineMaps = new WeakMap<TransformResult, { original: number[]; generated: number[] }>();
   private version = 0;
+  private invalidation = 0;
+  private fileVersions = new Map<string, number>();
   private configurationErrors: readonly ts.Diagnostic[];
   private options: TransformOptions;
   private readonly host: ts.LanguageServiceHost;
@@ -122,7 +144,8 @@ export class TrailingProject {
       ...ts.sys,
       getScriptFileNames: () => this.files,
       useCaseSensitiveFileNames: () => ts.sys.useCaseSensitiveFileNames,
-      getScriptVersion: () => String(this.version),
+      getScriptVersion: (name) =>
+        `${this.invalidation}:${this.fileVersions.get(sourceFilename(name)) ?? 0}`,
       getProjectVersion: () => String(this.version),
       getScriptSnapshot: (name) => {
         const text = readFile(name);
@@ -182,14 +205,24 @@ export class TrailingProject {
 
   update(filename: string, text?: string) {
     filename = sourceFilename(resolve(filename));
+    // Hover and completion often submit the same open document. An unchanged
+    // overlay must retain compiler results and TypeScript's semantic caches.
+    if (
+      text !== undefined &&
+      text === this.overlays.get(filename) &&
+      this.files.includes(virtualFilename(filename))
+    )
+      return;
     if (text === undefined) this.overlays.delete(filename);
     else this.overlays.set(filename, text);
+    this.fileVersions.set(filename, (this.fileVersions.get(filename) ?? 0) + 1);
     if (!this.files.includes(virtualFilename(filename))) this.files.push(virtualFilename(filename));
     this.results.delete(filename);
     this.version++;
   }
 
   invalidate() {
+    this.invalidation++;
     this.version++;
     this.results.clear();
   }
@@ -207,33 +240,33 @@ export class TrailingProject {
       : undefined;
   }
 
+  private lines(filename: string, result: TransformResult) {
+    let lines = this.lineMaps.get(result);
+    if (!lines) {
+      lines = { original: lineStarts(this.text(filename)!), generated: lineStarts(result.code) };
+      this.lineMaps.set(result, lines);
+    }
+    return lines;
+  }
+
   toGeneratedOffset(filename: string, offset: number): number {
     const result = this.transformed(filename);
     if (!result) return offset;
-    const source = this.text(filename)!;
-    const before = source.slice(0, offset).split('\n');
-    const position = generatedPosition(result, before.length, before.at(-1)!.length);
+    const lines = this.lines(filename, result);
+    const sourcePosition = positionAt(lines.original, offset);
+    const position = generatedPosition(result, sourcePosition.line, sourcePosition.column);
     if (position.line === null || position.column === null) return offset;
-    return (
-      result.code
-        .split('\n')
-        .slice(0, position.line - 1)
-        .reduce((total, line) => total + line.length + 1, 0) + position.column
-    );
+    return (lines.generated[position.line - 1] ?? 0) + position.column;
   }
 
   toOriginalOffset(filename: string, offset: number): number {
     const result = this.transformed(filename);
     if (!result) return offset;
-    const before = result.code.slice(0, offset).split('\n');
-    const position = originalPosition(result, before.length, before.at(-1)!.length);
+    const lines = this.lines(filename, result);
+    const sourcePosition = positionAt(lines.generated, offset);
+    const position = originalPosition(result, sourcePosition.line, sourcePosition.column);
     if (position.line === null || position.column === null) return 0;
-    return (
-      this.text(filename)!
-        .split('\n')
-        .slice(0, position.line - 1)
-        .reduce((total, line) => total + line.length + 1, 0) + position.column
-    );
+    return (lines.original[position.line - 1] ?? 0) + position.column;
   }
 
   private diagnostic(diagnostic: ts.Diagnostic): ProjectDiagnostic {
