@@ -1,0 +1,54 @@
+name: CI
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest, node: 22 }
+          - { os: ubuntu-latest, node: 24 }
+          - { os: windows-latest, node: 22 }
+          - { os: macos-latest, node: 22 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run check
+      - run: npm run format:check
+      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        run: npm run test:coverage
+      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        run: npm pack --ignore-scripts
+      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        uses: actions/upload-artifact@v4
+        with:
+          name: trailing-js-packages
+          path: |
+            *.tgz
+            dist/trailing-js.vsix
+            coverage/
+  node20-consumer:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      # Vitest 5 and VSCE 4 require Node 22. The distributed compiler, loader,
+      # type checker and build adapters also support Node 20 consumers.
+      - run: npm run test:package

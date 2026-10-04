@@ -1,0 +1,163 @@
+import { describe, expect, it } from 'vitest';
+import { transform, TrailingSyntaxError, originalPosition } from '../src/compiler';
+import { parse } from '../src/parser.js';
+
+function evaluate(source: string, bindings: Record<string, unknown> = {}, builders?: string[]) {
+  const result = transform(`function __test() { ${source} }`, { filename: 'test.tjs', builders });
+  parse(result.code, 'js');
+  return Function(
+    ...Object.keys(bindings),
+    result.code + '; return __test();',
+  )(...Object.values(bindings));
+}
+
+describe('trailing closures', () => {
+  it.each([
+    ['fn() { 42 }', 'fn( () => { return (42) })'],
+    ['fn { x in x + 1 }', 'fn( ( x ) => { return (x + 1) })'],
+  ])('transforms %s', (source, expected) => {
+    expect(transform(source, { filename: 'test.tjs' }).code.replace(/\s+/g, ' ')).toBe(expected);
+  });
+  it('executes normal callbacks and lexical this', () => {
+    expect(evaluate('return [1,2,3].map() { x in x * 2 }')).toEqual([2, 4, 6]);
+    expect(
+      evaluate('const o = { value: 4, run() { return fn() { this.value } } }; return o.run();', {
+        fn: (cb: () => unknown) => cb(),
+      }),
+    ).toBe(4);
+  });
+  it('supports optional calls, generics, destructuring, rest and defaults', () => {
+    expect(
+      evaluate('return fn?.() { ({x}, y=2, ...rest) in x+y+rest.length }', {
+        fn: (cb: Function) => cb({ x: 3 }, undefined, 1, 2),
+      }),
+    ).toBe(7);
+    const result = transform('const x = fn<number>(1) { (v: number) in v + 1 }');
+    expect(result.code).toContain('fn<number>(1,');
+    parse(result.code, 'ts');
+  });
+  it('supports nested closures and chaining', () => {
+    expect(evaluate('return [1,2].map() { x in [x].map() { y in y*3 } }.flat()')).toEqual([3, 6]);
+  });
+  it('collects nested builders and handles expressions without semicolons', () => {
+    const bindings = { Box: (cb: Function) => cb(), Label: (cb: Function) => cb() };
+    expect(evaluate('return Box { Label { "child" } }', bindings, ['Box', 'Label'])).toEqual([
+      ['child'],
+    ]);
+  });
+  it('invokes parenthesized callable results and rejects unlabelled extra closures', () => {
+    expect(
+      evaluate('return (factory()) { x in x+1 }', { factory: () => (cb: Function) => cb(4) }),
+    ).toBe(5);
+    expect(evaluate('return (fn) { x in x+1 }', { fn: (cb: Function) => cb(4) })).toBe(5);
+    expect(() => transform('fn() {} {}')).toThrow(/require labels/);
+  });
+  it('supports named subsequent closures as positional callbacks', () => {
+    expect(
+      evaluate('return fn() { 1 } completion: { x in x+2 }', {
+        fn: (first: Function, second: Function) => second(first()),
+      }),
+    ).toBe(3);
+  });
+  it('supports async headers', async () => {
+    expect(
+      await evaluate('return fn() { async x in await Promise.resolve(x + 1) }', {
+        fn: (cb: Function) => cb(4),
+      }),
+    ).toBe(5);
+  });
+  it('keeps comments, regexes and templates', () => {
+    expect(
+      evaluate(
+        'return fn(1, /* keep */) /* gap */ { /* header */ x /* c */ in `value:${/[{}]/.test("{")}:${x}` }',
+        { fn: (x: number, cb: Function) => cb(x) },
+      ),
+    ).toBe('value:true:1');
+    expect(
+      evaluate('return fn() { `hello ${fn() { "world" }}` }', { fn: (cb: Function) => cb() }),
+    ).toBe('hello world');
+  });
+  it('preserves ordinary control flow and declarations', () => {
+    const source =
+      'function f() {}\nif (f()) { f(); }\nwhile (f()) { break; }\nclass C { f() {} }\nf(); { let x=1; }\nlabel: { break label; }';
+    expect(transform(source).code).toBe(source);
+  });
+  it('only returns a single expression implicitly', () => {
+    expect(evaluate('return fn() { 1; 2; }', { fn: (cb: Function) => cb() })).toBeUndefined();
+    expect(evaluate('return fn() { ({ answer: 42 }) }', { fn: (cb: Function) => cb() })).toEqual({
+      answer: 42,
+    });
+    expect(transform('fn() { 1 }', { implicitReturn: false }).code).not.toContain('return');
+  });
+  it('reports precise syntax errors and binding collisions', () => {
+    expect(() => transform('fn() { x in const x=2 }', { filename: 'broken.tts' })).toThrow(
+      TrailingSyntaxError,
+    );
+    expect(() => transform('fn() {')).toThrow(/input.tts:1:/);
+  });
+  it('maps unmodified expression tokens to the original file', () => {
+    const source = 'const answer = fn() { value in value + 1 };';
+    const result = transform(source, { filename: 'source.tts' });
+    const position = originalPosition(result, 1, result.code.indexOf('value +'));
+    expect(position).toMatchObject({
+      source: 'source.tts',
+      line: 1,
+      column: source.indexOf('value +'),
+    });
+    expect(result.map.sourcesContent).toEqual([source]);
+  });
+});
+
+describe('TypeScript and JSX compatibility', () => {
+  it.each([
+    'interface Model<T> { value: T }; type ReadonlyModel<T> = { readonly [K in keyof T]: T[K] };',
+    'enum Kind { A, B }; namespace Models { export type ID = string | number; }',
+    'const x = <Array<number>>value; const y = value as number satisfies number;',
+    'const identity = <const T,>(value: T): T => value; identity<number>(1);',
+    'export const f = <T extends number>(v:T) => [v].map() { x in x };',
+    'class Store { #value=1; readonly name="store"; read(){return this.#value;} }',
+    'import data from "./data.json" with { type: "json" }; using resource = open();',
+  ])('preserves or lowers common TS syntax: %s', (source) => {
+    const result = transform(source, { filename: 'file.tts' });
+    parse(result.code, 'ts');
+    if (!source.includes(' in x }')) expect(result.code).toBe(source);
+  });
+  it.each(['file.tjsx', 'file.ttsx'])(
+    'supports JSX and closures inside JSX expressions in %s',
+    (filename) => {
+      const result = transform(
+        'export const content = <div>{[1].map() { x in <span>{x}</span> }}</div>',
+        { filename },
+      );
+      parse(result.code, filename.endsWith('ttsx') ? 'tsx' : 'jsx');
+      expect(result.closures).toBe(1);
+    },
+  );
+});
+
+describe('explicit builders', () => {
+  const bindings = { VStack: (cb: Function) => cb(), Text: (value: string) => value };
+  it('collects views in order through conditions and loops', () => {
+    expect(
+      evaluate(
+        'return VStack { const flag=true; Text("first"); if(flag) { Text("second"); } for(const n of [1,2]) Text(String(n)); }',
+        bindings,
+        ['VStack'],
+      ),
+    ).toEqual(['first', 'second', '1', '2']);
+  });
+  it('uses hygienic collectors and excludes nested functions', () => {
+    expect(
+      evaluate(
+        'return VStack { const __trailingChildren0="ok"; const f=()=>{return "nested"}; f(); Text(__trailingChildren0); }',
+        bindings,
+        ['VStack'],
+      ),
+    ).toEqual(['nested', 'ok']);
+  });
+  it('rejects explicit returns with a useful diagnostic', () => {
+    expect(() => transform('VStack { return Text("bad"); }', { builders: ['VStack'] })).toThrow(
+      /Builder closures collect expressions/,
+    );
+  });
+});

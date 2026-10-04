@@ -1,0 +1,3 @@
+import { createApp } from 'vue';
+import App from './App.tts';
+createApp(App).mount('#app');

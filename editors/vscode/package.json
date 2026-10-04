@@ -1,0 +1,107 @@
+{
+  "name": "trailing-js",
+  "displayName": "Trailing JS",
+  "description": "Swift-style trailing closures for JavaScript and TypeScript: highlighting, diagnostics, completion and navigation.",
+  "version": "0.1.0",
+  "publisher": "swiftuijs",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/swiftuijs/trailing-js"
+  },
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "main": "./dist/extension.cjs",
+  "activationEvents": [
+    "onLanguage:trailing-typescript",
+    "onLanguage:trailing-javascript",
+    "onLanguage:trailing-tsx",
+    "onLanguage:trailing-jsx"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "trailing-typescript",
+        "aliases": [
+          "Trailing TypeScript",
+          "tts"
+        ],
+        "extensions": [
+          ".tts"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "trailing-javascript",
+        "aliases": [
+          "Trailing JavaScript",
+          "tjs"
+        ],
+        "extensions": [
+          ".tjs"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "trailing-tsx",
+        "aliases": [
+          "Trailing TSX",
+          "ttsx"
+        ],
+        "extensions": [
+          ".ttsx"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "trailing-jsx",
+        "aliases": [
+          "Trailing JSX",
+          "tjsx"
+        ],
+        "extensions": [
+          ".tjsx"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "trailing-typescript",
+        "scopeName": "source.trailing.ts",
+        "path": "./syntaxes/tts.tmLanguage.json"
+      },
+      {
+        "language": "trailing-javascript",
+        "scopeName": "source.trailing.js",
+        "path": "./syntaxes/tjs.tmLanguage.json"
+      },
+      {
+        "language": "trailing-tsx",
+        "scopeName": "source.trailing.tsx",
+        "path": "./syntaxes/ttsx.tmLanguage.json"
+      },
+      {
+        "language": "trailing-jsx",
+        "scopeName": "source.trailing.jsx",
+        "path": "./syntaxes/tjsx.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "trailing-js.showGenerated",
+        "title": "Trailing JS: Show Generated TypeScript"
+      }
+    ],
+    "jsonValidation": [
+      {
+        "fileMatch": "trailing.config.json",
+        "url": "./trailing.schema.json"
+      }
+    ]
+  }
+}

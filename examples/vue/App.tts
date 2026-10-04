@@ -1,0 +1,31 @@
+import { defineComponent, h, ref } from 'vue';
+import { components } from '@swiftuijs/trailing-js/vue';
+
+// Stand-ins for components imported from any Vue library. Default slots stay
+// lazy, so the child tracks reactive values during its render.
+const PanelComponent = defineComponent({
+  props: { title: String },
+  setup(props, { slots }) {
+    return () => h('section', { style: 'padding: 24px; font-family: system-ui' }, [
+      h('h1', props.title),
+      ...(slots.default?.() ?? []),
+    ]);
+  },
+});
+const ActionComponent = defineComponent({
+  emits: ['click'],
+  setup(_, { slots, emit }) {
+    return () => h('button', { onClick: () => emit('click') }, slots.default?.());
+  },
+});
+const { Panel, Action } = components({ Panel: PanelComponent, Action: ActionComponent });
+
+export default defineComponent({
+  setup() {
+    const count = ref(0);
+    return () => Panel({ title: 'Trailing JS + Vue' }) {
+      h('p', `Count: ${count.value}`);
+      Action({ onClick: () => count.value++ }) { 'Increment' };
+    };
+  },
+});

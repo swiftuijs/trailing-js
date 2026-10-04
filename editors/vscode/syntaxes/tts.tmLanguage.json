@@ -1,0 +1,44 @@
+{
+  "name": "Trailing ts",
+  "scopeName": "source.trailing.ts",
+  "patterns": [
+    {
+      "include": "#closure-header"
+    },
+    {
+      "match": "(?<=\\})\\s*\\b([A-Za-z_$][\\w$]*)(\\s*:)(?=\\s*\\{)",
+      "captures": {
+        "1": {
+          "name": "entity.name.function.trailing"
+        },
+        "2": {
+          "name": "punctuation.separator.trailing"
+        }
+      }
+    },
+    {
+      "include": "source.ts"
+    }
+  ],
+  "repository": {
+    "closure-header": {
+      "begin": "(\\{)(?=\\s*(?:async\\s+)?(?:[A-Za-z_$][\\w$]*(?:\\s*,\\s*[A-Za-z_$][\\w$]*)*|\\([^;{}]*\\))\\s+in\\b)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.section.block.begin.trailing"
+        }
+      },
+      "end": "\\bin\\b",
+      "endCaptures": {
+        "0": {
+          "name": "keyword.control.trailing"
+        }
+      },
+      "patterns": [
+        {
+          "include": "source.ts"
+        }
+      ]
+    }
+  }
+}

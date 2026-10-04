@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+editors/vscode/dist
+editors/vscode/licenses
+package-lock.json
+examples/**/*.tts
+examples/**/*.tjs
+examples/**/*.ttsx
+examples/**/*.tjsx
