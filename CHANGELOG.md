@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+
+Adds end-to-end native TS/JS ↔ Twill imports: all five bundlers, exported types, JSDoc consumers, type-only imports, re-exports, dynamic imports, cycles and native-first extensionless/index resolution. Vite/esbuild reuse host compilation; bare Rollup/webpack/rspack can emit local native TS/TSX/JSX with an explicit opt-out. Native source never runs through the dialect parser. The ESM loader emits local native TS/TSX/JSX on supported Node versions and preserves native source maps, while delegating JS/CJS and dependencies to Node.
+
+A bundled TS-server plugin supplies types, diagnostics and mapped navigation in native TS/JS documents. Unsaved source is synchronized and unchanged snapshots retained. Standard-library declarations are now included for standalone editor checking. The npm package main serves TS server's CommonJS loading; compiler ESM exports are unchanged. Independent installs and the extracted VSIX are exercised through real TS-server requests. A mixed application demonstrates the complete graph. Imported local files are checked even outside include globs; formatting, cross-dialect rename, project-reference builds and declaration emission remain incomplete.
+
 ## 0.3.0
 
 The pre-publication product is named Twill. Repository `swiftuijs/twill`, package `@swiftuijs/twill`, CLI `twill`, configuration `twill.config.json`, and extensions `.twill`, `.twillx`, `.twill.js`, `.twill.jsx` replace the provisional names without compatibility aliases. Public compiler/project names are `TwillSyntaxError`, `isTwillFile` and `TwillProject`.

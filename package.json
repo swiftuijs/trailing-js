@@ -1,27 +1,28 @@
 {
   "name": "@swiftuijs/twill",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Twill: a JS/TS syntax-sugar language with trailing closures, guards, block-scoped defer, build plugins, type checking, and editor support.",
-  "main": "./dist/index.js",
+  "main": "./dist/typescript-plugin.cjs",
   "scripts": {
-    "build": "tsup",
+    "build": "tsup && node scripts/build-typescript-plugin.mjs",
     "typecheck": "tsc --noEmit && tsc --noEmit -p editors/vscode/tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "check": "npm run typecheck && npm test && npm run build && npm run test:package && npm run editor:package",
     "test:package": "node scripts/verify-package.mjs",
-    "editor:build": "node scripts/build-editor.mjs",
-    "editor:package": "npm run editor:build && cd editors/vscode && vsce package --allow-missing-repository --out ../../dist/twill.vsix",
+    "editor:build": "node scripts/build-editor.mjs && node scripts/verify-editor-plugin.mjs",
+    "editor:package": "npm run editor:build && cd editors/vscode && vsce package --allow-missing-repository --out ../../dist/twill.vsix && cd ../.. && node scripts/verify-vsix.mjs",
     "prepack": "npm run build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "dev:react": "vite examples/react",
     "dev:vue": "vite examples/vue",
-    "example:check": "node dist/cli.js check -p examples/basic/tsconfig.json && node dist/cli.js check -p examples/general/tsconfig.json && node dist/cli.js check -p examples/defer/tsconfig.json && node dist/cli.js check -p examples/react/tsconfig.json && node dist/cli.js check -p examples/vue/tsconfig.json",
+    "example:check": "node dist/cli.js check -p examples/basic/tsconfig.json && node dist/cli.js check -p examples/general/tsconfig.json && node dist/cli.js check -p examples/defer/tsconfig.json && node dist/cli.js check -p examples/react/tsconfig.json && node dist/cli.js check -p examples/vue/tsconfig.json && node dist/cli.js check -p examples/mixed/tsconfig.json",
     "benchmark": "node scripts/benchmark.mjs",
     "dev:general": "node --enable-source-maps --import ./dist/register.js examples/general/run.mjs",
-    "dev:defer": "node --enable-source-maps --import ./dist/register.js examples/defer/run.mjs"
+    "dev:defer": "node --enable-source-maps --import ./dist/register.js examples/defer/run.mjs",
+    "dev:mixed": "node --enable-source-maps --import ./dist/register.js examples/mixed/main.js"
   },
   "repository": {
     "type": "git",
@@ -88,7 +89,10 @@
     "dist/**/*.d.ts",
     "schemas",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "dist/**/*.cjs",
+    "dist/**/*.cjs.map",
+    "dist/*.LICENSE.txt"
   ],
   "bin": {
     "twill": "./dist/cli.js"
@@ -134,7 +138,10 @@
       "types": "./dist/register.d.ts",
       "import": "./dist/register.js"
     },
-    "./schema": "./schemas/twill.schema.json"
+    "./schema": "./schemas/twill.schema.json",
+    "./typescript-plugin": {
+      "require": "./dist/typescript-plugin.cjs"
+    }
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",
@@ -151,5 +158,6 @@
   "types": "./dist/index.d.ts",
   "publishConfig": {
     "access": "public"
-  }
+  },
+  "module": "./dist/index.js"
 }

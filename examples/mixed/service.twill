@@ -1,0 +1,12 @@
+import { Status, type User } from './domain.ts';
+import { format } from './format.js';
+export type { User } from './domain.ts';
+
+export function summarize(users: User[]): string[] {
+  return users.map() { user in format(user) };
+}
+
+export async function status() {
+  const { describe } = await import('./description.twill.js');
+  return describe(Status.Active);
+}

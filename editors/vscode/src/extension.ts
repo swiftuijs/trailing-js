@@ -8,6 +8,28 @@ const languages = ['twill-typescript', 'twill-javascript', 'twill-tsx', 'twill-j
 const selector = languages.map((language) => ({ language, scheme: 'file' }));
 
 export function activate(context: vscode.ExtensionContext) {
+  // The bundled TS-server plugin bridges native TS/JS documents. Custom
+  // Twill documents use the providers below; share their unsaved sources.
+  const nativeExtension = vscode.extensions.getExtension('vscode.typescript-language-features');
+  const bridge =
+    nativeExtension &&
+    Promise.resolve(nativeExtension.activate())
+      .then(
+        (extension) =>
+          extension.getAPI(0) as { configurePlugin(name: string, config: unknown): void },
+      )
+      .catch((error) => {
+        output.appendLine(String(error));
+        return undefined;
+      });
+  const syncBridge = () => {
+    const overlays = Object.fromEntries(
+      vscode.workspace.textDocuments
+        .filter((document) => document.uri.scheme === 'file' && isTwillFile(document.fileName))
+        .map((document) => [sourceFilename(document.fileName), document.getText()]),
+    );
+    void bridge?.then((api) => api?.configurePlugin('@swiftuijs/twill', { overlays }));
+  };
   const projects = new Map<string, TwillProject>();
   const diagnostics = vscode.languages.createDiagnosticCollection('twill');
   const output = vscode.window.createOutputChannel('Twill');
@@ -36,7 +58,12 @@ export function activate(context: vscode.ExtensionContext) {
       project = new TwillProject(
         config ?? join(root, 'tsconfig.json'),
         {},
-        { inferred: true, recover: true },
+        {
+          inferred: true,
+          recover: true,
+          defaultLibFileName: (options) =>
+            join(context.extensionPath, 'dist/typescript-lib', ts.getDefaultLibFileName(options)),
+        },
       );
       projects.set(root, project);
       for (const open of vscode.workspace.textDocuments) {
@@ -90,12 +117,14 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   function schedule(document: vscode.TextDocument) {
+    if (document.uri.scheme !== 'file' || !isTwillFile(document.fileName)) return;
     const key = document.uri.toString();
     clearTimeout(timers.get(key));
     timers.set(
       key,
       setTimeout(() => {
         timers.delete(key);
+        syncBridge();
         refresh(document);
       }, 150),
     );
@@ -116,6 +145,7 @@ export function activate(context: vscode.ExtensionContext) {
       vscode.workspace.textDocuments.forEach(schedule);
     }),
     vscode.workspace.onDidCloseTextDocument((document) => {
+      if (isTwillFile(document.fileName)) syncBridge();
       clearTimeout(timers.get(document.uri.toString()));
       timers.delete(document.uri.toString());
       diagnostics.delete(document.uri);

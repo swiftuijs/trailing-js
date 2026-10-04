@@ -12,6 +12,7 @@ import {
 } from './compiler';
 import { loadConfig } from './config';
 import { recoverTransform } from './recovery';
+import { isDependency } from './files';
 
 function lineStarts(text: string): number[] {
   const starts = [0];
@@ -82,7 +83,11 @@ export class TwillProject {
   constructor(
     tsconfig: string,
     options: TransformOptions = {},
-    projectOptions: { inferred?: boolean; recover?: boolean } = {},
+    projectOptions: {
+      inferred?: boolean;
+      recover?: boolean;
+      defaultLibFileName?: (options: ts.CompilerOptions) => string;
+    } = {},
   ) {
     const configFile = sourceFilename(resolve(tsconfig));
     this.root = dirname(configFile);
@@ -156,7 +161,8 @@ export class TwillProject {
       },
       getCurrentDirectory: () => this.root,
       getCompilationSettings: () => this.compilerOptions,
-      getDefaultLibFileName: (opts) => ts.getDefaultLibFilePath(opts),
+      getDefaultLibFileName:
+        projectOptions.defaultLibFileName ?? ((opts) => ts.getDefaultLibFilePath(opts)),
       readFile,
       fileExists,
       resolveModuleNames: (names, importer) =>
@@ -246,6 +252,16 @@ export class TwillProject {
       : undefined;
   }
 
+  sourceFiles(): string[] {
+    const dependencies =
+      this.service
+        .getProgram()
+        ?.getSourceFiles()
+        .filter((file) => !file.isDeclarationFile && !isDependency(file.fileName))
+        .map((file) => file.fileName) ?? [];
+    return [...new Set([...this.files, ...dependencies].map(sourceFilename))];
+  }
+
   private lines(filename: string, result: TransformResult) {
     let lines = this.lineMaps.get(result);
     if (!lines) {
@@ -305,7 +321,9 @@ export class TwillProject {
       result.push(
         ...this.service.getCompilerOptionsDiagnostics().map((error) => this.diagnostic(error)),
       );
-    const files = filename ? [virtualFilename(resolve(filename))] : this.files;
+    const files = filename
+      ? [virtualFilename(resolve(filename))]
+      : this.sourceFiles().map(virtualFilename);
     for (const file of files) {
       if (/\.d\.[cm]?ts$/.test(file)) continue;
       try {

@@ -2,7 +2,7 @@
   "name": "twill",
   "displayName": "Twill",
   "description": "Syntax highlighting and TypeScript language support for the Twill JS/TS syntax-sugar language.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "publisher": "swiftuijs",
   "license": "MIT",
   "repository": {
@@ -102,6 +102,18 @@
         "fileMatch": "twill.config.json",
         "url": "./twill.schema.json"
       }
+    ],
+    "typescriptServerPlugins": [
+      {
+        "name": "@swiftuijs/twill",
+        "enableForWorkspaceTypeScriptVersions": true
+      }
     ]
+  },
+  "extensionDependencies": [
+    "vscode.typescript-language-features"
+  ],
+  "dependencies": {
+    "@swiftuijs/twill": "file:./twill-typescript-plugin"
   }
 }

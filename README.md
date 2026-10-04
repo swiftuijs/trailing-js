@@ -9,7 +9,7 @@ const doubled = [1, 2, 3].map() { value in value * 2 };
 
 The compiler is framework-independent. Optional React and Vue adapters bridge closures to children and slots. `@swiftuijs/ui` is one example consumer; there are no component-library names or imports built into the compiler.
 
-This is an experimental **0.3 language**, with production-oriented packaging and tests. See [the syntax contract and limitations](docs/syntax.md) before adopting it. Until published to npm and the Marketplace, install a locally built tarball and VSIX.
+This is an experimental **0.4 language**, with production-oriented packaging and tests. See [the syntax contract and limitations](docs/syntax.md) before adopting it. Until published to npm and the Marketplace, install a locally built tarball and VSIX.
 
 ## Quick start
 
@@ -22,7 +22,7 @@ npm ci
 npm run build
 npm pack
 # In your application:
-npm install /path/to/swiftuijs-twill-0.3.0.tgz
+npm install /path/to/swiftuijs-twill-0.4.0.tgz
 ```
 
 In Vite:
@@ -58,6 +58,33 @@ npx twill check -p tsconfig.json
 ```
 
 Include the extended files in your `tsconfig.json`, for example `"include": ["src/**/*"]`. The checker reads your real TypeScript settings, infers callback types, resolves explicit and extensionless local imports, and maps errors back to the original files. Ordinary `tsc` does not parse this syntax.
+
+## Mixing Twill with TS and JS
+
+Both import directions work: Twill can import native TS/JS, and native TS/JS can import Twill. Values, exported types, type-only imports, re-exports and dynamic imports use normal module semantics. Cyclic imports retain ESM live bindings.
+
+```ts
+// helpers.ts
+export const twice = (value: number): number => value * 2;
+
+// math.twill
+import { twice } from './helpers.ts';
+export const doubled = [1, 2, 3].map() { value in twice(value) };
+
+// consumer.ts (or consumer.js without the annotation)
+import { doubled } from './math.twill';
+const result: number[] = doubled;
+```
+
+Use the Twill build plugin, `twill check`, and the VSIX for a mixed project. Vite/esbuild retain their native TS pipeline; bare Rollup/webpack/rspack receive standard TS/TSX/JSX emission by default. Set `nativeSources: false` when another plugin owns that emission. Native files never use Twill parsing or implicit-return rules. npm dependencies retain their host's handling.
+
+```sh
+npm run dev:mixed     # JS → TS → Twill → TS/JS, with exported types and dynamic imports
+npx twill check -p tsconfig.json
+node --enable-source-maps --import @swiftuijs/twill/register src/main.js
+```
+
+The opt-in Node loader compiles local ESM `.ts`, `.mts`, `.tsx` and `.jsx` as well as Twill, including on Node 20. Standard JS/CJS keeps Node handling. See [interoperability](docs/interoperability.md) for resolution rules, editor setup and CommonJS boundaries. Plain `tsc` does not understand Twill source; TS-server plugins provide editor assistance, rather than changing the command-line compiler.
 
 ## Closures
 
@@ -159,7 +186,7 @@ import twill from '@swiftuijs/twill/esbuild';
 await build({ entryPoints: ['src/main.twill'], bundle: true, plugins: [twill()] });
 ```
 
-Plugin options override `twill.config.json`: `builders`, `implicitReturn`, `root`, `sourceType`, and `resolveExtensions`. Relative extensionless imports search the four Twill extensions; keep imports explicit when names would be ambiguous. Vite also supports Twill extensions through its standard resolver.
+Plugin options override `twill.config.json`: `builders`, `implicitReturn`, `root`, `sourceType`, `resolveExtensions`, and `nativeSources`. Relative extensionless imports search native sources before Twill sources, including directory indexes; use explicit extensions when names would be ambiguous. Explicit existing paths and bare packages remain with the host resolver.
 
 Node can load extended ESM files directly:
 
@@ -167,7 +194,7 @@ Node can load extended ESM files directly:
 node --enable-source-maps --import @swiftuijs/twill/register src/main.twill
 ```
 
-The loader is opt-in, erases TypeScript types, and composes inline source maps. Type checking remains `twill check`. For JSX in Node, provide the React JSX runtime; Vue examples use `h()` and slots instead.
+The loader is opt-in, erases TypeScript types in Twill and local native ESM sources, and composes inline source maps. Type checking remains `twill check`. For JSX emitted by the loader, provide the React JSX runtime; Vue examples use `h()` and slots instead.
 
 Inspect generated code, or write code and a map:
 
@@ -187,7 +214,7 @@ code --install-extension dist/twill.vsix
 
 VS Code supports syntax highlighting, comments, brackets, TypeScript diagnostics, hover, member completion, signature help, and go-to-definition in extended files. `Twill: Show Generated TypeScript` opens the lowered source beside your document. The extension bundles its language tooling; it does not require a globally installed compiler.
 
-The extension reads the nearest `tsconfig.json` and `twill.config.json`. It recovers common incomplete member expressions while typing; builds always reject invalid syntax. The standard TS server is not patched: use `twill check` for the full project's authoritative diagnostics, including ordinary TS files importing extended files. Formatting, rename, automatic imports, and React Fast Refresh integration are not yet provided.
+The extension reads the nearest `tsconfig.json` and `twill.config.json`. It recovers common incomplete member expressions while typing; builds always reject invalid syntax. A bundled TS-server bridge supplies diagnostics, hover, completion, signatures and definitions to native TS/JS documents in configured mixed projects. Unsaved Twill and native changes are synchronized, and definitions map back to original files. The extension bundles standard-library declarations for its standalone checker. Use `twill check` for authoritative project checks. Formatting, rename across dialect files, automatic imports, and React Fast Refresh integration are not yet provided.
 
 TextMate grammars in `editors/vscode/syntaxes` can be reused by other editors that supply TypeScript/JavaScript base grammars. GitHub's Linguist does not recognize these new extensions automatically.
 

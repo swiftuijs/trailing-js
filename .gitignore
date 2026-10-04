@@ -8,3 +8,4 @@ coverage/
 editors/vscode/licenses/
 examples/**/.vite/
 benchmark-results.json
+editors/vscode/twill-typescript-plugin/

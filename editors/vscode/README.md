@@ -16,4 +16,4 @@ Use the build plugin and `twill check` from [`@swiftuijs/twill`](https://github.
 
 Builders are explicit and framework-independent: `{ "builders": ["Stack", "Text"] }`. Optional React and Vue adapters bridge closures to children/default slots. No component library receives special handling.
 
-Syntax is experimental. Formatting, rename, automatic imports, and native TypeScript-server patching are not provided. Use the CLI for whole-project checking, including standard TS files importing extended files. See the repository's [syntax contract](https://github.com/swiftuijs/twill/blob/main/docs/syntax.md) for details.
+The bundled TS-server bridge supports native TS/JS documents importing Twill in configured projects, including diagnostics, hover, completion, signatures, definitions and unsaved-source synchronization. Standard-library declarations are included for standalone Twill assistance. Syntax is experimental; formatting, cross-dialect rename and automatic imports remain unavailable. Use the CLI for authoritative whole-project checking. See the repository's [syntax contract](https://github.com/swiftuijs/twill/blob/main/docs/syntax.md) for details.

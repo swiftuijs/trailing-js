@@ -1,8 +1,16 @@
 import { build } from 'esbuild';
+import { execFileSync } from 'node:child_process';
 import { copyFileSync, mkdirSync, writeFileSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
 mkdirSync('editors/vscode/dist', { recursive: true });
+mkdirSync('editors/vscode/dist/typescript-lib', { recursive: true });
+for (const filename of readdirSync('node_modules/typescript/lib'))
+  if (/^lib(?:\..+)?\.d\.ts$/.test(filename))
+    copyFileSync(
+      join('node_modules/typescript/lib', filename),
+      join('editors/vscode/dist/typescript-lib', filename),
+    );
 mkdirSync('editors/vscode/syntaxes', { recursive: true });
 for (const [extension, language] of Object.entries({
   twill: 'ts',
@@ -71,6 +79,38 @@ const result = await build({
   minify: true,
   metafile: true,
 });
+mkdirSync('editors/vscode/twill-typescript-plugin', { recursive: true });
+await build({
+  entryPoints: ['src/typescript-plugin.ts'],
+  outfile: 'editors/vscode/twill-typescript-plugin/index.cjs',
+  bundle: true,
+  platform: 'node',
+  format: 'cjs',
+  target: 'node20',
+  minify: true,
+  footer: { js: 'module.exports = module.exports.default;' },
+});
+writeFileSync(
+  'editors/vscode/twill-typescript-plugin/package.json',
+  JSON.stringify({
+    name: '@swiftuijs/twill',
+    version: JSON.parse(readFileSync('package.json', 'utf8')).version,
+    private: true,
+    main: 'index.cjs',
+  }) + '\n',
+);
+execFileSync(
+  process.execPath,
+  [
+    process.env.npm_execpath,
+    'install',
+    '--ignore-scripts',
+    '--omit=dev',
+    '--no-audit',
+    '--no-fund',
+  ],
+  { cwd: 'editors/vscode', stdio: 'pipe' },
+);
 // The standalone extension bundles dependencies, so ship their actual license
 // and NOTICE files with it rather than relying on npm's node_modules layout.
 const packages = new Set(

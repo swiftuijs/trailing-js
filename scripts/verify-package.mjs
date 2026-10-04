@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import { build, createServer } from 'vite';
 import { renderToStaticMarkup } from 'react-dom/server';
 import twill from '../dist/vite.js';
+import { probeTypeScriptPlugin } from './probe-typescript-plugin.mjs';
 
 const npm = (args, options = {}) =>
   execFileSync(process.execPath, [process.env.npm_execpath, ...args], options);
@@ -30,6 +31,17 @@ try {
     stdio: 'pipe',
   });
   const base = join(root, 'node_modules/@swiftuijs/twill/dist');
+  await probeTypeScriptPlugin(root, '@swiftuijs/twill');
+  const esm = execFileSync(
+    process.execPath,
+    [
+      '--input-type=module',
+      '-e',
+      'import {transform} from "@swiftuijs/twill"; console.log(transform("fn() { 42 }").closures)',
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.equal(esm.trim(), '1', 'The TS-server main entry must preserve compiler ESM exports');
   const { transform } = await import(pathToFileURL(join(base, 'index.js')).href);
   assert.equal(transform('fn() { 42 }').closures, 1);
   assert.equal(transform('function f(v) { guard v else { return 0; } return 1; }').guards, 1);
@@ -65,7 +77,7 @@ try {
     [
       '--enable-source-maps',
       '--import',
-      pathToFileURL(join(base, 'register.js')).href,
+      '@swiftuijs/twill/register',
       '--input-type=module',
       '-e',
       'import {values} from "./main.twill"; console.log(JSON.stringify(values))',
@@ -73,6 +85,56 @@ try {
     { cwd: root, encoding: 'utf8' },
   );
   assert.equal(output.trim(), '[0,4]');
+  writeFileSync(
+    join(root, 'state.ts'),
+    'import {read} from "./cycle.twill"; export let count: number = 1; export function increment() { count++; } export const get = () => read();',
+  );
+  writeFileSync(
+    join(root, 'cycle.twill'),
+    'import {count} from "./state.ts"; export function read(): number { const run=(body:()=>number)=>body(); return run() { count }; }',
+  );
+  writeFileSync(join(root, 'bridge.js'), 'export {get, increment} from "./state.ts";');
+  writeFileSync(
+    join(root, 'entry.ts'),
+    'import {get, increment} from "./bridge.js"; export const values: number[] = [get()]; increment(); values.push(get()); export const dynamic = (await import("./main.twill")).values;',
+  );
+  const interop = execFileSync(
+    process.execPath,
+    [
+      '--enable-source-maps',
+      '--import',
+      pathToFileURL(join(base, 'register.js')).href,
+      '--input-type=module',
+      '-e',
+      'import {values, dynamic} from "./entry.ts"; console.log(JSON.stringify({values, dynamic}))',
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.deepEqual(JSON.parse(interop), { values: [1, 2], dynamic: [0, 4] });
+  writeFileSync(
+    join(root, 'thrower.ts'),
+    'export function fail(): never {\n  const value: number = 1;\n  throw new Error("mapped native failure " + value);\n}\n',
+  );
+  writeFileSync(
+    join(root, 'thrower.twill'),
+    'import {fail} from "./thrower.ts"; const run=(body:()=>never)=>body(); run() { fail() };',
+  );
+  try {
+    execFileSync(
+      process.execPath,
+      [
+        '--enable-source-maps',
+        '--import',
+        pathToFileURL(join(base, 'register.js')).href,
+        'thrower.twill',
+      ],
+      { cwd: root, stdio: 'pipe' },
+    );
+    assert.fail('Expected mapped native error');
+  } catch (error) {
+    assert.match(String(error.stderr), /thrower\.ts:3:/);
+    assert.match(String(error.stderr), /thrower\.twill:1:/);
+  }
   writeFileSync(join(root, 'bad.twill'), 'export const x: string = [1].map() { n in n*2 };');
   let status = 0;
   try {
@@ -89,7 +151,7 @@ try {
   rmSync(root, { recursive: true, force: true });
 }
 
-for (const name of ['basic', 'general', 'defer', 'react', 'vue']) {
+for (const name of ['basic', 'general', 'defer', 'mixed', 'react', 'vue']) {
   execFileSync(process.execPath, ['dist/cli.js', 'check', '-p', `examples/${name}/tsconfig.json`], {
     stdio: 'pipe',
   });
@@ -112,6 +174,14 @@ const cleanup = JSON.parse(
 );
 assert.equal(cleanup.content, 'Hello from Twill');
 assert.deepEqual(cleanup.events, ['file closed', 'body complete', 'directory removed']);
+const mixed = JSON.parse(
+  execFileSync(
+    process.execPath,
+    ['--import', pathToFileURL(resolve('dist/register.js')).href, 'main.js'],
+    { cwd: resolve('examples/mixed'), encoding: 'utf8' },
+  ),
+);
+assert.deepEqual(mixed, { summaries: ['Ada: 12', 'Lin: 9'], status: 'status: active' });
 for (const name of ['react', 'vue']) {
   const root = resolve(`examples/${name}`);
   const outDir = mkdtempSync(join(tmpdir(), `twill-${name}-`));
