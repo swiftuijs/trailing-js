@@ -5,7 +5,9 @@
     "checkJs": true,
     "target": "ES2022",
     "module": "ESNext",
-    "moduleResolution": "Bundler"
+    "moduleResolution": "Bundler",
+    "types": ["node"]
   },
-  "include": ["**/*"]
+  "include": ["**/*"],
+  "exclude": ["node_modules", "dist"]
 }

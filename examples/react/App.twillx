@@ -4,11 +4,17 @@ import { VStack, HStack, Text, Button } from '@swiftuijs/ui';
 export default function App() {
   const [count, setCount] = useState(0);
   return VStack({ spacing: 16 }) {
-    Text({ key: "count" }) { `Count: ${count}` };
-    HStack({ key: "actions", spacing: 8 }) {
-      Button({ key: "increment", onClick: () => setCount(value => value + 1) }) { 'Increment' };
+    Text({ key: 'count' }) {
+      `Count: ${count}`;
+    };
+    HStack({ key: 'actions', spacing: 8 }) {
+      Button({ key: 'increment', onClick: () => setCount((value) => value + 1) }) {
+        'Increment';
+      };
       if (count > 0) {
-        Button({ key: "reset", onClick: () => setCount(0) }) { 'Reset' };
+        Button({ key: 'reset', onClick: () => setCount(0) }) {
+          'Reset';
+        };
       }
     };
   };

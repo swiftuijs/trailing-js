@@ -13,7 +13,7 @@ This is an experimental **0.6 language**, with production-oriented packaging and
 
 ## Quick start
 
-The distributed package requires Node **20.19+ or 22.12+** and is ESM. Use **Node 22.12+** and the pinned **pnpm 11** to develop the repository; Vite builds every workspace package. Enable pnpm through Corepack (`corepack enable`) or install the version in `packageManager`. See [the monorepo and tooling guide](docs/tooling.md).
+The distributed package requires Node **20.19+ or 22.12+** and is ESM. Use **Node 22.13+** and the pinned **pnpm 11** to develop the repository; Vite builds every workspace package. Enable pnpm through Corepack (`corepack enable`) or install the version in `packageManager`. See [the monorepo and tooling guide](docs/tooling.md).
 
 ```sh
 git clone https://github.com/swiftuijs/twill.git
@@ -22,7 +22,7 @@ pnpm install --frozen-lockfile
 pnpm build
 pnpm package:core
 # In your application:
-npm install /path/to/swiftuijs-twill-0.6.0.tgz
+npm install /path/to/swiftuijs-twill-0.7.0.tgz
 ```
 
 In Vite:
@@ -221,7 +221,7 @@ code --install-extension dist/twill.vsix
 
 VS Code supports syntax highlighting, TypeScript diagnostics, hover, contextual member/React prop completion, signature help, definitions, automatic imports, cross-file rename, import organization and mapped quick fixes. Completion and edits use original Twill coordinates, including unsaved mixed projects. The extension bundles its language tooling; it does not require a globally installed compiler.
 
-The extension reads the nearest `tsconfig.json` and `twill.config.json`. It recovers common incomplete member expressions while typing; builds always reject invalid syntax. A bundled TS-server bridge supplies diagnostics, hover, completion, signatures and definitions to native TS/JS documents in configured mixed projects. Unsaved Twill and native changes are synchronized, and definitions map back to original files. The extension bundles standard-library declarations for its standalone checker. Use `twill check` for authoritative project checks. Rename and import organization also map edits from native TS/JS back into Twill. Edits that cannot be safely represented in the original syntax are withheld. Formatting, general refactoring/fix-all and React Fast Refresh integration remain future work.
+The extension reads the nearest `tsconfig.json` and `twill.config.json`. It recovers common incomplete member expressions while typing; builds always reject invalid syntax. A bundled TS-server bridge supplies diagnostics, hover, completion, signatures and definitions to native TS/JS documents in configured mixed projects. Unsaved Twill and native changes are synchronized, and definitions map back to original files. The extension bundles standard-library declarations for its standalone checker. Use `twill check` for authoritative project checks. Rename and import organization also map edits from native TS/JS back into Twill. Edits that cannot be safely represented in the original syntax are withheld. Document formatting and ESLint integration are available through the formatter/linter packages. General refactoring/fix-all and React Fast Refresh integration remain future work.
 
 `Twill: Show Generated TypeScript` opens lowered source; `Twill: Show Project Diagnostics` opens a diagnostic report. `Twill: Debug Current File` starts the built-in Node debugger using source maps and the installed `@swiftuijs/twill/register` loader. Install the compiler in your application before debugging. You can also run `npx twill doctor -p tsconfig.json --json` for a scriptable configuration and diagnostics report.
 
@@ -255,3 +255,5 @@ pnpm test:coverage
 Checks cover syntax execution, TS/JSX compatibility, mappings, type inference, incomplete-editor input, all five bundlers, framework rendering, independently installed npm tarballs, Node loading, and VSIX packaging. CI repeats them on Linux, Windows, and macOS. See [architecture](docs/architecture.md), [contributing](CONTRIBUTING.md), and [release instructions](docs/releasing.md).
 
 MIT licensed. Ordinary Twill code has no React/Vue runtime dependency. UI output imports the selected standard JSX runtime.
+
+The monorepo also includes independently installable [`@swiftuijs/twill-formatter`](packages/formatter/README.md) (Prettier) and [`@swiftuijs/twill-linter`](packages/linter/README.md) (ESLint). Every [example](examples/README.md) is its own workspace package. The VSIX bundles document formatting; the standard ESLint extension can lint the Twill language IDs. Use `twill declarations -p tsconfig.json -o dist [--build]` after a Vite library build to distribute native declarations and source maps. See [tooling setup and declaration builds](docs/tooling.md).

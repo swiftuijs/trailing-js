@@ -4,9 +4,9 @@ coverage
 editors/vscode/dist
 editors/vscode/licenses
 pnpm-lock.yaml
-examples/**/*.twill
-examples/**/*.twillx
 packages/twill/README.md
 packages/twill/LICENSE
 .twill
 .vscode-test
+
+**/dist

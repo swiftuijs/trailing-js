@@ -5,10 +5,11 @@ import { defineComponent, h, ref } from 'vue';
 const Panel = defineComponent({
   props: { title: String },
   setup(props, { slots }) {
-    return () => h('section', { style: 'padding: 24px; font-family: system-ui' }, [
-      h('h1', props.title),
-      ...(slots.default?.() ?? []),
-    ]);
+    return () =>
+      h('section', { style: 'padding: 24px; font-family: system-ui' }, [
+        h('h1', props.title),
+        ...(slots.default?.() ?? []),
+      ]);
   },
 });
 const Action = defineComponent({
@@ -21,9 +22,12 @@ const Action = defineComponent({
 export default defineComponent({
   setup() {
     const count = ref(0);
-    return () => Panel({ title: 'Twill + Vue' }) {
-      h('p', `Count: ${count.value}`);
-      Action({ onClick: () => count.value++ }) { 'Increment' };
-    };
+    return () =>
+      Panel({ title: 'Twill + Vue' }) {
+        h('p', `Count: ${count.value}`);
+        Action({ onClick: () => count.value++ }) {
+          'Increment';
+        };
+      };
   },
 });

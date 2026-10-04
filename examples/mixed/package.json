@@ -1,0 +1,25 @@
+{
+  "name": "@swiftuijs/twill-example-mixed",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "twill check -p tsconfig.json",
+    "dev": "node --enable-source-maps --import @swiftuijs/twill/register main.js",
+    "start": "node --enable-source-maps dist/main.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "devDependencies": {
+    "@swiftuijs/twill": "workspace:*",
+    "@types/node": "^26.6.4",
+    "vite": "^8.3.2",
+    "@swiftuijs/twill-formatter": "workspace:*",
+    "@swiftuijs/twill-linter": "workspace:*",
+    "prettier": "^3.9.9",
+    "eslint": "^10.12.0"
+  }
+}

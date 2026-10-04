@@ -2,6 +2,9 @@ import { cpSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs'
 import { resolve, join } from 'node:path';
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+process.chdir(fileURLToPath(new URL('../', import.meta.url)));
 
 // Stage the extension independently of workspace symlinks. VSCE must never
 // walk the monorepo's hoisted development dependencies into the VSIX.

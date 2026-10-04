@@ -15,3 +15,4 @@ packages/twill/README.md
 packages/twill/LICENSE
 editors/vscode/twill-typescript-plugin/*.map
 editors/vscode/twill-typescript-plugin/THIRD_PARTY_LICENSES.txt
+project-results.json

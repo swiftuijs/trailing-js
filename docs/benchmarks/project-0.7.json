@@ -1,0 +1,62 @@
+{
+  "timestamp": "2026-10-04T20:17:56.029Z",
+  "node": "v24.19.0",
+  "cpu": "AMD EPYC 9V74 80-Core Processor",
+  "methodology": "Isolated child process per size. 1/3 native TS, 2/3 Twill, one import fan-in. Cold virtual check includes TS libraries; 15 warm/edit samples. Synthetic workload, excludes VS Code UI, native bridge, bundler and application runtime. Formatter timing is a cold single sample.",
+  "results": [
+    {
+      "sourceFiles": 101,
+      "coldCheckMs": 434.283207,
+      "warmCheck": {
+        "p50Ms": 1.1815270000000737,
+        "p95Ms": 1.8563780000000634
+      },
+      "warmHover": {
+        "p50Ms": 0.5976040000000467,
+        "p95Ms": 16.85694799999999
+      },
+      "changedHover": {
+        "p50Ms": 16.52536699999996,
+        "p95Ms": 34.870136
+      },
+      "format1000ClosuresMs": 433.94553199999996,
+      "peakRssMiB": 406.0546875
+    },
+    {
+      "sourceFiles": 501,
+      "coldCheckMs": 840.3666699999999,
+      "warmCheck": {
+        "p50Ms": 5.682025000000067,
+        "p95Ms": 10.412439999999833
+      },
+      "warmHover": {
+        "p50Ms": 0.8466909999999643,
+        "p95Ms": 18.357629000000088
+      },
+      "changedHover": {
+        "p50Ms": 41.036464000000024,
+        "p95Ms": 62.70783499999993
+      },
+      "format1000ClosuresMs": 426.5919200000001,
+      "peakRssMiB": 478.8203125
+    },
+    {
+      "sourceFiles": 1001,
+      "coldCheckMs": 934.0665079999999,
+      "warmCheck": {
+        "p50Ms": 9.257714000000078,
+        "p95Ms": 22.43807199999992
+      },
+      "warmHover": {
+        "p50Ms": 1.1679469999999128,
+        "p95Ms": 23.194573999999875
+      },
+      "changedHover": {
+        "p50Ms": 66.8008870000001,
+        "p95Ms": 91.94716500000004
+      },
+      "format1000ClosuresMs": 389.2583020000002,
+      "peakRssMiB": 598.9609375
+    }
+  ]
+}

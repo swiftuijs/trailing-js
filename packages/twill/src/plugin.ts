@@ -1,15 +1,15 @@
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { createUnplugin } from 'unplugin';
-import { isTwillFile, type TransformOptions } from './compiler';
-import { loadConfig } from './config';
-import { transpile, transpileNative } from './transpile';
+import { isTwillFile, type TransformOptions } from './compiler.js';
+import { loadConfig } from './config.js';
+import { transpile, transpileNative } from './transpile.js';
 import {
   isDependency,
   needsTypeEmission,
   splitId,
   resolveSourceFile,
   sourceExtensions,
-} from './files';
+} from './files.js';
 
 export interface PluginOptions extends Omit<TransformOptions, 'filename' | 'language'> {
   root?: string;

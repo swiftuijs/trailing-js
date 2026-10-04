@@ -6,8 +6,11 @@ import metadata from './package.json' with { type: 'json' };
 
 const entries = [
   'index',
+  'syntax',
+  'config',
   'editor',
   'doctor',
+  'declarations',
   'project',
   'cli',
   'register',

@@ -9,6 +9,7 @@ import {
 } from '@swiftuijs/twill/project';
 import { isTwillFile } from '@swiftuijs/twill';
 import { TwillEditor, type SourceEdit } from '@swiftuijs/twill/editor';
+import { format } from '@swiftuijs/twill-formatter';
 import { inspectProject } from '@swiftuijs/twill/doctor';
 
 const languages = ['twill-typescript', 'twill-tsx'];
@@ -163,7 +164,6 @@ export function activate(context: vscode.ExtensionContext) {
       key,
       setTimeout(() => {
         timers.delete(key);
-        syncBridge();
         refresh(document);
       }, 150),
     );
@@ -172,8 +172,14 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     diagnostics,
     output,
-    vscode.workspace.onDidOpenTextDocument(schedule),
+    vscode.workspace.onDidOpenTextDocument((document) => {
+      if (isTwillFile(document.fileName)) syncBridge();
+      schedule(document);
+    }),
     vscode.workspace.onDidChangeTextDocument((event) => {
+      // Queue native TS-server overlays before subsequent rename/navigation
+      // requests; only diagnostic calculation is debounced.
+      if (isTwillFile(event.document.fileName)) syncBridge();
       for (const project of projects.values())
         if (
           event.document.uri.scheme === 'file' &&
@@ -239,6 +245,34 @@ export function activate(context: vscode.ExtensionContext) {
     watcher.onDidChange((uri) => diskChanged(uri)),
     watcher.onDidCreate((uri) => diskChanged(uri, true)),
     watcher.onDidDelete((uri) => diskChanged(uri, true)),
+  );
+
+  context.subscriptions.push(
+    vscode.languages.registerDocumentFormattingEditProvider(selector, {
+      async provideDocumentFormattingEdits(document, options, token) {
+        const version = document.version;
+        try {
+          const text = await format(document.getText(), {
+            filepath: document.fileName,
+            tabWidth: options.tabSize,
+            useTabs: !options.insertSpaces,
+          });
+          if (token.isCancellationRequested || document.version !== version) return [];
+          return [
+            vscode.TextEdit.replace(
+              new vscode.Range(
+                document.positionAt(0),
+                document.positionAt(document.getText().length),
+              ),
+              text,
+            ),
+          ];
+        } catch (error) {
+          output.appendLine(`Formatting: ${String(error)}`);
+          throw error;
+        }
+      },
+    }),
   );
 
   context.subscriptions.push(

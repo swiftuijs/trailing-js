@@ -1,3 +1,3 @@
-import { twillPlugin } from './plugin';
+import { twillPlugin } from './plugin.js';
 export default twillPlugin.esbuild;
-export type { PluginOptions } from './plugin';
+export type { PluginOptions } from './plugin.js';

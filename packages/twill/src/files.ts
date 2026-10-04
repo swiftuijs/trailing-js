@@ -1,6 +1,6 @@
 import { statSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { extensions } from './compiler';
+import { extensions } from './compiler.js';
 
 export const sourceExtensions = [
   '.mjs',

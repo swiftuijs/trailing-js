@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import metadata from '../package.json';
-import { TwillProject } from './project';
-import { isTwillFile } from './compiler';
+import { TwillProject } from './project.js';
+import { isTwillFile } from './compiler.js';
 
 /** Shareable diagnostics without source contents or environment-variable values. */
 export function inspectProject(project: TwillProject, filename?: string) {

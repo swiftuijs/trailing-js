@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.0
+
+Make every example a private pnpm workspace package with its own dependencies, Vite builds, checking, formatting and lint commands. The VS Code workspace exposes its own build/package/test entry points; the root coordinates shared validation.
+
+Add independently installable Prettier and ESLint packages. Formatting preserves Twill syntax, comments, typed closure headers and component opt-out parentheses. The VSIX bundles document formatting. ESLint maps errors and safe fixes to original source and optionally runs type-aware rules against the virtual TypeScript program. Native TS-server overlay updates are queued immediately before later editor requests; diagnostics remain debounced.
+
+Add `twill declarations` with standard declaration output, ordinary module specifiers, original-source maps and topological reference builds. A Vite library example and independent native TypeScript consumer verify distribution. Builds are declaration-only and nonincremental. Add mixed-project checking/editing and formatter measurements at 100/500/1000 modules. The language remains experimental; broad parser conformance, advanced refactoring and framework development transforms still need work.
+
 ## 0.6.0
 
 Move development into a pnpm workspace monorepo with Vite/Rolldown library builds. The public compiler/toolchain lives in `packages/twill`; the VSIX and its private TS-server bridge build as dependent workspaces. The public package remains `@swiftuijs/twill`, and the only dialect extensions remain `.twill` / `.twillx`. Compiler declarations use Vite's declaration plugin; all published bundles target Node 20 while repository tools use Node 22+.

@@ -3,7 +3,9 @@ import { format } from './format.js';
 export type { User } from './domain.ts';
 
 export function summarize(users: User[]): string[] {
-  return users.map { user in format(user) };
+  return users.map { user in
+    format(user);
+  };
 }
 
 export async function status() {

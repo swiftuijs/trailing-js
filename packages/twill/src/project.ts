@@ -9,11 +9,11 @@ import {
   generatedPosition,
   type TransformOptions,
   type TransformResult,
-} from './compiler';
-import { loadConfig } from './config';
-import { recoverTransform } from './recovery';
-import { isDependency } from './files';
-export { isDependency } from './files';
+} from './compiler.js';
+import { loadConfig } from './config.js';
+import { recoverTransform } from './recovery.js';
+import { isDependency } from './files.js';
+export { isDependency } from './files.js';
 
 function lineStarts(text: string): number[] {
   const starts = [0];
@@ -89,6 +89,7 @@ export class TwillProject {
       inferred?: boolean;
       recover?: boolean;
       defaultLibFileName?: (options: ts.CompilerOptions) => string;
+      declarationRedirects?: ReadonlyMap<string, string>;
     } = {},
   ) {
     const configFile = sourceFilename(resolve(tsconfig));
@@ -130,7 +131,7 @@ export class TwillProject {
       extraExtensions,
     );
     this.configurationErrors = [...(raw.error ? [raw.error] : []), ...parsed.errors];
-    if (parsed.projectReferences?.length)
+    if (parsed.projectReferences?.length && !projectOptions.declarationRedirects)
       this.configurationErrors = [
         ...this.configurationErrors,
         {
@@ -200,8 +201,14 @@ export class TwillProject {
             this.compilerOptions,
             resolutionHost,
           ).resolvedModule;
-          if (resolved)
-            return { ...resolved, resolvedFileName: virtualFilename(resolved.resolvedFileName) };
+          if (resolved) {
+            const redirect = projectOptions.declarationRedirects?.get(
+              sourceFilename(resolved.resolvedFileName),
+            );
+            return redirect
+              ? { ...resolved, resolvedFileName: redirect, extension: ts.Extension.Dts }
+              : { ...resolved, resolvedFileName: virtualFilename(resolved.resolvedFileName) };
+          }
           if (name.startsWith('.') || name.startsWith('/')) {
             const base = resolve(dirname(sourceFilename(importer)), name);
             const candidates = isTwillFile(base)
@@ -212,6 +219,15 @@ export class TwillProject {
                 ]);
             for (const candidate of candidates) {
               if (fileExists(candidate)) {
+                const redirect = projectOptions.declarationRedirects?.get(
+                  sourceFilename(candidate),
+                );
+                if (redirect)
+                  return {
+                    resolvedFileName: redirect,
+                    extension: ts.Extension.Dts,
+                    isExternalLibraryImport: false,
+                  };
                 const file = virtualFilename(candidate);
                 const extension =
                   extname(file) === '.tsx'
@@ -229,6 +245,58 @@ export class TwillProject {
         }),
     };
     this.service = ts.createLanguageService(this.host);
+  }
+
+  /** Declaration-only native TypeScript emit from the checked virtual program. */
+  declarationOutput(outDir: string, declarationMap = true) {
+    const diagnostics = this.diagnostics();
+    if (diagnostics.some((item) => item.category === 'error')) return { diagnostics, files: [] };
+    const previous = this.service.getProgram();
+    if (!previous) return { diagnostics, files: [] };
+    const options: ts.CompilerOptions = {
+      ...this.compilerOptions,
+      noEmit: false,
+      declaration: true,
+      emitDeclarationOnly: true,
+      declarationMap,
+      noEmitOnError: true,
+      incremental: false,
+      composite: false,
+      rootDir: this.compilerOptions.rootDir ?? this.root,
+      outDir,
+      declarationDir: outDir,
+      allowImportingTsExtensions: true,
+    };
+    const host = ts.createCompilerHost(options);
+    host.readFile = this.host.readFile!;
+    host.fileExists = this.host.fileExists!;
+    host.getCurrentDirectory = () => this.root;
+    host.resolveModuleNames = this.host.resolveModuleNames;
+    host.getSourceFile = (filename, languageVersion) =>
+      previous.getSourceFile(filename) ??
+      (host.readFile(filename) === undefined
+        ? undefined
+        : ts.createSourceFile(filename, host.readFile(filename)!, languageVersion, true));
+    const program = ts.createProgram(previous.getRootFileNames(), options, host);
+    const errors = ts.getPreEmitDiagnostics(program).map((item) => this.diagnostic(item));
+    if (errors.some((item) => item.category === 'error')) return { diagnostics: errors, files: [] };
+    const files: { filename: string; text: string; sources: string[] }[] = [];
+    const emitted = program.emit(
+      undefined,
+      (filename, text, _bom, _error, sources) => {
+        files.push({
+          filename: sourceFilename(filename),
+          text,
+          sources: sources?.map((source) => sourceFilename(source.fileName)) ?? [],
+        });
+      },
+      undefined,
+      true,
+    );
+    return {
+      diagnostics: [...diagnostics, ...emitted.diagnostics.map((item) => this.diagnostic(item))],
+      files: emitted.emitSkipped ? [] : files,
+    };
   }
 
   private result(filename: string, source: string): TransformResult {

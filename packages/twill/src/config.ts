@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import ts from 'typescript';
-import type { TransformOptions } from './compiler';
+import type { TransformOptions } from './compiler.js';
 
 type Config = Pick<TransformOptions, 'implicitReturn' | 'jsxImportSource'>;
 const jsxConfigs = new Map<string, { files: Map<string, number>; source?: string }>();

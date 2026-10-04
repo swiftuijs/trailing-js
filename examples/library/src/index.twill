@@ -1,0 +1,15 @@
+import { scale, type Numeric } from './helpers.ts';
+export type { Numeric } from './helpers.ts';
+
+export function double(values: readonly Numeric[]): Numeric[] {
+  return values.map { value in
+    scale(value);
+  };
+}
+
+export function requireName(value: string | undefined): string {
+  guard const name = value else {
+    throw new Error('A name is required');
+  }
+  return name;
+}

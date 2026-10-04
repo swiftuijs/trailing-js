@@ -1,6 +1,6 @@
 {
   "name": "@swiftuijs/twill",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Twill: a JS/TS syntax-sugar language with trailing closures, guards, block-scoped defer, build plugins, type checking, and editor support.",
   "main": "./dist/typescript-plugin.cjs",
   "repository": {
@@ -99,6 +99,18 @@
     "./doctor": {
       "types": "./dist/doctor.d.ts",
       "import": "./dist/doctor.js"
+    },
+    "./syntax": {
+      "types": "./dist/syntax.d.ts",
+      "import": "./dist/syntax.js"
+    },
+    "./config": {
+      "types": "./dist/config.d.ts",
+      "import": "./dist/config.js"
+    },
+    "./declarations": {
+      "types": "./dist/declarations.d.ts",
+      "import": "./dist/declarations.js"
     }
   },
   "peerDependencies": {

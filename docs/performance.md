@@ -95,3 +95,15 @@ pnpm benchmark --output benchmark-results.json
 The report records Node/OS/CPU, package version, commit, working-tree state, built-JS digest, source sizes, samples and all timings. See [0.3 JSON](benchmarks/current-0.3.json), [historical baseline JSON](benchmarks/baseline-0.1.json) and [0.2 JSON](benchmarks/current-0.2.json). To rerun a historical version, use its recorded checkout/build and its original benchmark script, which uses the names and extensions of that version.
 
 Linux/Node 22 CI uploads a fresh benchmark alongside package/coverage artifacts for comparison. CI enforces semantic/code-identity correctness rather than fragile wall-clock thresholds across different runners. Benchmarking has no added runtime dependency for consumers.
+
+## Mixed-project checking and editing (0.7)
+
+Run `pnpm benchmark:project --output project-results.json`. The [recorded synthetic run](benchmarks/project-0.7.json) uses isolated processes, one-third native TS and two-thirds Twill, plus a source importing every module. Cold checks include TypeScript standard libraries. Warm checks and hover/edit requests use 15 samples. The project program stays alive while a 1,000-closure file is formatted, so peak RSS includes the formatter and TypeScript; it is not the editor bridge's incremental memory overhead.
+
+| Source files | Cold check | Warm check p50 / p95 | Edited hover p50 / p95 | Peak process RSS |
+| ------------ | ---------- | -------------------- | ---------------------- | ---------------- |
+| 101          | 434 ms     | 1.2 / 1.9 ms         | 16.5 / 34.9 ms         | 406 MiB          |
+| 501          | 840 ms     | 5.7 / 10.4 ms        | 41.0 / 62.7 ms         | 479 MiB          |
+| 1001         | 934 ms     | 9.3 / 22.4 ms        | 66.8 / 91.9 ms         | 599 MiB          |
+
+A cold format of 1,000 closures took 389–434 ms in these processes. These measurements exclude VS Code rendering, the additional native TS-server bridge, bundler/HMR, dependency-heavy real applications and application runtime. They show useful cached checking, while memory and changed-file latency still deserve profiling for larger workspaces. Typed ESLint adds program construction and file freshness checks; prefer syntactic lint for fast default feedback and typed lint for CI when appropriate.

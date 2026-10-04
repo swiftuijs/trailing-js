@@ -2,5 +2,7 @@
 export function describe(state: string) {
   /** @param {() => string} callback */
   const run = (callback: () => string) => callback();
-  return run() { `status: ${state}` };
+  return run() {
+    `status: ${state}`;
+  };
 }

@@ -32,7 +32,11 @@ jobs:
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         run: node scripts/verify-package.mjs --packed
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        run: pnpm package:tooling && node scripts/verify-tooling.mjs
+      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         run: pnpm benchmark --output benchmark-results.json
+      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        run: pnpm benchmark:project --output project-results.json
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         uses: actions/upload-artifact@v7.0.1
         with:
@@ -42,6 +46,7 @@ jobs:
             dist/twill.vsix
             coverage/
             benchmark-results.json
+            project-results.json
   node20-consumer:
     runs-on: ubuntu-latest
     steps:
@@ -53,12 +58,15 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm package:core
+      - run: pnpm --filter @swiftuijs/twill-formatter --filter @swiftuijs/twill-linter run build
+      - run: pnpm package:tooling
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: 20
       # Vitest 5 and VSCE 4 require Node 22. The distributed compiler, loader,
       # type checker and build adapters also support Node 20 consumers.
       - run: node scripts/verify-package.mjs --packed
+      - run: node scripts/verify-tooling.mjs
   editor:
     runs-on: ubuntu-latest
     strategy:

@@ -5,7 +5,9 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "jsx": "react-jsx",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "types": ["node", "vite/client"]
   },
-  "include": ["*.twill", "*.ts", "*.twillx"]
+  "include": ["*.twill", "*.ts", "*.twillx"],
+  "exclude": ["node_modules", "dist"]
 }

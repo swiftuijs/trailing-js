@@ -4,6 +4,9 @@ import { readVsix } from './read-vsix.mjs';
 import { runTests } from '@vscode/test-electron';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+process.chdir(fileURLToPath(new URL('../', import.meta.url)));
 
 const root = resolve('.twill/editor-integration');
 rmSync(root, { recursive: true, force: true });

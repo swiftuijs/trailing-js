@@ -5,7 +5,7 @@ import {
   TwillSyntaxError,
   type TransformOptions,
   type TransformResult,
-} from './compiler';
+} from './compiler.js';
 
 /** Editor-only recovery; build and CLI compilation always use strict parsing. */
 export function recoverTransform(source: string, options: TransformOptions): TransformResult {

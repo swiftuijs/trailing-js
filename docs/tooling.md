@@ -1,15 +1,18 @@
 # Monorepo and tooling
 
-Use Node 22.12+ and the pnpm version pinned in the root `packageManager`. `corepack enable` enables pnpm where Corepack is available; otherwise install that pnpm version separately. The distributed compiler also supports Node 20.19+; the repository build/test tools require Node 22+.
+Use Node 22.13+ and the pnpm version pinned in the root `packageManager`. `corepack enable` enables pnpm where Corepack is available; otherwise install that pnpm version separately. The distributed compiler also supports Node 20.19+; the repository build/test tools require Node 22+.
 
 ## Layout
 
 | Workspace                                | Role                                                                                                    | Build                                                                                                           |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `packages/twill`                         | Published `@swiftuijs/twill`: compiler, CLI, checker, Node loader, shared editor API and build adapters | Vite library mode emits ESM and the CJS TS-server entry; `vite-plugin-dts` emits tool API declarations          |
+| `packages/formatter`                     | Published `@swiftuijs/twill-formatter`: Prettier plugin                                                 | Vite library mode and API declarations                                                                          |
+| `packages/linter`                        | Published `@swiftuijs/twill-linter`: ESLint processor and recommended configs                           | Vite library mode and API declarations                                                                          |
+| `examples/*`                             | Seven private applications/libraries, each with its own manifest                                        | Local Vite configurations; library adds declaration emission                                                    |
 | `editors/vscode`                         | VS Code extension and TextMate grammars                                                                 | Vite bundles a standalone CJS extension; preparation copies standard-library declarations, schemas and licenses |
 | `editors/vscode/twill-typescript-plugin` | Private `@swiftuijs/twill-vscode-tsserver` bridge bundled in the VSIX                                   | Vite bundles a CJS TS-server plugin                                                                             |
-| Root                                     | Shared tests, examples, scripts, configuration and release gates                                        | Private pnpm workspace coordinator; not a published package                                                     |
+| Root                                     | Shared tests, scripts, configuration and release gates                                                  | Private pnpm workspace coordinator; not a published package                                                     |
 
 Workspace dependencies order builds and use public compiler exports. Vite 8 uses Rolldown for repository bundles; there is no separate tsup/esbuild build pipeline. esbuild remains a supported consumer adapter and is used in adapter/native-output tests. Examples exercise ordinary functions, cleanup, mixed TS/JS, React and Vue. No compiler special case exists for `@swiftuijs/ui`.
 
@@ -21,7 +24,7 @@ pnpm build                # all workspace bundles and compiler declarations
 pnpm check                # build, typecheck, tests, consumer checks, packaged VSIX probes
 pnpm format:check
 pnpm test:coverage
-pnpm package:core         # swiftuijs-twill-0.6.0.tgz at the root
+pnpm package:core         # swiftuijs-twill-0.7.0.tgz at the root
 pnpm editor:package       # dist/twill.vsix
 pnpm editor:test          # real VS Code extension-host tests against the VSIX
 # Headless Linux:
@@ -32,7 +35,7 @@ xvfb-run -a pnpm editor:test
 
 ## Editor and debugging tools
 
-The VSIX supports completion, partial React prop keys and contextual callback members, hover/signatures/navigation, diagnostics, auto-imports, mixed-file rename, import organization and safe quick fixes. Selecting a completion applies edits to original Twill text. Renaming a local shorthand prop value keeps the public prop key; renaming the contract keeps the local binding. Native TS/JS import-alias rename follows TypeScript semantics. Source edits are rejected when they cannot be represented safely in the dialect; full refactoring/fix-all and formatting are not advertised.
+The VSIX supports completion, partial React prop keys and contextual callback members, hover/signatures/navigation, diagnostics, auto-imports, mixed-file rename, import organization and safe quick fixes. Selecting a completion applies edits to original Twill text. Renaming a local shorthand prop value keeps the public prop key; renaming the contract keeps the local binding. Native TS/JS import-alias rename follows TypeScript semantics. Source edits are rejected when they cannot be represented safely in the dialect; document formatting is bundled; full refactoring/fix-all is not advertised.
 
 **Twill: Show Generated TypeScript** displays the lowered document. **Twill: Show Project Diagnostics** displays configuration, source counts, versions, diagnostics and check duration. The same report is available from the CLI:
 
@@ -52,4 +55,31 @@ Browser applications use existing browser, React and Vue developer tools: emitte
 
 Real extension-host tests load the extracted VSIX, request providers, apply completion/import/rename/quick-fix edits to unsaved documents, verify generated/report views, and inspect Node stack frames and source breakpoints. CI runs the minimum supported VS Code 1.95.3 and stable. `TWILL_TEST_VSCODE_VERSION` selects a download; `TWILL_TEST_VSCODE_PATH` uses a local executable.
 
-The checker/editor currently use TypeScript 5.9. Building declarations for the compiler API does not mean Twill user projects can emit library declarations or use TypeScript project-reference build mode; those are still missing. See [readiness](readiness.md) and [performance](performance.md) for the remaining adoption limits.
+The checker/editor currently use TypeScript 5.9. User libraries can emit native declarations with `twill declarations`; `--build` visits referenced declaration projects first. This is a full declaration build, without incremental `.tsbuildinfo` or JS emission; Vite handles JS builds. See [readiness](readiness.md) and [performance](performance.md) for the remaining adoption limits.
+
+## Formatter and linter packages
+
+`packages/formatter` builds `@swiftuijs/twill-formatter`, a Prettier 3.9 plugin. `packages/linter` builds `@swiftuijs/twill-linter`, an ESLint 9/10 flat-config plugin with syntactic and optional typed rules. Both use Vite library builds, public package exports and independent npm consumer verification. The [formatter guide](../packages/formatter/README.md) and [linter guide](../packages/linter/README.md) show application configuration. No library/component registry is involved.
+
+```sh
+pnpm lint
+pnpm lint:fix
+pnpm format
+pnpm package:tooling
+pnpm test:tooling         # independent npm install of all three tarballs
+pnpm --filter twill package   # editor's own packaging entry
+pnpm --filter twill test      # editor's own host-test entry
+```
+
+All seven [examples](../examples/README.md) are private workspace packages with local dependencies, Vite builds, type checking, formatting and lint commands. For example, `pnpm --filter @swiftuijs/twill-example-react dev` runs the React package; `pnpm --filter @swiftuijs/twill-example-library build` emits an ordinary ESM library and declarations.
+
+## User-library declarations
+
+```sh
+pnpm exec twill declarations -p tsconfig.json -o dist
+pnpm exec twill declarations -p packages/app/tsconfig.json --build --json
+```
+
+Use Vite library mode for JS output, then the declaration command for `.d.ts` and composed `.d.ts.map` output. Declaration module specifiers use ordinary `.js`/`.mjs`/`.cjs` names. Maps refer to original Twill/TS sources. Do not combine same-basename native and Twill files in one output directory: collisions are rejected. Errors prevent writes for the failing project; dependencies already emitted in a reference build remain on disk.
+
+`--build` traverses tsconfig references in dependency order and consumes their declarations; circular references fail explicitly. Referenced projects use their configured `declarationDir`/`outDir` (otherwise `dist`); `-o` overrides only the root project, relative to the current working directory. This emits declarations only, without incremental caching or `.tsbuildinfo`. The ordinary `twill check` command still checks one project at a time. For published libraries, set package `exports.types` to the generated entry declaration and `exports.import` to the Vite JS entry, as in the library example. Native consumers require neither Twill source parsing nor a Twill editor plugin.

@@ -6,5 +6,5 @@ export {
   inferLanguage,
   originalPosition,
   generatedPosition,
-} from './compiler';
-export type { TransformOptions, TransformResult, Language } from './compiler';
+} from './compiler.js';
+export type { TransformOptions, TransformResult, Language } from './compiler.js';

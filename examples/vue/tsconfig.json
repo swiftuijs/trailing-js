@@ -6,7 +6,9 @@
     "moduleResolution": "Bundler",
     "skipLibCheck": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "vue"
+    "jsxImportSource": "vue",
+    "types": ["node", "vite/client"]
   },
-  "include": ["*.twill", "*.ts", "*.twillx"]
+  "include": ["*.twill", "*.ts", "*.twillx"],
+  "exclude": ["node_modules", "dist"]
 }

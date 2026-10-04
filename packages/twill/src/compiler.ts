@@ -1,7 +1,7 @@
 import MagicString from 'magic-string';
 import { Parser, tokTypes } from 'acorn';
 import { parse } from './parser.js';
-import { lowerDefers } from './defer';
+import { lowerDefers } from './defer.js';
 import {
   originalPositionFor,
   generatedPositionFor,

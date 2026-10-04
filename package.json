@@ -1,5 +1,5 @@
 {
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Twill: a JS/TS syntax-sugar language with trailing closures, guards, block-scoped defer, build plugins, type checking, and editor support.",
   "repository": {
     "type": "git",
@@ -11,12 +11,11 @@
   "private": true,
   "packageManager": "pnpm@11.19.0",
   "engines": {
-    "node": "^22.12.0 || >=24.0.0"
+    "node": "^22.13.0 || >=24.0.0"
   },
   "devDependencies": {
     "typescript": "^5.9.3",
     "@rspack/core": "^2.2.8",
-    "@swiftuijs/ui": "^0.1.1",
     "@types/node": "^26.6.4",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
@@ -30,7 +29,6 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "rollup": "^4.64.0",
-    "sass": "^1.105.1",
     "vite": "^8.3.2",
     "vitest": "^5.0.3",
     "vscode-oniguruma": "^2.0.1",
@@ -38,7 +36,10 @@
     "vue": "^3.5.43",
     "webpack": "^5.111.1",
     "yauzl": "^3.4.0",
-    "@swiftuijs/twill": "workspace:*"
+    "@swiftuijs/twill": "workspace:*",
+    "@swiftuijs/twill-formatter": "workspace:*",
+    "@swiftuijs/twill-linter": "workspace:*",
+    "eslint": "^10.12.0"
   },
   "scripts": {
     "build": "pnpm -r --workspace-concurrency=1 run build",
@@ -46,20 +47,26 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "check": "pnpm build && pnpm typecheck && pnpm test && pnpm test:package && pnpm editor:package",
+    "check": "pnpm build && pnpm typecheck && pnpm test && pnpm lint && pnpm format:check && pnpm test:package && pnpm editor:package",
     "test:package": "node scripts/verify-package.mjs",
-    "editor:build": "pnpm --filter twill... run build && node scripts/verify-editor-plugin.mjs",
-    "editor:package": "pnpm editor:build && node scripts/package-editor.mjs && node scripts/verify-vsix.mjs",
-    "editor:test": "node scripts/test-editor.mjs",
+    "editor:build": "pnpm --filter twill... run build && pnpm --filter twill verify",
+    "editor:package": "pnpm --filter twill package",
+    "editor:test": "pnpm --filter twill test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "dev:react": "vite examples/react",
-    "dev:vue": "vite examples/vue",
-    "example:check": "node packages/twill/dist/cli.js check -p examples/basic/tsconfig.json && node packages/twill/dist/cli.js check -p examples/general/tsconfig.json && node packages/twill/dist/cli.js check -p examples/defer/tsconfig.json && node packages/twill/dist/cli.js check -p examples/react/tsconfig.json && node packages/twill/dist/cli.js check -p examples/vue/tsconfig.json && node packages/twill/dist/cli.js check -p examples/mixed/tsconfig.json",
+    "dev:react": "pnpm --filter @swiftuijs/twill-example-react dev",
+    "dev:vue": "pnpm --filter @swiftuijs/twill-example-vue dev",
+    "example:check": "pnpm --filter './examples/*' run typecheck",
     "benchmark": "node scripts/benchmark.mjs",
-    "dev:general": "node --enable-source-maps --import ./packages/twill/dist/register.js examples/general/run.mjs",
-    "dev:defer": "node --enable-source-maps --import ./packages/twill/dist/register.js examples/defer/run.mjs",
-    "dev:mixed": "node --enable-source-maps --import ./packages/twill/dist/register.js examples/mixed/main.js",
-    "package:core": "pnpm --filter @swiftuijs/twill pack --out swiftuijs-twill-%v.tgz"
+    "dev:general": "pnpm --filter @swiftuijs/twill-example-general dev",
+    "dev:defer": "pnpm --filter @swiftuijs/twill-example-defer dev",
+    "dev:mixed": "pnpm --filter @swiftuijs/twill-example-mixed dev",
+    "package:core": "pnpm --filter @swiftuijs/twill pack --out swiftuijs-twill-%v.tgz",
+    "example:build": "pnpm --filter './examples/*'... run build",
+    "lint": "eslint examples",
+    "lint:fix": "eslint examples --fix",
+    "benchmark:project": "node scripts/benchmark-project.mjs",
+    "package:tooling": "pnpm --filter @swiftuijs/twill-formatter pack --out swiftuijs-twill-formatter-%v.tgz && pnpm --filter @swiftuijs/twill-linter pack --out swiftuijs-twill-linter-%v.tgz",
+    "test:tooling": "pnpm package:core && pnpm package:tooling && node scripts/verify-tooling.mjs"
   }
 }

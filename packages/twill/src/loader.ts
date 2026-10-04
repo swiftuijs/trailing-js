@@ -2,10 +2,10 @@ import { readFileSync, existsSync } from 'node:fs';
 import { dirname, resolve as resolvePath } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { ResolveHook, LoadHook } from 'node:module';
-import { isTwillFile } from './compiler';
-import { transpile, transpileNative } from './transpile';
-import { loadConfig } from './config';
-import { isDependency, needsTypeEmission, resolveSourceFile } from './files';
+import { isTwillFile } from './compiler.js';
+import { transpile, transpileNative } from './transpile.js';
+import { loadConfig } from './config.js';
+import { isDependency, needsTypeEmission, resolveSourceFile } from './files.js';
 
 function configuration(filename: string) {
   let root = dirname(filename);

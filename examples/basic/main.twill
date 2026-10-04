@@ -1,10 +1,14 @@
-export const doubled = [1, 2, 3].map { value in value * 2 };
+export const doubled = [1, 2, 3].map { value in
+  value * 2;
+};
 
 function perform<T>(value: T, work: (value: T) => T, completion: (value: T) => void) {
   completion(work(value));
 }
 
-perform(21) { (value: number) in value * 2 } completion: { value in
+perform(21) { (value: number) in
+  value * 2;
+} completion: { value in
   console.log(`The answer is ${value}`);
 };
 
@@ -13,5 +17,5 @@ async function withTask<T>(task: () => Promise<T>): Promise<T> {
 }
 
 export const answer = await withTask() { async () in
-  await Promise.resolve(42)
+  await Promise.resolve(42);
 };

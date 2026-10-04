@@ -1,5 +1,5 @@
 import MagicString from 'magic-string';
-import type { Language } from './compiler';
+import type { Language } from './compiler.js';
 
 type Node = { type: string; start: number; end: number; [key: string]: any };
 type Comment = { start: number; end: number; value: string; type: string };

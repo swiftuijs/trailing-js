@@ -2,13 +2,15 @@
   "name": "twill",
   "displayName": "Twill",
   "description": "Syntax highlighting and TypeScript language support for the Twill JS/TS syntax-sugar language.",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "private": true,
   "type": "module",
   "scripts": {
     "build": "vite build && node ../../scripts/prepare-editor.mjs",
-    "package": "pnpm -w editor:package",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "package": "pnpm --filter twill... run build && pnpm verify && node ../../scripts/package-editor.mjs && node ../../scripts/verify-vsix.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "verify": "node ../../scripts/verify-editor-plugin.mjs",
+    "test": "node ../../scripts/test-editor.mjs"
   },
   "publisher": "swiftuijs",
   "license": "MIT",
@@ -102,6 +104,8 @@
     "typescript": "^5.9.3",
     "vite": "^8.3.2",
     "@types/node": "^26.6.4",
-    "@types/vscode": "^1.140.0"
+    "@types/vscode": "^1.140.0",
+    "@swiftuijs/twill-formatter": "workspace:*",
+    "prettier": "^3.9.9"
   }
 }

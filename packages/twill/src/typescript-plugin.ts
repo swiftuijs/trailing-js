@@ -1,8 +1,8 @@
 import type ts from 'typescript/lib/tsserverlibrary';
 import { statSync } from 'node:fs';
-import { TwillProject, sourceFilename, virtualFilename } from './project';
-import { isTwillFile } from './compiler';
-import { TwillEditor } from './editor';
+import { TwillProject, sourceFilename, virtualFilename } from './project.js';
+import { isTwillFile } from './compiler.js';
+import { TwillEditor } from './editor.js';
 
 /** Semantic bridge for native TS/JS documents in configured mixed projects. */
 export default function init(_modules: { typescript: typeof ts }): ts.server.PluginModule {
@@ -11,9 +11,26 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
     info: ts.server.PluginCreateInfo;
     versions: Map<string, string>;
     editor: TwillEditor;
+    protocolOverlays: Set<string>;
   };
   const contexts = new Map<ts.server.Project, Context>();
   let overlays: Record<string, string> = {};
+  const syncProtocolSource = (context: Context, file: string, text: string | undefined) => {
+    // TS-server converts plugin offsets into protocol line/column positions
+    // using its own ScriptInfo. Keep that text aligned with the virtual
+    // project even though custom documents use Twill's editor providers.
+    const info = context.info.project.projectService.getScriptInfo(file);
+    if (!info || info.isScriptOpen()) return;
+    if (text === undefined) {
+      if (context.protocolOverlays.delete(file)) info.reloadFromFile();
+      return;
+    }
+    const snapshot = info.getSnapshot();
+    if (snapshot.getText(0, snapshot.getLength()) !== text) {
+      info.editContent(0, snapshot.getLength(), text);
+      context.protocolOverlays.add(file);
+    }
+  };
   const sync = (context: Context) => {
     const { project, info, versions } = context;
     const tracked = new Set(info.languageServiceHost.getScriptFileNames().map(sourceFilename));
@@ -21,6 +38,7 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
       if (/\.d\.[cm]?ts$/.test(file)) continue;
       const original = sourceFilename(file);
       if (overlays[original] !== undefined) {
+        syncProtocolSource(context, original, overlays[original]);
         project.update(original, overlays[original]);
         continue;
       }
@@ -102,6 +120,7 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
         info,
         versions: new Map(),
         editor: new TwillEditor(project),
+        protocolOverlays: new Set(),
       };
       contexts.set(info.project, context);
       const proxy = Object.create(null) as ts.LanguageService;
@@ -224,6 +243,7 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
         );
       const dispose = proxy.dispose;
       proxy.dispose = () => {
+        for (const file of context.protocolOverlays) syncProtocolSource(context, file, undefined);
         contexts.delete(info.project);
         context.project.dispose();
         dispose();
@@ -246,7 +266,10 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
           : {};
       for (const context of contexts.values()) {
         for (const file of context.project.sourceFiles())
-          if (isTwillFile(file)) context.project.update(file, overlays[file]);
+          if (isTwillFile(file)) {
+            syncProtocolSource(context, file, overlays[file]);
+            context.project.update(file, overlays[file]);
+          }
         for (const [file, text] of Object.entries(overlays))
           if (file.startsWith(sourceFilename(context.project.root) + '/'))
             context.project.update(file, text);

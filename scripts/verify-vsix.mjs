@@ -4,6 +4,9 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import assert from 'node:assert/strict';
 import { probeTypeScriptPlugin } from './probe-typescript-plugin.mjs';
+import { fileURLToPath } from 'node:url';
+
+process.chdir(fileURLToPath(new URL('../', import.meta.url)));
 
 const root = mkdtempSync(join(tmpdir(), 'twill-vsix-'));
 try {

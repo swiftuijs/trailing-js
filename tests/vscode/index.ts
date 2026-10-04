@@ -45,6 +45,20 @@ export async function run() {
   const label = (item: vscode.CompletionItem) =>
     typeof item.label === 'string' ? item.label : item.label.label;
 
+  const formatting = await open('api.twill');
+  const formatEdits = await vscode.commands.executeCommand<vscode.TextEdit[]>(
+    'vscode.executeFormatDocumentProvider',
+    formatting.uri,
+    { tabSize: 2, insertSpaces: true },
+  );
+  assert(formatEdits?.length, 'The packaged formatter must return edits');
+  const formatted = new vscode.WorkspaceEdit();
+  formatted.set(formatting.uri, formatEdits!);
+  assert(await vscode.workspace.applyEdit(formatted));
+  assert(formatting.getText().includes('map { item in'));
+  assert(formatting.getText().includes('value: number'));
+  console.log('PASS: packaged formatter preserves Twill syntax and TypeScript annotations');
+
   const view = await open('view.twillx');
   const props = await eventually(
     () => completions(view, position(view, 'tit }', 3)),
@@ -179,7 +193,13 @@ export async function run() {
     (edits) => !!edits?.entries().some(([uri]) => uri.fsPath.endsWith('api.twill')),
   );
   assert(await vscode.workspace.applyEdit(nativeRename!));
-  assert(api.getText().includes('timesTwo(item)'));
+  assert(
+    api.getText().includes('timesTwo(item)'),
+    JSON.stringify({
+      source: api.getText(),
+      edits: nativeRename!.entries().map(([uri, edits]) => ({ uri: uri.fsPath, edits })),
+    }),
+  );
   console.log('PASS: cross-file rename works from Twill and native TS with unsaved overlays');
 
   await vscode.window.showTextDocument(api);

@@ -1,7 +1,7 @@
 import ts from 'typescript';
 import remapping from '@ampproject/remapping';
 import MagicString from 'magic-string';
-import { transform, inferLanguage, type TransformOptions } from './compiler';
+import { transform, inferLanguage, type TransformOptions } from './compiler.js';
 
 export function transpile(source: string, options: TransformOptions = {}) {
   const filename = options.filename ?? 'input.twill';

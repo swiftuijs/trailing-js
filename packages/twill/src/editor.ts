@@ -1,6 +1,6 @@
 import ts from 'typescript';
-import { TwillProject, sourceFilename, virtualFilename } from './project';
-import { isTwillFile } from './compiler';
+import { TwillProject, sourceFilename, virtualFilename } from './project.js';
+import { isTwillFile } from './compiler.js';
 
 export interface SourceEdit {
   filename: string;

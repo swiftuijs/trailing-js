@@ -20,6 +20,8 @@ jobs:
       - run: xvfb-run -a pnpm editor:test
       - run: pnpm package:core
       - run: node scripts/verify-package.mjs --packed
+      - run: pnpm package:tooling
+      - run: node scripts/verify-tooling.mjs
       - run: gh release create "$RELEASE_TAG" --verify-tag --generate-notes *.tgz dist/twill.vsix
         env:
           GH_TOKEN: ${{ github.token }}
