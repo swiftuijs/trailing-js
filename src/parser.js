@@ -152,6 +152,7 @@ function parserFor(language) {
       if (!this.isContextual('guard') || !guardAt(this.input, this.end))
         return super.parseStatement(context, ...args);
       const node = this.startNode();
+      node.singleStatement = !!context;
       this.next();
       node.binding = null;
       if (this.type === tt._const) {

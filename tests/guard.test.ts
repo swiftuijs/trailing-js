@@ -10,6 +10,16 @@ function run(source: string, ...values: unknown[]) {
 }
 
 describe('general-purpose guards', () => {
+  it('keeps an outer else attached to its original conditional', () => {
+    const source = 'if(value) guard record() else { return 0; } else { return 1; } return 2;';
+    expect(run(source, true, () => true)).toBe(2);
+    expect(run(source, true, () => false)).toBe(0);
+    expect(
+      run(source, false, () => {
+        throw new Error('Unreachable');
+      }),
+    ).toBe(1);
+  });
   it('evaluates the condition once and exits before executing the remainder', () => {
     let calls = 0;
     const source = 'guard record(value) else { return "missing"; } return value * 2;';

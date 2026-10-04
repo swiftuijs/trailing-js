@@ -97,6 +97,12 @@ export function transform(source: string, options: TransformOptions = {}) {
   }
   const code = new MagicString(source);
   for (const guard of parsed.guards) {
+    // A guard is one source statement. Without these braces an outer `else`
+    // would bind to the lowered inner if (JavaScript's dangling-else rule).
+    if (guard.singleStatement) {
+      code.prependLeft(guard.start, '{');
+      code.appendLeft(guard.end, '}');
+    }
     if (guard.binding) {
       const binding = guard.binding.declarations[0].id;
       // Nullish checks preserve false, 0 and empty strings. The original
