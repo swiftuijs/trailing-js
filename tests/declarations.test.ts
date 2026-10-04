@@ -104,8 +104,8 @@ describe('native declaration builds', () => {
     const result = emitDeclarations(join(root, 'app/tsconfig.json'), { build: true });
     expect(result.diagnostics).toEqual([]);
     expect(result.projects).toEqual([
-      join(root, 'base/tsconfig.json'),
-      join(root, 'app/tsconfig.json'),
+      join(root, 'base/tsconfig.json').replaceAll('\\', '/'),
+      join(root, 'app/tsconfig.json').replaceAll('\\', '/'),
     ]);
     expect(readFileSync(join(root, 'app/dist/index.d.ts'), 'utf8')).toContain('answer: number');
     expect(readFileSync(join(root, 'app/dist/index.d.ts'), 'utf8')).toContain(
