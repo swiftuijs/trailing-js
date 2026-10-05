@@ -78,10 +78,15 @@ Distributed builds enforce these compressed artifact size limits:
 | Compiler tarball           | 650 KiB                 |
 | Formatter tarball          | 24 KiB                  |
 | Linter tarball             | 24 KiB                  |
+| Highlight tarball          | 24 KiB                  |
 | Export tarball             | 28 KiB                  |
 | VSIX, including its engine | 3 MiB                   |
 
 Tarball budgets cover the package's own files, not installed npm dependencies. Development tools remain outside application bundles. These are distribution limits, not application bundle budgets or build-time guarantees.
+
+## React framework source study
+
+The [React source study](./react-source.md) compares the real React 19.3.0 client-core entry graph after identical Flow erasure. It adds an independently reproducible framework workload to the small synthetic fixtures above. The [report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/react-framework.json) includes production bytes, gzip size, interleaved build samples and isolated core-runtime samples. ReactDOM/reconciler are not rewritten; this is not a full rendering-throughput or typed framework-port benchmark.
 
 ## Evaluate your application
 

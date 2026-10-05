@@ -9,6 +9,7 @@ Use Node 22.13+ and the pnpm version pinned in the root `packageManager`. `corep
 | `packages/twill`                  | Public `@swiftuijs/twill`: compiler, CLI, checker, Node loader, shared editor API and build adapters | Vite library mode emits ESM and the CJS TS-server entry; `vite-plugin-dts` emits tool API declarations          |
 | `packages/formatter`              | Public `@swiftuijs/twill-formatter`: Prettier plugin                                                 | Vite library mode and API declarations                                                                          |
 | `packages/linter`                 | Public `@swiftuijs/twill-linter`: ESLint processor and recommended configs                           | Vite library mode and API declarations                                                                          |
+| `packages/highlight`              | Public `@swiftuijs/twill-highlight`: browser/SSR Shiki integration and shared TextMate grammars      | Vite library mode and API declarations                                                                          |
 | `packages/export`                 | Optional public `@swiftuijs/twill-export`: checked source export to native TS/TSX                    | Vite library mode, CLI and API declarations                                                                     |
 | `examples/*`                      | Seven private applications/libraries, each with its own manifest                                     | Local Vite configurations; library adds declaration emission                                                    |
 | `editors/vscode`                  | VS Code extension and TextMate grammars                                                              | Vite bundles a standalone CJS extension; preparation copies standard-library declarations, schemas and licenses |
@@ -56,7 +57,7 @@ pnpm test:packed
 pnpm release:manifest
 ```
 
-The four tarballs and `dist/twill.vsix` can be installed into an independent application. Public package consumer tests must pass without workspace symlinks or hoisted development dependencies. See [releasing](./releasing.md) for review and publication.
+The five tarballs and `dist/twill.vsix` can be installed into an independent application. Public package consumer tests must pass without workspace symlinks or hoisted development dependencies. See [releasing](./releasing.md) for review and publication.
 
 ## Benchmark changes
 

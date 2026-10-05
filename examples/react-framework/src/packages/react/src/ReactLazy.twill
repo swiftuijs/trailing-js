@@ -1,0 +1,126 @@
+import { enableAsyncDebugInfo } from 'shared/ReactFeatureFlags';
+import { REACT_LAZY_TYPE } from 'shared/ReactSymbols';
+import noop from 'shared/noop';
+const Uninitialized = -1;
+const Pending = 0;
+const Resolved = 1;
+const Rejected = 2;
+function lazyInitializer(payload) {
+  if (payload._status === Uninitialized) {
+    let resolveDebugValue = null;
+    let rejectDebugValue = null;
+    if (__DEV__ && enableAsyncDebugInfo) {
+      const ioInfo = payload._ioInfo;
+      if (ioInfo != null) {
+        ioInfo.start = ioInfo.end = performance.now();
+        ioInfo.value = new Promise((resolve, reject) => {
+          resolveDebugValue = resolve;
+          rejectDebugValue = reject;
+        });
+      }
+    }
+    const ctor = payload._result;
+    const thenable = ctor();
+    thenable.then(moduleObject => {
+      if (payload._status === Pending || payload._status === Uninitialized) {
+        const resolved = payload;
+        resolved._status = Resolved;
+        resolved._result = moduleObject;
+        if (__DEV__ && enableAsyncDebugInfo) {
+          const ioInfo = payload._ioInfo;
+          if (ioInfo != null) {
+            ioInfo.end = performance.now();
+            const debugValue = moduleObject == null ? undefined : moduleObject.default;
+            resolveDebugValue(debugValue);
+            ioInfo.value.status = 'fulfilled';
+            ioInfo.value.value = debugValue;
+          }
+        }
+        if (thenable.status === undefined) {
+          const fulfilledThenable = thenable;
+          fulfilledThenable.status = 'fulfilled';
+          fulfilledThenable.value = moduleObject;
+        }
+      }
+    }, error => {
+      if (payload._status === Pending || payload._status === Uninitialized) {
+        const rejected = payload;
+        rejected._status = Rejected;
+        rejected._result = error;
+        if (__DEV__ && enableAsyncDebugInfo) {
+          const ioInfo = payload._ioInfo;
+          if (ioInfo != null) {
+            ioInfo.end = performance.now();
+            ioInfo.value.then(noop, noop);
+            rejectDebugValue(error);
+            ioInfo.value.status = 'rejected';
+            ioInfo.value.reason = error;
+          }
+        }
+        if (thenable.status === undefined) {
+          const rejectedThenable = thenable;
+          rejectedThenable.status = 'rejected';
+          rejectedThenable.reason = error;
+        }
+      }
+    });
+    if (__DEV__ && enableAsyncDebugInfo) {
+      const ioInfo = payload._ioInfo;
+      if (ioInfo != null) {
+        const displayName = thenable.displayName;
+        if (typeof displayName === 'string') {
+          ioInfo.name = displayName;
+        }
+      }
+    }
+    if (payload._status === Uninitialized) {
+      const pending = payload;
+      pending._status = Pending;
+      pending._result = thenable;
+    }
+  }
+  if (payload._status === Resolved) {
+    const moduleObject = payload._result;
+    if (__DEV__) {
+      if (moduleObject === undefined) {
+        console.error('lazy: Expected the result of a dynamic imp' + 'ort() call. ' + 'Instead received: %s\n\nYour code should look like: \n  ' + 'const MyComponent = lazy(() => imp' + "ort('./MyComponent'))\n\n" + 'Did you accidentally put curly braces around the import?', moduleObject);
+      }
+    }
+    if (__DEV__) {
+      if (!('default' in moduleObject)) {
+        console.error('lazy: Expected the result of a dynamic imp' + 'ort() call. ' + 'Instead received: %s\n\nYour code should look like: \n  ' + 'const MyComponent = lazy(() => imp' + "ort('./MyComponent'))", moduleObject);
+      }
+    }
+    return moduleObject.default;
+  } else {
+    throw payload._result;
+  }
+}
+export function lazy(ctor) {
+  const payload = {
+    _status: Uninitialized,
+    _result: ctor
+  };
+  const lazyType = {
+    $$typeof: REACT_LAZY_TYPE,
+    _payload: payload,
+    _init: lazyInitializer
+  };
+  if (__DEV__ && enableAsyncDebugInfo) {
+    const owner = null;
+    const ioInfo = {
+      name: 'lazy',
+      start: -1,
+      end: -1,
+      value: null,
+      owner: owner,
+      debugStack: new Error('react-stack-top-frame'),
+      debugTask: console.createTask ? console.createTask('lazy()') : null
+    };
+    payload._ioInfo = ioInfo;
+    lazyType._debugInfo = [{
+      awaited: ioInfo
+    }];
+  }
+  return lazyType;
+}

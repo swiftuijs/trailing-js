@@ -12,3 +12,8 @@ packages/twill/LICENSE
 **/dist
 
 **/.vitepress/cache/
+
+# Preserve the pinned React source snapshot and reproducible rewrite.
+examples/react-framework/upstream
+examples/react-framework/src/packages
+examples/react-framework/sources.json

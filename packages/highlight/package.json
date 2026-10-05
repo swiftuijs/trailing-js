@@ -1,0 +1,67 @@
+{
+  "name": "@swiftuijs/twill-highlight",
+  "version": "0.9.0",
+  "description": "Portable Twill and TwillX TextMate grammars and browser-compatible Shiki highlighting.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/swiftuijs/twill.git"
+  },
+  "homepage": "https://github.com/swiftuijs/twill#readme",
+  "bugs": {
+    "url": "https://github.com/swiftuijs/twill/issues"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "grammars",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./shiki": {
+      "types": "./dist/shiki.d.ts",
+      "import": "./dist/shiki.js"
+    },
+    "./grammars/twill": "./grammars/twill.tmLanguage.json",
+    "./grammars/twillx": "./grammars/twillx.tmLanguage.json"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "shiki": "^2.5.0 || ^3.0.0 || ^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "shiki": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "shiki": "^4.5.0",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vite-plugin-dts": "^5.1.2",
+    "@types/node": "catalog:",
+    "vitest": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "@playwright/test": "catalog:"
+  },
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:package": "node tests/consumer.mjs",
+    "prepack": "pnpm run build",
+    "test:browser": "playwright test"
+  }
+}

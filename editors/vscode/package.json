@@ -118,6 +118,7 @@
     "vitest": "catalog:",
     "vscode-oniguruma": "catalog:",
     "vscode-textmate": "catalog:",
-    "yauzl": "catalog:"
+    "yauzl": "catalog:",
+    "@swiftuijs/twill-highlight": "workspace:*"
   }
 }

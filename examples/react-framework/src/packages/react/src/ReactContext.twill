@@ -1,0 +1,21 @@
+import { REACT_CONSUMER_TYPE, REACT_CONTEXT_TYPE } from 'shared/ReactSymbols';
+export function createContext(defaultValue) {
+  const context = {
+    $$typeof: REACT_CONTEXT_TYPE,
+    _currentValue: defaultValue,
+    _currentValue2: defaultValue,
+    _threadCount: 0,
+    Provider: null,
+    Consumer: null
+  };
+  context.Provider = context;
+  context.Consumer = {
+    $$typeof: REACT_CONSUMER_TYPE,
+    _context: context
+  };
+  if (__DEV__) {
+    context._currentRenderer = null;
+    context._currentRenderer2 = null;
+  }
+  return context;
+}

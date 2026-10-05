@@ -1,0 +1,33 @@
+import { REACT_MEMO_TYPE } from 'shared/ReactSymbols';
+export function memo(type, compare) {
+  if (__DEV__) {
+    if (type == null) {
+      console.error('memo: The first argument must be a component. Instead ' + 'received: %s', type === null ? 'null' : typeof type);
+    }
+  }
+  const elementType = {
+    $$typeof: REACT_MEMO_TYPE,
+    type,
+    compare: compare === undefined ? null : compare
+  };
+  if (__DEV__) {
+    let ownName;
+    Object.defineProperty(elementType, 'displayName', {
+      enumerable: false,
+      configurable: true,
+      get: function () {
+        return ownName;
+      },
+      set: function (name) {
+        ownName = name;
+        if (!type.name && !type.displayName) {
+          Object.defineProperty(type, 'name', {
+            value: name
+          });
+          type.displayName = name;
+        }
+      }
+    });
+  }
+  return elementType;
+}

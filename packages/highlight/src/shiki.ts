@@ -1,0 +1,16 @@
+import { createHighlighterCore } from 'shiki/core';
+import { createOnigurumaEngine } from 'shiki/engine/oniguruma';
+import typescript from 'shiki/langs/typescript.mjs';
+import tsx from 'shiki/langs/tsx.mjs';
+import githubDark from 'shiki/themes/github-dark.mjs';
+import githubLight from 'shiki/themes/github-light.mjs';
+import { twillLanguages } from './index.js';
+
+/** Create once and reuse. This entry loads only TS/TSX and two themes. */
+export function createTwillHighlighter() {
+  return createHighlighterCore({
+    langs: [...typescript, ...tsx, ...twillLanguages],
+    themes: [githubLight, githubDark],
+    engine: createOnigurumaEngine(import('shiki/wasm')),
+  });
+}

@@ -7,7 +7,7 @@ Twill 0.9 is an experimental JS/TS dialect with a tested development workflow. I
 | Area                     | Current evidence                                                                                                            | Remaining gate                                                                      |
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | End-to-end workflow      | Executable compiler checks, mixed TS/JS, real packaged VS Code hosts, formatter/linter and independently installed packages | Validate your application syntax, libraries and failure paths                       |
-| Runtime and bundle costs | Native/dialect behavior comparisons, deterministic output budgets and reproducible synthetic benchmarks                     | Real dependency-heavy applications, target engines and representative hot paths     |
+| Runtime and bundle costs | Native/dialect behavior comparisons, deterministic output budgets and reproducible synthetic benchmarks                     | Dependency-heavy applications, renderer workloads and target engines                |
 | Distribution             | Reviewed tarballs and VSIX build artifacts, version/checksum validation and a tag-release workflow                          | Public registry releases and a documented compatibility/support commitment          |
 | Adoption                 | One-file opt-in, native declarations and checked source export                                                              | Real team pilots demonstrating maintained editor responsiveness and review benefits |
 
@@ -34,6 +34,8 @@ The virtual checker uses TypeScript 5.9. Compatibility with arbitrary workspace 
 Ordinary trailing closures and guards lower to arrows and branches without a runtime library. Direct-return switch expressions lower to scoped native switches; other expression positions use a synchronous IIFE. Await/yield inside a switch requires a direct return. Expression exhaustiveness requires the checker, not transpile-only builds. `defer` and general child collection allocate local closures or arrays. Use native `try/finally` when those allocations matter in a hot path.
 
 The checker caches unchanged snapshots and transforms. Disk edits refresh affected files; configuration changes rebuild affected projects. [Performance measurements](performance.md) describe synthetic compiler, checker and formatter workloads, including their limits. They do not establish whole-application latency or a universal performance guarantee.
+
+A [pinned React core source study](react-source.md) additionally exercises real framework modules, dev/prod contracts and ReactDOM compatibility. It does not cover a complete framework rewrite, upstream test suite or typed team pilot.
 
 Representative native/dialect application bundles are checked for behavior parity and documented byte budgets. Release tarballs and the VSIX have enforced compressed size budgets. Each VSIX includes one pinned engine shared on disk by both editor hosts and is verified after extraction, without workspace symlinks.
 

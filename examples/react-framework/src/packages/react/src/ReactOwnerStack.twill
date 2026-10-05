@@ -1,0 +1,11 @@
+import ReactSharedInternals from 'shared/ReactSharedInternals';
+export function captureOwnerStack() {
+  guard !(__DEV__) else {
+    const getCurrentStack = ReactSharedInternals.getCurrentStack;
+    guard (getCurrentStack) !== (null) else {
+      return null;
+    }
+    return getCurrentStack();
+  }
+  return null;
+}

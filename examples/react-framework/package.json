@@ -1,0 +1,28 @@
+{
+  "name": "@swiftuijs/twill-example-react-framework",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "prepare:sources": "node scripts/prepare.mjs",
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:example": "node tests/contracts.mjs",
+    "benchmark": "node scripts/benchmark.mjs",
+    "test:browser": "playwright test"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/parser": "^7.29.7",
+    "@babel/plugin-transform-flow-strip-types": "^7.29.7",
+    "@playwright/test": "catalog:",
+    "@swiftuijs/twill": "workspace:*",
+    "@swiftuijs/twill-formatter": "workspace:*",
+    "@types/node": "catalog:",
+    "babel-plugin-syntax-hermes-parser": "^0.37.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "typescript": "catalog:",
+    "vite": "catalog:"
+  }
+}

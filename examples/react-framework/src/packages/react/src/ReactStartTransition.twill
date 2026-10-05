@@ -1,0 +1,106 @@
+import ReactSharedInternals from 'shared/ReactSharedInternals';
+import { enableTransitionTracing, enableViewTransition, enableGestureTransition } from 'shared/ReactFeatureFlags';
+import reportGlobalError from 'shared/reportGlobalError';
+import noop from 'shared/noop';
+function releaseAsyncTransition() {
+  if (__DEV__) {
+    ReactSharedInternals.asyncTransitions--;
+  }
+}
+export function startTransition(scope, options) {
+  const prevTransition = ReactSharedInternals.T;
+  const currentTransition = {};
+  if (enableViewTransition) {
+    currentTransition.types = prevTransition !== null ? prevTransition.types : null;
+  }
+  if (enableGestureTransition) {
+    currentTransition.gesture = null;
+  }
+  if (enableTransitionTracing) {
+    currentTransition.name = options !== undefined && options.name !== undefined ? options.name : null;
+    currentTransition.startTime = -1;
+  }
+  if (__DEV__) {
+    currentTransition._updatedFibers = new Set();
+  }
+  ReactSharedInternals.T = currentTransition;
+  try {
+    const returnValue = scope();
+    const onStartTransitionFinish = ReactSharedInternals.S;
+    if (onStartTransitionFinish !== null) {
+      onStartTransitionFinish(currentTransition, returnValue);
+    }
+    if (typeof returnValue === 'object' && returnValue !== null && typeof returnValue.then === 'function') {
+      if (__DEV__) {
+        ReactSharedInternals.asyncTransitions++;
+        returnValue.then(releaseAsyncTransition, releaseAsyncTransition);
+      }
+      returnValue.then(noop, reportGlobalError);
+    }
+  } catch (error) {
+    reportGlobalError(error);
+  } finally {
+    warnAboutTransitionSubscriptions(prevTransition, currentTransition);
+    if (prevTransition !== null && currentTransition.types !== null) {
+      if (__DEV__) {
+        if (prevTransition.types !== null && prevTransition.types !== currentTransition.types) {
+          console.error('We expected inner Transitions to have transferred the outer types set and ' + 'that you cannot add to the outer Transition while inside the inner.' + 'This is a bug in React.');
+        }
+      }
+      prevTransition.types = currentTransition.types;
+    }
+    ReactSharedInternals.T = prevTransition;
+  }
+}
+export function startGestureTransition(provider, scope, options) {
+  guard enableGestureTransition else {
+    throw new Error('startGestureTransition should not be exported when the enableGestureTransition flag is off.');
+  }
+  guard (provider) != (null) else {
+    throw new Error('A Timeline is required as the first argument to startGestureTransition.');
+  }
+  const prevTransition = ReactSharedInternals.T;
+  const currentTransition = {};
+  if (enableViewTransition) {
+    currentTransition.types = null;
+  }
+  if (enableGestureTransition) {
+    currentTransition.gesture = provider;
+  }
+  if (enableTransitionTracing) {
+    currentTransition.name = options !== undefined && options.name !== undefined ? options.name : null;
+    currentTransition.startTime = -1;
+  }
+  if (__DEV__) {
+    currentTransition._updatedFibers = new Set();
+  }
+  ReactSharedInternals.T = currentTransition;
+  try {
+    const returnValue = scope();
+    if (__DEV__) {
+      if (typeof returnValue === 'object' && returnValue !== null && typeof returnValue.then === 'function') {
+        console.error('Cannot use an async function in startGestureTransition. It must be able to start immediately.');
+      }
+    }
+    const onStartGestureTransitionFinish = ReactSharedInternals.G;
+    guard (onStartGestureTransitionFinish) === (null) else {
+      return onStartGestureTransitionFinish(currentTransition, provider, options);
+    }
+  } catch (error) {
+    reportGlobalError(error);
+  } finally {
+    ReactSharedInternals.T = prevTransition;
+  }
+  return noop;
+}
+function warnAboutTransitionSubscriptions(prevTransition, currentTransition) {
+  if (__DEV__) {
+    if (prevTransition === null && currentTransition._updatedFibers) {
+      const updatedFibersCount = currentTransition._updatedFibers.size;
+      currentTransition._updatedFibers.clear();
+      if (updatedFibersCount > 10) {
+        console.warn('Detected a large number of updates inside startTransition. ' + 'If this is due to a subscription please re-write it to use React provided hooks. ' + 'Otherwise concurrent mode guarantees are off the table.');
+      }
+    }
+  }
+}

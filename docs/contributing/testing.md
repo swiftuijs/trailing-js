@@ -24,6 +24,7 @@ Vitest uses V8 coverage remapped to source ASTs. Reports include statements, bra
 | TypeScript server bridge                 |        98% |      93% |      100% |  100% |
 | Formatter                                |        98% |      97% |      100% |  100% |
 | Linter                                   |       100% |      98% |      100% |  100% |
+| Browser highlighter                      |       100% |     100% |      100% |  100% |
 | Source export                            |        99% |      96% |      100% |  100% |
 | Playground scheduler and compiler worker |       100% |     100% |      100% |  100% |
 | Packaged VS Code extension               |        98% |      95% |      100% |   98% |
@@ -43,6 +44,8 @@ JSON summaries and HTML reports are generated under each workspace's `coverage/`
 - Hosts: actual Vite, Rollup, esbuild, webpack and Rspack builds; mixed native/dialect imports; Node loader resolution, host error forwarding, inherited JSX settings and original-source debugging.
 - Editor: partial and unsaved inputs, source-safe edits, auto-imports, references, cross-file rename, definitions, signatures, formatting, configuration reloads and native TS-server consumers. Highlighting uses real TS/TSX grammars in both unit tests and packaged extension hosts, including strings, comments, regexps, templates and JSX nesting.
 - Tooling: formatter idempotence and compiled AST preservation, type-aware linting with cache refresh/eviction, withheld unsafe fixes, declarations, export preflight, imported assets and rollback on disk failure.
+- Framework pilot: pinned React core source integrity, compilation, formatted AST preservation, dev/prod APIs and lazy/transition/act behavior; native/dialect ReactDOM rendering and output budgets. This is not the full upstream React test suite.
+- Web highlighting: shared TextMate JSON, real Shiki scopes, standalone/custom-theme rendering, public types on Shiki 2.5/3/4, engine-free grammar import and actual browser WASM loading.
 - Browser: highlighted live compilation, draft storage, keyboard editing, input bounds, read-only output, downloads, retry, stale-result handling and desktop/mobile navigation.
 
 A gate measures executed source, not correctness of every input. Remaining uncovered branches include host fallbacks, conservative edit rejection and some platform-specific paths. Add tests around observable contracts and actual regressions; do not lower gates, exclude production code, add coverage-ignore directives or manufacture assertions to make a report green.

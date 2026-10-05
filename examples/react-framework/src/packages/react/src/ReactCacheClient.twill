@@ -1,0 +1,12 @@
+import { disableClientCache } from 'shared/ReactFeatureFlags';
+import { cache as cacheImpl, cacheSignal as cacheSignalImpl } from './ReactCacheImpl';
+function noopCache(fn) {
+  return function () {
+    return fn.apply(null, arguments);
+  };
+}
+export const cache = disableClientCache ? noopCache : cacheImpl;
+function noopCacheSignal() {
+  return null;
+}
+export const cacheSignal = disableClientCache ? noopCacheSignal : cacheSignalImpl;

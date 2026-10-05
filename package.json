@@ -45,18 +45,19 @@
     "lint": "eslint examples",
     "lint:fix": "eslint examples --fix",
     "benchmark:project": "pnpm --filter @swiftuijs/twill-formatter run benchmark:project",
-    "package:tooling": "pnpm --filter @swiftuijs/twill-formatter pack --out swiftuijs-twill-formatter-%v.tgz && pnpm --filter @swiftuijs/twill-linter pack --out swiftuijs-twill-linter-%v.tgz && pnpm --filter @swiftuijs/twill-export pack --out swiftuijs-twill-export-%v.tgz",
-    "test:tooling": "pnpm package:core && pnpm package:tooling && pnpm --filter @swiftuijs/twill-formatter --filter @swiftuijs/twill-linter --filter @swiftuijs/twill-export run test:package",
+    "package:tooling": "pnpm --filter @swiftuijs/twill-formatter pack --out swiftuijs-twill-formatter-%v.tgz && pnpm --filter @swiftuijs/twill-linter pack --out swiftuijs-twill-linter-%v.tgz && pnpm --filter @swiftuijs/twill-export pack --out swiftuijs-twill-export-%v.tgz && pnpm --filter @swiftuijs/twill-highlight pack --out swiftuijs-twill-highlight-%v.tgz",
+    "test:tooling": "pnpm package:core && pnpm package:tooling && pnpm --filter @swiftuijs/twill-formatter --filter @swiftuijs/twill-linter --filter @swiftuijs/twill-export --filter @swiftuijs/twill-highlight run test:package",
     "docs:dev": "pnpm --filter @swiftuijs/twill-formatter... run build && pnpm --filter @swiftuijs/twill-docs dev",
     "docs:build": "pnpm --filter @swiftuijs/twill-docs... run build",
     "docs:preview": "pnpm --filter @swiftuijs/twill-docs preview",
     "test:browser": "pnpm -r --workspace-concurrency=1 --if-present run test:browser",
     "verify:release": "node scripts/verify-release.mjs",
-    "test:packed": "node packages/twill/tests/consumer.mjs --packed && node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs && node packages/export/tests/consumer.mjs",
+    "test:packed": "node packages/twill/tests/consumer.mjs --packed && node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs && node packages/export/tests/consumer.mjs && node packages/highlight/tests/consumer.mjs",
     "release:manifest": "node scripts/verify-release.mjs --artifacts --manifest",
     "test:examples": "pnpm --filter './examples/*' --workspace-concurrency=1 --if-present run test:example",
     "deps:check": "pnpm audit --audit-level moderate && pnpm peers check",
     "benchmark:branching": "pnpm --filter @swiftuijs/twill run benchmark:branching",
-    "editor:coverage": "pnpm --filter twill test:coverage:host"
+    "editor:coverage": "pnpm --filter twill test:coverage:host",
+    "benchmark:react-framework": "pnpm --filter @swiftuijs/twill-example-react-framework run benchmark"
   }
 }

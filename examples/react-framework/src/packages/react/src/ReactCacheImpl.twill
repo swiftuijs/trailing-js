@@ -1,0 +1,85 @@
+import ReactSharedInternals from 'shared/ReactSharedInternals';
+const UNTERMINATED = 0;
+const TERMINATED = 1;
+const ERRORED = 2;
+function createCacheRoot() {
+  return new WeakMap();
+}
+function createCacheNode() {
+  return {
+    s: UNTERMINATED,
+    v: undefined,
+    o: null,
+    p: null
+  };
+}
+export function cache(fn) {
+  return function () {
+    const dispatcher = ReactSharedInternals.A;
+    guard dispatcher else {
+      return fn.apply(null, arguments);
+    }
+    const fnMap = dispatcher.getCacheForType(createCacheRoot);
+    const fnNode = fnMap.get(fn);
+    let cacheNode;
+    if (fnNode === undefined) {
+      cacheNode = createCacheNode();
+      fnMap.set(fn, cacheNode);
+    } else {
+      cacheNode = fnNode;
+    }
+    for (let i = 0, l = arguments.length; i < l; i++) {
+      const arg = arguments[i];
+      if (typeof arg === 'function' || typeof arg === 'object' && arg !== null) {
+        let objectCache = cacheNode.o;
+        if (objectCache === null) {
+          cacheNode.o = objectCache = new WeakMap();
+        }
+        const objectNode = objectCache.get(arg);
+        if (objectNode === undefined) {
+          cacheNode = createCacheNode();
+          objectCache.set(arg, cacheNode);
+        } else {
+          cacheNode = objectNode;
+        }
+      } else {
+        let primitiveCache = cacheNode.p;
+        if (primitiveCache === null) {
+          cacheNode.p = primitiveCache = new Map();
+        }
+        const primitiveNode = primitiveCache.get(arg);
+        if (primitiveNode === undefined) {
+          cacheNode = createCacheNode();
+          primitiveCache.set(arg, cacheNode);
+        } else {
+          cacheNode = primitiveNode;
+        }
+      }
+    }
+    guard (cacheNode.s) !== (TERMINATED) else {
+      return cacheNode.v;
+    }
+    guard (cacheNode.s) !== (ERRORED) else {
+      throw cacheNode.v;
+    }
+    try {
+      const result = fn.apply(null, arguments);
+      const terminatedNode = cacheNode;
+      terminatedNode.s = TERMINATED;
+      terminatedNode.v = result;
+      return result;
+    } catch (error) {
+      const erroredNode = cacheNode;
+      erroredNode.s = ERRORED;
+      erroredNode.v = error;
+      throw error;
+    }
+  };
+}
+export function cacheSignal() {
+  const dispatcher = ReactSharedInternals.A;
+  guard dispatcher else {
+    return null;
+  }
+  return dispatcher.cacheSignal();
+}

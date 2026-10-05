@@ -1,0 +1,193 @@
+import ReactSharedInternals from './ReactSharedInternalsClient';
+import queueMacrotask from 'shared/enqueueTask';
+import { disableLegacyMode } from 'shared/ReactFeatureFlags';
+let actScopeDepth = 0;
+let didWarnNoAwaitAct = false;
+function aggregateErrors(errors) {
+  guard !(errors.length > 1 && typeof AggregateError === 'function') else {
+    return new AggregateError(errors);
+  }
+  return errors[0];
+}
+export function act(callback) {
+  if (__DEV__) {
+    const prevIsBatchingLegacy = !disableLegacyMode ? ReactSharedInternals.isBatchingLegacy : false;
+    const prevActQueue = ReactSharedInternals.actQueue;
+    const prevActScopeDepth = actScopeDepth;
+    actScopeDepth++;
+    const queue = ReactSharedInternals.actQueue = prevActQueue !== null ? prevActQueue : [];
+    if (!disableLegacyMode) {
+      ReactSharedInternals.isBatchingLegacy = true;
+    }
+    let result;
+    let didAwaitActCall = false;
+    try {
+      if (!disableLegacyMode) {
+        ReactSharedInternals.didScheduleLegacyUpdate = false;
+      }
+      result = callback();
+      const didScheduleLegacyUpdate = !disableLegacyMode ? ReactSharedInternals.didScheduleLegacyUpdate : false;
+      if (!prevIsBatchingLegacy && didScheduleLegacyUpdate) {
+        flushActQueue(queue);
+      }
+      if (!disableLegacyMode) {
+        ReactSharedInternals.isBatchingLegacy = prevIsBatchingLegacy;
+      }
+    } catch (error) {
+      ReactSharedInternals.thrownErrors.push(error);
+    }
+    guard !(ReactSharedInternals.thrownErrors.length > 0) else {
+      if (!disableLegacyMode) {
+        ReactSharedInternals.isBatchingLegacy = prevIsBatchingLegacy;
+      }
+      popActScope(prevActQueue, prevActScopeDepth);
+      const thrownError = aggregateErrors(ReactSharedInternals.thrownErrors);
+      ReactSharedInternals.thrownErrors.length = 0;
+      throw thrownError;
+    }
+    if (result !== null && typeof result === 'object' && typeof result.then === 'function') {
+      const thenable = result;
+      queueSeveralMicrotasks(() => {
+        if (!didAwaitActCall && !didWarnNoAwaitAct) {
+          didWarnNoAwaitAct = true;
+          console.error('You called act(async () => ...) without await. ' + 'This could lead to unexpected testing behaviour, ' + 'interleaving multiple act calls and mixing their ' + 'scopes. ' + 'You should - await act(async () => ...);');
+        }
+      });
+      return {
+        then(resolve, reject) {
+          didAwaitActCall = true;
+          thenable.then(returnValue => {
+            popActScope(prevActQueue, prevActScopeDepth);
+            if (prevActScopeDepth === 0) {
+              try {
+                flushActQueue(queue);
+                queueMacrotask() { () in return recursivelyFlushAsyncActWork(returnValue, resolve, reject); };
+              } catch (error) {
+                ReactSharedInternals.thrownErrors.push(error);
+              }
+              if (ReactSharedInternals.thrownErrors.length > 0) {
+                const thrownError = aggregateErrors(ReactSharedInternals.thrownErrors);
+                ReactSharedInternals.thrownErrors.length = 0;
+                reject(thrownError);
+              }
+            } else {
+              resolve(returnValue);
+            }
+          }, error => {
+            popActScope(prevActQueue, prevActScopeDepth);
+            if (ReactSharedInternals.thrownErrors.length > 0) {
+              const thrownError = aggregateErrors(ReactSharedInternals.thrownErrors);
+              ReactSharedInternals.thrownErrors.length = 0;
+              reject(thrownError);
+            } else {
+              reject(error);
+            }
+          });
+        }
+      };
+    } else {
+      const returnValue = result;
+      popActScope(prevActQueue, prevActScopeDepth);
+      if (prevActScopeDepth === 0) {
+        flushActQueue(queue);
+        if (queue.length !== 0) {
+          queueSeveralMicrotasks(() => {
+            if (!didAwaitActCall && !didWarnNoAwaitAct) {
+              didWarnNoAwaitAct = true;
+              console.error('A component suspended inside an `act` scope, but the ' + '`act` call was not awaited. When testing React ' + 'components that depend on asynchronous data, you must ' + 'await the result:\n\n' + 'await act(() => ...)');
+            }
+          });
+        }
+        ReactSharedInternals.actQueue = null;
+      }
+      guard !(ReactSharedInternals.thrownErrors.length > 0) else {
+        const thrownError = aggregateErrors(ReactSharedInternals.thrownErrors);
+        ReactSharedInternals.thrownErrors.length = 0;
+        throw thrownError;
+      }
+      return {
+        then(resolve, reject) {
+          didAwaitActCall = true;
+          if (prevActScopeDepth === 0) {
+            ReactSharedInternals.actQueue = queue;
+            queueMacrotask() { () in return recursivelyFlushAsyncActWork(returnValue, resolve, reject); };
+          } else {
+            resolve(returnValue);
+          }
+        }
+      };
+    }
+  } else {
+    throw new Error('act(...) is not supported in production builds of React.');
+  }
+}
+function popActScope(prevActQueue, prevActScopeDepth) {
+  if (__DEV__) {
+    if (prevActScopeDepth !== actScopeDepth - 1) {
+      console.error('You seem to have overlapping act() calls, this is not supported. ' + 'Be sure to await previous act() calls before making a new one. ');
+    }
+    actScopeDepth = prevActScopeDepth;
+  }
+}
+function recursivelyFlushAsyncActWork(returnValue, resolve, reject) {
+  if (__DEV__) {
+    const queue = ReactSharedInternals.actQueue;
+    if (queue !== null) {
+      if (queue.length !== 0) {
+        try {
+          flushActQueue(queue);
+          queueMacrotask() { () in return recursivelyFlushAsyncActWork(returnValue, resolve, reject); };
+          return;
+        } catch (error) {
+          ReactSharedInternals.thrownErrors.push(error);
+        }
+      } else {
+        ReactSharedInternals.actQueue = null;
+      }
+    }
+    if (ReactSharedInternals.thrownErrors.length > 0) {
+      const thrownError = aggregateErrors(ReactSharedInternals.thrownErrors);
+      ReactSharedInternals.thrownErrors.length = 0;
+      reject(thrownError);
+    } else {
+      resolve(returnValue);
+    }
+  }
+}
+let isFlushing = false;
+function flushActQueue(queue) {
+  if (__DEV__) {
+    if (!isFlushing) {
+      isFlushing = true;
+      let i = 0;
+      try {
+        for (; i < queue.length; i++) {
+          let callback = queue[i];
+          do {
+            ReactSharedInternals.didUsePromise = false;
+            const continuation = callback(false);
+            if (continuation !== null) {
+              guard !(ReactSharedInternals.didUsePromise) else {
+                queue[i] = callback;
+                queue.splice(0, i);
+                return;
+              }
+              callback = continuation;
+            } else {
+              break;
+            }
+          } while (true);
+        }
+        queue.length = 0;
+      } catch (error) {
+        queue.splice(0, i + 1);
+        ReactSharedInternals.thrownErrors.push(error);
+      } finally {
+        isFlushing = false;
+      }
+    }
+  }
+}
+const queueSeveralMicrotasks = typeof queueMicrotask === 'function' ? callback => {
+  queueMicrotask() { () in return queueMicrotask(callback); };
+} : queueMacrotask;

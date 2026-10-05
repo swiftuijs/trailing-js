@@ -1,0 +1,76 @@
+function typeName(value) {
+  guard !(__DEV__) else {
+    const hasToStringTag = typeof Symbol === 'function' && Symbol.toStringTag;
+    const type = hasToStringTag && value[Symbol.toStringTag] || value.constructor.name || 'Object';
+    return type;
+  }
+}
+function willCoercionThrow(value) {
+  if (__DEV__) {
+    try {
+      testStringCoercion(value);
+      return false;
+    } catch (e) {
+      return true;
+    }
+  }
+}
+function testStringCoercion(value) {
+  return '' + value;
+}
+export function checkAttributeStringCoercion(value, attributeName) {
+  if (__DEV__) {
+    guard !(willCoercionThrow(value)) else {
+      console.error('The provided `%s` attribute is an unsupported type %s.' + ' This value must be coerced to a string before using it here.', attributeName, typeName(value));
+      return testStringCoercion(value);
+    }
+  }
+}
+export function checkKeyStringCoercion(value) {
+  if (__DEV__) {
+    guard !(willCoercionThrow(value)) else {
+      console.error('The provided key is an unsupported type %s.' + ' This value must be coerced to a string before using it here.', typeName(value));
+      return testStringCoercion(value);
+    }
+  }
+}
+export function checkPropStringCoercion(value, propName) {
+  if (__DEV__) {
+    guard !(willCoercionThrow(value)) else {
+      console.error('The provided `%s` prop is an unsupported type %s.' + ' This value must be coerced to a string before using it here.', propName, typeName(value));
+      return testStringCoercion(value);
+    }
+  }
+}
+export function checkOptionStringCoercion(value, propName) {
+  if (__DEV__) {
+    guard !(willCoercionThrow(value)) else {
+      console.error('The provided `%s` option is an unsupported type %s.' + ' This value must be coerced to a string before using it here.', propName, typeName(value));
+      return testStringCoercion(value);
+    }
+  }
+}
+export function checkCSSPropertyStringCoercion(value, propName) {
+  if (__DEV__) {
+    guard !(willCoercionThrow(value)) else {
+      console.error('The provided `%s` CSS property is an unsupported type %s.' + ' This value must be coerced to a string before using it here.', propName, typeName(value));
+      return testStringCoercion(value);
+    }
+  }
+}
+export function checkHtmlStringCoercion(value) {
+  if (__DEV__) {
+    guard !(willCoercionThrow(value)) else {
+      console.error('The provided HTML markup uses a value of unsupported type %s.' + ' This value must be coerced to a string before using it here.', typeName(value));
+      return testStringCoercion(value);
+    }
+  }
+}
+export function checkFormFieldValueStringCoercion(value) {
+  if (__DEV__) {
+    guard !(willCoercionThrow(value)) else {
+      console.error('Form field values (value, checked, defaultValue, or defaultChecked props)' + ' must be strings, not %s.' + ' This value must be coerced to a string before using it here.', typeName(value));
+      return testStringCoercion(value);
+    }
+  }
+}

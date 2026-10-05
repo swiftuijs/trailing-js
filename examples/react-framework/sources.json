@@ -1,0 +1,502 @@
+{
+  "repository": "https://github.com/facebook/react",
+  "tag": "v19.3.0",
+  "commit": "1d34f91dfde6bba84d08b683aaba164c7194dacb",
+  "entry": "packages/react/index.js",
+  "scope": "React client core and its reachable shared dependencies; ReactDOM/reconciler are not rewritten.",
+  "developmentEntry": "packages/react/index.development.js",
+  "files": [
+    {
+      "path": "packages/react/index.js",
+      "sha256": "b7e82a723fb43d5431dc21b9a6dd4ab5a6e08e6c65a9092aec54148e20a6ad8f",
+      "dependencies": [
+        [
+          "./src/ReactClient",
+          "packages/react/src/ReactClient.js"
+        ]
+      ],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactClient.js",
+      "sha256": "d7f70f7754e7f90f42107c0e6ed7af24cb3c559ed1e15de897aafc3b464a913f",
+      "dependencies": [
+        [
+          "shared/ReactVersion",
+          "packages/shared/ReactVersion.js"
+        ],
+        [
+          "shared/ReactSymbols",
+          "packages/shared/ReactSymbols.js"
+        ],
+        [
+          "./ReactBaseClasses",
+          "packages/react/src/ReactBaseClasses.js"
+        ],
+        [
+          "./ReactCreateRef",
+          "packages/react/src/ReactCreateRef.js"
+        ],
+        [
+          "./ReactChildren",
+          "packages/react/src/ReactChildren.js"
+        ],
+        [
+          "./jsx/ReactJSXElement",
+          "packages/react/src/jsx/ReactJSXElement.js"
+        ],
+        [
+          "./ReactContext",
+          "packages/react/src/ReactContext.js"
+        ],
+        [
+          "./ReactLazy",
+          "packages/react/src/ReactLazy.js"
+        ],
+        [
+          "./ReactForwardRef",
+          "packages/react/src/ReactForwardRef.js"
+        ],
+        [
+          "./ReactMemo",
+          "packages/react/src/ReactMemo.js"
+        ],
+        [
+          "./ReactCacheClient",
+          "packages/react/src/ReactCacheClient.js"
+        ],
+        [
+          "./ReactHooks",
+          "packages/react/src/ReactHooks.js"
+        ],
+        [
+          "./ReactSharedInternalsClient",
+          "packages/react/src/ReactSharedInternalsClient.js"
+        ],
+        [
+          "./ReactStartTransition",
+          "packages/react/src/ReactStartTransition.js"
+        ],
+        [
+          "./ReactTransitionType",
+          "packages/react/src/ReactTransitionType.js"
+        ],
+        [
+          "./ReactAct",
+          "packages/react/src/ReactAct.js"
+        ],
+        [
+          "./ReactOwnerStack",
+          "packages/react/src/ReactOwnerStack.js"
+        ],
+        [
+          "./ReactCompilerRuntime",
+          "packages/react/src/ReactCompilerRuntime.js"
+        ]
+      ],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/shared/ReactVersion.js",
+      "sha256": "58ad04186b1e31654cc03ba80149ba3d95625db56001ce6b03d8c38e9a2a58f9",
+      "dependencies": [],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/shared/ReactSymbols.js",
+      "sha256": "46a4698c2220f4d0ce5908baaff38e1a7abd95dca206ff35d434cce2073b5c99",
+      "dependencies": [],
+      "guards": 2,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactBaseClasses.js",
+      "sha256": "e8de2c82fc02a9f341fc5f78170775c35a8f1a115b154f46640bbfb733cdaa96",
+      "dependencies": [
+        [
+          "./ReactNoopUpdateQueue",
+          "packages/react/src/ReactNoopUpdateQueue.js"
+        ],
+        [
+          "shared/assign",
+          "packages/shared/assign.js"
+        ]
+      ],
+      "guards": 1,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactNoopUpdateQueue.js",
+      "sha256": "b29de7cf5a79c9b65127bc758e9a6af83d9ed7a86113223b115dec4e3f9db017",
+      "dependencies": [],
+      "guards": 1,
+      "closures": 0
+    },
+    {
+      "path": "packages/shared/assign.js",
+      "sha256": "21fde69f128bea01fd7e32e277fd69f90cc856f08d5bfa1b2f462f133980fcba",
+      "dependencies": [],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactCreateRef.js",
+      "sha256": "ddd47378c1bd3abdfc9b4eebbff9d48731377ec3e4259dc44d59c64717fbb524",
+      "dependencies": [],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactChildren.js",
+      "sha256": "130795b47fe3b1ffe5e207cfc0059568f4a95c6f8bdd02bcda853f78230a6c8b",
+      "dependencies": [
+        [
+          "shared/isArray",
+          "packages/shared/isArray.js"
+        ],
+        [
+          "shared/noop",
+          "packages/shared/noop.js"
+        ],
+        [
+          "shared/ReactSymbols",
+          "packages/shared/ReactSymbols.js"
+        ],
+        [
+          "shared/ReactFeatureFlags",
+          "packages/shared/ReactFeatureFlags.js"
+        ],
+        [
+          "shared/CheckStringCoercion",
+          "packages/shared/CheckStringCoercion.js"
+        ],
+        [
+          "./jsx/ReactJSXElement",
+          "packages/react/src/jsx/ReactJSXElement.js"
+        ]
+      ],
+      "guards": 7,
+      "closures": 2
+    },
+    {
+      "path": "packages/shared/isArray.js",
+      "sha256": "55f6e1a2d2cb8001d9d2927d77bca9e93832dcd3f69eb3b6cad2132b11a8e9cd",
+      "dependencies": [],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/shared/noop.js",
+      "sha256": "008900b64754c8e7112289425d5481bdaa466dc16cdc4f95b0a7d93746ff0c10",
+      "dependencies": [],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/shared/ReactFeatureFlags.js",
+      "sha256": "3382ed6de2850ba2593bd5ef654ba74a1496fc713eca2be8dccc3255f7907cc0",
+      "dependencies": [],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/shared/CheckStringCoercion.js",
+      "sha256": "f08299d651bf55aadddc5a73b858e365b38be1b60053c7ab8f651688f95dfc6a",
+      "dependencies": [],
+      "guards": 8,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/jsx/ReactJSXElement.js",
+      "sha256": "298b56c60f6755bd57c85dfb39b3845b6f313d1aa6799842f7a3100b14587922",
+      "dependencies": [
+        [
+          "shared/getComponentNameFromType",
+          "packages/shared/getComponentNameFromType.js"
+        ],
+        [
+          "shared/ReactSharedInternals",
+          "packages/react/src/ReactSharedInternalsClient.js"
+        ],
+        [
+          "shared/hasOwnProperty",
+          "packages/shared/hasOwnProperty.js"
+        ],
+        [
+          "shared/assign",
+          "packages/shared/assign.js"
+        ],
+        [
+          "shared/ReactSymbols",
+          "packages/shared/ReactSymbols.js"
+        ],
+        [
+          "shared/CheckStringCoercion",
+          "packages/shared/CheckStringCoercion.js"
+        ],
+        [
+          "shared/isArray",
+          "packages/shared/isArray.js"
+        ],
+        [
+          "shared/ReactFeatureFlags",
+          "packages/shared/ReactFeatureFlags.js"
+        ]
+      ],
+      "guards": 11,
+      "closures": 1
+    },
+    {
+      "path": "packages/shared/getComponentNameFromType.js",
+      "sha256": "6c00f2176102854e98e1827ae39a7f4640d4e86ef8648eecaa725faf69e88a22",
+      "dependencies": [
+        [
+          "shared/ReactSymbols",
+          "packages/shared/ReactSymbols.js"
+        ],
+        [
+          "./ReactFeatureFlags",
+          "packages/shared/ReactFeatureFlags.js"
+        ]
+      ],
+      "guards": 8,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactSharedInternalsClient.js",
+      "sha256": "46557f5e682bbc2abb2bf8f016f36c84efacd51697203d1225b6305dfb583073",
+      "dependencies": [
+        [
+          "shared/ReactFeatureFlags",
+          "packages/shared/ReactFeatureFlags.js"
+        ]
+      ],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/shared/hasOwnProperty.js",
+      "sha256": "bc30458bd425d82fb30b7801059a26f3dd49eb02a3a98ee8e0aa352ecb736200",
+      "dependencies": [],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactContext.js",
+      "sha256": "1fb76df0d07194dd319e7a80e31dcdf07c200bb9c08ea0640e5ab19c755bc448",
+      "dependencies": [
+        [
+          "shared/ReactSymbols",
+          "packages/shared/ReactSymbols.js"
+        ]
+      ],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactLazy.js",
+      "sha256": "b666c868b87268dac0e4152d2d314ff8635e8b37d33466d40e4344c8ae8774fa",
+      "dependencies": [
+        [
+          "shared/ReactFeatureFlags",
+          "packages/shared/ReactFeatureFlags.js"
+        ],
+        [
+          "shared/ReactSymbols",
+          "packages/shared/ReactSymbols.js"
+        ],
+        [
+          "shared/noop",
+          "packages/shared/noop.js"
+        ]
+      ],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactForwardRef.js",
+      "sha256": "6f92fddb6e214c428f6245a79663032f7c5dde3dab4363c42bbca29a360a7165",
+      "dependencies": [
+        [
+          "shared/ReactSymbols",
+          "packages/shared/ReactSymbols.js"
+        ]
+      ],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactMemo.js",
+      "sha256": "0cdd71f02bebf40bacfffa688921169ea0543d86d24f36b06572d1d8ebace792",
+      "dependencies": [
+        [
+          "shared/ReactSymbols",
+          "packages/shared/ReactSymbols.js"
+        ]
+      ],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactCacheClient.js",
+      "sha256": "782c4d1cd6f4cc605b2e7c90df348c9178b9b230685c3bfbbc112ab0515cb612",
+      "dependencies": [
+        [
+          "shared/ReactFeatureFlags",
+          "packages/shared/ReactFeatureFlags.js"
+        ],
+        [
+          "./ReactCacheImpl",
+          "packages/react/src/ReactCacheImpl.js"
+        ]
+      ],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactCacheImpl.js",
+      "sha256": "96202165a19604122f247b7a1374fb3b7b2cd38cd5765f03779cadcb36c41372",
+      "dependencies": [
+        [
+          "shared/ReactSharedInternals",
+          "packages/react/src/ReactSharedInternalsClient.js"
+        ]
+      ],
+      "guards": 4,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactHooks.js",
+      "sha256": "6d8abadb26957531ceb57fa1f1e5961bda96ccda1454b04aae88dd5449daa0c2",
+      "dependencies": [
+        [
+          "shared/ReactSymbols",
+          "packages/shared/ReactSymbols.js"
+        ],
+        [
+          "shared/ReactSharedInternals",
+          "packages/react/src/ReactSharedInternalsClient.js"
+        ]
+      ],
+      "guards": 2,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactStartTransition.js",
+      "sha256": "45a65258b773890fae2d8d972d2bd9e02e88e8c54d8f3fe61fdd734b7540b9b5",
+      "dependencies": [
+        [
+          "shared/ReactSharedInternals",
+          "packages/react/src/ReactSharedInternalsClient.js"
+        ],
+        [
+          "shared/ReactFeatureFlags",
+          "packages/shared/ReactFeatureFlags.js"
+        ],
+        [
+          "shared/reportGlobalError",
+          "packages/shared/reportGlobalError.js"
+        ],
+        [
+          "shared/noop",
+          "packages/shared/noop.js"
+        ]
+      ],
+      "guards": 3,
+      "closures": 0
+    },
+    {
+      "path": "packages/shared/reportGlobalError.js",
+      "sha256": "92526b2b4107ae89f590212bb8c2e7476b77d1a5e0d10b41269ddfe00a9bcf48",
+      "dependencies": [],
+      "guards": 2,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactTransitionType.js",
+      "sha256": "d4066665f3dcfd1d05084047da0e22d720aa4937e9237fcb12d6a52fc6276652",
+      "dependencies": [
+        [
+          "shared/ReactSharedInternals",
+          "packages/react/src/ReactSharedInternalsClient.js"
+        ],
+        [
+          "shared/ReactFeatureFlags",
+          "packages/shared/ReactFeatureFlags.js"
+        ],
+        [
+          "./ReactStartTransition",
+          "packages/react/src/ReactStartTransition.js"
+        ]
+      ],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactAct.js",
+      "sha256": "4ff2de10adc72c891184cef1556e135a6a32095087585c7e7daa987e779d9174",
+      "dependencies": [
+        [
+          "./ReactSharedInternalsClient",
+          "packages/react/src/ReactSharedInternalsClient.js"
+        ],
+        [
+          "shared/enqueueTask",
+          "packages/shared/enqueueTask.js"
+        ],
+        [
+          "shared/ReactFeatureFlags",
+          "packages/shared/ReactFeatureFlags.js"
+        ]
+      ],
+      "guards": 4,
+      "closures": 4
+    },
+    {
+      "path": "packages/shared/enqueueTask.js",
+      "sha256": "32ecb10b933088063c33281162dc14946ea2ddc73b8167788487d72f852c8cb5",
+      "dependencies": [],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactOwnerStack.js",
+      "sha256": "dc301f9f02114f11bb4dfd94a8f09fbaed61dfd5a50255b7f62b5ff1236b403f",
+      "dependencies": [
+        [
+          "shared/ReactSharedInternals",
+          "packages/react/src/ReactSharedInternalsClient.js"
+        ]
+      ],
+      "guards": 2,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/src/ReactCompilerRuntime.js",
+      "sha256": "798675cc40a031d21c475f615879c0baf0baf0cccab11b561f7e5d0b958f467a",
+      "dependencies": [
+        [
+          "./ReactHooks",
+          "packages/react/src/ReactHooks.js"
+        ]
+      ],
+      "guards": 0,
+      "closures": 0
+    },
+    {
+      "path": "packages/react/index.development.js",
+      "sha256": "c74df894d1629e364bda3a5d486c0df97da105bea2baf3d3f73373ac5527e1e6",
+      "dependencies": [
+        [
+          "./src/ReactClient",
+          "packages/react/src/ReactClient.js"
+        ]
+      ],
+      "guards": 0,
+      "closures": 0
+    }
+  ]
+}

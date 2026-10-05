@@ -1,0 +1,26 @@
+let didWarnAboutMessageChannel = false;
+let enqueueTaskImpl = null;
+export default function enqueueTask(task) {
+  if (enqueueTaskImpl === null) {
+    try {
+      const requireString = ('require' + Math.random()).slice(0, 7);
+      const nodeRequire = module && module[requireString];
+      enqueueTaskImpl = nodeRequire.call(module, 'timers').setImmediate;
+    } catch (_err) {
+      enqueueTaskImpl = function (callback) {
+        if (__DEV__) {
+          if (didWarnAboutMessageChannel === false) {
+            didWarnAboutMessageChannel = true;
+            if (typeof MessageChannel === 'undefined') {
+              console.error('This browser does not have a MessageChannel implementation, ' + 'so enqueuing tasks via await act(async () => ...) will fail. ' + 'Please file an issue at https://github.com/facebook/react/issues ' + 'if you encounter this warning.');
+            }
+          }
+        }
+        const channel = new MessageChannel();
+        channel.port1.onmessage = callback;
+        channel.port2.postMessage(undefined);
+      };
+    }
+  }
+  return enqueueTaskImpl(task);
+}

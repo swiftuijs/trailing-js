@@ -24,7 +24,7 @@ jobs:
       - run: pnpm package:core
       - run: node packages/twill/tests/consumer.mjs --packed
       - run: pnpm package:tooling
-      - run: node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs && node packages/export/tests/consumer.mjs
+      - run: node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs && node packages/export/tests/consumer.mjs && node packages/highlight/tests/consumer.mjs
       - run: pnpm --filter @swiftuijs/twill-docs exec playwright install --with-deps chromium
       - run: pnpm test:browser
       - run: pnpm release:manifest

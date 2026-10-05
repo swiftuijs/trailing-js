@@ -1,0 +1,70 @@
+{
+  "scope": "React client core and its reachable shared dependencies; ReactDOM/reconciler are not rewritten.",
+  "upstreamCommit": "1d34f91dfde6bba84d08b683aaba164c7194dacb",
+  "upstreamVersion": "v19.3.0",
+  "modules": 32,
+  "guards": 55,
+  "trailingCallbacks": 7,
+  "recordedAt": "2026-10-05T19:01:29.973Z",
+  "environment": {
+    "node": "v24.19.0",
+    "os": "linux",
+    "arch": "x64",
+    "cpu": "AMD EPYC 9V74 80-Core Processor"
+  },
+  "methodology": "Build: Vite production, 3 warmups and 15 interleaved samples, write=false; source preparation/process startup excluded. Runtime: one isolated process per variant, 10 warmup batches and 15 samples; 10,000 createElement/cloneElement/Children.toArray operations per batch. Same source graph, Flow erasure, feature flags, target and minifier; not the upstream official Rollup pipeline or a full renderer benchmark.",
+  "results": {
+    "native": {
+      "build": {
+        "p50Milliseconds": 16.363586999999825,
+        "p95Milliseconds": 26.379741000000195,
+        "samples": [
+          16.714384999999993, 17.11613299999999, 17.494506999999885, 14.26007299999992,
+          17.22362699999985, 15.747403000000304, 16.16899199999989, 13.726666999999907,
+          16.363586999999825, 24.42743100000007, 14.617714999999862, 15.101796999999806,
+          16.498577000000296, 26.379741000000195, 14.461589000000458
+        ]
+      },
+      "runtime": {
+        "p50Milliseconds": 4.9244699999999995,
+        "p95Milliseconds": 7.559241000000014,
+        "samples": [
+          4.990470000000002, 4.711377999999996, 4.773322000000007, 5.282421999999997,
+          4.9244699999999995, 5.008848, 4.8588610000000045, 5.175741000000002, 4.721323000000012,
+          4.6231539999999995, 4.902806999999996, 7.559241000000014, 5.066716000000014,
+          4.977831000000009, 4.874494999999996
+        ],
+        "checksum": 50045000,
+        "maxRSSKiB": 302508
+      },
+      "bytes": 12486,
+      "gzipBytes": 4060
+    },
+    "twill": {
+      "build": {
+        "p50Milliseconds": 157.18604800000003,
+        "p95Milliseconds": 174.95282199999997,
+        "samples": [
+          150.015897, 174.95282199999997, 154.1232359999999, 151.75712199999998, 143.53139699999974,
+          164.33587099999977, 150.79992399999992, 162.69839900000034, 159.33267000000023,
+          160.23544700000002, 157.18604800000003, 161.83481600000005, 148.70627000000013,
+          170.82764799999995, 148.27615700000024
+        ]
+      },
+      "runtime": {
+        "p50Milliseconds": 4.909638000000015,
+        "p95Milliseconds": 5.504967999999991,
+        "samples": [
+          4.827393000000001, 4.688583999999992, 4.915115999999998, 4.898781, 5.504967999999991,
+          4.987566000000001, 4.925551999999996, 5.280408999999992, 4.909638000000015,
+          4.659999999999997, 4.718648999999999, 4.696224999999998, 5.12796800000001,
+          4.954977000000014, 4.881013999999993
+        ],
+        "checksum": 50045000,
+        "maxRSSKiB": 302508
+      },
+      "bytes": 12296,
+      "gzipBytes": 4050
+    }
+  }
+}

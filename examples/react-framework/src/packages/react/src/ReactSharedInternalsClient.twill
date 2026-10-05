@@ -1,0 +1,21 @@
+import { enableGestureTransition } from 'shared/ReactFeatureFlags';
+const ReactSharedInternals = {
+  H: null,
+  A: null,
+  T: null,
+  S: null
+};
+if (enableGestureTransition) {
+  ReactSharedInternals.G = null;
+}
+if (__DEV__) {
+  ReactSharedInternals.actQueue = null;
+  ReactSharedInternals.asyncTransitions = 0;
+  ReactSharedInternals.isBatchingLegacy = false;
+  ReactSharedInternals.didScheduleLegacyUpdate = false;
+  ReactSharedInternals.didUsePromise = false;
+  ReactSharedInternals.thrownErrors = [];
+  ReactSharedInternals.getCurrentStack = null;
+  ReactSharedInternals.recentlyCreatedOwnerStacks = 0;
+}
+export default ReactSharedInternals;

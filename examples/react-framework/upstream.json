@@ -1,0 +1,8 @@
+{
+  "repository": "https://github.com/facebook/react",
+  "tag": "v19.3.0",
+  "commit": "1d34f91dfde6bba84d08b683aaba164c7194dacb",
+  "entry": "packages/react/index.js",
+  "scope": "React client core and its reachable shared dependencies; ReactDOM/reconciler are not rewritten.",
+  "developmentEntry": "packages/react/index.development.js"
+}

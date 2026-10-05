@@ -78,9 +78,9 @@ describe('Prettier Twill plugin', () => {
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
     .flatMap((dir) =>
-      readdirSync(join(examplesPath, dir))
-        .filter((name) => /\.twillx?$/.test(name))
-        .map((name) => join(examplesPath, dir, name)),
+      readdirSync(join(examplesPath, dir), { withFileTypes: true })
+        .filter((entry) => entry.isFile() && /\.twillx?$/.test(entry.name))
+        .map((entry) => join(examplesPath, dir, entry.name)),
     );
   it.each(fixtures)('preserves the compiled syntax and is idempotent: %s', async (filepath) => {
     const source = readFileSync(filepath, 'utf8');

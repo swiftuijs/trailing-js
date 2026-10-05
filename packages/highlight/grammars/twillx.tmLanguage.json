@@ -1,0 +1,223 @@
+{
+  "name": "Twill tsx",
+  "scopeName": "source.twill.tsx",
+  "patterns": [
+    {
+      "include": "#implicit-member"
+    },
+    {
+      "include": "#defer"
+    },
+    {
+      "include": "#guard-binding"
+    },
+    {
+      "include": "#guard"
+    },
+    {
+      "include": "#switch-expression"
+    },
+    {
+      "include": "#closure-header"
+    },
+    {
+      "match": "(?<=\\})\\s*\\b([A-Za-z_$][\\w$]*)(\\s*:)(?=\\s*\\{)",
+      "captures": {
+        "1": {
+          "name": "entity.name.function.twill"
+        },
+        "2": {
+          "name": "punctuation.separator.twill"
+        }
+      }
+    },
+    {
+      "include": "source.tsx"
+    }
+  ],
+  "repository": {
+    "implicit-member": {
+      "match": "(?<![\\w$.)}\\]])(\\.)([A-Za-z_$][\\w$]*)",
+      "captures": {
+        "1": {
+          "name": "punctuation.accessor.twill"
+        },
+        "2": {
+          "name": "variable.other.property.twill"
+        }
+      }
+    },
+    "defer": {
+      "match": "(?<![\\w$.])\\bdefer\\b(?=(?:[^\\S\\r\\n]|/\\*[^\\r\\n]*?\\*/)*\\{)",
+      "name": "keyword.control.twill"
+    },
+    "guard": {
+      "match": "(?<![\\w$.])\\bguard\\b(?=\\s+(?:const\\b|[^\\s;=:]))",
+      "name": "keyword.control.twill"
+    },
+    "guard-binding": {
+      "name": "meta.guard.binding.twill",
+      "begin": "(?<![\\w$.])\\b(guard)\\s+(const)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.twill"
+        },
+        "2": {
+          "name": "storage.type.tsx"
+        }
+      },
+      "end": "(?<![\\w$.])\\belse\\b(?=\\s*\\{)",
+      "endCaptures": {
+        "0": {
+          "name": "keyword.control.twill"
+        }
+      },
+      "patterns": [
+        {
+          "include": "source.tsx#object-binding-pattern-const"
+        },
+        {
+          "include": "source.tsx#array-binding-pattern-const"
+        },
+        {
+          "include": "source.tsx"
+        }
+      ]
+    },
+    "switch-expression": {
+      "name": "meta.switch.expression.twill",
+      "begin": "(?<![\\w$.])(switch)\\b(?=\\s*\\()",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.twill"
+        }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.block.end.twill"
+        }
+      },
+      "patterns": [
+        {
+          "include": "source.tsx#comment"
+        },
+        {
+          "begin": "\\(",
+          "end": "\\)",
+          "patterns": [
+            {
+              "include": "source.tsx#expression"
+            }
+          ]
+        },
+        {
+          "begin": "\\{",
+          "end": "(?=\\})",
+          "patterns": [
+            {
+              "begin": "(?<![\\w$.])(case|default)\\b",
+              "beginCaptures": {
+                "1": {
+                  "name": "keyword.control.twill"
+                }
+              },
+              "end": "(?=:)",
+              "patterns": [
+                {
+                  "include": "source.tsx#expression"
+                }
+              ]
+            },
+            {
+              "include": "source.tsx#statements"
+            }
+          ]
+        }
+      ]
+    },
+    "closure-header": {
+      "begin": "(\\{)(?=\\s*(?:async\\s+)?(?:[A-Za-z_$][\\w$]*(?:\\s*,\\s*[A-Za-z_$][\\w$]*)*|\\((?:[^;()]|\\([^()]*\\))*\\)(?:\\s*:[^;{}]*?)?)\\s+in\\b)",
+      "beginCaptures": {
+        "1": {
+          "name": "punctuation.section.block.begin.twill"
+        }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.block.end.twill"
+        }
+      },
+      "name": "meta.trailing.closure.twill",
+      "patterns": [
+        {
+          "begin": "(?<=\\{)",
+          "end": "\\bin\\b",
+          "endCaptures": {
+            "0": {
+              "name": "keyword.control.twill"
+            }
+          },
+          "patterns": [
+            {
+              "include": "source.tsx#comment"
+            },
+            {
+              "match": "\\basync\\b",
+              "name": "storage.modifier.tsx"
+            },
+            {
+              "include": "source.tsx#function-parameters"
+            },
+            {
+              "begin": ":",
+              "end": "(?=\\bin\\b)",
+              "patterns": [
+                {
+                  "include": "source.tsx#type"
+                }
+              ]
+            },
+            {
+              "include": "source.tsx#parameter-name"
+            }
+          ]
+        },
+        {
+          "include": "source.tsx#jsx-tag-without-attributes"
+        },
+        {
+          "include": "source.tsx#jsx-tag"
+        },
+        {
+          "include": "source.tsx#statements"
+        }
+      ]
+    }
+  },
+  "injections": {
+    "L:source.twill.tsx -comment -string, L:source.twill.tsx meta.template.expression -comment -(meta.template.expression string)": {
+      "patterns": [
+        {
+          "include": "#implicit-member"
+        },
+        {
+          "include": "#defer"
+        },
+        {
+          "include": "#guard-binding"
+        },
+        {
+          "include": "#guard"
+        },
+        {
+          "include": "#switch-expression"
+        },
+        {
+          "include": "#closure-header"
+        }
+      ]
+    }
+  }
+}

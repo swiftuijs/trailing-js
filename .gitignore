@@ -20,3 +20,5 @@ release-manifest.json
 bundle-results.json
 
 **/.vitepress/cache/
+
+react-framework-results.json

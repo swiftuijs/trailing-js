@@ -1,18 +1,10 @@
 import { defineConfig } from 'vitepress';
-import { readFileSync } from 'node:fs';
+import { twillLanguages } from '@swiftuijs/twill-highlight';
 import { dirname, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
-const root = resolve(import.meta.dirname, '../../..');
 const repository = 'https://github.com/swiftuijs/twill';
-const grammar = (extension: string, scope: string) => ({
-  ...JSON.parse(
-    readFileSync(resolve(root, `editors/vscode/syntaxes/${extension}.tmLanguage.json`), 'utf8'),
-  ),
-  name: extension,
-  scopeName: scope,
-});
 const pages = [
   {
     text: 'Start here',
@@ -34,6 +26,7 @@ const pages = [
     text: 'Development workflow',
     items: [
       { text: 'Editor and tooling', link: '/tooling' },
+      { text: 'Web highlighting', link: '/highlighting' },
       { text: 'Build tools', link: '/build-tools' },
       { text: 'React and Vue', link: '/frameworks' },
       { text: 'Mixed TS / JS', link: '/interoperability' },
@@ -46,6 +39,7 @@ const pages = [
     items: [
       { text: 'CLI reference', link: '/cli' },
       { text: 'Performance', link: '/performance' },
+      { text: 'React source study', link: '/react-source' },
       { text: 'GitHub highlighting', link: '/github' },
       { text: 'Readiness and support', link: '/readiness' },
     ],
@@ -81,12 +75,7 @@ export default defineConfig({
     footer: { message: 'MIT licensed · Experimental language', copyright: 'Twill · swiftuijs' },
   },
   markdown: {
-    languages: [
-      'typescript',
-      'tsx',
-      grammar('twill', 'source.twill.ts'),
-      grammar('twillx', 'source.twill.tsx'),
-    ],
+    languages: twillLanguages,
     config(md) {
       const original = md.renderer.rules.link_open!;
       md.renderer.rules.link_open = (tokens, index, options, env, self) => {

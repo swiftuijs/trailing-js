@@ -175,3 +175,7 @@ Use the [React Vite adapter](./frameworks.md) for state-preserving development. 
 | A rename or fix is unavailable                   | The edit may cross generated syntax and cannot be applied safely                                   |
 
 See [support and limitations](./readiness.md) for tested versions and [libraries](./libraries.md) to distribute ordinary JS and declarations.
+
+## Highlight code on the web
+
+Use the [web highlighting package](./highlighting.md) for static or browser-rendered code blocks. It integrates with Shiki and VitePress independently of the VS Code extension.

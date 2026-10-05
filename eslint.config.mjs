@@ -1,7 +1,14 @@
 import twill from '@swiftuijs/twill-linter';
 
 export default [
-  { ignores: ['**/dist/**', '**/node_modules/**'] },
+  {
+    ignores: [
+      'examples/react-framework/upstream/**',
+      'examples/react-framework/src/packages/**',
+      '**/dist/**',
+      '**/node_modules/**',
+    ],
+  },
   ...twill.configs.recommended,
   {
     languageOptions: {
