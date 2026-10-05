@@ -30,16 +30,6 @@ jobs:
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         run: pnpm deps:check
       - run: pnpm check
-      - name: Diagnose formatting
-        if: failure() && matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: |
-          pnpm format
-          node --input-type=module <<'JS'
-          import { readFileSync } from 'node:fs';
-          import { execFileSync } from 'node:child_process';
-          const paths = execFileSync('git', ['diff', '--name-only'], { encoding: 'utf8' }).trim().split('\n').filter(Boolean);
-          for (const path of paths) console.log('TWILL_FORMAT|' + JSON.stringify({ path, content: readFileSync(path, 'utf8') }));
-          JS
       - run: pnpm format:check
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         run: pnpm test:coverage

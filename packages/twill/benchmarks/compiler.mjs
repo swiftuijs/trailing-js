@@ -158,10 +158,10 @@ for (const registrations of [1, 10, 100]) {
     'function run(state) { defer { state.cleanup += 1; } state.body++; return state.body; }';
   const output = transform(source, { filename: 'single.twill', language: 'js' }).code;
   const minimal =
-    'function run(state) { let cleanup; try { cleanup = () => { state.cleanup += 1; }; state.body++; return state.body; } finally { cleanup?.(); } }';
+    'function run(state) { let __twillCleanup0; try { __twillCleanup0 = () => { state.cleanup += 1; }; state.body++; return state.body; } finally { __twillCleanup0?.(); } }';
   assert.equal(
-    (await minify(output, { minify: true })).code,
-    (await minify(minimal, { minify: true })).code,
+    (await minify(output, { minify: true, minifyIdentifiers: false })).code,
+    (await minify(minimal, { minify: true, minifyIdentifiers: false })).code,
   );
   const compiled = Function(output + '; return run;')();
   const native = Function(
@@ -213,7 +213,7 @@ const report = {
     ordinaryClosureRuntimeCodeIdentical: true,
     componentRuntimeCodeIdenticalToNativeJSX: ['react', 'vue'],
     cleanupReference:
-      'Handwritten native finally loop; same observable additions, no registration closures or stack. Batch assertions included in both timings.',
+      'Handwritten native finally (reverse loop for dynamic registrations, direct statement for a single cleanup); same observable additions, no registration closures or stack. Batch assertions included in both timings.',
   },
   results,
   cleanupResults,
