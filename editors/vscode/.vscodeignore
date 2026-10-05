@@ -2,4 +2,3 @@ src/**
 **/*.map
 tsconfig.json
 .vscode/**
-twill-typescript-plugin/**

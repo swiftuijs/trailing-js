@@ -27,16 +27,16 @@ const manifest = JSON.parse(readFileSync('editors/vscode/package.json', 'utf8'))
 delete manifest.scripts;
 delete manifest.devDependencies;
 manifest.dependencies['@swiftuijs/twill-vscode-tsserver'] = JSON.parse(
-  readFileSync('editors/vscode/twill-typescript-plugin/package.json', 'utf8'),
+  readFileSync('editors/twill-typescript-plugin/package.json', 'utf8'),
 ).version;
 writeFileSync(join(stage, 'package.json'), JSON.stringify(manifest, null, 2) + '\n');
 const plugin = join(stage, 'node_modules/@swiftuijs/twill-vscode-tsserver');
 mkdirSync(plugin, { recursive: true });
-cpSync('editors/vscode/twill-typescript-plugin/LICENSE', join(plugin, 'LICENSE'));
+cpSync('editors/twill-typescript-plugin/LICENSE', join(plugin, 'LICENSE'));
 mkdirSync(join(plugin, 'dist'), { recursive: true });
-cpSync('editors/vscode/twill-typescript-plugin/dist/index.cjs', join(plugin, 'dist/index.cjs'));
+cpSync('editors/twill-typescript-plugin/dist/index.cjs', join(plugin, 'dist/index.cjs'));
 const pluginManifest = JSON.parse(
-  readFileSync('editors/vscode/twill-typescript-plugin/package.json', 'utf8'),
+  readFileSync('editors/twill-typescript-plugin/package.json', 'utf8'),
 );
 delete pluginManifest.devDependencies;
 delete pluginManifest.scripts;

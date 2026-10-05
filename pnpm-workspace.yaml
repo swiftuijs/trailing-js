@@ -2,8 +2,7 @@ packages:
   - packages/*
   - apps/*
   - examples/*
-  - editors/vscode
-  - editors/vscode/twill-typescript-plugin
+  - editors/*
 
 minimumReleaseAgeExclude:
   - '@swiftuijs/ui@0.1.1'

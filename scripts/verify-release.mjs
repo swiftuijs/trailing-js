@@ -11,7 +11,7 @@ for (const path of [
   'packages/linter/package.json',
   'packages/migrate/package.json',
   'editors/vscode/package.json',
-  'editors/vscode/twill-typescript-plugin/package.json',
+  'editors/twill-typescript-plugin/package.json',
 ])
   assert.equal(manifest(path).version, version, `Version mismatch: ${path}`);
 assert(
@@ -24,7 +24,7 @@ for (const path of [
   'package.json',
   'apps/docs/package.json',
   'editors/vscode/package.json',
-  'editors/vscode/twill-typescript-plugin/package.json',
+  'editors/twill-typescript-plugin/package.json',
 ])
   assert.equal(manifest(path).private, true, `Internal workspace must be private: ${path}`);
 const artifacts = [];
