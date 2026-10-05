@@ -20,19 +20,19 @@ The packaged editor supports original-source definitions, references, completion
 
 ## Export back to native TS
 
-Install the optional `@swiftuijs/twill-migrate` tarball from the same reviewed build as the compiler. It exports a checked source graph into a new directory:
+Install the optional `@swiftuijs/twill-export` tarball from the same reviewed build as the compiler. It supplies `twill export`, which exports a checked source graph into a new directory:
 
 ```sh
-pnpm add -D /path/to/swiftuijs-twill-migrate-0.9.0.tgz
-pnpm exec twill-migrate -p tsconfig.json -o ../native-project --dry-run --json
-pnpm exec twill-migrate -p tsconfig.json -o ../native-project
+pnpm add -D /path/to/swiftuijs-twill-export-0.9.0.tgz
+pnpm exec twill export -p tsconfig.json -o ../native-project --dry-run --json
+pnpm exec twill export -p tsconfig.json -o ../native-project
 ```
 
 It formats lowered TS/TSX, rewrites relative dialect imports in both native and dialect sources, copies local declarations/direct imported assets and flattens TS configuration. The destination must be outside the input root and must not exist. Errors and collisions prevent writes; originals remain intact.
 
 Install the project's normal dependencies in the destination or merge the sources into an existing native application. Use native `tsc` and normal build tools afterward. There is no Twill runtime or compiler plugin requirement for exported sources; React/Vue and any application libraries retain their ordinary requirements.
 
-This is a source export. It does not copy package manifests, bundler configuration, public folders or every indirectly referenced asset. Project references, sources outside the root and computed dynamic module paths need an explicit migration plan. See the [migration package](../packages/migrate/README.md) for exact boundaries. Single-file `twill compile` remains an inspection tool and preserves its input import specifiers.
+This is a source export. It does not copy package manifests, bundler configuration, public folders or every indirectly referenced asset. Project references, sources outside the root and computed dynamic module paths need an explicit migration plan. See the [export package](../packages/export/README.md) for exact boundaries. Single-file `twill compile` remains an inspection tool and preserves its input import specifiers.
 
 ## Decide whether adoption is worthwhile
 

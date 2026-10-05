@@ -25,7 +25,7 @@ Keep test sources, fixtures, configuration and test dependencies with the packag
 | `packages/twill`     | `pnpm --filter @swiftuijs/twill test:unit`           | Compiler, type checker, declarations, language-service API and five bundlers     |
 | `packages/formatter` | `pnpm --filter @swiftuijs/twill-formatter test:unit` | Formatting, syntax preservation and idempotence                                  |
 | `packages/linter`    | `pnpm --filter @swiftuijs/twill-linter test:unit`    | ESLint processor, rules and typed checks                                         |
-| `packages/migrate`   | `pnpm --filter @swiftuijs/twill-migrate test:unit`   | Checked native export, imports, configuration, collisions and input preservation |
+| `packages/export`    | `pnpm --filter @swiftuijs/twill-export test:unit`    | Checked native export, imports, configuration, collisions and input preservation |
 | `editors/vscode`     | `pnpm --filter twill test:unit`, `pnpm editor:test`  | TextMate grammar and real packaged extension host                                |
 | `apps/docs`          | `pnpm --filter @swiftuijs/twill-docs test:browser`   | Desktop/mobile documentation and playground                                      |
 | `examples/*`         | `pnpm test:examples`                                 | Example execution, production bundles and SSR rendering                          |

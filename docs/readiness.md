@@ -39,7 +39,7 @@ Representative native/dialect application bundles are checked for behavior parit
 
 ## Adoption and source export
 
-Use one module at a time with the existing project. The optional migration package exports a checked single-project source graph to formatted native TS/TSX in a new directory, rewriting relative dialect imports in both native and dialect files. Source errors, collisions and unsupported paths stop the export; originals remain intact.
+Use one module at a time with the existing project. The optional export package exports a checked single-project source graph to formatted native TS/TSX in a new directory, rewriting relative dialect imports in both native and dialect files. Source errors, collisions and unsupported paths stop the export; originals remain intact.
 
 This is source export rather than a complete application installer. Dependencies, host build configuration, public assets, project references and computed dynamic module paths have separate boundaries. See [adoption and migration](adoption.md) for the exact workflow. Real project pilots are needed to establish team productivity and dependency-heavy project performance.
 

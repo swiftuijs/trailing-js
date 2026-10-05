@@ -62,7 +62,7 @@ A readable feature is not useful if the editor loses inference or the project ca
 
 Before expanding the grammar substantially, prioritize reliable incomplete-input assistance, safe mapped edits, references/refactoring coverage and realistic project performance. Current support and remaining boundaries stay in [readiness](../readiness.md); this proposal does not claim those gaps are already closed.
 
-The optional `@swiftuijs/twill-migrate` tool exports a checked single-project source graph to formatted native TS, rewrites relative dialect imports and preserves originals. Its boundaries are documented in the migration package: application installation, project references and computed runtime paths need separate handling. The single-file `twill compile` command still preserves import specifiers. Broader project export and refactoring coverage remain adoption priorities.
+The optional `@swiftuijs/twill-export` package supplies `twill export`, exporting a checked single-project source graph to formatted native TS, rewriting relative dialect imports and preserving originals. Its boundaries are documented in the export package: application installation, project references and computed runtime paths need separate handling. The single-file `twill compile` command still preserves import specifiers. Broader project export and refactoring coverage remain adoption priorities.
 
 ## Feature acceptance gate
 

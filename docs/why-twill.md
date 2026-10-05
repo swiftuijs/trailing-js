@@ -106,7 +106,7 @@ In `.twillx`, uppercase component closures become native JSX. React gets ordinar
 - Use `.twill` or `.twillx` for one module. Keep native `.ts`, `.tsx`, `.js` and `.jsx` alongside it, with imports in both directions through the supported toolchain.
 - Keep your normal tsconfig and build. A Vite plugin handles emission, `twill check` checks types, and the VSIX supplies mapped editor assistance. No Twill config file is required.
 - Format and lint with the independent Prettier and ESLint packages. Publish libraries as ordinary JS and generated `.d.ts` files.
-- Export a checked source graph to native TS/TSX with the optional migration tool. Its [scope and limits](./adoption.md#export-back-to-native-ts) are explicit.
+- Export a checked source graph to native TS/TSX with the optional export tool. Its [scope and limits](./adoption.md#export-back-to-native-ts) are explicit.
 
 The cost is a compiler integration and a dialect-aware development loop. Native `tsc` cannot parse Twill source. Choosing Twill is worthwhile when clearer reviews and fewer missed branches or cleanup obligations outweigh that tooling cost.
 

@@ -9,7 +9,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 function fixture() {
-  const directory = mkdtempSync(join(tmpdir(), 'twill-migrate-cli-'));
+  const directory = mkdtempSync(join(tmpdir(), 'twill-export-cli-'));
   roots.push(directory);
   const root = join(directory, 'input');
   mkdirSync(root);
@@ -37,7 +37,7 @@ function fixture() {
 it('prints help and rejects missing output or positional arguments', async () => {
   const { log } = fixture();
   expect(await main(['--help'])).toBe(0);
-  expect(log).toHaveBeenCalledWith(expect.stringContaining('twill-migrate'));
+  expect(log).toHaveBeenCalledWith(expect.stringContaining('twill export'));
   await expect(main([])).rejects.toThrow('Specify --out');
   await expect(main(['file', '-o', 'output'])).rejects.toThrow('positional arguments');
   await expect(main(['--unknown'])).rejects.toThrow();

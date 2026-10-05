@@ -15,7 +15,7 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
   });
   if (values.help) {
     console.log(
-      'twill-migrate -p tsconfig.json -o ../native-project [--dry-run] [--json]\nExports checked sources into a new directory outside the input project. Originals remain intact.',
+      'twill export [-p tsconfig.json] -o ../native-project [--dry-run] [--json]\nExports checked sources into a new directory outside the input project. Originals remain intact.',
     );
     return 0;
   }

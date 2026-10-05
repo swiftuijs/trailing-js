@@ -98,7 +98,7 @@ Install the extracted `twill.vsix` with VS Code's **Install from VSIX** command.
 | Formatter and linter | Independent Prettier and ESLint packages, including optional type-aware exhaustive linting                 |
 | Build and execution  | Vite, Rollup, esbuild, webpack and Rspack adapters; an opt-in Node ESM loader                              |
 | Debugging            | Source maps, generated-source viewer, project diagnostics and original-source Node breakpoints             |
-| Migration            | Optional checked source export to formatted native TS/TSX                                                  |
+| Source export        | `twill export`: optional checked source export to formatted native TS/TSX                                  |
 
 React children, render props, Vue slots and component libraries use native framework contracts. There are no component registries or Twill-specific wrapping APIs; `@swiftuijs/ui` is one example consumer. Seven independent [examples](examples/README.md) cover ordinary workflows, mixed sources, cleanup, React, Vue and library output.
 
@@ -110,7 +110,7 @@ Representative native/dialect bundles are compared for behavior and byte size; r
 
 ## Contributing
 
-The repository is a pnpm workspace with Vite builds. See the [development guide](docs/contributing/tooling.md) for checkout, dependency and build commands. Compiler, formatter, linter and migration packages, editor packages, examples and the English documentation site own their code and tests.
+The repository is a pnpm workspace with Vite builds. See the [development guide](docs/contributing/tooling.md) for checkout, dependency and build commands. Compiler, formatter, linter and export packages, editor packages, examples and the English documentation site own their code and tests.
 
 ```sh
 pnpm check

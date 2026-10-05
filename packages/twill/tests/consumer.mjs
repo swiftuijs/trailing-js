@@ -83,6 +83,20 @@ try {
   const installed = JSON.parse(readFileSync(join(base, '../package.json'), 'utf8'));
   assert.equal(installed.name, metadata.name);
   assert.equal(installed.version, metadata.version);
+  const cli = join(root, 'node_modules/@swiftuijs/twill', installed.bin.twill);
+  const help = execFileSync(process.execPath, [cli, '--help'], { cwd: root, encoding: 'utf8' });
+  assert(help.includes('twill export'), 'Unified CLI help must list source export');
+  assert.equal(installed.dependencies['@swiftuijs/twill-export'], undefined);
+  assert.throws(
+    () =>
+      execFileSync(process.execPath, [cli, 'export', '-o', '../native'], {
+        cwd: root,
+        stdio: 'pipe',
+      }),
+    (error) =>
+      error.status === 1 && /pnpm add -D @swiftuijs\/twill-export/.test(String(error.stderr)),
+    'An independently installed compiler must explain optional export tooling',
+  );
   for (const entry of Object.values(installed.exports))
     for (const path of typeof entry === 'string' ? [entry] : Object.values(entry))
       assert(existsSync(resolve(base, '..', path)), `Missing installed export ${path}`);

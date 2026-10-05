@@ -1,14 +1,16 @@
-# Twill source migration
+# Twill source export
 
-`@swiftuijs/twill-migrate` exports a checked source project to native TS/TSX. It is an optional development tool; applications do not ship it. Node 20.19+ or 22.12+ is required.
+`@swiftuijs/twill-export` exports a checked source project to native TS/TSX. It supplies the optional `twill export` subcommand and a programmatic API; applications do not ship it. Node 20.19+ or 22.12+ is required.
 
-Packages are not yet published. Install the compiler, formatter and migration tarballs from a reviewed build into your application, then run:
+Packages are not yet published. Install the compiler, formatter and export tarballs from a reviewed build into your application, then run:
 
 ```sh
-pnpm exec twill-migrate -p tsconfig.json -o ../native-project --dry-run --json
-pnpm exec twill-migrate -p tsconfig.json -o ../native-project
+pnpm exec twill export -p tsconfig.json -o ../native-project --dry-run --json
+pnpm exec twill export -p tsconfig.json -o ../native-project
 pnpm exec tsc -p ../native-project/tsconfig.json
 ```
+
+The compiler provides the `twill` executable. It loads this package only when you run `twill export`; there is no separate export executable.
 
 Use a **new directory outside the input project**. Original sources and configuration remain intact. The tool rejects an existing destination, overlapping directories, output filename and module-resolution collisions (including case-only collisions), escaping symlinks and type/syntax errors. Preflight completes before output creation; caught write failures remove the newly created incomplete output.
 
@@ -28,7 +30,7 @@ The checking config preserves resolved TS options and project-local path setting
 ## API
 
 ```ts
-import { exportProject } from '@swiftuijs/twill-migrate';
+import { exportProject } from '@swiftuijs/twill-export';
 
 const result = await exportProject('/app/tsconfig.json', {
   outDir: '/native-app',
@@ -37,4 +39,4 @@ const result = await exportProject('/app/tsconfig.json', {
 console.log(result.diagnostics, result.files, result.written);
 ```
 
-Source errors return diagnostics and `written: false`. Invalid destinations and unsupported migration constructs throw. `--json` provides the same structured result; failures return a nonzero CLI status.
+Source errors return diagnostics and `written: false`. Invalid destinations and unsupported export constructs throw. `--json` provides the same structured result; failures return a nonzero CLI status.

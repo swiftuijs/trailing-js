@@ -8,7 +8,7 @@ import { npmConsumer as npm } from '../../twill/tests/helpers/npm-consumer.mjs';
 
 const repository = fileURLToPath(new URL('../../../', import.meta.url));
 const version = JSON.parse(readFileSync(new URL('../package.json', import.meta.url))).version;
-const root = mkdtempSync(join(tmpdir(), 'twill-migrate-consumer-'));
+const root = mkdtempSync(join(tmpdir(), 'twill-export-consumer-'));
 const run = (args) =>
   execFileSync(process.execPath, args, { cwd: root, encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 });
 try {
@@ -19,7 +19,7 @@ try {
       '--ignore-scripts',
       '--no-audit',
       '--no-fund',
-      ...['twill', 'twill-formatter', 'twill-migrate'].map((name) =>
+      ...['twill', 'twill-formatter', 'twill-export'].map((name) =>
         resolve(repository, `swiftuijs-${name}-${version}.tgz`),
       ),
     ],
@@ -46,13 +46,20 @@ try {
     'import {doubled} from "./values.twill"; export const result:number[]=doubled;',
   );
   const command = [
-    'node_modules/@swiftuijs/twill-migrate/bin/twill-migrate.mjs',
+    'node_modules/@swiftuijs/twill/bin/twill.mjs',
+    'export',
     '-p',
     'source/tsconfig.json',
     '-o',
     'native',
     '--json',
   ];
+  const help = run([command[0], 'export', '--help']);
+  assert(help.includes('twill export'));
+  const exporterMetadata = JSON.parse(
+    readFileSync(join(root, 'node_modules/@swiftuijs/twill-export/package.json'), 'utf8'),
+  );
+  assert.equal(exporterMetadata.bin, undefined, 'Export must not install a separate command');
   const preview = JSON.parse(run([...command, '--dry-run']));
   assert.equal(preview.written, false);
   assert(!existsSync(join(root, 'native')));
@@ -84,7 +91,7 @@ try {
   );
   writeFileSync(
     join(root, 'consumer.mts'),
-    'import {exportProject} from "@swiftuijs/twill-migrate";import type {ExportOptions,ExportResult} from "@swiftuijs/twill-migrate";void exportProject;const options:ExportOptions={outDir:"native"};void options;type Result=ExportResult;',
+    'import {exportProject} from "@swiftuijs/twill-export";import type {ExportOptions,ExportResult} from "@swiftuijs/twill-export";void exportProject;const options:ExportOptions={outDir:"native"};void options;type Result=ExportResult;',
   );
   run([
     'node_modules/typescript/bin/tsc',
@@ -96,7 +103,7 @@ try {
     'consumer.mts',
   ]);
   console.log(
-    'Independent npm consumer: migration CLI/API, dry-run, native tsc checking and Node execution without Twill passed.',
+    'Independent npm consumer: export CLI/API, dry-run, native tsc checking and Node execution without Twill passed.',
   );
 } finally {
   rmSync(root, { recursive: true, force: true });

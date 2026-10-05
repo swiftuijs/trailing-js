@@ -101,7 +101,7 @@ The loader handles local mixed TS/JS/Twill imports. It does not transform depend
 
 ## Adopt one module or export native sources
 
-Keep native TS/JS files alongside Twill and start with a validation or resource-management task. The optional migration package can export a checked source graph to a new native TS/TSX directory without modifying originals. See [adoption and migration](./adoption.md) for the commands, dependency setup and export boundaries.
+Keep native TS/JS files alongside Twill and start with a validation or resource-management task. The optional export package can export a checked source graph to a new native TS/TSX directory without modifying originals. See [adoption and migration](./adoption.md) for the commands, dependency setup and export boundaries.
 
 ## Building Twill itself
 

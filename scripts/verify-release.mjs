@@ -9,7 +9,7 @@ for (const path of [
   'packages/twill/package.json',
   'packages/formatter/package.json',
   'packages/linter/package.json',
-  'packages/migrate/package.json',
+  'packages/export/package.json',
   'editors/vscode/package.json',
   'editors/twill-typescript-plugin/package.json',
 ])
@@ -28,8 +28,8 @@ for (const path of [
 ])
   assert.equal(manifest(path).private, true, `Internal workspace must be private: ${path}`);
 const artifacts = [];
-const budgets = { twill: 650 * 1024, formatter: 24 * 1024, linter: 24 * 1024, migrate: 28 * 1024 };
-for (const name of ['twill', 'formatter', 'linter', 'migrate']) {
+const budgets = { twill: 650 * 1024, formatter: 24 * 1024, linter: 24 * 1024, export: 28 * 1024 };
+for (const name of ['twill', 'formatter', 'linter', 'export']) {
   const pkg = manifest(`packages/${name}/package.json`);
   assert(!pkg.private && pkg.publishConfig.access === 'public', `Publication metadata: ${name}`);
   assert(pkg.repository.url.includes('swiftuijs/twill'), `Repository metadata: ${name}`);

@@ -1,6 +1,8 @@
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { parseArgs } from 'node:util';
+import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
 import { transform } from './compiler.js';
 import { transpile } from './transpile.js';
 import { loadConfig } from './config.js';
@@ -9,9 +11,10 @@ import { inspectProject } from './doctor.js';
 import { emitDeclarations } from './declarations.js';
 
 export async function main(args = process.argv.slice(2)): Promise<number> {
-  const { values, positionals } = parseArgs({
+  const { values, positionals, tokens } = parseArgs({
     args,
     allowPositionals: true,
+    tokens: true,
     options: {
       out: { type: 'string', short: 'o' },
       project: { type: 'string', short: 'p' },
@@ -19,12 +22,33 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
       help: { type: 'boolean', short: 'h' },
       json: { type: 'boolean', default: false },
       build: { type: 'boolean', default: false },
+      'dry-run': { type: 'boolean', default: false },
     },
   });
   const [command, input, ...extra] = positionals;
+  if (command === 'export') {
+    // Resolve from the selected project, including under pnpm's isolated
+    // dependency layout. Core does not depend on the optional export tool.
+    let entry: string;
+    try {
+      entry = createRequire(resolve(values.project ?? 'package.json')).resolve(
+        '@swiftuijs/twill-export/cli',
+      );
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'MODULE_NOT_FOUND') throw error;
+      throw new Error(
+        'twill export requires @swiftuijs/twill-export in your project. Install it with pnpm add -D @swiftuijs/twill-export.',
+        { cause: error },
+      );
+    }
+    const exporter = await import(pathToFileURL(entry).href);
+    const index = tokens.find((token) => token.kind === 'positional')!.index;
+    return exporter.main(args.filter((_, position) => position !== index));
+  }
+  if (values['dry-run']) throw new Error('--dry-run is only supported by twill export');
   if (values.help || !command) {
     console.log(
-      'twill compile <file> [-o output.ts] [--js]\ntwill check [-p tsconfig.json] [--json]\ntwill doctor [-p tsconfig.json] [--json]\ntwill declarations [-p tsconfig.json] [-o dist] [--build] [--json]\n\ncompile keeps TypeScript types by default; --js erases types and lowers JSX.\nCommands use the optional twill.config.json from the project root.',
+      'twill compile <file> [-o output.ts] [--js]\ntwill check [-p tsconfig.json] [--json]\ntwill doctor [-p tsconfig.json] [--json]\ntwill declarations [-p tsconfig.json] [-o dist] [--build] [--json]\ntwill export [-p tsconfig.json] -o ../native-project [--dry-run] [--json]\n\ncompile keeps TypeScript types by default; --js erases types and lowers JSX.\nexport requires the optional @swiftuijs/twill-export package.\nCommands use the optional twill.config.json from the project root.',
     );
     return 0;
   }

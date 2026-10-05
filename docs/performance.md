@@ -78,7 +78,7 @@ Distributed builds enforce these compressed artifact size limits:
 | Compiler tarball           | 650 KiB                 |
 | Formatter tarball          | 24 KiB                  |
 | Linter tarball             | 24 KiB                  |
-| Migration tarball          | 28 KiB                  |
+| Export tarball             | 28 KiB                  |
 | VSIX, including its engine | 3 MiB                   |
 
 Tarball budgets cover the package's own files, not installed npm dependencies. Development tools remain outside application bundles. These are distribution limits, not application bundle budgets or build-time guarantees.

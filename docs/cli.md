@@ -62,6 +62,21 @@ Errors prevent writes for the failing project and return a nonzero status. Earli
 
 See [libraries and declarations](./libraries.md) for the build and package configuration consumers need.
 
-## Source migration is a separate tool
+## Export back to native TypeScript
 
-The optional `@swiftuijs/twill-migrate` package supplies `twill-migrate`. It exports a checked graph to a **new directory**, rewrites relative dialect imports and preserves originals. It is not a `twill compile` mode. See [adoption and migration](./adoption.md).
+```sh
+pnpm exec twill export --help
+pnpm exec twill export -p tsconfig.json -o ../native-project --dry-run --json
+pnpm exec twill export -p tsconfig.json -o ../native-project
+```
+
+`export` writes a checked source graph to a **new directory**, converts `.twill` / `.twillx` into formatted TS/TSX, rewrites relative dialect imports and preserves originals.
+
+- `-p` / `--project`: source tsconfig; defaults to `tsconfig.json`.
+- `-o` / `--out`: required destination outside the input project; it must not already exist.
+- `--dry-run`: checks and plans the export without writing files.
+- `--json`: writes the structured export result to standard output.
+
+Install the optional `@swiftuijs/twill-export` package from the same reviewed build as the compiler. The `twill` command loads it only for export, resolving it from the selected project's dependencies. Missing tooling produces installation guidance; it is never downloaded automatically. Type errors return status 1 without writing output. Invalid destinations and unsupported export constructs also fail with a nonzero status.
+
+See [adoption and migration](./adoption.md) for installation and export boundaries.
