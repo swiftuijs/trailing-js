@@ -36,7 +36,8 @@ jobs:
         id: pages
         shell: bash
         run: |
-          if gh api "repos/$GITHUB_REPOSITORY/pages" > /dev/null 2>&1; then
+          pages_mode=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.build_type' 2>/dev/null || true)
+          if [ "$pages_mode" = workflow ]; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
