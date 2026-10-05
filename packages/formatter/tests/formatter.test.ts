@@ -1,0 +1,93 @@
+import { fileURLToPath } from 'node:url';
+import { describe, expect, it } from 'vitest';
+import { format } from '../src/index.js';
+import { transform } from '@swiftuijs/twill';
+import { parseSyntax } from '@swiftuijs/twill/syntax';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+
+function normalize(value: any): any {
+  if (Array.isArray(value))
+    return value.filter((node) => node?.type !== 'EmptyStatement').map(normalize);
+  if (!value || typeof value !== 'object') return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => !['start', 'end', 'loc', 'range', 'raw', 'extra'].includes(key))
+      .map(([key, child]) => [key, normalize(child)]),
+  );
+}
+describe('Prettier Twill plugin', () => {
+  it.each([
+    'const value=fn() { /*header*/ (a: number /*type*/) in /*body*/ a+1 };',
+    'const value=fn { a in // body\na+1 }; // tail',
+    'const value=fn { /* no params */ 1 } done: { /* second */ 2 };',
+    'async function f(){defer {await cleanup()};return call { async (x:number):Promise<number> in await work(x) };}',
+    '// prettier-ignore\nconst value=fn { n in n+  1 };',
+    'const value=fn { ({x}: {x:number}, y=2, ...rest:number[]) in x+y+rest.length };',
+    'function f(a?:number){guard /* one */ const x=a /* two */ else { // three\nreturn 0;} return x;}',
+    '#!/usr/bin/env node\nexport const value=[1].map { n in n+1 };',
+  ])('preserves comment/header semantics: %s', async (source) => {
+    const output = await format(source, { filepath: 'comment.twill' });
+    expect(await format(output, { filepath: 'comment.twill' })).toBe(output);
+    expect(normalize(parseSyntax(transform(output).code).ast)).toEqual(
+      normalize(parseSyntax(transform(source).code).ast),
+    );
+    if (source.startsWith('#!')) expect(output).toMatch(/^#!\/usr\/bin\/env node/);
+  });
+  const examples = new URL('../../../examples/', import.meta.url);
+  const examplesPath = fileURLToPath(examples);
+  const fixtures = readdirSync(examplesPath, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .flatMap((dir) =>
+      readdirSync(join(examplesPath, dir))
+        .filter((name) => /\.twillx?$/.test(name))
+        .map((name) => join(examplesPath, dir, name)),
+    );
+  it.each(fixtures)('preserves the compiled syntax and is idempotent: %s', async (filepath) => {
+    const source = readFileSync(filepath, 'utf8');
+    const output = await format(source, { filepath });
+    expect(await format(output, { filepath })).toBe(output);
+    const before = transform(source, { filename: filepath });
+    const after = transform(output, { filename: filepath });
+    expect(normalize(parseSyntax(after.code, { filename: filepath }).ast)).toEqual(
+      normalize(parseSyntax(before.code, { filename: filepath }).ast),
+    );
+  });
+  it('preserves typed generics, cleanup, guards, comments and runtime behavior', async () => {
+    const source = `// retained comment\nfunction run<T>(value:T,body:(value:T)=>T):T{return body(value)}
+      const calls:string[]=[]; function calculate(value:number|undefined){
+      defer {calls.push('cleanup')}; guard const n=value else {throw new Error('missing')}
+      return run<number>(n) {(item:number) in ({value:item*2}).value};}
+      globalThis.result=[calculate(21),calls];`;
+    const output = await format(source, { filepath: 'runtime.twill' });
+    expect(output).toContain('// retained comment');
+    expect(output).toContain('run<number>');
+    const ts = await import('typescript');
+    const evaluate = (text: string) => {
+      const code = ts.transpileModule(transform(text).code, {
+        compilerOptions: { target: ts.ScriptTarget.ES2022 },
+      }).outputText;
+      const scope = { result: undefined };
+      new Function('globalThis', code)(scope);
+      return scope.result;
+    };
+    expect(evaluate(output)).toEqual(evaluate(source));
+    expect(evaluate(output)).toEqual([42, ['cleanup']]);
+  });
+  it('retains the explicit parentheses that opt out of component lowering', async () => {
+    const output = await format('const value=(Run) { item in item+1 };', {
+      filepath: 'view.twillx',
+    });
+    expect(output).toContain('(Run)');
+    expect(transform(output, { filename: 'view.twillx' }).code).not.toContain('<Run');
+  });
+  it('protects ASI boundaries with semicolons disabled', async () => {
+    const source = 'const value=1; (run) { 42 }; fn {1}; [1].map { n in n+1 };';
+    const output = await format(source, { semi: false, filepath: 'asi.twill' });
+    expect(await format(output, { semi: false, filepath: 'asi.twill' })).toBe(output);
+    expect(normalize(parseSyntax(transform(output).code).ast)).toEqual(
+      normalize(parseSyntax(transform(source).code).ast),
+    );
+  });
+});

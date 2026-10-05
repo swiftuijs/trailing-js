@@ -11,5 +11,5 @@
     "resolveJsonModule": true,
     "noEmit": true
   },
-  "include": [".vitepress/**/*.ts", ".vitepress/**/*.vue"]
+  "include": [".vitepress/**/*.ts", ".vitepress/**/*.vue", "tests/**/*.ts", "playwright.config.ts"]
 }

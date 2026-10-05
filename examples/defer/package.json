@@ -11,15 +11,16 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "test:example": "node tests/run.mjs"
   },
   "devDependencies": {
     "@swiftuijs/twill": "workspace:*",
-    "@types/node": "^26.6.4",
-    "vite": "^8.3.2",
+    "@types/node": "catalog:",
+    "vite": "catalog:",
     "@swiftuijs/twill-formatter": "workspace:*",
     "@swiftuijs/twill-linter": "workspace:*",
-    "prettier": "^3.9.9",
-    "eslint": "^10.12.0"
+    "prettier": "catalog:",
+    "eslint": "catalog:"
   }
 }

@@ -11,8 +11,8 @@
   },
   "devDependencies": {
     "@swiftuijs/twill": "workspace:*",
-    "vite": "^8.3.2",
-    "typescript": "^5.9.3",
-    "@types/node": "^26.6.4"
+    "vite": "catalog:",
+    "typescript": "catalog:",
+    "@types/node": "catalog:"
   }
 }

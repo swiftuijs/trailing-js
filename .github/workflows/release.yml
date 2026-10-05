@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: 22
@@ -22,10 +22,10 @@ jobs:
       - run: pnpm format:check
       - run: xvfb-run -a pnpm editor:test
       - run: pnpm package:core
-      - run: node scripts/verify-package.mjs --packed
+      - run: node packages/twill/tests/consumer.mjs --packed
       - run: pnpm package:tooling
-      - run: node scripts/verify-tooling.mjs
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs
+      - run: pnpm --filter @swiftuijs/twill-docs exec playwright install --with-deps chromium
       - run: pnpm test:browser
       - run: pnpm verify:release --artifacts
       - run: gh release create "$RELEASE_TAG" --verify-tag --generate-notes *.tgz dist/twill.vsix

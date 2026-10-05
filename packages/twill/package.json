@@ -31,7 +31,7 @@
     "acorn-jsx": "^5.3.2",
     "acorn-typescript": "1.4.13",
     "magic-string": "^1.4.2",
-    "typescript": "^5.9.3",
+    "typescript": "catalog:",
     "unplugin": "^3.4.0"
   },
   "sideEffects": false,
@@ -139,14 +139,34 @@
   },
   "module": "./dist/index.js",
   "scripts": {
-    "build": "vite build && vite build --config vite.plugin.config.ts && node ../../scripts/prepare-core.mjs",
+    "build": "vite build && vite build --config vite.plugin.config.ts && node scripts/prepare-core.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "prepack": "pnpm run build"
+    "prepack": "pnpm run build",
+    "test:unit": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:package": "node tests/consumer.mjs",
+    "test:browser": "playwright test",
+    "benchmark": "node benchmarks/compiler.mjs",
+    "test": "pnpm run test:unit"
   },
   "devDependencies": {
-    "vite": "^8.3.2",
+    "vite": "catalog:",
     "vite-plugin-dts": "^5.1.2",
-    "@types/node": "^26.6.4",
-    "@vitejs/plugin-react": "^6.1.1"
+    "@types/node": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "vitest": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "@rspack/core": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vue/server-renderer": "catalog:",
+    "esbuild": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "rollup": "catalog:",
+    "vue": "catalog:",
+    "webpack": "catalog:",
+    "@playwright/test": "catalog:"
   }
 }

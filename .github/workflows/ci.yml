@@ -21,14 +21,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: pnpm audit --audit-level high
+        run: pnpm deps:check
       - run: pnpm check
       - run: pnpm format:check
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
@@ -36,9 +36,9 @@ jobs:
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         run: pnpm package:core
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: node scripts/verify-package.mjs --packed
+        run: node packages/twill/tests/consumer.mjs --packed
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: pnpm package:tooling && node scripts/verify-tooling.mjs
+        run: pnpm package:tooling && node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         run: pnpm benchmark --output benchmark-results.json
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
@@ -50,14 +50,14 @@ jobs:
           path: |
             *.tgz
             dist/twill.vsix
-            coverage/
+            packages/*/coverage/
             benchmark-results.json
             project-results.json
   node20-consumer:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: 22
@@ -71,8 +71,8 @@ jobs:
           node-version: 20
       # Vitest 5 and VSCE 4 require Node 22. The distributed compiler, loader,
       # type checker and build adapters also support Node 20 consumers.
-      - run: node scripts/verify-package.mjs --packed
-      - run: node scripts/verify-tooling.mjs
+      - run: node packages/twill/tests/consumer.mjs --packed
+      - run: node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs
   editor:
     runs-on: ubuntu-latest
     strategy:
@@ -81,7 +81,7 @@ jobs:
         vscode: ['1.95.3', stable]
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: 22
@@ -95,14 +95,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm docs:build
-      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm --filter @swiftuijs/twill-docs exec playwright install --with-deps chromium
       - run: pnpm test:browser
         env:
           TWILL_BROWSER_OUTPUT: ${{ runner.temp }}/twill-browser-results

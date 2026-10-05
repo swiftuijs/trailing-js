@@ -252,6 +252,7 @@ pnpm benchmark --output benchmark-results.json
 pnpm install --frozen-lockfile
 pnpm check
 pnpm test:coverage
+pnpm deps:check
 ```
 
 Checks cover syntax execution, TS/JSX compatibility, mappings, type inference, incomplete-editor input, all five bundlers, framework rendering, independently installed npm tarballs, Node loading, and VSIX packaging. CI repeats them on Linux, Windows, and macOS. See [architecture](docs/architecture.md), [contributing](CONTRIBUTING.md), and [release instructions](docs/releasing.md).

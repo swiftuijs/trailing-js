@@ -1,6 +1,6 @@
 # Contributing
 
-Use Node 22.12+ and the pnpm version pinned in `packageManager`. Install with `pnpm install --frozen-lockfile`. Run `pnpm check` and `pnpm format:check` before submitting changes. `pnpm test:watch` supports compiler development; `pnpm dev:react` and `pnpm dev:vue` run the examples after a build.
+Use Node 22.13+ or Node 24+ and the pnpm version pinned in `packageManager`. Install with `pnpm install --frozen-lockfile`. Run `pnpm check` and `pnpm format:check` before submitting changes. `pnpm test:watch` supports compiler development; `pnpm dev:react` and `pnpm dev:vue` run the examples after a build.
 
 For a syntax change, add execution or negative-diagnostic tests covering the new behavior, nearby ordinary JS/TS syntax, and nesting. For mapping changes, check real diagnostic/editor positions. Build integrations must be exercised with their actual tool. Avoid replacing parser behavior with broad string rewrites.
 
@@ -11,3 +11,28 @@ The editor can be debugged by opening `editors/vscode` in VS Code, running `pnpm
 The private root coordinates pnpm workspaces: compiler/toolchain in `packages/twill`, extension in `editors/vscode`, and its private TS-server bridge beneath it. Build with `pnpm build` before typechecking editor imports. All package bundles use Vite library mode; compiler declarations are emitted by `vite-plugin-dts`. See [the tooling guide](docs/tooling.md) for commands and artifact paths.
 
 For editor changes, run `pnpm editor:package` then `pnpm editor:test` (headless Linux: `xvfb-run -a pnpm editor:test`). Tests load the extracted VSIX and apply real completion/import/rename/fix edits and inspect Node source breakpoints. `TWILL_TEST_VSCODE_VERSION` selects another test version; `TWILL_TEST_VSCODE_PATH` uses an already downloaded executable. No application code runs during language assistance; starting the explicit debugger does execute the selected application file.
+
+## Package-owned tests
+
+Keep test sources, fixtures, configuration and test dependencies with the package they exercise. The root provides aggregate commands; it does not own a test suite. Build workspace dependencies before running an individual package's tests.
+
+| Package              | Test command                                         | Coverage                                                                     |
+| -------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `packages/twill`     | `pnpm --filter @swiftuijs/twill test:unit`           | Compiler, type checker, declarations, language-service API and five bundlers |
+| `packages/formatter` | `pnpm --filter @swiftuijs/twill-formatter test:unit` | Formatting, syntax preservation and idempotence                              |
+| `packages/linter`    | `pnpm --filter @swiftuijs/twill-linter test:unit`    | ESLint processor, rules and typed checks                                     |
+| `editors/vscode`     | `pnpm --filter twill test:unit`, `pnpm editor:test`  | TextMate grammar and real packaged extension host                            |
+| `apps/docs`          | `pnpm --filter @swiftuijs/twill-docs test:browser`   | Desktop/mobile documentation and playground                                  |
+| `examples/*`         | `pnpm test:examples`                                 | Example execution, production bundles and SSR rendering                      |
+
+`pnpm test` aggregates unit suites; `pnpm test:coverage` writes reports under each public package's `coverage/`. `pnpm test:browser` runs the compiler's React refresh suite and the documentation suite sequentially. Install Chromium with `pnpm --filter @swiftuijs/twill-docs exec playwright install --with-deps chromium` first. To use an existing browser, set `TWILL_CHROMIUM_PATH`. Browser artifacts stay outside the checkout, or under `TWILL_BROWSER_OUTPUT`, with separate directories for each package.
+
+Each public package owns `test:package` and its independent npm consumer. After `pnpm package:core && pnpm package:tooling`, `pnpm test:packed` verifies all three archives. These checks run outside the workspace and must not depend on hoisted development dependencies. The compiler owns shared TS-server protocol helpers and the TypeScript syntax corpus, reused by the editor and formatter without a cyclic workspace dependency. Compiler benchmarks live in `packages/twill/benchmarks`; the combined checker/formatter benchmark lives in `packages/formatter/benchmarks`.
+
+## Dependency updates
+
+Shared versions live in the `catalog` in `pnpm-workspace.yaml`; owning packages reference them with `catalog:`. pnpm converts catalog and workspace references into ordinary versions when packing. Commit manifest changes and the regenerated lockfile together, then run `pnpm install --frozen-lockfile`, `pnpm deps:check` and the relevant package tests. CI audits moderate-and-higher advisories and validates peer dependencies. Dependency update PR automation is disabled for this experimental project; maintainers review upgrades together.
+
+Newer major versions alone are not dependency defects. TypeScript 5.9.3 defines the current parser, checker and language-service contract; a TypeScript major migration needs conformance, compiler API, editor and independent consumer validation. The linter uses the ESLint 9 recommended rules to support both ESLint 9 and 10, tested with independently installed versions. VitePress 1.6.4 requires React 18 peers for its bundled DocSearch 3 integration; these exact versions are scoped to the docs package, while compiler and React example tests use React 19. Its Vite dependency is upgraded separately to patched Vite 6 through a scoped override. The declaration builder's optional Rspack peer exception applies only to `unplugin-dts`; Twill's Rspack 2 adapter is exercised directly. Revisit these constraints with upstream releases rather than replacing them with blanket peer or audit ignores.
+
+The published `@swiftuijs/ui@0.1.1` example dependency imports React types without declaring their optional peer. A version-scoped `packageExtensions` entry repairs its installation metadata; it can be removed when the library declares the peer upstream. This does not change compiler behavior or add component-specific handling.

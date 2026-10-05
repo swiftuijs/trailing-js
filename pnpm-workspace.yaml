@@ -26,3 +26,42 @@ allowBuilds:
 peerDependencyRules:
   allowedVersions:
     'unplugin-dts>@rspack/core': '^2'
+
+# Shared tool versions are reviewed together; TypeScript defines language semantics.
+catalog:
+  '@eslint/js': '^9.39.5'
+  '@playwright/test': '^1.63.0'
+  '@rspack/core': '^2.2.8'
+  '@types/node': '^26.6.4'
+  '@types/react': '^19.3.0'
+  '@types/react-dom': '^19.3.0'
+  '@types/vscode': '^1.140.0'
+  '@vitejs/plugin-react': '^6.1.1'
+  '@vitest/coverage-v8': '^5.0.3'
+  '@vscode/test-electron': '^3.1.0'
+  '@vscode/vsce': '^4.0.0'
+  '@vue/server-renderer': '^3.5.43'
+  'esbuild': '^0.28.2'
+  'eslint': '^10.12.0'
+  'prettier': '^3.9.9'
+  'react': '^19.3.0'
+  'react-dom': '^19.3.0'
+  'rollup': '^4.64.0'
+  'typescript': '5.9.3'
+  'vite': '^8.3.2'
+  'vitest': '^5.0.3'
+  'vscode-oniguruma': '^2.0.1'
+  'vscode-textmate': '^9.3.2'
+  'vue': '^3.5.43'
+  'webpack': '^5.111.1'
+  'yauzl': '^3.4.0'
+
+# The published UI library imports React declarations but omits their optional
+# type peer. Root-hoisted types used to mask it; fix only that package metadata.
+packageExtensions:
+  '@swiftuijs/ui@0.1.1':
+    peerDependencies:
+      '@types/react': '^18.0.0 || ^19.0.0'
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true

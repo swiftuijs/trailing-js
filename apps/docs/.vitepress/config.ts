@@ -1,7 +1,9 @@
 import { defineConfig } from 'vitepress';
 import { readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
+import { createRequire } from 'node:module';
 
+const require = createRequire(import.meta.url);
 const root = resolve(import.meta.dirname, '../../..');
 const repository = 'https://github.com/swiftuijs/twill';
 const grammar = (extension: string, scope: string) => ({
@@ -114,6 +116,9 @@ export default defineConfig({
     },
   },
   vite: {
+    // Markdown lives in the canonical reference directory, outside this package.
+    // Resolve its Vue imports from the docs package rather than root hoisting.
+    resolve: { alias: { vue: dirname(require.resolve('vue/package.json')) } },
     publicDir: resolve(import.meta.dirname, '../public'),
     build: { sourcemap: false },
   },

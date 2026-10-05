@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite';
-import { nodeViteConfig } from '../../scripts/node-vite-config.mjs';
+import { nodeViteConfig } from './scripts/node-vite-config.mjs';
 
 export default defineConfig(
   nodeViteConfig({

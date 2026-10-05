@@ -6,11 +6,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build && node ../../scripts/prepare-editor.mjs",
-    "package": "pnpm --filter twill... run build && pnpm verify && node ../../scripts/package-editor.mjs && node ../../scripts/verify-vsix.mjs",
+    "build": "vite build && node scripts/prepare-editor.mjs",
+    "package": "pnpm --filter twill... run build && pnpm verify && node scripts/package-editor.mjs && node tests/verify-vsix.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "verify": "node ../../scripts/verify-editor-plugin.mjs",
-    "test": "node ../../scripts/test-editor.mjs"
+    "verify": "node tests/verify-editor-plugin.mjs",
+    "test": "node tests/test-editor.mjs",
+    "test:unit": "vitest run",
+    "test:watch": "vitest"
   },
   "publisher": "swiftuijs",
   "license": "MIT",
@@ -101,11 +103,18 @@
   },
   "devDependencies": {
     "@swiftuijs/twill": "workspace:*",
-    "typescript": "^5.9.3",
-    "vite": "^8.3.2",
-    "@types/node": "^26.6.4",
-    "@types/vscode": "^1.140.0",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "@types/node": "catalog:",
+    "@types/vscode": "catalog:",
     "@swiftuijs/twill-formatter": "workspace:*",
-    "prettier": "^3.9.9"
+    "prettier": "catalog:",
+    "@vscode/test-electron": "catalog:",
+    "@vscode/vsce": "catalog:",
+    "vscode-textmate": "catalog:",
+    "vscode-oniguruma": "catalog:",
+    "yauzl": "catalog:",
+    "vitest": "catalog:",
+    "@types/react": "catalog:"
   }
 }

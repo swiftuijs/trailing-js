@@ -20,7 +20,14 @@
   },
   "scripts": {
     "build": "vite build",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:package": "node tests/consumer.mjs",
+    "prepack": "pnpm run build",
+    "benchmark:project": "node benchmarks/project.mjs",
+    "test": "pnpm run test:unit"
   },
   "dependencies": {
     "@swiftuijs/twill": "workspace:*",
@@ -28,11 +35,13 @@
     "acorn": "8.18.0"
   },
   "devDependencies": {
-    "vite": "^8.3.2",
+    "vite": "catalog:",
     "vite-plugin-dts": "^5.1.2",
-    "@types/node": "^26.6.4",
-    "typescript": "^5.9.3",
-    "prettier": "^3.9.9"
+    "@types/node": "catalog:",
+    "typescript": "catalog:",
+    "prettier": "catalog:",
+    "vitest": "catalog:",
+    "@vitest/coverage-v8": "catalog:"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"

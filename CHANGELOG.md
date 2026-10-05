@@ -2,6 +2,9 @@
 
 ## 0.8.0
 
+- Keep tests, browser fixtures, independent npm consumer verification and their dependencies in the owning workspace packages. Root commands aggregate package suites and coverage reports. Examples own their execution and rendering checks.
+- Centralize reviewed tool versions with pnpm catalogs, pin TypeScript semantics and docs compatibility dependencies, remove noisy dependency-update PR automation and refresh GitHub Actions. Dependency checks validate moderate-and-higher advisories and peer constraints.
+
 Add an independent `apps/docs` VitePress workspace with shared reference sources, English/Chinese guides, local search, Twill highlighting and an actual compiler playground in a disposable browser worker. GitHub Pages builds and desktop/mobile browser checks validate the site without running submitted code. Pin the stable documentation framework to patched Vite 6, with a dependency audit gate and maintained update configuration.
 
 Add the optional `@swiftuijs/twill/vite-react` adapter for Vite 8 / React plugin 6 Fast Refresh, retaining hook state through Twill and native TS edits. Fix Vite client import analysis incorrectly treating optional configuration as browser dependencies. Watch inherited and newly created/deleted configuration files, invalidate affected environment graphs, and report invalid live configuration without crashing the server.
