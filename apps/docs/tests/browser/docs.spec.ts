@@ -1,21 +1,34 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page, type TestInfo } from '@playwright/test';
+import { readFile } from 'node:fs/promises';
 
-test('documentation navigation, search, highlighting and responsive layout', async ({
+async function screenshot(page: Page, info: TestInfo, name: string) {
+  const path = info.outputPath(name + '.png');
+  await page.screenshot({ path, fullPage: true });
+  await info.attach(name, { path, contentType: 'image/png' });
+}
+async function editor(page: Page) {
+  const source = page.getByRole('textbox', { name: 'Twill source', exact: true });
+  await expect(source).toHaveAttribute('contenteditable', 'true');
+  return source;
+}
+const generated = (page: Page) =>
+  page.getByRole('textbox', { name: 'Generated TypeScript / TSX', exact: true });
+
+test('English documentation navigation, search, highlighting and responsive layout', async ({
   page,
 }, info) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('./');
   await expect(page).toHaveTitle(/Twill/);
+  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Twill');
   await expect(page.locator('vite-error-overlay')).toHaveCount(0);
   await expect(page.locator('div.language-twill code span[style]')).not.toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
-  const home = info.outputPath('home.png');
-  await page.screenshot({ path: home, fullPage: true });
-  await info.attach('home', { path: home, contentType: 'image/png' });
+  await screenshot(page, info, 'home');
   if (info.project.name === 'docs-mobile') {
     await page.getByRole('button', { name: 'mobile navigation' }).click();
     await page.getByRole('link', { name: 'Guide', exact: true }).last().click();
@@ -25,47 +38,168 @@ test('documentation navigation, search, highlighting and responsive layout', asy
   await page.getByRole('searchbox').fill('defer');
   await expect(page.locator('.VPLocalSearchBox .result')).not.toHaveCount(0);
   await page.keyboard.press('Escape');
-  await page.goto('zh/');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Twill');
-  await page.getByRole('link', { name: '开始使用', exact: true }).last().click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('开始使用');
+  const sitemap = await page.request.get('sitemap.xml');
+  expect(sitemap.ok()).toBe(true);
+  expect(await sitemap.text()).not.toContain('/zh/');
   expect(errors).toEqual([]);
 });
 
-test('actual compiler worker handles examples, errors and keyboard compilation', async ({
+test('live compilation, highlighted examples, located errors and recovery', async ({
   page,
 }, info) => {
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('playground');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Playground');
-  await page.getByRole('button', { name: 'Compile', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('Compiled');
-  const playground = info.outputPath('playground.png');
-  await page.screenshot({ path: playground, fullPage: true });
-  await info.attach('playground', { path: playground, contentType: 'image/png' });
-  await expect(page.getByLabel('Generated TypeScript / TSX')).toHaveValue(/=>/);
+  const source = await editor(page);
+  await expect(page.getByRole('status')).toContainText('Compiled in');
+  await expect(generated(page)).toContainText('=>');
+  await expect(source.locator('.twill-token-keyword')).not.toHaveCount(0);
+  await expect(generated(page).locator('.twill-token-keyword')).not.toHaveCount(0);
+  await screenshot(page, info, 'playground');
   await page.getByLabel('Example', { exact: true }).selectOption('cleanup');
-  await page.getByRole('button', { name: 'Compile', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('1 guard(s), 1 defer(s)');
-  await expect(page.getByLabel('Generated TypeScript / TSX')).toHaveValue(/finally/);
+  await expect(page.getByRole('status')).toContainText('1 guard · 1 defer');
+  await expect(generated(page)).toContainText('finally');
+  await expect(source.locator('.twill-contextual-keyword')).toHaveText(['defer', 'guard']);
   await page.getByLabel('Example', { exact: true }).selectOption('react');
-  await page.getByRole('button', { name: 'Compile', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('Compiled');
-  await expect(page.getByLabel('Generated TypeScript / TSX')).toHaveValue(/<Panel>/);
+  await expect(generated(page)).toContainText('<Panel>');
+  await expect(page.getByRole('status')).toContainText('Compiled in');
+  if (info.project.name === 'docs-mobile')
+    await page.getByRole('button', { name: 'mobile navigation' }).click();
+  await page.getByRole('switch', { name: 'Switch to dark theme' }).click();
+  if (info.project.name === 'docs-mobile')
+    await page.getByRole('button', { name: 'mobile navigation' }).click();
+  await screenshot(page, info, 'playground-dark-react');
   await page.getByLabel('Example', { exact: true }).selectOption('vue');
-  await page.getByRole('button', { name: 'Compile', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('Compiled');
-  await expect(page.getByLabel('Generated TypeScript / TSX')).toHaveValue(/default\s*:\s*\(/);
-  await page.getByLabel(/Twill source/).fill('fn {');
-  await page.getByRole('button', { name: 'Compile', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText('Compilation failed');
-  await expect(page.getByLabel('Generated TypeScript / TSX')).toHaveValue(/example.twillx/);
-  await page.getByLabel(/Twill source/).fill('export const result=[1].map { n in n+1 };');
-  await page.getByLabel(/Twill source/).press('Control+Enter');
-  await expect(page.getByRole('status')).toContainText('Compiled');
+  await expect(generated(page)).toContainText(/default\s*:\s*\(/);
+  await source.fill('fn {');
+  await expect(page.getByRole('alert')).toContainText('Unable to compile');
+  await expect(page.getByRole('button', { name: 'Copy output' })).toBeDisabled();
+  await expect(page.getByText('Last valid output')).toBeVisible();
+  await page.getByRole('button', { name: /Go to error/ }).click();
+  await expect(source).toBeFocused();
+  await expect(page.locator('.cm-lintPoint-error, .cm-lintRange-error')).not.toHaveCount(0);
+  await screenshot(page, info, 'playground-error');
+  await source.fill('export const result = [1].map { n in n + 42 };');
+  await source.press('Control+Enter');
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(generated(page)).toContainText('n + 42');
+  await expect(page.getByRole('button', { name: 'Copy output' })).toBeEnabled();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
+  await expect(page.getByRole('link', { name: 'Read the syntax guide →' })).toHaveAttribute(
+    'href',
+    '/twill/syntax',
+  );
   expect(errors).toEqual([]);
+});
+
+test('drafts, reset, output export and keyboard editing', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto('playground');
+  const source = await editor(page);
+  const draft = 'const greeting: string = "Hello Twill";\nconst result = [1].map { n in n + 7 };';
+  await source.fill(draft);
+  await expect(generated(page)).toContainText('n + 7');
+  await page.reload();
+  await editor(page);
+  await expect(source).toContainText('Hello Twill');
+  await expect(generated(page)).toContainText('n + 7');
+  await page.getByRole('button', { name: 'Copy output' }).click();
+  await expect(page.getByText('Output copied', { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('n + 7');
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Download', exact: true }).click();
+  const artifact = await download;
+  expect(artifact.suggestedFilename()).toBe('example.ts');
+  expect(await readFile((await artifact.path())!, 'utf8')).toContain('n + 7');
+  await source.press('Control+Home');
+  await source.press('Tab');
+  await expect(source.locator('.cm-line').first()).toHaveText(/^\s+const greeting/);
+  await source.press('Control+z');
+  await expect(source.locator('.cm-line')).toHaveText(draft.split('\n'));
+  await expect
+    .poll(() =>
+      page.evaluate(() => JSON.parse(localStorage.getItem('twill.playground.draft')!).source),
+    )
+    .toBe(draft);
+  await source.press('Escape');
+  await source.press('Tab');
+  await expect(source).not.toBeFocused();
+  await page.getByRole('button', { name: 'Reset example' }).click();
+  await expect(source).toContainText('greaterThanFour');
+  await expect(generated(page)).toContainText('greaterThanFour');
+  await expect(page.getByRole('button', { name: 'Reset example' })).toBeDisabled();
+  await source.fill(
+    '// defer { and guard const are comments\nconst text = "defer { guard const";\nconst result = [1].map { n in n };',
+  );
+  await expect(page.getByRole('status')).toContainText('Compiled in');
+  await expect(source.locator('.twill-contextual-keyword')).toHaveCount(0);
+});
+
+test('obsolete worker results are ignored and normal edits reuse one worker', async ({ page }) => {
+  await page.addInitScript(() => {
+    const NativeWorker = window.Worker;
+    let count = 0;
+    Object.defineProperty(window, '__twillWorkerCount', { get: () => count });
+    window.Worker = class extends NativeWorker {
+      constructor(url: string | URL, options?: WorkerOptions) {
+        super(url, options);
+        count++;
+        let handler: ((event: MessageEvent) => void) | null = null;
+        Object.defineProperty(this, 'onmessage', {
+          get: () => handler,
+          set: (value) => {
+            handler = value;
+          },
+        });
+        this.addEventListener('message', (event) => {
+          const delay = event.data.result?.code.includes('slowValue') ? 650 : 0;
+          setTimeout(() => handler?.call(this, event), delay);
+        });
+      }
+    };
+  });
+  await page.goto('playground');
+  const source = await editor(page);
+  await expect(page.getByRole('status')).toContainText('Compiled in');
+  await source.fill('const slowValue = [1].map { n in n + 1 };');
+  await expect(page.getByRole('status')).toHaveText('Compiling…');
+  await source.fill('const latestValue = [1].map { n in n + 99 };');
+  const published: string[] = [];
+  await page.exposeFunction('captureOutput', (value: string) => published.push(value));
+  await page.evaluate(() => {
+    const output = document.querySelector('[aria-label="Generated TypeScript / TSX"]')!;
+    new MutationObserver(() => {
+      (window as unknown as { captureOutput(value: string): void }).captureOutput(
+        output.textContent ?? '',
+      );
+    }).observe(output, { subtree: true, childList: true, characterData: true });
+  });
+  await expect(generated(page)).toContainText('latestValue');
+  expect(published.every((value) => !value.includes('slowValue'))).toBe(true);
+  await page.getByLabel('Example', { exact: true }).selectOption('react');
+  await expect(generated(page)).toContainText('<Panel>');
+  expect(
+    await page.evaluate(
+      () => (window as unknown as { __twillWorkerCount: number }).__twillWorkerCount,
+    ),
+  ).toBe(1);
+});
+
+test('a failed compiler download can be retried without reloading the page', async ({ page }) => {
+  let fail = true;
+  await page.route('**/compiler.worker-*.js', (route) =>
+    fail ? route.abort('failed') : route.continue(),
+  );
+  await page.goto('playground');
+  await editor(page);
+  await expect(page.getByRole('alert')).toContainText('Unable to compile');
+  await expect(page.getByRole('button', { name: 'Copy output' })).toBeDisabled();
+  fail = false;
+  await page.getByRole('button', { name: 'Retry compilation' }).click();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(generated(page)).toContainText('greaterThanFour');
+  await expect(page.getByRole('status')).toContainText('Compiled in');
 });

@@ -1,0 +1,186 @@
+{
+  "timestamp": "2026-10-05T03:01:19.124Z",
+  "version": "0.8.0",
+  "commit": "c92031615afff03296450c7cd6b1b2ae1f8ef536",
+  "workingTreeDirty": true,
+  "buildDigest": "ba1dcc818efe5924f608df65f6802533479330a7b71f20a2615cf4e7045ba5c6",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "arch": "x64",
+    "cpu": "AMD EPYC 9V74 80-Core Processor"
+  },
+  "methodology": {
+    "samples": 15,
+    "warmups": 5,
+    "cleanupWarmups": 50,
+    "sourceMaps": "high-resolution with embedded source",
+    "includesStartup": false,
+    "ordinaryClosureRuntimeCodeIdentical": true,
+    "componentRuntimeCodeIdenticalToNativeJSX": ["react", "vue"],
+    "cleanupReference": "Handwritten native finally loop; same observable additions, no registration closures or stack. Batch assertions included in both timings."
+  },
+  "results": [
+    {
+      "callbacks": 10,
+      "bytes": 599,
+      "uiViews": 10,
+      "uiBytes": 679,
+      "stages": {
+        "transformTS": {
+          "medianMs": 1.9586929999999825,
+          "p95Ms": 3.026488000000029
+        },
+        "transformJS": {
+          "medianMs": 0.7792379999999639,
+          "p95Ms": 1.6044370000000185
+        },
+        "unchangedTS": {
+          "medianMs": 1.0558070000000157,
+          "p95Ms": 1.5101940000000127
+        },
+        "pluginTS": {
+          "medianMs": 4.061072999999965,
+          "p95Ms": 6.36674099999999
+        },
+        "transformUI": {
+          "medianMs": 1.336100999999985,
+          "p95Ms": 3.2889539999999897
+        },
+        "pluginUI": {
+          "medianMs": 4.465445000000045,
+          "p95Ms": 11.000038000000018
+        },
+        "typescriptOnly": {
+          "medianMs": 1.4550010000000384,
+          "p95Ms": 5.614521999999965
+        },
+        "map100Positions": {
+          "medianMs": 0.01784700000007433,
+          "p95Ms": 0.09836900000004789
+        }
+      }
+    },
+    {
+      "callbacks": 100,
+      "bytes": 6089,
+      "uiViews": 100,
+      "uiBytes": 6889,
+      "stages": {
+        "transformTS": {
+          "medianMs": 13.13042100000007,
+          "p95Ms": 20.430864000000042
+        },
+        "transformJS": {
+          "medianMs": 6.368923999999879,
+          "p95Ms": 14.235333000000082
+        },
+        "unchangedTS": {
+          "medianMs": 8.841855000000123,
+          "p95Ms": 12.839159999999993
+        },
+        "pluginTS": {
+          "medianMs": 19.50767699999983,
+          "p95Ms": 26.96834200000012
+        },
+        "transformUI": {
+          "medianMs": 10.395154000000048,
+          "p95Ms": 23.12767299999996
+        },
+        "pluginUI": {
+          "medianMs": 26.95940900000005,
+          "p95Ms": 38.298881000000165
+        },
+        "typescriptOnly": {
+          "medianMs": 5.981678000000102,
+          "p95Ms": 8.818899999999758
+        },
+        "map100Positions": {
+          "medianMs": 0.0077519999999822176,
+          "p95Ms": 0.008483000000069296
+        }
+      }
+    },
+    {
+      "callbacks": 1000,
+      "bytes": 61889,
+      "uiViews": 1000,
+      "uiBytes": 69889,
+      "stages": {
+        "transformTS": {
+          "medianMs": 129.22637699999996,
+          "p95Ms": 154.85667699999976
+        },
+        "transformJS": {
+          "medianMs": 61.60395299999982,
+          "p95Ms": 65.37223300000005
+        },
+        "unchangedTS": {
+          "medianMs": 100.62812099999883,
+          "p95Ms": 111.10029200000008
+        },
+        "pluginTS": {
+          "medianMs": 215.0369439999995,
+          "p95Ms": 275.524413000001
+        },
+        "transformUI": {
+          "medianMs": 122.20899700000155,
+          "p95Ms": 139.70172699999966
+        },
+        "pluginUI": {
+          "medianMs": 297.0111930000021,
+          "p95Ms": 353.65774500000043
+        },
+        "typescriptOnly": {
+          "medianMs": 59.01036000000022,
+          "p95Ms": 78.51697599999898
+        },
+        "map100Positions": {
+          "medianMs": 0.0057589999996707775,
+          "p95Ms": 0.007211000000097556
+        }
+      }
+    }
+  ],
+  "cleanupResults": [
+    {
+      "registrations": 1,
+      "iterations": 10000,
+      "defer": {
+        "medianMs": 0.24717400000008638,
+        "p95Ms": 0.5797769999990123
+      },
+      "nativeFinally": {
+        "medianMs": 0.05153799999970943,
+        "p95Ms": 0.09641499999997905
+      },
+      "medianRatio": 4.795956381727656
+    },
+    {
+      "registrations": 10,
+      "iterations": 10000,
+      "defer": {
+        "medianMs": 1.0852620000005118,
+        "p95Ms": 1.379877999999735
+      },
+      "nativeFinally": {
+        "medianMs": 0.09336099999927683,
+        "p95Ms": 0.10721200000261888
+      },
+      "medianRatio": 11.624361350123907
+    },
+    {
+      "registrations": 100,
+      "iterations": 10000,
+      "defer": {
+        "medianMs": 20.21863300000041,
+        "p95Ms": 21.65654799999902
+      },
+      "nativeFinally": {
+        "medianMs": 0.8519480000031763,
+        "p95Ms": 0.9741340000000491
+      },
+      "medianRatio": 23.73223835248751
+    }
+  ]
+}

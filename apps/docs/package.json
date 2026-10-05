@@ -8,20 +8,31 @@
     "build": "vitepress build",
     "preview": "vitepress preview",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "test:unit": "vitest run"
   },
   "dependencies": {
+    "@codemirror/autocomplete": "^6.20.3",
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/lang-javascript": "^6.2.5",
+    "@codemirror/language": "^6.12.4",
+    "@codemirror/lint": "^6.9.7",
+    "@codemirror/search": "^6.7.2",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.13",
+    "@lezer/highlight": "^1.2.5",
     "@swiftuijs/twill": "workspace:*",
     "vue": "catalog:"
   },
   "devDependencies": {
-    "vitepress": "1.6.4",
-    "vue-tsc": "^3.1.8",
-    "typescript": "catalog:",
+    "@playwright/test": "catalog:",
     "@types/node": "catalog:",
+    "@types/react": "18.3.31",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "@types/react": "18.3.31",
-    "@playwright/test": "catalog:"
+    "typescript": "catalog:",
+    "vitepress": "1.6.4",
+    "vitest": "catalog:",
+    "vue-tsc": "^3.1.8"
   }
 }

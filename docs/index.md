@@ -30,4 +30,4 @@ const doubled = [1, 2, 3].map { value in
 
 Twill adds syntax, not a new JavaScript engine. Ordinary closures and guards lower to ordinary arrows and branches. Cleanup and complex child collection do allocate; see [measured performance](./performance.md).
 
-The 0.x language is **experimental**. Read the [supported contract and remaining limits](./readiness.md) before adopting it. Packages are currently distributed as reviewed tarballs and VSIX artifacts; public registry publication is separate.
+Twill is **experimental**. Read the [supported contract and remaining limits](./readiness.md) before adopting it. Packages are currently distributed as reviewed tarballs and VSIX artifacts; public registry publication is separate.
