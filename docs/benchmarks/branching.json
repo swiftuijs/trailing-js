@@ -1,0 +1,61 @@
+{
+  "node": "v24.19.0",
+  "cpu": "AMD EPYC 9V74 80-Core Processor",
+  "packageVersion": "0.9.0",
+  "iterations": 1000000,
+  "samples": 15,
+  "scope": "Warmed isolated-process V8 microbenchmarks; expression switch compares native local assignment. JIT inlining can hide the extra IIFE. These are not application or cross-engine guarantees.",
+  "results": [
+    {
+      "name": "destructured-guard",
+      "bytes": 75,
+      "nativeBytes": 75,
+      "dialect": {
+        "medianMs": 2.6456030000000084,
+        "p95Ms": 2.822180000000003,
+        "checksum": 1999998
+      },
+      "native": {
+        "medianMs": 2.516246999999993,
+        "p95Ms": 2.7523139999999984,
+        "checksum": 1999998
+      },
+      "ratio": 1.0514083076899907,
+      "extraIIFE": false
+    },
+    {
+      "name": "direct-value-switch",
+      "bytes": 77,
+      "nativeBytes": 77,
+      "dialect": {
+        "medianMs": 2.897804000000008,
+        "p95Ms": 3.2651699999999977,
+        "checksum": 4999998
+      },
+      "native": {
+        "medianMs": 2.8777840000000054,
+        "p95Ms": 3.173121000000009,
+        "checksum": 4999998
+      },
+      "ratio": 1.006956741715154,
+      "extraIIFE": false
+    },
+    {
+      "name": "expression-value-switch",
+      "bytes": 95,
+      "nativeBytes": 90,
+      "dialect": {
+        "medianMs": 2.6899099999999976,
+        "p95Ms": 3.2197319999999934,
+        "checksum": 9999996
+      },
+      "native": {
+        "medianMs": 4.614001000000002,
+        "p95Ms": 5.157538000000017,
+        "checksum": 9999996
+      },
+      "ratio": 0.5829886036002152,
+      "extraIIFE": true
+    }
+  ]
+}

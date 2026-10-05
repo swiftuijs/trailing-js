@@ -34,6 +34,22 @@ Each cleanup workload invokes a function 10,000 times per batch. The single-dire
 
 The single-direct output matches a minimal handwritten callback/finally implementation after ordinary host minification. V8 can optimize this small, warmed-up example; its near-equal timing does not mean every cleanup closure is free. Dynamic registration exposes allocation and dispatch overhead in a tight synchronous loop. These measurements do not establish an application slowdown ratio, real I/O cleanup latency, or results on other engines.
 
+## Guards and switch expressions
+
+Destructured guards add a temporary and a nullish branch, followed by native destructuring. They add no wrapper object, callback or library. Direct-return switch expressions add a scoped native switch without a function. Other expression positions use one synchronous lexical arrow IIFE; `this`, `arguments` and scheduling retain native semantics. Selected object cases destructure the discriminator too, so a discriminator getter is read twice. Rest/default costs remain native destructuring costs.
+
+The [branching report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/branching.json) measures 1,000,000 calls per sample, 15 samples after warmup, with each native/dialect case in a separate process on Node 24.19 / AMD EPYC 9V74. Isolated processes avoid shared call-site feedback favoring whichever function runs first.
+
+| Workload                      | Twill median | Native median | Minified function bytes Twill / native |
+| ----------------------------- | ------------ | ------------- | -------------------------------------- |
+| Destructured guard            | 2.65 ms      | 2.52 ms       | 75 / 75                                |
+| Direct-return value switch    | 2.90 ms      | 2.88 ms       | 77 / 77                                |
+| Switch in a local initializer | 2.69 ms      | 4.61 ms       | 95 / 90                                |
+
+The initializer comparison uses a natural native switch assigning a local. V8 can inline the IIFE and optimize these small hot functions differently; its shorter timing is not a general speedup claim or evidence that closures never allocate. Other engines, cold execution, larger branches and captured values need application measurements. Await/yield inside a switch requires a direct return, avoiding hidden promise conversion or additional async scheduling.
+
+The [application bundle report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/bundle-size.json) covers four supported paths. Guards, callbacks and a single React child match the native minified byte size. The direct object-pattern switch is 205 bytes versus 203 bytes: its explicit lexical block adds two braces. Tests enforce those exact output budgets and runtime parity. There is no Twill runtime imported into these application fixtures. Dynamic cleanup, general child collection and arbitrary expression switches have separate costs and are outside this parity claim.
+
 ## Mixed projects and editing
 
 The project benchmark uses isolated processes, one-third native TypeScript and two-thirds Twill, plus a module importing every file. Cold checks include TypeScript standard libraries; warm checks and edited-hover requests use 15 samples. Values below come from the [project report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/project.json) on the same host.
@@ -74,6 +90,7 @@ pnpm --filter @swiftuijs/twill build
 pnpm --filter @swiftuijs/twill-formatter build
 pnpm benchmark --output compiler-results.json
 pnpm benchmark:project --output project-results.json
+pnpm benchmark:branching --output branching-results.json
 pnpm --filter @swiftuijs/twill test:size --output ../../bundle-results.json
 pnpm package:core && pnpm package:tooling
 pnpm editor:package

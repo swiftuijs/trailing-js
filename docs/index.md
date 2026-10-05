@@ -3,7 +3,7 @@ layout: home
 hero:
   name: Twill
   text: TypeScript, with a different rhythm.
-  tagline: Trailing closures, guard and defer. Compile to ordinary TypeScript and JavaScript; keep your frameworks, tools and engines.
+  tagline: Trailing closures, guard, defer and typed outcome matching. Compile to ordinary TypeScript and JavaScript; keep your frameworks, tools and engines.
   actions:
     - theme: brand
       text: Get started

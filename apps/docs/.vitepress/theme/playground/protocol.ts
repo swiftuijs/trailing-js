@@ -12,7 +12,14 @@ export interface CompileError {
 }
 export type CompileResponse = { id: number } & (
   | {
-      result: { code: string; closures: number; guards: number; defers: number; duration: number };
+      result: {
+        code: string;
+        closures: number;
+        guards: number;
+        defers: number;
+        switches: number;
+        duration: number;
+      };
       error?: never;
     }
   | { error: CompileError; result?: never }

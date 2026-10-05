@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.0
+
+- Add destructured nullish guards with native nested/rest/default bindings, source-backed edits and no runtime library. Pattern bindings initialize only after the exiting failure branch.
+- Add value-producing switch expressions and discriminated-union object cases. TypeScript checks missing cases; direct returns lower to native switches, other expression positions use a synchronous lexical IIFE. Await/yield inside an expression requires a direct return. Native switch statements retain their semantics.
+- Support the syntax across formatting, mapped linting, editor completion/rename/references, source export and standard builds. Include practical workflow and playground examples, strict type and runtime checks, output parity fixtures and a scoped branching benchmark.
+
 ## 0.8.0
 
 - Add original-source references across unsaved TS/JS/Twill documents, including native TS-server requests. Share one pinned TypeScript engine on disk between editor hosts and expose a lightweight standalone formatter for browsers and editors.

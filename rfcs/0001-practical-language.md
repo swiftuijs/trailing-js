@@ -1,6 +1,6 @@
 # RFC 0001: Practical language direction
 
-**Status: Draft.** This document proposes product priorities and acceptance criteria. Candidate syntax below is not implemented and is not a language specification. The public [language guide](../docs/language.md) and [syntax contract](../docs/syntax.md) describe shipped behavior.
+**Status: Active design guidance.** This document defines product priorities and acceptance criteria. Unimplemented candidates are identified explicitly; this is not a language specification. The public [language guide](../docs/language.md) and [syntax contract](../docs/syntax.md) describe shipped behavior.
 
 ## Problem and product promise
 
@@ -18,47 +18,29 @@ The [ledger workflow](../examples/general/workflow.twill) exercises all three us
 
 ## Borrow the benefit, choose the native mechanism
 
-| Swift idea                                            | Twill direction                                                                                                                                | Priority / status                                                      |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
-| Early exit and optional binding                       | Existing `guard` / `guard const`; consider destructured optional bindings with explicit nullish semantics                                      | Current foundation; small syntax candidate next                        |
-| Enums with associated values                          | Ordinary TS discriminated unions, native narrowing and existing result libraries                                                               | Usable now; no new enum runtime or parallel type system                |
-| Exhaustive branching                                  | Type-aware ESLint checks native switches, even with a default; evaluate expression matching only if it offers a substantial additional benefit | Lint available; expression syntax is research                          |
-| Branch-scoped optional binding (`if let`)             | Consider an explicit immutable branch binding, without changing JS `let`                                                                       | Lower-priority candidate; spelling undecided                           |
-| Immutable data discipline                             | Native `const`, `readonly`, readonly collections and application-specific validation                                                           | Usable now; no hidden freezing or copying                              |
-| Typed failures                                        | Local TS unions or normal libraries for expected failures; exceptions retain JS propagation                                                    | Usable now; no blanket exception-to-null conversion                    |
-| Structured concurrency                                | Explicit `AbortSignal`, ownership and normal library APIs                                                                                      | Patterns now; task groups require separate evidence and runtime design |
-| Property wrappers, observation, macros and decorators | Prefer explicit calls and framework APIs; hidden effects must justify their own semantics and tooling                                          | No automatic port; high scrutiny                                       |
-| Struct copying, actors and ownership enforcement      | Would change identity, scheduling or the semantic system                                                                                       | Outside the baseline                                                   |
+| Swift idea                                            | Twill direction                                                                                                         | Priority / status                                                      |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| Early exit and optional binding                       | `guard` / `guard const` with destructured optional bindings and explicit nullish semantics                              | Implemented foundation                                                 |
+| Enums with associated values                          | Ordinary TS discriminated unions, native narrowing and existing result libraries                                        | Usable now; no new enum runtime or parallel type system                |
+| Exhaustive branching                                  | Checker-proven expressions over native TS unions; typed ESLint also checks native switches, including explicit defaults | Implemented; broader matching remains a candidate                      |
+| Branch-scoped optional binding (`if let`)             | Consider an explicit immutable branch binding, without changing JS `let`                                                | Lower-priority candidate; spelling undecided                           |
+| Immutable data discipline                             | Native `const`, `readonly`, readonly collections and application-specific validation                                    | Usable now; no hidden freezing or copying                              |
+| Typed failures                                        | Local TS unions or normal libraries for expected failures; exceptions retain JS propagation                             | Usable now; no blanket exception-to-null conversion                    |
+| Structured concurrency                                | Explicit `AbortSignal`, ownership and normal library APIs                                                               | Patterns now; task groups require separate evidence and runtime design |
+| Property wrappers, observation, macros and decorators | Prefer explicit calls and framework APIs; hidden effects must justify their own semantics and tooling                   | No automatic port; high scrutiny                                       |
+| Struct copying, actors and ownership enforcement      | Would change identity, scheduling or the semantic system                                                                | Outside the baseline                                                   |
 
 This is a prioritization proposal, not a commitment to implement every row. New syntax should beat equivalent native TS in a specific task. Reducing punctuation alone does not justify weakening inference, source positions or interoperability.
 
-## Candidate: destructured guard bindings
+## Early exit and typed outcome matching
 
-Optional object results occur in handlers and services. The current explicit form is:
+Destructured `guard const` checks the whole initializer once and destructures only after the exiting failure branch. Native field defaults, getters, annotations and temporal dead zones remain explicit. It does not validate untrusted shapes or test individual fields for truthiness.
 
-```twill
-guard const account = findAccount(id) else { return undefined; }
-const { name, plan } = account;
-return { name, plan };
-```
+Switch expressions use native TS unions. Object cases bind the selected variant's payload; the checker proves exhaustiveness without an enum wrapper or separate type system. Native switch statements retain their grammar and semantics. Direct returns lower to native branches; other expression positions require a synchronous IIFE and disclose that cost. Await/yield inside the switch requires a direct return; no implicit async scheduling is added.
 
-A possible extension would combine the nullish test and destructuring:
+The [syntax contract](../docs/syntax.md) defines evaluation order, scopes, discriminator reads, source positions and limitations. The optional `recommendedTypeChecked` linter additionally checks native switches, including omitted union variants when a default exists. Transpile-only builds cannot prove arbitrary external types.
 
-```text
-// Candidate only: not accepted by the current compiler.
-guard const { name, plan } = findAccount(id) else { return undefined; }
-return { name, plan };
-```
-
-Its intended lowering would evaluate the whole initializer once, test the whole value for null/undefined and destructure only after the exiting branch. It must not test individual fields for truthiness, allocate wrapper objects, or imply that an untrusted object has been validated. Missing properties, getters and default expressions should follow native destructuring behavior.
-
-A focused syntax RFC must settle failure-branch name visibility, initializer name resolution, temporary-name hygiene, nested/rest/default patterns, annotations, narrowing and mapped edits before implementation. Reordering bindings can change temporal dead zones or shadowing; a plausible text rewrite is not enough. Do not introduce new meanings for JS `let` or require configuration to recognize a declaration.
-
-## Exhaustiveness before new matching syntax
-
-Native TS unions already provide payload typing. The opt-in `recommendedTypeChecked` linter configuration enables `@typescript-eslint/switch-exhaustiveness-check` with `considerDefaultExhaustiveForUnions: false`. Adding a variant exposes missing cases in Twill and ordinary TS files. This is a lint guarantee only when linting is run, not a guarantee of transpilation or the compiler alone.
-
-A future match/switch expression needs a separate case demonstrating why native `switch` plus this check is insufficient. Its contract must specify subject evaluation exactly once, branch laziness, narrowing, exhaustiveness, scopes, side effects and interactions with `await`, `yield`, returns and loop exits. Do not hide an async IIFE or promise conversion behind an expression or pretend a transpile-only build can prove all external types. No keyword or final grammar is selected here.
+If expressions, optional-success bindings and broader matching predicates remain candidates. They need evidence beyond reducing punctuation, and must preserve inference, exact edits and the runtime model.
 
 ## Error handling and concurrency stay honest
 
@@ -99,8 +81,8 @@ No feature is complete when only the parser accepts it. There is no target numbe
 ## Validation and sequence
 
 1. Establish practical patterns, an executable non-UI workflow and opt-in exhaustive linting using current types and syntax.
-2. Specify and review the narrow destructured-guard candidate; implement it only with the full acceptance gate.
-3. Address adoption costs and export/refactoring gaps before a broader expression-matching experiment.
+2. Apply the full acceptance gate to every extension of guards or expression matching.
+3. Address adoption costs, incomplete-input assistance and refactoring gaps before expanding expression matching.
 4. Pilot in a few real backend and component projects. Compare equivalent TS/Twill tasks: understanding control flow, extending a state union, diagnosing failures and managing resources. Track setup effort, editor failures, build/editor latency and generated runtime behavior on the same hardware and project.
 
 Fewer lines are insufficient evidence. Look for clearer reviews, omissions discovered before execution, correct failure/cleanup behavior and an easy route back to native TS. Small pilots supply feedback rather than proof of universal productivity. A stable production claim also needs the existing release and support criteria, not just a successful demo.

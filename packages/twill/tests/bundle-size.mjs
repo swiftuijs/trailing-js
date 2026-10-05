@@ -19,6 +19,30 @@ const fixtures = [
       'export function run(input: number[] | undefined) { const values = input; if (values == null) return []; return values.filter(value => value >= 0).map(value => value * 2); }',
   },
   {
+    name: 'destructured-guard',
+    extension: 'twill',
+    nativeExtension: 'ts',
+    inputs: [null, undefined, { value: 0 }, { value: 3 }],
+    sugar:
+      'export function run(input: {value:number}|null|undefined) { guard const {value}=input else{return 0;} return value*2; }',
+    native:
+      'export function run(input: {value:number}|null|undefined) { const valueOrNull=input; if(valueOrNull==null)return 0; const {value}=valueOrNull; return value*2; }',
+  },
+  {
+    name: 'direct-pattern-switch',
+    maxExtraBytes: 2,
+    extension: 'twill',
+    nativeExtension: 'ts',
+    inputs: [
+      { kind: 'ok', value: 3, extra: true },
+      { kind: 'bad', error: 'x' },
+    ],
+    sugar:
+      'export function run(input: {kind:"ok";value:number;extra?:boolean}|{kind:"bad";error:string}) { return switch(input){case {kind:"ok",value,...rest}: [value,rest];case {kind:"bad",error}: error;}; }',
+    native:
+      'export function run(input: {kind:"ok";value:number;extra?:boolean}|{kind:"bad";error:string}) { const subject=input; switch(subject.kind){case "ok": {const {kind,value,...rest}=subject; return [value,rest];}case "bad": {const {kind,error}=subject;return error;}} throw new TypeError("Non-exhaustive switch expression"); }',
+  },
+  {
     name: 'react-single-child',
     extension: 'twillx',
     nativeExtension: 'tsx',
@@ -51,10 +75,10 @@ try {
     const dialect = await buildSource(fixture.sugar, fixture.extension, [twill({ root })]);
     // Identifier mangling depends on input character frequencies. Compare bytes
     // and execution rather than requiring the same arbitrary short names.
-    assert.equal(
-      Buffer.byteLength(dialect.code),
-      Buffer.byteLength(native.code),
-      `${fixture.name}: application output grew beyond native TS/JSX`,
+    assert(
+      Buffer.byteLength(dialect.code) <=
+        Buffer.byteLength(native.code) + (fixture.maxExtraBytes ?? 0),
+      `${fixture.name}: application output exceeded its native comparison budget`,
     );
     assert(
       !dialect.inputs.some((input) => /node_modules/.test(input)),
@@ -73,7 +97,7 @@ try {
     const nativeModule = await evaluate(native.code);
     const dialectModule = await evaluate(dialect.code);
     if (fixture.extension === 'twill')
-      for (const input of [undefined, null, [], [-2, -0, 0, 1, 2, NaN, Infinity]])
+      for (const input of fixture.inputs ?? [undefined, null, [], [-2, -0, 0, 1, 2, NaN, Infinity]])
         assert.deepEqual(dialectModule.run(input), nativeModule.run(input));
     else {
       const Card = (props) => props.children;
@@ -84,7 +108,8 @@ try {
       bytes: Buffer.byteLength(dialect.code),
       gzipBytes: gzipSync(dialect.code).length,
       nativeBytes: Buffer.byteLength(native.code),
-      byteParity: true,
+      byteParity: Buffer.byteLength(dialect.code) === Buffer.byteLength(native.code),
+      extraBytes: Buffer.byteLength(dialect.code) - Buffer.byteLength(native.code),
       behaviorParity: true,
       frameworkRuntimeExternal: fixture.extension === 'twillx',
     });
@@ -93,7 +118,7 @@ try {
     node: process.version,
     packageVersion: JSON.parse(readFileSync(new URL('../package.json', import.meta.url))).version,
     scope:
-      'Minified application output for two representative supported paths; excludes host/framework runtime and does not cover dynamic cleanup or child collection.',
+      'Minified application output for four representative supported paths; excludes host/framework runtime and does not cover expression IIFEs, dynamic cleanup or child collection.',
     results,
   };
   const output = process.argv.indexOf('--output');

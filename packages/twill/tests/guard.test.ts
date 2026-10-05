@@ -93,11 +93,8 @@ describe('general-purpose guards', () => {
     expect(() => transform('function f(v) { guard v else { (()=>{return;})(); } }')).toThrow(
       TwillSyntaxError,
     );
-    expect(() => transform('function f(v) { guard const {x} = v else { return; } }')).toThrow(
-      /one identifier/,
-    );
     expect(() => transform('function f(v) { guard const x = v, y = v else { return; } }')).toThrow(
-      /one identifier/,
+      /one binding declaration/,
     );
     expect(() => transform('function f(v) { if(v) guard const x = v else { return; } }')).toThrow(
       /requires a block/,

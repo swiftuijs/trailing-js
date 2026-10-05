@@ -26,7 +26,7 @@ pnpm build                # all workspace bundles and compiler declarations
 pnpm check                # build, typecheck, tests, consumer checks, packaged VSIX probes
 pnpm format:check
 pnpm test:coverage
-pnpm package:core         # swiftuijs-twill-0.8.0.tgz at the root
+pnpm package:core         # swiftuijs-twill-0.9.0.tgz at the root
 pnpm editor:package       # dist/twill.vsix
 pnpm editor:test          # real VS Code extension-host tests against the VSIX
 # Headless Linux:

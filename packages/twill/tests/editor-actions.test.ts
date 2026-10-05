@@ -300,6 +300,56 @@ it('renames guard bindings and defer captures without editing generated helpers'
   expect(project.text(file('main.twill'))).toContain('defer { console.log(label); }');
 });
 
+it('renames and completes moved destructuring bindings in guards and switch arms', () => {
+  const source = `type Result={kind:'ok';value:number}|{kind:'bad';error:string};
+  export function run(input: {result:Result}|null) {
+    guard const {result: item}=input else {return '';}
+    return switch(item){case {kind:'ok',value: amount}: amount.toFixed();case {kind:'bad',error}: error;};
+  }`;
+  const { editor, project, file, apply } = fixture({ 'main.twill': source });
+  expect(project.diagnostics()).toEqual([]);
+  const declaration = source.indexOf('amount}');
+  const usages = editor.references(file('main.twill'), declaration + 1)!;
+  expect(usages).toHaveLength(2);
+  for (const usage of usages)
+    expect(source.slice(usage.textSpan.start, usage.textSpan.start + usage.textSpan.length)).toBe(
+      'amount',
+    );
+  const edits = editor.rename(file('main.twill'), declaration + 1, 'total')!;
+  expect(edits).toHaveLength(2);
+  apply(edits);
+  expect(project.diagnostics()).toEqual([]);
+  const guardEdits = editor.rename(
+    file('main.twill'),
+    source.indexOf('item}=') + 1,
+    'resultValue',
+  )!;
+  expect(guardEdits).toHaveLength(2);
+  apply(guardEdits);
+  expect(project.diagnostics()).toEqual([]);
+  const incomplete = project.text(file('main.twill'))!.replace('total.toFixed()', 'total.');
+  project.update(file('main.twill'), incomplete);
+  const completions = editor.completions(file('main.twill'), incomplete.indexOf('total.') + 6);
+  expect(completions.info?.entries.map((entry) => entry.name)).toContain('toFixed');
+});
+
+it('renames union discriminator contracts and payload shorthand bindings', () => {
+  const source =
+    'type Result={kind:"ok";value:number}|{kind:"bad";error:string};export function run(input:Result){return switch(input){case {kind:"ok",value}: value;case {kind:"bad",error}: error;};}';
+  const { editor, project, file, apply } = fixture({ 'main.twill': source });
+  const rename = editor.rename(file('main.twill'), source.indexOf('kind:') + 1, 'tag');
+  expect(rename).toBeDefined();
+  apply(rename!);
+  expect(project.diagnostics()).toEqual([]);
+  const updated = project.text(file('main.twill'))!;
+  expect(updated).toContain('case {tag:"ok",value}');
+  const binding = editor.rename(file('main.twill'), updated.indexOf('value}') + 1, 'amount');
+  expect(binding).toBeDefined();
+  apply(binding!);
+  expect(project.text(file('main.twill'))).toContain('value: amount');
+  expect(project.diagnostics()).toEqual([]);
+});
+
 it('discovers created files and drops deleted roots without resetting other transforms', () => {
   const { project, editor, file } = fixture({
     'main.twill': 'export const values = [1].map { n in n };',

@@ -1,0 +1,47 @@
+{
+  "node": "v24.19.0",
+  "packageVersion": "0.9.0",
+  "scope": "Minified application output for four representative supported paths; excludes host/framework runtime and does not cover expression IIFEs, dynamic cleanup or child collection.",
+  "results": [
+    {
+      "name": "validated-pipeline",
+      "bytes": 88,
+      "gzipBytes": 103,
+      "nativeBytes": 88,
+      "byteParity": true,
+      "extraBytes": 0,
+      "behaviorParity": true,
+      "frameworkRuntimeExternal": false
+    },
+    {
+      "name": "destructured-guard",
+      "bytes": 86,
+      "gzipBytes": 96,
+      "nativeBytes": 86,
+      "byteParity": true,
+      "extraBytes": 0,
+      "behaviorParity": true,
+      "frameworkRuntimeExternal": false
+    },
+    {
+      "name": "direct-pattern-switch",
+      "bytes": 205,
+      "gzipBytes": 172,
+      "nativeBytes": 203,
+      "byteParity": false,
+      "extraBytes": 2,
+      "behaviorParity": true,
+      "frameworkRuntimeExternal": false
+    },
+    {
+      "name": "react-single-child",
+      "bytes": 121,
+      "gzipBytes": 126,
+      "nativeBytes": 121,
+      "byteParity": true,
+      "extraBytes": 0,
+      "behaviorParity": true,
+      "frameworkRuntimeExternal": true
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import MagicString from 'magic-string';
 import { Parser, tokTypes } from 'acorn';
 import { parse } from './parser.js';
 import { lowerDefers } from './defer.js';
+import { lowerSwitchExpressions } from './branches.js';
 import {
   originalPositionFor,
   generatedPositionFor,
@@ -87,6 +88,7 @@ export function transform(source: string, options: TransformOptions = {}) {
     calls: Node[];
     guards: Node[];
     defers: Node[];
+    switches: Node[];
     comments: { start: number; end: number; value: string; type: string }[];
     closures: ClosureMetadata[];
   };
@@ -104,6 +106,20 @@ export function transform(source: string, options: TransformOptions = {}) {
     );
   }
   const code = new MagicString(source);
+  const usedNames = new Set<string>();
+  const patternGuards = parsed.guards.filter(
+    (guard) => guard.binding && guard.binding.declarations[0].id.type !== 'Identifier',
+  );
+  if (
+    patternGuards.length ||
+    parsed.switches.length ||
+    parsed.defers.length ||
+    /\.twillx$/.test(filename.split(/[?#]/, 1)[0]!)
+  )
+    walk(parsed.ast, (node) => {
+      if (node.type === 'Identifier') usedNames.add(node.name);
+    });
+  let guardCounter = 0;
   for (const guard of parsed.guards) {
     // A guard is one source statement. Without these braces an outer `else`
     // would bind to the lowered inner if (JavaScript's dangling-else rule).
@@ -115,7 +131,22 @@ export function transform(source: string, options: TransformOptions = {}) {
       const binding = guard.binding.declarations[0].id;
       // Nullish checks preserve false, 0 and empty strings. The original
       // initializer runs once and the binding stays in the surrounding scope.
-      code.remove(guard.start, guard.start + 'guard'.length);
+      if (binding.type === 'Identifier') code.remove(guard.start, guard.start + 'guard'.length);
+      else {
+        let temporary: string;
+        do temporary = `__twillGuard${guardCounter++}`;
+        while (usedNames.has(temporary));
+        usedNames.add(temporary);
+        // Move native pattern tokens intact, preserving editor definitions and
+        // initializer TDZ/shadowing. A type annotation belongs to the temporary.
+        const patternEnd = binding.typeAnnotation?.start ?? binding.end;
+        code.overwrite(guard.start, binding.start, `const ${temporary}`);
+        code.move(binding.start, patternEnd, guard.end);
+        code.prependRight(binding.start, '; const ');
+        code.appendLeft(patternEnd, ` = ${temporary};`);
+        code.overwrite(guard.elseStart, guard.elseStart + 4, `; if (${temporary} == null)`);
+        continue;
+      }
       code.overwrite(
         guard.elseStart,
         guard.elseStart + 'else'.length,
@@ -180,11 +211,6 @@ export function transform(source: string, options: TransformOptions = {}) {
     return edits.toString();
   };
   let counter = 0;
-  const usedNames = new Set<string>();
-  if (componentCalls.size || parsed.defers.length)
-    walk(parsed.ast, (node) => {
-      if (node.type === 'Identifier') usedNames.add(node.name);
-    });
   for (const node of parsed.calls) {
     const { callEnd, hadParens, originalArgs, closures } = node.trailing;
     const component = componentCalls.has(node);
@@ -381,7 +407,6 @@ export function transform(source: string, options: TransformOptions = {}) {
         do collector = `__twillChildren${counter++}`;
         while (usedNames.has(collector));
         const bodyStart = metadata.header?.end ?? closure.start + 1;
-        code.appendLeft(bodyStart, `const ${collector} = [];`);
         const collect = (statement: Node): void => {
           switch (statement.type) {
             case 'ExpressionStatement':
@@ -431,6 +456,9 @@ export function transform(source: string, options: TransformOptions = {}) {
           }
         };
         body.forEach(collect);
+        // Prefix after collecting so a compact first expression cannot place
+        // its push wrapper before the collector declaration at the same offset.
+        code.prependLeft(bodyStart, `const ${collector} = [];`);
         code.prependLeft(
           closure.end - 1,
           vue
@@ -459,6 +487,22 @@ export function transform(source: string, options: TransformOptions = {}) {
     // The parser may visit nested trailing calls after this one. Edits use
     // original offsets throughout, so nested scopes compose without reparsing.
   }
+  if (parsed.switches.length)
+    lowerSwitchExpressions(
+      source,
+      parsed.ast,
+      parsed.switches,
+      code,
+      options.language ?? inferLanguage(filename),
+      usedNames,
+      (node, message) => {
+        throw new TwillSyntaxError(source, filename, {
+          message,
+          pos: node.start,
+          loc: node.loc.start,
+        });
+      },
+    );
   // Apply outer attribute braces after nested call suffixes at the same offset.
   for (const end of attributeClosings) code.appendLeft(end, '}');
   if (parsed.defers.length) {
@@ -495,6 +539,7 @@ export function transform(source: string, options: TransformOptions = {}) {
     closures: parsed.closures.length,
     guards: parsed.guards.length,
     defers: parsed.defers.length,
+    switches: parsed.switches.length,
     componentProps,
   };
 }

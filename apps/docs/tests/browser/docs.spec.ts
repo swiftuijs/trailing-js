@@ -63,6 +63,10 @@ test('live compilation, highlighted examples, located errors and recovery', asyn
   await expect(generated(page)).not.toContainText('__twillDefers');
   await expect(generated(page)).toContainText('__twillCleanup');
   await expect(source.locator('.twill-contextual-keyword')).toHaveText(['defer', 'guard']);
+  await page.getByLabel('Example', { exact: true }).selectOption('branching');
+  await expect(page.getByRole('status')).toContainText('1 guard · 1 switch expression');
+  await expect(generated(page)).toContainText('satisfies never');
+  await expect(generated(page)).toContainText('case \"ok\"');
   await page.getByLabel('Example', { exact: true }).selectOption('react');
   await expect(generated(page)).toContainText('<Panel>');
   await expect(page.getByRole('status')).toContainText('Compiled in');

@@ -4,7 +4,7 @@ Twill is an experimental JS/TS dialect. Its compiler, editor and build integrati
 
 ## Language and ecosystem
 
-Trailing callbacks, `guard` and `defer` work in ordinary code. `.twillx` also supports native JSX component children, render props and lazy Vue slots. Component libraries use their normal framework APIs; the compiler does not require component registration or wrappers.
+Trailing callbacks, destructured `guard`, `defer` and value/pattern switch expressions work in ordinary code. `.twillx` also supports native JSX component children, render props and lazy Vue slots. Component libraries use their normal framework APIs; the compiler does not require component registration or wrappers.
 
 Native TS/JS and Twill can import each other through the build adapters, virtual project checker and Node ESM loader. Source maps support original-source diagnostics and debugging. Libraries can emit standard declarations with `twill declarations`; native `tsc` cannot parse Twill source directly.
 
@@ -20,11 +20,11 @@ The virtual checker uses TypeScript 5.9. Compatibility with arbitrary workspace 
 
 ## Runtime and tooling performance
 
-Ordinary trailing closures and guards lower to arrows and branches without a runtime library. `defer` and general child collection allocate local closures or arrays. Use native `try/finally` when those allocations matter in a hot path.
+Ordinary trailing closures and guards lower to arrows and branches without a runtime library. Direct-return switch expressions lower to scoped native switches; other expression positions use a synchronous IIFE. Await/yield inside a switch requires a direct return. Expression exhaustiveness requires the checker, not transpile-only builds. `defer` and general child collection allocate local closures or arrays. Use native `try/finally` when those allocations matter in a hot path.
 
 The checker caches unchanged snapshots and transforms. Disk edits refresh affected files; configuration changes rebuild affected projects. [Performance measurements](performance.md) describe synthetic compiler, checker and formatter workloads, including their limits. They do not establish whole-application latency or a universal performance guarantee.
 
-Representative native/dialect application bundles are checked for byte and behavior parity. Release tarballs and the VSIX have enforced compressed size budgets. Each VSIX includes one pinned engine shared on disk by both editor hosts and is verified after extraction, without workspace symlinks.
+Representative native/dialect application bundles are checked for behavior parity and documented byte budgets. Release tarballs and the VSIX have enforced compressed size budgets. Each VSIX includes one pinned engine shared on disk by both editor hosts and is verified after extraction, without workspace symlinks.
 
 ## Adoption and source export
 

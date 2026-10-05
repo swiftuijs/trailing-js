@@ -11,7 +11,7 @@ call { statements } label: { statements } another: { statements }
 
 Use parentheses for typed parameters, destructuring, defaults, rest parameters, or a return annotation: `{ (value: number): string in String(value) }`. Bare names also work: `{ value, index in value + index }`. `async` is a modifier when followed by parameters; `{ async in async }` has a parameter named `async`.
 
-One expression statement implicitly returns its value. Multiple statements have ordinary arrow-body semantics and require an explicit return. Set `implicitReturn: false` to disable the extension's implicit return. `$0`, Swift parameter labels at the call site, capture lists, `throws`, Swift types, and if/switch expressions are not part of this language.
+One expression statement implicitly returns its value. Multiple statements have ordinary arrow-body semantics and require an explicit return. Set `implicitReturn: false` to disable the extension's implicit return. `$0`, Swift parameter labels at the call site, capture lists, `throws`, Swift types, and if expressions are not part of this language.
 
 Subsequent closures require labels. Labels lower to positional callbacks, without reflection on TypeScript signatures or parameter names. Labels need not match a function's parameter names. `new Constructor { ... }` and trailing closures on tagged template expressions are not supported; write an ordinary callback or explicitly call the returned function.
 
@@ -28,13 +28,52 @@ Standard `if (check()) { ... }`, loop bodies, functions, classes, methods, objec
 ```text
 guard expression else { exiting statements }
 guard const identifier = expression else { exiting statements }
+guard const { property, nested: { value = fallback }, ...rest } = expression else { exiting statements }
+guard const [first, ...rest] = expression else { exiting statements }
 ```
 
-A condition becomes `if (!(expression))`. A binding becomes `const identifier = expression; if (identifier == null)`. The binding is in the surrounding JS lexical scope, evaluates its initializer once, retains falsy values, and supports ordinary TS type annotations. Only one identifier can be bound; destructuring and multiple declarations are rejected. A binding used as an unbraced conditional/loop body is rejected; add braces. Bindings retain their surrounding scope; no callback, exception wrapper or runtime dependency is introduced.
+A condition becomes `if (!(expression))`. An identifier binding becomes `const identifier = expression; if (identifier == null)`. Bindings use the surrounding JS lexical scope, evaluate their initializer once, retain falsy values, and support ordinary TS type annotations. Only one declaration is allowed. A binding used as an unbraced conditional/loop body is rejected; add braces. No callback, exception wrapper or runtime dependency is introduced.
+
+A destructured binding checks the **whole initializer** in a hygienic temporary, then destructures after the failure block. Getters, nested patterns, defaults, array iteration and rest follow native JS behavior and run only on success. It does not validate individual fields, non-null nested values or untrusted JSON. An annotation applies to the whole initializer. Pattern names retain their native temporal dead zone in the initializer and failure block; using them there is an error. In an identifier guard, the identifier is initialized before the failure block and can contain null/undefined there.
+
+```twill
+function label(input: { name?: string } | null) {
+  guard const { name = 'Anonymous' } = input else {
+    return 'Missing';
+  }
+  return name;
+}
+```
 
 The failure block must provably exit: a direct `return`, `throw`, `break`, or `continue`; a nested block with an exit; or an `if` with exits in both branches. Exit inference is deliberately conservative: calls (even TS `never` functions), loops, switch statements and try statements do not prove an exit. Existing JS rules still determine whether a return or labeled break/continue is legal. Each guard inside a failure branch is checked independently. In a component children closure, own-scope `return` remains forbidden; `throw` and loop exits are available. A condition guard used as a single unbraced body lowers inside braces so an outer `else` retains its original association.
 
 `guard` is contextual at a statement boundary when its condition/binding is followed by a top-level `else`. Existing `guard()`, `guard = value`, `object.guard` and `guard:` labels retain their meaning. Like other JS statements, use semicolons where adjacent expressions could otherwise join across lines. Parameter and expression tokens retain their original source positions, so TS narrowing and diagnostics operate on the lowered code.
+
+## Switch expressions and union patterns
+
+In an expression position, `switch (subject) { ... }` produces the selected arm's value. A native switch **statement** retains native fallthrough, break and statement-body semantics. To return a switch from a closure, write `items.map { item in return switch (item) { ... }; }` or parenthesize it as a single expression.
+
+```twill
+type Outcome = { kind: 'ok'; value: number } | { kind: 'error'; message: string };
+function describe(outcome: Outcome): string {
+  return switch (outcome) {
+    case { kind: 'ok', value }: value.toFixed(2);
+    case { kind: 'error', message }: message;
+  };
+}
+const size = switch (count) {
+  case 0: 'empty';
+  default: 'nonempty';
+};
+```
+
+Each arm contains one expression or `throw expression`, terminated by a semicolon or ordinary ASI. There is no fallthrough. Multi-statement arms, fallthrough labels and jumps are not expression syntax; use a native switch statement or call an ordinary helper. The subject is evaluated once, value-case tests follow native strict-equality and evaluation order, and only the selected arm's value/defaults execute. Duplicate value labels follow native first-match behavior.
+
+An object case has exactly one noncomputed literal discriminator, with the same key in every object arm. The other properties bind values with native nested/default/rest patterns. Literal discriminators can be strings, numbers, booleans, bigint or null; regular expressions are not discriminator literals. Object cases and value cases cannot mix; either form allows one `default`. Bindings have a separate lexical scope per arm. Matching selects by the discriminator, then performs native destructuring including that key; a discriminator getter is therefore read for selection and again in the selected object arm. Object rest excludes every mentioned key, including the discriminator. Patterns match a typed union, not arbitrary shapes or deep predicates.
+
+Without `default`, generated TS checks `subject satisfies never` after the returning arms. Run **`twill check`** or the editor checker to prove exhaustiveness, including unions imported from ordinary TS. Adding a variant exposes omitted cases. Transpile-only Vite/bundler builds and the playground do not prove types. Unknown/unbounded subjects need a default. Unexpected unchecked JS values throw `TypeError('Non-exhaustive switch expression')`, rather than returning undefined. The optional typed linter also checks native switches and can require every known union case even with a default.
+
+A direct `return switch (...)` lowers to a scoped native switch without an additional function. Other expression positions use a synchronous lexical arrow IIFE, retaining `this`, `arguments`, `super` and `new.target`. This can allocate a closure; there is no runtime library, promise conversion or implicit async scheduling. `await` and `yield` inside the switch require a direct return, where they remain in the enclosing function. Elsewhere, bind an awaited subject before switching or write `await switch (...) { ... }` with promise-producing arms. Nested functions can use their own await/yield normally. See [performance](performance.md) for scoped measurements.
 
 ## Defer
 

@@ -4,7 +4,7 @@ import { parse } from './parser.js';
 import type { Plugin, Printer, ParserOptions, Doc } from 'prettier';
 
 type Node = { type: string; start: number; end: number; [key: string]: any };
-const { group, join } = doc.builders;
+const { group, join, indent, hardline } = doc.builders;
 const standard = estree.printers.estree as Printer<any>;
 const keys: Record<string, string[]> = {
   TwillCall: ['call', 'closures'],
@@ -14,6 +14,8 @@ const keys: Record<string, string[]> = {
   GuardStatement: ['binding', 'test', 'failure'],
   TwillGuardBinding: ['declarations'],
   DeferStatement: ['cleanup'],
+  TwillSwitchExpression: ['discriminant', 'cases'],
+  TwillSwitchCase: ['test', 'pattern', 'value'],
 };
 
 const printer: Printer<any> = {
@@ -37,6 +39,25 @@ const printer: Printer<any> = {
           ? [';', printed]
           : printed;
       }
+      case 'TwillSwitchExpression':
+        return group([
+          'switch (',
+          path.call(print, 'discriminant'),
+          ') {',
+          indent([hardline, join(hardline, path.map(print, 'cases'))]),
+          hardline,
+          '}',
+        ]);
+      case 'TwillSwitchCase':
+        return [
+          'test' in node && node.test === null && !node.pattern
+            ? 'default'
+            : ['case ', path.call(print, node.pattern ? 'pattern' : 'test')],
+          ': ',
+          node.throw ? 'throw ' : '',
+          path.call(print, 'value'),
+          options.semi ? ';' : '',
+        ];
       case 'TwillParenthesized':
         return ['(', path.call(print, 'expression'), ')'];
       case 'TwillBareCall':

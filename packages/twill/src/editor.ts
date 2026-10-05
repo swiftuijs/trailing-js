@@ -40,6 +40,11 @@ export class TwillEditor {
 
   completions(filename: string, position: number, preferences: ts.UserPreferences = {}) {
     let offset = this.project.toGeneratedOffset(filename, position);
+    // A repaired member name and generated arm punctuation can share the same
+    // original boundary. Anchor requests at the source-backed dot instead.
+    const prefix = this.project.text(filename)?.slice(0, position);
+    const missingMember = prefix?.match(/\.\s*$/);
+    if (missingMember) offset = this.project.toGeneratedOffset(filename, missingMember.index!) + 1;
     let props: CompletionRequest['props'];
     const metadata = this.project.transformed(filename)?.componentProps;
     const property = metadata

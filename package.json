@@ -1,5 +1,5 @@
 {
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "Twill: a JS/TS syntax-sugar language with trailing closures, guards, block-scoped defer, build plugins, type checking, and editor support.",
   "repository": {
     "type": "git",
@@ -54,6 +54,7 @@
     "test:packed": "node packages/twill/tests/consumer.mjs --packed && node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs && node packages/migrate/tests/consumer.mjs",
     "release:manifest": "node scripts/verify-release.mjs --artifacts --manifest",
     "test:examples": "pnpm --filter './examples/*' --workspace-concurrency=1 --if-present run test:example",
-    "deps:check": "pnpm audit --audit-level moderate && pnpm peers check"
+    "deps:check": "pnpm audit --audit-level moderate && pnpm peers check",
+    "benchmark:branching": "pnpm --filter @swiftuijs/twill run benchmark:branching"
   }
 }

@@ -34,6 +34,22 @@ const greaterThanFour = doubled.filter { value in
   return value.toUpperCase();
 }`,
   },
+  branching: {
+    filename: 'example.twill',
+    jsxImportSource: 'react',
+    note: 'Destructure an optional result after its guard succeeds. Match a native TS union; run twill check to verify exhaustiveness.',
+    source: `type Result =
+  | { kind: 'ok'; value: number }
+  | { kind: 'error'; message: string };
+
+export function describe(input: { result: Result } | null): string {
+  guard const { result } = input else { return 'Missing result'; }
+  return switch (result) {
+    case { kind: 'ok', value }: value.toFixed(2);
+    case { kind: 'error', message }: message;
+  };
+}`,
+  },
   react: {
     filename: 'example.twillx',
     jsxImportSource: 'react',
@@ -83,11 +99,12 @@ const summary = computed(() => {
   if (state.phase === 'pending') return 'Waiting for edits…';
   if (state.phase === 'compiling') return 'Compiling…';
   if (state.phase === 'error') return 'Check your source';
-  const { duration, closures, guards, defers } = state.result;
+  const { duration, closures, guards, defers, switches } = state.result;
   const features = [
     [closures, 'closure'],
     [guards, 'guard'],
     [defers, 'defer'],
+    [switches, 'switch expression'],
   ]
     .filter(([count]) => count)
     .map(([count, name]) => `${count} ${name}${count === 1 ? '' : 's'}`);
@@ -194,6 +211,7 @@ onBeforeUnmount(() => {
           <select id="twill-example" v-model="selected" @change="choose">
             <option value="callbacks">Ordinary callbacks</option>
             <option value="cleanup">Guard and defer</option>
+            <option value="branching">Typed outcome matching</option>
             <option value="react">React component</option>
             <option value="vue">Vue lazy slot</option>
           </select>

@@ -118,6 +118,14 @@ import { createRequire } from 'node:module';
   assert.equal(transform('fn() { 42 }').closures, 1);
   assert.equal(transform('function f(v) { guard v else { return 0; } return 1; }').guards, 1);
   assert.equal(transform('function f() { defer { console.log("done"); } }').defers, 1);
+  const branching = transform(
+    'function run(input){guard const {result}=input else{return 0;}return switch(result){case {kind:"ok",value}: value*2;default: 0;};}',
+    { language: 'js' },
+  );
+  const runBranch = Function(branching.code + ';return run;')();
+  assert.equal(runBranch(null), 0);
+  assert.equal(runBranch({ result: { kind: 'ok', value: 3 } }), 6);
+  assert.equal(branching.switches, 1);
   for (const name of [
     'vite',
     'rollup',
@@ -151,6 +159,10 @@ import { createRequire } from 'node:module';
     join(root, 'twice.twill'),
     'export function twice(value: number) { defer {} return value*2; }',
   );
+  writeFileSync(
+    join(root, 'branching.twill'),
+    'type Result={kind:"ok";value:number}|{kind:"bad";error:string};export function describe(input:{result:Result}|null){guard const {result}=input else{return "empty";}return switch(result){case {kind:"ok",value}: value.toFixed();case {kind:"bad",error}: error;};}',
+  );
   execFileSync(process.execPath, [join(base, 'cli.js'), 'check', '-p', 'tsconfig.json'], {
     cwd: root,
     stdio: 'pipe',
@@ -177,6 +189,18 @@ import { createRequire } from 'node:module';
     { cwd: root, encoding: 'utf8' },
   );
   assert.equal(output.trim(), '[0,4]');
+  const branchOutput = execFileSync(
+    process.execPath,
+    [
+      '--import',
+      '@swiftuijs/twill/register',
+      '--input-type=module',
+      '-e',
+      'import {describe} from "./branching.twill";console.log(describe({result:{kind:"ok",value:3}}),describe(null))',
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.equal(branchOutput.trim(), '3 empty');
   writeFileSync(
     join(root, 'react-view.twillx'),
     `

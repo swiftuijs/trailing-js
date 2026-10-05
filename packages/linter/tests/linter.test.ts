@@ -39,6 +39,22 @@ describe('ESLint Twill processor', () => {
     });
     expect(valid!.messages).toEqual([]);
   });
+  it('reports moved pattern bindings without reporting generated switch helpers', async () => {
+    const source =
+      'export function run(input: {kind:"ok";value:number}|null){guard const {kind}=input else{return 0;} return switch(input!){case {kind:"ok",value}: value;};}';
+    const [result] = await engine().lintText(source, { filePath: 'branching.twill' });
+    expect(result!.messages.map((message) => message.ruleId)).toEqual([
+      '@typescript-eslint/no-unused-vars',
+    ]);
+    expect(result!.messages[0]).toMatchObject({ column: source.indexOf('kind}=') + 1 });
+    const [fixed] = await engine({ rules: { 'prefer-const': 'error' } }, true).lintText(
+      'export function run(v:number){return switch(v){case 1: (()=>{let total=3;return total;})();default: 0;};}',
+      { filePath: 'branch-fix.twill' },
+    );
+    expect(fixed!.output).toContain('const total=3');
+    expect(fixed!.output).toContain('return switch(v)');
+    expect(fixed!.messages).toEqual([]);
+  });
   it('supports type-aware rules against the virtual TypeScript program', async () => {
     const root = mkdtempSync(join(tmpdir(), 'twill-lint-'));
     try {
@@ -70,6 +86,47 @@ describe('ESLint Twill processor', () => {
             message.column === source.indexOf('Promise') + 1,
         ),
       ).toBe(true);
+    } finally {
+      disposeProjects();
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+  it('maps typed exhaustiveness on a generated switch subject to its source keyword', async () => {
+    const root = mkdtempSync(join(tmpdir(), 'twill-expression-lint-'));
+    try {
+      writeFileSync(
+        join(root, 'tsconfig.json'),
+        JSON.stringify({
+          compilerOptions: {
+            strict: true,
+            target: 'ES2022',
+            module: 'ESNext',
+            moduleResolution: 'Bundler',
+            types: [],
+          },
+          include: ['**/*'],
+        }),
+      );
+      const source =
+        'type Result={kind:"ok";value:number}|{kind:"bad";error:string};export function run(input:Result){return switch(input){case {kind:"ok",value}: value;default: 0;};}';
+      const filename = join(root, 'main.twill');
+      writeFileSync(filename, source);
+      const eslint = new ESLint({
+        cwd: root,
+        overrideConfigFile: true,
+        overrideConfig: twill.configs.recommendedTypeChecked,
+      });
+      const [result] = await eslint.lintText(source, { filePath: filename });
+      expect(
+        result!.messages.filter(
+          (message) => message.ruleId === '@typescript-eslint/switch-exhaustiveness-check',
+        ),
+      ).toEqual([
+        expect.objectContaining({
+          column: source.indexOf('switch') + 1,
+          message: expect.stringContaining('"bad"'),
+        }),
+      ]);
     } finally {
       disposeProjects();
       rmSync(root, { recursive: true, force: true });

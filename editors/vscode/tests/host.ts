@@ -1,6 +1,10 @@
 import * as vscode from 'vscode';
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { Registry, INITIAL } from 'vscode-textmate';
+import { loadWASM, OnigScanner, OnigString } from 'vscode-oniguruma';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 async function eventually<T>(action: () => PromiseLike<T>, accept: (value: T) => boolean) {
@@ -24,6 +28,71 @@ export async function run() {
   const extension = vscode.extensions.getExtension('swiftuijs.twill')!;
   assert(extension, 'The extracted VSIX must be installed');
   await extension.activate();
+  const require = createRequire(join(root, '../tests.cjs'));
+  const wasm = readFileSync(require.resolve('vscode-oniguruma/release/onig.wasm'));
+  await loadWASM(wasm.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength));
+  const grammars = ['twill', 'twillx'].map((name) =>
+    JSON.parse(
+      readFileSync(join(extension.extensionPath, 'syntaxes', name + '.tmLanguage.json'), 'utf8'),
+    ),
+  );
+  const nativeExtension = vscode.extensions.all.find((extension) =>
+    extension.packageJSON.contributes?.grammars?.some(
+      (grammar: { scopeName: string }) => grammar.scopeName === 'source.ts',
+    ),
+  );
+  assert(nativeExtension, 'The built-in TypeScript grammar extension must be available');
+  const nativeGrammars = ['TypeScript', 'TypeScriptReact'].map((name) =>
+    JSON.parse(
+      readFileSync(
+        join(nativeExtension.extensionPath, 'syntaxes', name + '.tmLanguage.json'),
+        'utf8',
+      ),
+    ),
+  );
+  const registry = new Registry({
+    onigLib: Promise.resolve({
+      createOnigScanner: (patterns) => new OnigScanner(patterns),
+      createOnigString: (text) => new OnigString(text),
+    }),
+    loadGrammar: async (scope) =>
+      [...grammars, ...nativeGrammars].find((grammar) => grammar.scopeName === scope) ?? null,
+  });
+  try {
+    for (const grammar of grammars) {
+      const loaded = (await registry.loadGrammar(grammar.scopeName))!;
+      let state = INITIAL;
+      const controls: string[] = [];
+      for (const line of [
+        'function describe(input: Result) {',
+        'guard const { result } = input else { return "missing"; }',
+        'return switch (result) {',
+        'case { kind: "ok", value }: value.toFixed();',
+        'default: "unknown";',
+        '};',
+        'const words = "guard else switch case default";',
+        'object.switch();',
+        '}',
+      ]) {
+        const tokens = loaded.tokenizeLine(line, state);
+        state = tokens.ruleStack;
+        for (const token of tokens.tokens)
+          if (token.scopes.some((scope) => scope.startsWith('keyword.control')))
+            controls.push(line.slice(token.startIndex, token.endIndex));
+      }
+      for (const word of ['guard', 'else', 'switch', 'case', 'default'])
+        assert.equal(
+          controls.filter((control) => control === word).length,
+          1,
+          `${grammar.name}: ${word} must highlight once, excluding strings/properties`,
+        );
+    }
+  } finally {
+    registry.dispose();
+  }
+  console.log(
+    'PASS: shipped TS/TSX grammars highlight guard and switch expressions with actual built-in TS grammars',
+  );
   const open = async (name: string) => {
     const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(join(root, name)));
     await vscode.window.showTextDocument(doc);
@@ -58,6 +127,51 @@ export async function run() {
   assert(formatting.getText().includes('map { item in'));
   assert(formatting.getText().includes('value: number'));
   console.log('PASS: packaged formatter preserves Twill syntax and TypeScript annotations');
+
+  const branching = await open('branching.twill');
+  const branchMembers = await eventually(
+    () => completions(branching, position(branching, 'amount.toFixed', 7)),
+    (list) => !!list?.items.some((item) => label(item) === 'toFixed'),
+  );
+  assert(branchMembers!.items.some((item) => label(item) === 'toPrecision'));
+  const branchRename = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
+    'vscode.executeDocumentRenameProvider',
+    branching.uri,
+    position(branching, 'amount}', 1),
+    'total',
+  );
+  assert(branchRename && (await vscode.workspace.applyEdit(branchRename)));
+  assert(branching.getText().includes('value: total}'));
+  assert(branching.getText().includes('total.toFixed()'));
+  const branchFormats = await vscode.commands.executeCommand<vscode.TextEdit[]>(
+    'vscode.executeFormatDocumentProvider',
+    branching.uri,
+    { tabSize: 2, insertSpaces: true },
+  );
+  assert(branchFormats?.length);
+  const branchFormatEdit = new vscode.WorkspaceEdit();
+  branchFormatEdit.set(branching.uri, branchFormats!);
+  assert(await vscode.workspace.applyEdit(branchFormatEdit));
+  assert(branching.getText().includes('guard const { result: item }'));
+  assert(branching.getText().includes('return switch (item)'));
+  await eventually(
+    async () => vscode.languages.getDiagnostics(branching.uri),
+    (items) => items.length === 0,
+  );
+  const omit = new vscode.WorkspaceEdit();
+  omit.replace(
+    branching.uri,
+    new vscode.Range(new vscode.Position(0, 0), branching.positionAt(branching.getText().length)),
+    branching.getText().replace(/\s*case \{ kind: "bad", error \}: error;/, ''),
+  );
+  assert(await vscode.workspace.applyEdit(omit));
+  await eventually(
+    async () => vscode.languages.getDiagnostics(branching.uri),
+    (items) => items.some((item) => item.code === 1360),
+  );
+  console.log(
+    'PASS: destructured guard and pattern switch completion, rename, formatting and exhaustive diagnostics',
+  );
 
   const view = await open('view.twillx');
   const props = await eventually(
