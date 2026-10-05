@@ -34,6 +34,27 @@ function fixture(source = 'export const result = [1, 2].map { value in value * 2
   return { root, config, input, log, error, stdout };
 }
 
+it.each(['check', 'doctor', 'declarations'])(
+  '%s locates fileless configuration diagnostics',
+  async (command) => {
+    const { root, log, error } = fixture();
+    const config = join(root, 'invalid.json');
+    writeFileSync(
+      config,
+      '{"compilerOptions":{"unknownCompilerOption":true},"files":["main.twill"]}',
+    );
+    expect(await main([command, '-p', config])).toBe(1);
+    expect((command === 'doctor' ? log : error).mock.calls.flat().join('\n')).toContain(
+      'tsconfig:',
+    );
+    expect(await main([command, '-p', config, '--json'])).toBe(1);
+    const report = JSON.parse(log.mock.calls.at(-1)![0]);
+    expect(command === 'check' ? report : report.diagnostics).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: 5023 })]),
+    );
+  },
+);
+
 it.each([[], ['--help'], ['compile', '--help']].map((args) => [args]))(
   'prints usage for %j',
   async (args) => {

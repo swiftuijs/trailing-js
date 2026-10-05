@@ -65,3 +65,23 @@ it('returns failure and original diagnostics without creating output', async () 
     expect.arrayContaining([expect.objectContaining({ code: 2322 })]),
   );
 });
+it('uses the current project config when no project flag is supplied', async () => {
+  const { root, out, log } = fixture();
+  const previous = process.cwd();
+  try {
+    process.chdir(root);
+    expect(await main(['--out', out, '--dry-run'])).toBe(0);
+    expect(log).toHaveBeenCalledWith(expect.stringContaining('Planned'));
+    expect(existsSync(out)).toBe(false);
+  } finally {
+    process.chdir(previous);
+  }
+});
+it('prints config-level diagnostics without inventing a source filename', async () => {
+  const { config, out, error } = fixture();
+  writeFileSync(config, '{"compilerOptions":{"unknownCompilerOption":true}}');
+  expect(await main(['--project', config, '--out', out])).toBe(1);
+  expect(error.mock.calls.flat().join('\n')).toContain('tsconfig:');
+  expect(error.mock.calls.flat().join('\n')).toContain('TS5023');
+  expect(existsSync(out)).toBe(false);
+});

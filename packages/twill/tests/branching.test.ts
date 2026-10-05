@@ -210,6 +210,9 @@ describe('switch expressions', () => {
     ['return switch(v){case {kind:"a"}: 1;case 2: 2;};', /Cannot mix/],
     ['return switch(v){case 2: 2;case {kind:"a"}: 1;};', /Cannot mix/],
     ['return switch(v){case {kind:/a/}: 1;};', /exactly one/],
+    ['return switch(v){case {kind:!true}: 1;};', /exactly one/],
+    ['return switch(v){case {kind:-value}: 1;};', /exactly one/],
+    ['return switch(v){case {kind:-"value"}: 1;};', /exactly one/],
     ['return switch(v){default: 1;default: 2;};', /Multiple default/],
     ['return switch(v){case {kind:"a",value,value}: 1;};', /already been declared/],
   ])('rejects ambiguous patterns: %s', (body, error) => {
@@ -219,6 +222,12 @@ describe('switch expressions', () => {
     const source =
       'function f(v){switch(v){case 1: v++; break;default: v=0;} return {switch:v}.switch;}';
     expect(transform(source).code).toBe(source);
+    expect(
+      run('return switch(input){case {"kind":"ok",value}: value;default: 0;};', {
+        kind: 'ok',
+        value: 7,
+      }),
+    ).toBe(7);
   });
   it('preserves grouping parentheses in subjects, values and direct returns', () => {
     expect(

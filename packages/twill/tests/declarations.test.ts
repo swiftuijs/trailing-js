@@ -140,4 +140,134 @@ describe('native declaration builds', () => {
       '../../base/dist/index.js',
     );
   });
+  it('reports a missing build config without creating output', () => {
+    const root = fixture();
+    const result = emitDeclarations(join(root, 'missing.json'), { build: true });
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([expect.objectContaining({ category: 'error', code: 5083 })]),
+    );
+    expect(result.files).toEqual([]);
+    expect(result.projects).toEqual([]);
+    expect(existsSync(join(root, 'dist'))).toBe(false);
+  });
+  it('rejects circular references before writing either project', () => {
+    const root = fixture();
+    for (const [name, dependency] of [
+      ['first', 'second'],
+      ['second', 'first'],
+    ]) {
+      mkdirSync(join(root, name!));
+      writeFileSync(join(root, name!, 'index.twill'), 'export const value=1;');
+      writeFileSync(
+        join(root, name!, 'tsconfig.json'),
+        JSON.stringify({
+          compilerOptions: options,
+          include: ['*.twill'],
+          references: [{ path: '../' + dependency }],
+        }),
+      );
+    }
+    expect(() => emitDeclarations(join(root, 'first/tsconfig.json'), { build: true })).toThrow(
+      'Circular project reference',
+    );
+    expect(existsSync(join(root, 'first/dist'))).toBe(false);
+    expect(existsSync(join(root, 'second/dist'))).toBe(false);
+  });
+  it('builds a shared dependency once in a diamond reference graph', () => {
+    const root = fixture();
+    for (const [name, dependencies] of [
+      ['base', []],
+      ['left', ['base']],
+      ['right', ['base']],
+      ['app', ['left', 'right']],
+    ] as const) {
+      mkdirSync(join(root, name));
+      writeFileSync(join(root, name, 'index.twill'), 'export const value=1;');
+      writeFileSync(
+        join(root, name, 'tsconfig.json'),
+        JSON.stringify({
+          compilerOptions: { ...options, composite: true, rootDir: '.', outDir: 'dist' },
+          include: ['*.twill'],
+          references: dependencies.map((path) => ({ path: '../' + path })),
+        }),
+      );
+    }
+    const result = emitDeclarations(join(root, 'app/tsconfig.json'), { build: true });
+    expect(result.diagnostics).toEqual([]);
+    expect(result.projects.map((file) => file.split('/').at(-2))).toEqual([
+      'base',
+      'left',
+      'right',
+      'app',
+    ]);
+    expect(new Set(result.files).size).toBe(result.files.length);
+  });
+  it('stops a reference build after a dependency fails type checking', () => {
+    const root = fixture();
+    for (const name of ['bad', 'other', 'app']) {
+      mkdirSync(join(root, name));
+      writeFileSync(
+        join(root, name, 'index.twill'),
+        name === 'bad' ? 'export const value:number="wrong";' : 'export const value=1;',
+      );
+      writeFileSync(
+        join(root, name, 'tsconfig.json'),
+        JSON.stringify({
+          compilerOptions: { ...options, composite: true, rootDir: '.', outDir: 'dist' },
+          include: ['*.twill'],
+          ...(name === 'app' ? { references: [{ path: '../bad' }, { path: '../other' }] } : {}),
+        }),
+      );
+    }
+    const result = emitDeclarations(join(root, 'app/tsconfig.json'), { build: true });
+    expect(result.diagnostics.some((item) => item.code === 2322)).toBe(true);
+    expect(result.projects).toEqual([]);
+    expect(result.files).toEqual([]);
+    for (const name of ['bad', 'other', 'app'])
+      expect(existsSync(join(root, name, 'dist'))).toBe(false);
+  });
+  it('refuses to overwrite an existing source declaration', () => {
+    const root = fixture();
+    const original = 'export declare const existing: number;';
+    writeFileSync(join(root, 'index.d.ts'), original);
+    writeFileSync(join(root, 'index.twill'), 'export const value=1;');
+    writeFileSync(
+      join(root, 'tsconfig.json'),
+      JSON.stringify({
+        compilerOptions: options,
+        files: ['index.d.ts', 'index.twill'],
+      }),
+    );
+    expect(() => emitDeclarations(join(root, 'tsconfig.json'), { outDir: root })).toThrow(
+      'overwrite source',
+    );
+    expect(readFileSync(join(root, 'index.d.ts'), 'utf8')).toBe(original);
+    expect(existsSync(join(root, 'index.d.ts.map'))).toBe(false);
+  });
+  it('rewrites native ESM and CJS declaration references to their runtime extensions', () => {
+    const root = fixture();
+    writeFileSync(join(root, 'api.mts'), 'export const value=1;');
+    writeFileSync(join(root, 'other.cts'), 'export const value=2;');
+    writeFileSync(
+      join(root, 'main.mts'),
+      'export type A=typeof import("./api.mts"); export type B=typeof import("./other.cts");',
+    );
+    writeFileSync(
+      join(root, 'tsconfig.json'),
+      JSON.stringify({
+        compilerOptions: {
+          ...options,
+          module: 'NodeNext',
+          moduleResolution: 'NodeNext',
+          allowImportingTsExtensions: true,
+        },
+        include: ['*.mts', '*.cts'],
+      }),
+    );
+    const result = emitDeclarations(join(root, 'tsconfig.json'));
+    expect(result.diagnostics).toEqual([]);
+    const declaration = readFileSync(join(root, 'dist/main.d.mts'), 'utf8');
+    expect(declaration).toContain('"./api.mjs"');
+    expect(declaration).toContain('"./other.cjs"');
+  });
 });

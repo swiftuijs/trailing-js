@@ -125,6 +125,9 @@ describe('natural component syntax', () => {
       f(); __twillChildren0;
       if (true) "second";
       for (const n of [1, 2]) String(n);
+      for (let i=0;i<2;i++) {
+        String(i)
+      }
       switch (1) { case 1: "switch"; break; }
       try { "try"; } finally { "finally"; }
     };`,
@@ -132,7 +135,7 @@ describe('natural component syntax', () => {
     );
     expect(events).toEqual(['cleanup']);
     expect(renderToStaticMarkup(tree)).toBe(
-      '<article>nestedfirstsecond12switchtryfinally</article>',
+      '<article>nestedfirstsecond1201switchtryfinally</article>',
     );
     expect(() => transform('Card { return "bad"; }', { filename: 'bad.twillx' })).toThrow(
       /Component children collect expressions/,

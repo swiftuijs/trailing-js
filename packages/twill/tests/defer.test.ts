@@ -236,6 +236,14 @@ describe('contextual defer', () => {
     compile(source)(events);
     expect(events).toEqual([2, 1, 0]);
   });
+  it('awaits every async registration in an unbraced loop, including after rejection', async () => {
+    const events: number[] = [];
+    const run = compile(
+      'async function run(events) { for(let i=0;i<3;i++) defer { await Promise.resolve(); events.push(i); if(i===1) throw "cleanup failure"; } return 1; }',
+    );
+    await expect(run(events)).rejects.toBe('cleanup failure');
+    expect(events).toEqual([2, 1, 0]);
+  });
   it('preserves cleanup TDZ failures and does not await an unreached async cleanup', async () => {
     expect(() =>
       compile('function run() { defer { void later; } return 1; const later = 2; }')(),
@@ -265,4 +273,9 @@ it('retains hoisted JSDoc annotations and stops at unrelated comments', () => {
   expect(output).toContain('/** @param {number} input */');
   const run = Function(output.replace('export ', '') + '; return run;')();
   expect(run(3)).toBe(6);
+  const ordinaryComment =
+    'function run(){defer {} /* unrelated */ function helper(){return 7;} return helper();}';
+  const generated = transform(ordinaryComment, { language: 'js' }).code;
+  expect(generated).toContain('/* unrelated */');
+  expect(compile(ordinaryComment)()).toBe(7);
 });

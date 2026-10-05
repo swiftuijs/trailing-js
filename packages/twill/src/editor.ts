@@ -184,6 +184,13 @@ export class TwillEditor {
       const references = group.references.flatMap((reference) => {
         const entry = mapped(reference);
         if (!entry) return [];
+        // Some TS versions omit isDefinition from findReferences results.
+        // Preserve supplied flags; otherwise compare the source-backed span
+        // with this symbol group's definition for includeDeclaration requests.
+        entry.isDefinition ??=
+          entry.fileName === definition.fileName &&
+          entry.textSpan.start === definition.textSpan.start &&
+          entry.textSpan.length === definition.textSpan.length;
         const key = `${entry.fileName}:${entry.textSpan.start}:${entry.textSpan.length}`;
         if (seen.has(key)) return [];
         seen.add(key);

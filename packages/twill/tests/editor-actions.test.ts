@@ -1,5 +1,5 @@
 import { fixtureRoot } from './helpers/fixture.js';
-import { afterEach, expect, it } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import ts from 'typescript';
 import { writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
@@ -7,7 +7,10 @@ import { TwillProject, virtualFilename } from '../src/project';
 import { TwillEditor, type SourceEdit } from '../src/editor';
 
 const cleanups: (() => void)[] = [];
-afterEach(() => cleanups.splice(0).forEach((cleanup) => cleanup()));
+afterEach(() => {
+  vi.restoreAllMocks();
+  cleanups.splice(0).forEach((cleanup) => cleanup());
+});
 function fixture(files: Record<string, string>) {
   // Framework declarations resolve through the real repository dependencies.
   const root = fixtureRoot('.editor-actions-');
@@ -421,4 +424,151 @@ it('rewrites only virtual import/export literals in mapped source edits', () => 
   expect(edits?.[0]?.newText).toContain('mention="./api.twill.ts"');
   project.update(file('bad.twill'), 'users.map { . };');
   expect(editor.mapSpan(file('native.ts'), { start: -1, length: 3 })).toBeUndefined();
+});
+
+it('identifies declaration references when the backend omits its optional flag', () => {
+  const source = 'export const users=[{name:"Ada"}];export const selected=users.map { .name };';
+  const { project, editor, file } = fixture({
+    'main.twill': source,
+    'consumer.ts': 'import {users} from "./main.twill";export const selected=users;',
+  });
+  const refs = editor.references(file('main.twill'), source.lastIndexOf('users'))!;
+  expect(
+    refs.find(
+      (ref) =>
+        ref.fileName === file('main.twill') && ref.textSpan.start === source.indexOf('users'),
+    )?.isDefinition,
+  ).toBe(true);
+  expect(
+    refs.find(
+      (ref) =>
+        ref.fileName === file('main.twill') && ref.textSpan.start === source.lastIndexOf('users'),
+    )?.isDefinition,
+  ).toBe(false);
+  expect(
+    refs.some((ref) => ref.fileName === file('consumer.ts') && ref.isDefinition === false),
+  ).toBe(true);
+  const original = project.service.findReferences.bind(project.service);
+  vi.spyOn(project.service, 'findReferences').mockImplementation((...args) =>
+    original(...args)?.map((group) => ({
+      ...group,
+      references: group.references.map((ref) => ({ ...ref, isDefinition: false })),
+    })),
+  );
+  expect(
+    editor
+      .references(file('main.twill'), source.lastIndexOf('users'))!
+      .every((ref) => ref.isDefinition === false),
+  ).toBe(true);
+});
+
+it('rejects out-of-bounds native edits and requests with no generated program', () => {
+  const { project, editor, file } = fixture({
+    'native.ts': 'export const value=1;',
+    'view.twillx':
+      'declare function Card(props:{title?:string}):any; const view=Card({ tit }) { "child" };',
+  });
+  expect(editor.mapSpan(file('native.ts'), { start: -1, length: 1 })).toBeUndefined();
+  expect(editor.mapSpan(file('native.ts'), { start: 0, length: 100 })).toBeUndefined();
+  const realTransformed = project.transformed.bind(project);
+  vi.spyOn(project, 'transformed').mockReturnValue(undefined);
+  expect(editor.mapSpan(file('view.twillx'), { start: 0, length: 1 })).toBeUndefined();
+  vi.mocked(project.transformed).mockImplementation(realTransformed);
+  vi.spyOn(project.service, 'getProgram').mockReturnValue(undefined);
+  const source = project.text(file('view.twillx'))!;
+  expect(
+    editor.completionLocation(file('view.twillx'), source.indexOf('tit }') + 3).props,
+  ).toBeUndefined();
+});
+
+it('rejects unresolved rename locations, unsafe definitions and duplicate generated references', () => {
+  const source = 'export const values=[1].map { n in n + 1 };';
+  const { project, editor, file } = fixture({ 'main.twill': source });
+  const filename = file('main.twill');
+  const offset = source.indexOf('values');
+  const info = editor.renameInfo(filename, offset);
+  expect(info.canRename).toBe(true);
+  vi.spyOn(project.service, 'findRenameLocations').mockReturnValue(undefined);
+  expect(editor.renameLocations(filename, offset, false)).toBeUndefined();
+  vi.spyOn(project.service, 'getRenameInfo').mockReturnValue({
+    ...info,
+    canRename: true,
+    triggerSpan: { start: project.transformed(filename)!.code.indexOf('=>'), length: 2 },
+  } as ts.RenameInfo);
+  expect(editor.renameInfo(filename, offset)).toMatchObject({ canRename: false });
+  vi.mocked(project.service.getRenameInfo).mockReturnValue(info);
+  const generated = project.transformed(filename)!.code;
+  const makeSpan = (start: number, length: number) => ({
+    fileName: virtualFilename(filename),
+    textSpan: { start, length },
+  });
+  const nativeStart = project.toGeneratedOffset(filename, offset);
+  vi.spyOn(project.service, 'findReferences').mockReturnValue([
+    {
+      definition: {
+        ...makeSpan(nativeStart, 6),
+        kind: ts.ScriptElementKind.constElement,
+        name: 'values',
+        displayParts: [],
+        containerKind: ts.ScriptElementKind.unknown,
+        containerName: '',
+      },
+      references: [
+        { ...makeSpan(nativeStart, 6), isWriteAccess: true },
+        { ...makeSpan(nativeStart, 6), isWriteAccess: true },
+        { ...makeSpan(generated.indexOf('=>'), 2), isWriteAccess: false },
+      ],
+    },
+  ]);
+  expect(editor.references(filename, offset)).toHaveLength(1);
+  const groups = project.service.findReferences(virtualFilename(filename), nativeStart)!;
+  vi.mocked(project.service.findReferences).mockReturnValue([
+    {
+      ...groups[0]!,
+      definition: {
+        ...groups[0]!.definition,
+        textSpan: { start: generated.indexOf('=>'), length: 2 },
+      },
+    },
+  ]);
+  expect(editor.references(filename, offset)).toEqual([]);
+});
+
+it('withholds command-based and empty fixes and unsafe late import insertions', () => {
+  const source = 'export const values=[1].map { n in n + 1 };';
+  const { project, editor, file } = fixture({ 'main.twill': source });
+  const filename = file('main.twill');
+  const code = project.transformed(filename)!.code;
+  expect(
+    editor.mapChanges([
+      {
+        fileName: virtualFilename(filename),
+        textChanges: [
+          { span: { start: code.indexOf('=>'), length: 0 }, newText: 'import {x} from "./x";' },
+        ],
+      },
+    ]),
+  ).toBeUndefined();
+  const fixes: ts.CodeFixAction[] = [
+    { fixName: 'empty', description: 'empty', changes: [] },
+    {
+      fixName: 'command',
+      description: 'command',
+      changes: [
+        {
+          fileName: virtualFilename(filename),
+          textChanges: [{ span: { start: 0, length: 0 }, newText: '// edit' }],
+        },
+      ],
+      commands: [
+        {
+          type: 'install package',
+          file: filename,
+          packageName: 'dependency',
+        } as ts.CodeActionCommand,
+      ],
+    },
+  ];
+  vi.spyOn(project.service, 'getCodeFixesAtPosition').mockReturnValue(fixes);
+  expect(editor.fixes(filename, 0, 1, [1234])).toEqual([]);
 });

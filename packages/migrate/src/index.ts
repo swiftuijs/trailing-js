@@ -90,8 +90,9 @@ export async function exportProject(
       tsconfig,
       {},
       { ...ts.sys, onUnRecoverableConfigFileDiagnostic() {} },
-    )!;
+    );
     const raw = ts.readConfigFile(tsconfig, ts.sys.readFile).config;
+    if (!parsed || !raw) throw new Error(`Could not read export configuration: ${tsconfig}`);
     if (parsed.options.paths && !parsed.options.baseUrl && !raw.compilerOptions?.paths)
       throw new Error('Inherited path aliases need an explicit baseUrl for source export.');
     const content = new Map<string, string | Buffer>();

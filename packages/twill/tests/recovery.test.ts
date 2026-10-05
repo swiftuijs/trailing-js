@@ -21,8 +21,18 @@ it('keeps a complete document unchanged and refuses interior errors or unbounded
     'run { value in + * value };',
     '((((((((((((1',
     '\"unterminated',
+    'const value = 1 +',
   ])
     expect(() => recoverTransform(invalid, {})).toThrow(TwillSyntaxError);
+});
+it('ignores quoted and commented delimiters when completing suffixes', () => {
+  const source = 'run { value in const marker = "})]"; /* } ] */ value';
+  const result = recoverTransform(source, { filename: 'editor.twill' });
+  expect(result.map.sourcesContent).toEqual([source]);
+  expect(result.code).toContain('const marker = "})]"');
+  expect(() =>
+    Function('run', result.code)((body: (value: number) => unknown) => body(3)),
+  ).not.toThrow();
 });
 
 it('maps successive interior repairs before providing completion in later callbacks', () => {

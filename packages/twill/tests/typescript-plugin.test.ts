@@ -53,7 +53,7 @@ it('bridge edits retain unrelated transforms, snapshots and native script versio
     languageServiceHost: {
       getDefaultLibFileName: ts.getDefaultLibFilePath,
       getScriptFileNames: () => [main],
-      getScriptVersion: () => '1',
+      getScriptVersion: (_file: string) => '1',
       getScriptSnapshot: (file: string) =>
         existsSync(file) ? ts.ScriptSnapshot.fromString(readFileSync(file, 'utf8')) : undefined,
     },
@@ -109,7 +109,7 @@ it('bridge edits retain unrelated transforms, snapshots and native script versio
   expect(logs).toEqual([]);
 });
 
-function bridgeFixture(files: Record<string, string>) {
+function bridgeFixture(files: Record<string, string>, initialConfig?: Record<string, unknown>) {
   const root = mkdtempSync(join(tmpdir(), 'twill-bridge-requests-'));
   const config = join(root, 'tsconfig.json');
   writeFileSync(
@@ -137,7 +137,7 @@ function bridgeFixture(files: Record<string, string>) {
       return [
         file,
         {
-          isScriptOpen: () => false,
+          isScriptOpen: (): boolean => false,
           getSnapshot: () => ts.ScriptSnapshot.fromString(current),
           editContent: vi.fn((start: number, end: number, text: string) => {
             current = current.slice(0, start) + text + current.slice(end);
@@ -150,6 +150,7 @@ function bridgeFixture(files: Record<string, string>) {
     }),
   );
   const info = {
+    config: initialConfig,
     project: {
       getProjectName: () => config,
       refreshDiagnostics: vi.fn(),
@@ -181,7 +182,7 @@ function bridgeFixture(files: Record<string, string>) {
     languageServiceHost: {
       getDefaultLibFileName: ts.getDefaultLibFilePath,
       getScriptFileNames: () => [...sources.keys()],
-      getScriptVersion: () => '1',
+      getScriptVersion: (_file: string) => '1',
       getScriptSnapshot: (file: string) =>
         sources.has(file) ? ts.ScriptSnapshot.fromString(sources.get(file)!) : undefined,
     },
@@ -327,4 +328,150 @@ it('preserves native services in inferred or pure-native projects and safely fal
     dialect.service.organizeImports({ type: 'file', fileName: dialect.file('main.twill') }, {}, {}),
   ).toEqual([]);
   expect(dialect.logs.join('\n')).toContain('project unavailable');
+});
+
+it('uses initial protocol overrides and preserves text owned by an open ScriptInfo', () => {
+  const rootSpy = vi.spyOn(TwillProject.prototype, 'sourceFiles');
+  const state = bridgeFixture({
+    'api.twill': 'export const value=1;',
+    'main.ts': 'import {value} from "./api.twill";export const result:number=value;',
+  });
+  const api = state.file('api.twill');
+  const protocol = state.scriptInfo.get(api)!;
+  vi.spyOn(protocol, 'isScriptOpen').mockReturnValue(true);
+  state.plugin.onConfigurationChanged!({ overlays: { [api]: 'export const value=2;' } });
+  expect(protocol.editContent).not.toHaveBeenCalled();
+  expect(state.service.getSemanticDiagnostics(state.file('main.ts'))).toEqual([]);
+  const project = rootSpy.mock.contexts[0] as TwillProject;
+  expect(project.text(api)).toBe('export const value=2;');
+  vi.mocked(protocol.isScriptOpen).mockReturnValue(false);
+  state.plugin.onConfigurationChanged!({ overlays: { [api]: 'export const value=1;' } });
+  expect(protocol.editContent).not.toHaveBeenCalled();
+  expect(state.plugin.getExternalFiles!({} as ts.server.Project, 0)).toEqual([]);
+  const initial = bridgeFixture(
+    { 'api.twill': 'export const value=1;', 'main.ts': 'export const value=1;' },
+    { overlays: { invalid: 3 } },
+  );
+  expect(initial.service.getSemanticDiagnostics(initial.file('main.ts'))).toEqual([]);
+  expect(initial.logs).toEqual([]);
+});
+
+it('reads new unsaved native snapshots even when the host cannot stat or version the file', () => {
+  const state = bridgeFixture({ 'api.twill': 'export const value=1;' });
+  const unsaved = state.file('unsaved.ts');
+  state.sources.set(unsaved, 'export const value:number=42;');
+  vi.spyOn(state.info.languageServiceHost, 'getScriptVersion').mockImplementation((file) => {
+    if (file === unsaved) throw new Error('no disk version');
+    return '1';
+  });
+  expect(
+    state.service
+      .getQuickInfoAtPosition(unsaved, 13)
+      ?.displayParts?.map((part) => part.text)
+      .join(''),
+  ).toContain('number');
+  state.sources.set(state.file('missing.twill'), 'export const value=1;');
+  vi.mocked(state.info.languageServiceHost.getScriptVersion).mockImplementation(() => {
+    throw new Error('file removed');
+  });
+  expect(state.service.getSyntacticDiagnostics(state.file('api.twill'))).toEqual([]);
+});
+
+it('maps related diagnostic source files and preserves diagnostics without positions', () => {
+  const captured = vi.spyOn(TwillProject.prototype, 'sourceFiles');
+  const state = bridgeFixture({ 'first.twill': 'const shared=1;', 'second.ts': 'const shared=2;' });
+  const diagnostics = state.service.getSemanticDiagnostics(state.file('second.ts'));
+  const duplicate = diagnostics.find((item) => item.code === 2451)!;
+  expect(
+    duplicate.relatedInformation?.some((item) => item.file?.fileName === state.file('first.twill')),
+  ).toBe(true);
+  const project = captured.mock.contexts[0] as TwillProject;
+  const sf = project.service
+    .getProgram()!
+    .getSourceFile(virtualFilename(state.file('first.twill')))!;
+  vi.spyOn(project.service, 'getSemanticDiagnostics').mockReturnValue([
+    {
+      file: sf,
+      category: ts.DiagnosticCategory.Warning,
+      code: 1234,
+      messageText: 'no position',
+      start: undefined,
+      length: undefined,
+      relatedInformation: [
+        {
+          file: undefined,
+          category: ts.DiagnosticCategory.Message,
+          code: 1235,
+          messageText: 'related',
+          start: undefined,
+          length: undefined,
+        },
+      ],
+    },
+    {
+      file: undefined,
+      start: undefined,
+      length: undefined,
+      category: ts.DiagnosticCategory.Message,
+      code: 1236,
+      messageText: 'global',
+    },
+  ]);
+  const mapped = state.service.getSemanticDiagnostics(state.file('first.twill'));
+  expect(mapped[0]!.file?.text).toBe('const shared=1;');
+  expect(mapped[0]!.start).toBeUndefined();
+  expect(mapped[0]!.relatedInformation?.[0]?.messageText).toBe('related');
+  expect(mapped[1]!.file).toBeUndefined();
+});
+
+it('returns absent semantic results and rejects backend edits into generated closure syntax', () => {
+  const captured = vi.spyOn(TwillProject.prototype, 'sourceFiles');
+  const state = bridgeFixture({ 'main.twill': 'export const values=[1].map { n in n + 1 };' });
+  const file = state.file('main.twill');
+  expect(state.service.getQuickInfoAtPosition(file, 0)).toBeUndefined();
+  expect(state.service.getSignatureHelpItems(file, 0, undefined)).toBeUndefined();
+  expect(
+    state.service.getCompletionEntryDetails(file, 0, 'notAnEntry', {}, undefined, {}, undefined),
+  ).toBeUndefined();
+  expect(state.service.findRenameLocations(file, 13, false, false)?.length).toBeGreaterThan(0);
+  const project = captured.mock.contexts[0] as TwillProject;
+  const code = project.transformed(file)!.code;
+  const changes = [
+    {
+      fileName: virtualFilename(file),
+      textChanges: [{ span: { start: code.indexOf('=>'), length: 2 }, newText: 'unsafe' }],
+    },
+  ];
+  vi.spyOn(project.service, 'organizeImports').mockReturnValue(changes);
+  expect(state.service.organizeImports({ type: 'file', fileName: file }, {}, {})).toEqual([]);
+  vi.spyOn(project.service, 'getCompletionEntryDetails').mockReturnValue({
+    name: 'entry',
+    kind: ts.ScriptElementKind.constElement,
+    kindModifiers: '',
+    displayParts: [],
+    codeActions: [{ description: 'unsafe', changes }],
+  });
+  expect(
+    state.service.getCompletionEntryDetails(file, 13, 'entry', {}, undefined, {}, undefined)
+      ?.codeActions,
+  ).toEqual([]);
+  vi.spyOn(project.service, 'getCompletionsAtPosition').mockReturnValue(undefined);
+  expect(state.service.getCompletionsAtPosition(file, 13, {})).toBeUndefined();
+});
+
+it('reloads package-resolution state, ignores foreign overlays and retains the working project after invalid config', () => {
+  const state = bridgeFixture({ 'main.twill': 'export const value=1;' });
+  state.service.getSemanticDiagnostics(state.file('main.twill'));
+  state.plugin.onConfigurationChanged!({
+    overlays: { [join(state.root, '../foreign.twill')]: 'export const foreign=1;' },
+    reloadFiles: [state.file('package.json'), 42],
+  });
+  expect(state.info.project.refreshDiagnostics).toHaveBeenCalledOnce();
+  expect(
+    state.plugin.getExternalFiles!(state.info.project as unknown as ts.server.Project, 0),
+  ).not.toContain(join(state.root, '../foreign.twill'));
+  writeFileSync(state.file('twill.config.json'), '{"implicitReturn":"bad"}');
+  state.plugin.onConfigurationChanged!({ reloadFiles: [state.file('twill.config.json')] });
+  expect(state.logs.join('\n')).toContain('configuration reload');
+  expect(state.service.getSemanticDiagnostics(state.file('main.twill'))).toEqual([]);
 });

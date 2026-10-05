@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
 import assert from 'node:assert/strict';
-import { join } from 'node:path';
+import { join, isAbsolute } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { Registry, INITIAL } from 'vscode-textmate';
 import { loadWASM, OnigScanner, OnigString } from 'vscode-oniguruma';
+import { checkProviderContracts } from './provider-contracts';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 async function eventually<T>(action: () => PromiseLike<T>, accept: (value: T) => boolean) {
@@ -149,7 +150,9 @@ export async function run() {
     'PASS: shipped TS/TSX grammars highlight guard and switch expressions with actual built-in TS grammars',
   );
   const open = async (name: string) => {
-    const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(join(root, name)));
+    const doc = await vscode.workspace.openTextDocument(
+      vscode.Uri.file(isAbsolute(name) ? name : join(root, name)),
+    );
     await vscode.window.showTextDocument(doc);
     return doc;
   };
@@ -644,7 +647,8 @@ export async function run() {
       ),
     'Closing the tab must succeed',
   );
-  const inferred = await open('../inferred/main.twill');
+  const { inferredFile } = JSON.parse(readFileSync(join(root, 'host-fixtures.json'), 'utf8'));
+  const inferred = await open(inferredFile);
   const inferredHover = await eventually(
     () =>
       vscode.commands.executeCommand<vscode.Hover[]>(
@@ -666,6 +670,7 @@ export async function run() {
   console.log(
     'PASS: invalid source diagnostics, formatter failure, tab closure and config-free inferred project',
   );
+  await checkProviderContracts(extension, root);
   console.log('Twill packaged VSIX extension-host integration checks passed.');
   if (process.env.NODE_V8_COVERAGE) (await import('node:v8')).takeCoverage();
 }

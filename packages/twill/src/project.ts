@@ -1,5 +1,5 @@
 import ts from 'typescript';
-import { resolve, dirname, extname } from 'node:path';
+import { resolve, dirname } from 'node:path';
 import {
   transform,
   extensions,
@@ -229,14 +229,9 @@ export class TwillProject {
                     isExternalLibraryImport: false,
                   };
                 const file = virtualFilename(candidate);
-                const extension =
-                  extname(file) === '.tsx'
-                    ? ts.Extension.Tsx
-                    : extname(file) === '.jsx'
-                      ? ts.Extension.Jsx
-                      : extname(file) === '.js'
-                        ? ts.Extension.Js
-                        : ts.Extension.Ts;
+                // Fallback candidates are exclusively .twill/.twillx; native
+                // JS/TS extensions are resolved by TypeScript above.
+                const extension = file.endsWith('.tsx') ? ts.Extension.Tsx : ts.Extension.Ts;
                 return { resolvedFileName: file, extension, isExternalLibraryImport: false };
               }
             }

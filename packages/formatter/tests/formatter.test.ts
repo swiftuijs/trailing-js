@@ -45,6 +45,8 @@ it.each([
 describe('Prettier Twill plugin', () => {
   it.each([
     'const active=users.filter { .active && .verified };',
+    'const value=fn<number> { n in n + 1 };',
+    'run { (()=>1)(); };',
     'const value = fn(1, /* argument tail */) { (n: number) in n + 1 };',
     'const __twillImplicit={value:2}; const result=users.map { .value + __twillImplicit.value };',
     'const value=fn { (name="in", {value}={value:1}) in `${name}:${value}` };',

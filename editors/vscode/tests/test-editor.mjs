@@ -2,7 +2,8 @@ import { build } from 'vite';
 import { nodeViteConfig } from '../../../packages/twill/scripts/node-vite-config.mjs';
 import { readVsix } from './read-vsix.mjs';
 import { runTests } from '@vscode/test-electron';
-import { mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, rmSync, readFileSync, mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import assert from 'node:assert/strict';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,8 +31,12 @@ if (process.env.NODE_V8_COVERAGE) {
 }
 const workspace = join(root, 'workspace');
 mkdirSync(workspace, { recursive: true });
-mkdirSync(join(root, 'inferred'), { recursive: true });
-writeFileSync(join(root, 'inferred/main.twill'), 'export const values = [1].map { n in n * 2 };\n');
+// Outside the repository, so findConfigFile cannot silently inherit our own
+// editor package's tsconfig and make an inferred-project check falsely pass.
+const inferredRoot = mkdtempSync(join(tmpdir(), 'twill-editor-inferred-'));
+const inferredFile = join(inferredRoot, 'main.twill');
+writeFileSync(inferredFile, 'export const values = [1].map { n in n * 2 };\n');
+writeFileSync(join(workspace, 'host-fixtures.json'), JSON.stringify({ inferredFile }));
 const fixture = {
   'tsconfig.json': JSON.stringify({
     compilerOptions: {
@@ -78,18 +83,22 @@ await build({
   }),
   configFile: false,
 });
-await runTests({
-  version: process.env.TWILL_TEST_VSCODE_VERSION ?? 'stable',
-  vscodeExecutablePath: process.env.TWILL_TEST_VSCODE_PATH,
-  extensionDevelopmentPath: join(root, 'extension'),
-  extensionTestsPath: join(root, 'tests.cjs'),
-  launchArgs: [
-    workspace,
-    '--disable-extensions',
-    '--disable-workspace-trust',
-    '--no-sandbox',
-    '--disable-gpu',
-    '--skip-welcome',
-    '--skip-release-notes',
-  ],
-});
+try {
+  await runTests({
+    version: process.env.TWILL_TEST_VSCODE_VERSION ?? 'stable',
+    vscodeExecutablePath: process.env.TWILL_TEST_VSCODE_PATH,
+    extensionDevelopmentPath: join(root, 'extension'),
+    extensionTestsPath: join(root, 'tests.cjs'),
+    launchArgs: [
+      workspace,
+      '--disable-extensions',
+      '--disable-workspace-trust',
+      '--no-sandbox',
+      '--disable-gpu',
+      '--skip-welcome',
+      '--skip-release-notes',
+    ],
+  });
+} finally {
+  rmSync(inferredRoot, { recursive: true, force: true });
+}

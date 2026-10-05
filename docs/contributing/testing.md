@@ -18,16 +18,19 @@ Vitest uses V8 coverage remapped to source ASTs. Reports include statements, bra
 
 | Scope                                    | Statements | Branches | Functions | Lines |
 | ---------------------------------------- | ---------: | -------: | --------: | ----: |
-| Core package                             |        96% |      89% |       96% |   98% |
-| Compiler                                 |       100% |      97% |      100% |  100% |
-| Parser                                   |        98% |      96% |      100% |  100% |
-| Formatter                                |        97% |      92% |      100% |   98% |
-| Linter                                   |        99% |      90% |      100% |  100% |
-| Source export                            |        96% |      90% |       95% |   96% |
+| Core package                             |        98% |      95% |       99% |   99% |
+| Compiler                                 |       100% |      98% |      100% |  100% |
+| Parser                                   |        98% |      97% |      100% |  100% |
+| TypeScript server bridge                 |        98% |      93% |      100% |  100% |
+| Formatter                                |        98% |      97% |      100% |  100% |
+| Linter                                   |       100% |      98% |      100% |  100% |
+| Source export                            |        99% |      96% |      100% |  100% |
 | Playground scheduler and compiler worker |       100% |     100% |      100% |  100% |
-| Packaged VS Code extension               |        95% |      78% |      100% |   95% |
+| Packaged VS Code extension               |        98% |      95% |      100% |   98% |
 
 Editor coverage comes from the real extension host running the extracted VSIX, with c8 collecting V8 ranges. The collector checks that the packaged bundle matches the build before supplying its development source map; the bundle remains unchanged. A separate check rejects empty or incomplete reports. c8's line-based statement/range metrics differ from Vitest's AST metrics, so do not combine their percentages or call an empty function denominator 100% coverage.
+
+Provider boundary tests capture registrations from the same cached, shipped extension module and call them with real VS Code documents, language services, cancellation tokens and workspace edits. Controlled request-version changes exercise stale-result rejection; scoped API interception is restored after activation. Inferred-project fixtures live outside the repository so they cannot inherit a package's tsconfig. Native backend faults, such as skipped declaration emit and missing programs, are injected at the TypeScript API boundary without adding test hooks to production code.
 
 Playground control-flow coverage covers its scheduler and worker, including bounded input, stale responses, retries, failures and cancellation on disposal. Vue rendering, CodeMirror editing, accessibility and responsive behavior are validated by Chromium integration tests rather than included in that unit percentage. Third-party engines, Electron and VS Code's own implementation are outside Twill's source coverage.
 

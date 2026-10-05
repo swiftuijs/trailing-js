@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { resolve, load } from '../src/loader';
@@ -95,7 +96,8 @@ it('loads Twill and native TS/JSX with inherited JSX configuration and inline or
   expect(next).not.toHaveBeenCalled();
 });
 it('loads native sources without configuration and preserves host handling for JS, dependencies and non-file URLs', async () => {
-  const root = fixture();
+  const root = mkdtempSync(join(tmpdir(), 'twill-no-runtime-config-'));
+  roots.push(root);
   writeFileSync(join(root, 'plain.ts'), 'export const value: number = 2;');
   const next = vi.fn(async () => ({ format: 'module', source: 'host' }));
   const host = { format: 'module', importAttributes: {}, conditions: ['node'] };
@@ -136,10 +138,21 @@ it.each([
   expect(parsed.closures[0].header.text).toBe('value');
 });
 it('supports native JSX and script parsing through the syntax API', () => {
+  expect(parseSyntax('const value:number=1;').ast.body).toHaveLength(1);
   expect(parseSyntax('const view = <div/>;', { filename: 'view.jsx' }).ast.body).toHaveLength(1);
   expect(
     parseSyntax('const values = [1].map { n in n + 1 };', { language: 'js', sourceType: 'script' })
       .ast.sourceType,
   ).toBe('script');
   expect(() => transform('interface Value {}', { filename: 'main.js' })).toThrow();
+});
+it('preserves comment-only source and uncoded resolver errors', async () => {
+  const source = '/* standalone comment */';
+  expect(transform(source).code).toBe(source);
+  const failure = new Error('unexpected resolver failure');
+  await expect(
+    resolve('./missing', context, async () => {
+      throw failure;
+    }),
+  ).rejects.toBe(failure);
 });
