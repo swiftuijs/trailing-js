@@ -18,18 +18,19 @@ For editor changes, run `pnpm editor:package` then `pnpm editor:test` (headless 
 
 Keep test sources, fixtures, configuration and test dependencies with the package they exercise. The root provides aggregate commands; it does not own a test suite. Build workspace dependencies before running an individual package's tests.
 
-| Package              | Test command                                         | Coverage                                                                     |
-| -------------------- | ---------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `packages/twill`     | `pnpm --filter @swiftuijs/twill test:unit`           | Compiler, type checker, declarations, language-service API and five bundlers |
-| `packages/formatter` | `pnpm --filter @swiftuijs/twill-formatter test:unit` | Formatting, syntax preservation and idempotence                              |
-| `packages/linter`    | `pnpm --filter @swiftuijs/twill-linter test:unit`    | ESLint processor, rules and typed checks                                     |
-| `editors/vscode`     | `pnpm --filter twill test:unit`, `pnpm editor:test`  | TextMate grammar and real packaged extension host                            |
-| `apps/docs`          | `pnpm --filter @swiftuijs/twill-docs test:browser`   | Desktop/mobile documentation and playground                                  |
-| `examples/*`         | `pnpm test:examples`                                 | Example execution, production bundles and SSR rendering                      |
+| Package              | Test command                                         | Coverage                                                                         |
+| -------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `packages/twill`     | `pnpm --filter @swiftuijs/twill test:unit`           | Compiler, type checker, declarations, language-service API and five bundlers     |
+| `packages/formatter` | `pnpm --filter @swiftuijs/twill-formatter test:unit` | Formatting, syntax preservation and idempotence                                  |
+| `packages/linter`    | `pnpm --filter @swiftuijs/twill-linter test:unit`    | ESLint processor, rules and typed checks                                         |
+| `packages/migrate`   | `pnpm --filter @swiftuijs/twill-migrate test:unit`   | Checked native export, imports, configuration, collisions and input preservation |
+| `editors/vscode`     | `pnpm --filter twill test:unit`, `pnpm editor:test`  | TextMate grammar and real packaged extension host                                |
+| `apps/docs`          | `pnpm --filter @swiftuijs/twill-docs test:browser`   | Desktop/mobile documentation and playground                                      |
+| `examples/*`         | `pnpm test:examples`                                 | Example execution, production bundles and SSR rendering                          |
 
 `pnpm test` aggregates unit suites; `pnpm test:coverage` writes reports under each public package's `coverage/`. `pnpm test:browser` runs the compiler's React refresh suite and the documentation suite sequentially. Install Chromium with `pnpm --filter @swiftuijs/twill-docs exec playwright install --with-deps chromium` first. To use an existing browser, set `TWILL_CHROMIUM_PATH`. Browser artifacts stay outside the checkout, or under `TWILL_BROWSER_OUTPUT`, with separate directories for each package.
 
-Each public package owns `test:package` and its independent npm consumer. After `pnpm package:core && pnpm package:tooling`, `pnpm test:packed` verifies all three archives. These checks run outside the workspace and must not depend on hoisted development dependencies. The compiler owns shared TS-server protocol helpers and the TypeScript syntax corpus, reused by the editor and formatter without a cyclic workspace dependency. Compiler benchmarks live in `packages/twill/benchmarks`; the combined checker/formatter benchmark lives in `packages/formatter/benchmarks`.
+Each public package owns `test:package` and its independent npm consumer. After `pnpm package:core && pnpm package:tooling`, `pnpm test:packed` verifies all four archives. These checks run outside the workspace and must not depend on hoisted development dependencies. The compiler owns shared TS-server protocol helpers and the TypeScript syntax corpus, reused by the editor and formatter without a cyclic workspace dependency. Compiler benchmarks live in `packages/twill/benchmarks`; the combined checker/formatter benchmark lives in `packages/formatter/benchmarks`.
 
 ## Dependency updates
 

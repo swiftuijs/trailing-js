@@ -189,6 +189,8 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
         );
       });
       use('getRenameInfo', (file, offset) => context.editor.renameInfo(file, offset));
+      use('findReferences', (file, offset) => context.editor.referenceGroups(file, offset));
+      use('getReferencesAtPosition', (file, offset) => context.editor.references(file, offset));
       use('findRenameLocations', (file, offset, strings, comments, preferences) => {
         if (strings || comments) return undefined;
         return context.editor.renameLocations(file, offset, preferences ?? true);

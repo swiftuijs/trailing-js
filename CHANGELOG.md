@@ -2,10 +2,14 @@
 
 ## 0.8.0
 
+- Add original-source references across unsaved TS/JS/Twill documents, including native TS-server requests. Share one pinned TypeScript engine on disk between editor hosts and expose a lightweight standalone formatter for browsers and editors.
+- Add the optional migration workspace for checked, formatted native TS/TSX source export, with mixed-import rewriting, dry-run and preflight checks. Provide practical validation, resource ownership and typed state examples, an adoption guide and a language-design RFC.
+- Enforce compressed artifact budgets and representative native/dialect application byte and behavior parity. Release artifacts include a SHA-256 manifest; each public package is exercised from an independent installation.
+
 - Keep tests, browser fixtures, independent npm consumer verification and their dependencies in the owning workspace packages. Root commands aggregate package suites and coverage reports. Examples own their execution and rendering checks.
 - Centralize reviewed tool versions with pnpm catalogs, pin TypeScript semantics and docs compatibility dependencies, remove noisy dependency-update PR automation and refresh GitHub Actions. Dependency checks validate moderate-and-higher advisories and peer constraints.
 
-Add an independent `apps/docs` VitePress workspace with shared reference sources, English/Chinese guides, local search, Twill highlighting and an actual compiler playground in a disposable browser worker. GitHub Pages builds and desktop/mobile browser checks validate the site without running submitted code. Pin the stable documentation framework to patched Vite 6, with a dependency audit gate and maintained update configuration.
+Add an independent `apps/docs` VitePress workspace with shared reference sources, English guides, local search, Twill highlighting and an actual compiler playground in a disposable browser worker. GitHub Pages builds and desktop/mobile browser checks validate the site without running submitted code. Pin the stable documentation framework to patched Vite 6, with a dependency audit gate and peer-constraint validation.
 
 Add the optional `@swiftuijs/twill/vite-react` adapter for Vite 8 / React plugin 6 Fast Refresh, retaining hook state through Twill and native TS edits. Fix Vite client import analysis incorrectly treating optional configuration as browser dependencies. Watch inherited and newly created/deleted configuration files, invalidate affected environment graphs, and report invalid live configuration without crashing the server.
 

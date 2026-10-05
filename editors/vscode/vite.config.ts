@@ -5,7 +5,7 @@ export default defineConfig(
   nodeViteConfig({
     entry: 'src/extension.ts',
     filename: 'extension.cjs',
-    external: ['vscode'],
+    external: ['vscode', 'typescript'],
     minify: true,
   }),
 );

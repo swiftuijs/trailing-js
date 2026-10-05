@@ -1,0 +1,59 @@
+{
+  "name": "@swiftuijs/twill-migrate",
+  "version": "0.8.0",
+  "description": "Export a checked Twill source project to formatted native TypeScript.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/swiftuijs/twill.git"
+  },
+  "homepage": "https://github.com/swiftuijs/twill#readme",
+  "bugs": {
+    "url": "https://github.com/swiftuijs/twill/issues"
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "twill-migrate": "./bin/twill-migrate.mjs"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@swiftuijs/twill": "workspace:*",
+    "@swiftuijs/twill-formatter": "workspace:*",
+    "prettier": "catalog:",
+    "typescript": "catalog:",
+    "magic-string": "^1.4.2"
+  },
+  "devDependencies": {
+    "vite": "catalog:",
+    "vite-plugin-dts": "^5.1.2",
+    "@types/node": "catalog:",
+    "vitest": "catalog:",
+    "@vitest/coverage-v8": "catalog:"
+  },
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:package": "node tests/consumer.mjs",
+    "prepack": "pnpm run build"
+  }
+}

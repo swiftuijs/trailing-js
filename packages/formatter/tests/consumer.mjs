@@ -42,9 +42,16 @@ try {
     'import {formatGenerated} from "@swiftuijs/twill-formatter"; console.log(await formatGenerated("const result:number=42;",{filepath:"result.ts"}));',
   ]);
   assert(generated.includes('const result: number = 42;'));
+  const standalone = run([
+    '--input-type=module',
+    '-e',
+    'import {format,formatGenerated} from "@swiftuijs/twill-formatter/standalone"; console.log(await format("const x=[1].map { n in n*2 };")); console.log(await formatGenerated("const y:number=42;"));',
+  ]);
+  assert(standalone.includes('map { n in'));
+  assert(standalone.includes('const y: number = 42;'));
   writeFileSync(
     join(root, 'consumer.mts'),
-    `import formatter,{format,formatGenerated} from '@swiftuijs/twill-formatter'; void formatter; void format; void formatGenerated;`,
+    `import formatter,{format,formatGenerated} from '@swiftuijs/twill-formatter'; import * as standalone from '@swiftuijs/twill-formatter/standalone'; void formatter; void format; void formatGenerated; void standalone;`,
   );
   run([
     'node_modules/typescript/bin/tsc',

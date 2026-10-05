@@ -1,5 +1,5 @@
 import { transform, TwillSyntaxError } from '@swiftuijs/twill';
-import { formatGenerated } from '@swiftuijs/twill-formatter';
+import { formatGenerated } from '@swiftuijs/twill-formatter/standalone';
 import type { CompileRequest, CompileResponse } from './playground/protocol';
 self.onmessage = async ({ data }: MessageEvent<CompileRequest>) => {
   let response: CompileResponse;

@@ -9,6 +9,7 @@ Use Node 22.13+ and the pnpm version pinned in the root `packageManager`. `corep
 | `packages/twill`                         | Public `@swiftuijs/twill`: compiler, CLI, checker, Node loader, shared editor API and build adapters | Vite library mode emits ESM and the CJS TS-server entry; `vite-plugin-dts` emits tool API declarations          |
 | `packages/formatter`                     | Public `@swiftuijs/twill-formatter`: Prettier plugin                                                 | Vite library mode and API declarations                                                                          |
 | `packages/linter`                        | Public `@swiftuijs/twill-linter`: ESLint processor and recommended configs                           | Vite library mode and API declarations                                                                          |
+| `packages/migrate`                       | Optional public `@swiftuijs/twill-migrate`: checked source export to native TS/TSX                   | Vite library mode, CLI and API declarations                                                                     |
 | `examples/*`                             | Seven private applications/libraries, each with its own manifest                                     | Local Vite configurations; library adds declaration emission                                                    |
 | `editors/vscode`                         | VS Code extension and TextMate grammars                                                              | Vite bundles a standalone CJS extension; preparation copies standard-library declarations, schemas and licenses |
 | `editors/vscode/twill-typescript-plugin` | Private `@swiftuijs/twill-vscode-tsserver` bridge bundled in the VSIX                                | Vite bundles a CJS TS-server plugin                                                                             |
@@ -36,7 +37,7 @@ xvfb-run -a pnpm editor:test
 
 ## Editor and debugging tools
 
-The VSIX supports completion, partial React prop keys and contextual callback members, hover/signatures/navigation, diagnostics, auto-imports, mixed-file rename, import organization and safe quick fixes. Selecting a completion applies edits to original Twill text. Renaming a local shorthand prop value keeps the public prop key; renaming the contract keeps the local binding. Native TS/JS import-alias rename follows TypeScript semantics. Source edits are rejected when they cannot be represented safely in the dialect; document formatting is bundled; full refactoring/fix-all is not advertised.
+The VSIX supports completion, partial React prop keys and contextual callback members, hover/signatures/definitions/references, diagnostics, auto-imports, mixed-file rename, import organization and safe quick fixes. Selecting a completion applies edits to original Twill text. Renaming a local shorthand prop value keeps the public prop key; renaming the contract keeps the local binding. Native TS/JS import-alias rename follows TypeScript semantics. Source edits are rejected when they cannot be represented safely in the dialect; document formatting is bundled; full refactoring/fix-all is not advertised.
 
 **Twill: Show Generated TypeScript** displays formatted TS/TSX for reading. Formatting uses the formatter package's native parser and does not alter source or compiler maps. **Twill: Show Project Diagnostics** displays configuration, source counts, versions, diagnostics and check duration. The same report is available from the CLI:
 
@@ -67,7 +68,7 @@ pnpm lint
 pnpm lint:fix
 pnpm format
 pnpm package:tooling
-pnpm test:tooling         # independent npm install of all three tarballs
+pnpm test:tooling         # independent npm install of all four tarballs
 pnpm --filter twill package   # editor's own packaging entry
 pnpm --filter twill test      # editor's own host-test entry
 ```

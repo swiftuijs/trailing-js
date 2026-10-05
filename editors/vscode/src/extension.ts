@@ -9,7 +9,7 @@ import {
 } from '@swiftuijs/twill/project';
 import { isTwillFile } from '@swiftuijs/twill';
 import { TwillEditor, type SourceEdit } from '@swiftuijs/twill/editor';
-import { format, formatGenerated } from '@swiftuijs/twill-formatter';
+import { format, formatGenerated } from '@swiftuijs/twill-formatter/standalone';
 import { inspectProject } from '@swiftuijs/twill/doctor';
 
 const languages = ['twill-typescript', 'twill-tsx'];
@@ -516,6 +516,31 @@ export function activate(context: vscode.ExtensionContext) {
         ],
       },
     ),
+  );
+
+  context.subscriptions.push(
+    vscode.languages.registerReferenceProvider(selector, {
+      async provideReferences(document, position, options, token) {
+        const references = safely(document, (project) =>
+          editor(project).references(document.fileName, document.offsetAt(position)),
+        );
+        if (!references || token.isCancellationRequested) return [];
+        return Promise.all(
+          references
+            .filter((entry) => options.includeDeclaration || !entry.isDefinition)
+            .map(async (entry) => {
+              const target = await vscode.workspace.openTextDocument(entry.fileName);
+              return new vscode.Location(
+                target.uri,
+                new vscode.Range(
+                  target.positionAt(entry.textSpan.start),
+                  target.positionAt(entry.textSpan.start + entry.textSpan.length),
+                ),
+              );
+            }),
+        );
+      },
+    }),
   );
 
   context.subscriptions.push(

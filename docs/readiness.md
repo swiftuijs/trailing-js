@@ -12,7 +12,7 @@ The [syntax reference](syntax.md) defines supported syntax and ambiguity rules. 
 
 ## Editor assistance
 
-The VS Code extension supplies diagnostics, completion, hover, signatures, definitions, automatic imports, cross-file rename, import organization, formatting and safe quick fixes. Its TS-server bridge supports native TS/JS consumers of Twill files and synchronizes unsaved dialect documents.
+The VS Code extension supplies diagnostics, completion, hover, signatures, definitions, references, automatic imports, cross-file rename, import organization, formatting and safe quick fixes. Its TS-server bridge supports native TS/JS consumers of Twill files and synchronizes unsaved dialect documents.
 
 React props and callback parameters use project types. Vue slot inference has the limits of Vue's JSX declarations and can require annotations. Incomplete source receives assistance where it can be repaired safely; arbitrarily malformed input can suspend semantic suggestions. Edits that cannot map exactly to original source tokens are withheld. General refactoring and fix-all are unavailable.
 
@@ -23,6 +23,14 @@ The virtual checker uses TypeScript 5.9. Compatibility with arbitrary workspace 
 Ordinary trailing closures and guards lower to arrows and branches without a runtime library. `defer` and general child collection allocate local closures or arrays. Use native `try/finally` when those allocations matter in a hot path.
 
 The checker caches unchanged snapshots and transforms. Disk edits refresh affected files; configuration changes rebuild affected projects. [Performance measurements](performance.md) describe synthetic compiler, checker and formatter workloads, including their limits. They do not establish whole-application latency or a universal performance guarantee.
+
+Representative native/dialect application bundles are checked for byte and behavior parity. Release tarballs and the VSIX have enforced compressed size budgets. Each VSIX includes one pinned engine shared on disk by both editor hosts and is verified after extraction, without workspace symlinks.
+
+## Adoption and source export
+
+Use one module at a time with the existing project. The optional migration package exports a checked single-project source graph to formatted native TS/TSX in a new directory, rewriting relative dialect imports in both native and dialect files. Source errors, collisions and unsupported paths stop the export; originals remain intact.
+
+This is source export rather than a complete application installer. Dependencies, host build configuration, public assets, project references and computed dynamic module paths have separate boundaries. See [adoption and migration](adoption.md) for the exact workflow. Real project pilots are needed to establish team productivity and dependency-heavy project performance.
 
 ## Tested tool versions
 
@@ -41,4 +49,4 @@ Validation covers execution, type checking, source mappings, actual bundler buil
 
 ## Distribution
 
-The compiler, formatter and linter are public package targets. The repository root, examples and documentation are private workspaces. Reviewed tarballs and VSIX artifacts can be built from the repository; npm and Marketplace publication are separate maintainer operations. See [getting started](getting-started.md) for installation and [releasing](releasing.md) for artifact verification.
+The compiler, formatter, linter and optional source migration tool are public package targets. The repository root, examples and documentation are private workspaces. Reviewed tarballs and VSIX artifacts can be built from the repository; npm and Marketplace publication are separate maintainer operations. See [getting started](getting-started.md) for installation and [releasing](releasing.md) for artifact verification.

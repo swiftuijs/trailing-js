@@ -21,6 +21,7 @@ const pages = [
       { text: 'Playground', link: '/playground' },
       { text: 'Language overview', link: '/language' },
       { text: 'Practical patterns', link: '/patterns' },
+      { text: 'Adoption and migration', link: '/adoption' },
     ],
   },
   {

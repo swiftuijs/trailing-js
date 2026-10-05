@@ -116,6 +116,22 @@ export async function probeTypeScriptPlugin(probeLocation, pluginName) {
     assert.equal(definitions[0].file.replaceAll('\\', '/'), api.replaceAll('\\', '/'));
     assert.equal(definitions[0].start.line, 1);
     assert.equal(definitions[0].start.offset, 'export function '.length + 1);
+    const references = await send('references', {
+      file: main,
+      line: 1,
+      offset: source.lastIndexOf('label') + 2,
+    });
+    const apiReferences = references.refs.filter(
+      (entry) => entry.file.replaceAll('\\', '/') === api.replaceAll('\\', '/'),
+    );
+    assert.equal(apiReferences.length, 1);
+    assert.equal(apiReferences[0].start.offset, 'export function '.length + 1);
+    assert(
+      references.refs.some(
+        (entry) => entry.file.replaceAll('\\', '/') === js.replaceAll('\\', '/'),
+      ),
+    );
+    assert(references.refs.every((entry) => !/\.twill\.ts$/.test(entry.file)));
     const rename = await send('rename', {
       file: api,
       line: 1,

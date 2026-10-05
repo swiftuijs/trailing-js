@@ -24,11 +24,11 @@ jobs:
       - run: pnpm package:core
       - run: node packages/twill/tests/consumer.mjs --packed
       - run: pnpm package:tooling
-      - run: node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs
+      - run: node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs && node packages/migrate/tests/consumer.mjs
       - run: pnpm --filter @swiftuijs/twill-docs exec playwright install --with-deps chromium
       - run: pnpm test:browser
-      - run: pnpm verify:release --artifacts
-      - run: gh release create "$RELEASE_TAG" --verify-tag --generate-notes *.tgz dist/twill.vsix
+      - run: pnpm release:manifest
+      - run: gh release create "$RELEASE_TAG" --verify-tag --generate-notes *.tgz dist/twill.vsix release-manifest.json
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}

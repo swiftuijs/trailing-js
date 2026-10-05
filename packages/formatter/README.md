@@ -22,3 +22,5 @@ The API `format(source, { filepath: 'view.twillx' })` returns a promise. The def
 The VSIX bundles this formatter and supports Format Document and format-on-save without a separate Prettier extension. Its built-in provider uses editor indentation and Prettier defaults. Use the standard Prettier extension with this workspace plugin when you need project-wide Prettier configuration.
 
 For generated-source viewers, `formatGenerated(code, { filepath: 'output.ts' })` formats native TS/TSX directly. Use `output.tsx` for JSX. It returns display text without a source map; retain the original compiler result for builds, diagnostics and debugger mappings. `format()` remains the dialect-source formatter.
+
+Browser workers and the VSIX use `@swiftuijs/twill-formatter/standalone`. It exposes the same formatting helpers and loads only Prettier's core, the TS/ESTree support and the Twill plugin. Additional plugins must be loaded objects; this entry does not resolve plugin filenames or load configuration from disk. The main entry retains ordinary Node Prettier integration. Both entries are tested for matching formatting and idempotence.
