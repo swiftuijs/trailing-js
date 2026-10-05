@@ -97,7 +97,7 @@ pnpm eslint src
 pnpm exec twill check -p tsconfig.json
 ```
 
-Use `recommendedTypeChecked` for type-aware linting; it requires a tsconfig. Add normal browser/Node globals for your application. VS Code's ESLint extension can validate `twill-typescript` and `twill-tsx`. See [tooling](./tooling.md) for safe fixes, debugging, diagnostics and library builds.
+Use `recommendedTypeChecked` for type-aware linting; it requires a tsconfig and detects missing union cases in switches, even with a `default` branch. Add normal browser/Node globals for your application. VS Code's ESLint extension can validate `twill-typescript` and `twill-tsx`. See [practical patterns](./patterns.md) for validation, owned resources and explicit outcomes, and [tooling](./tooling.md) for safe fixes, debugging, diagnostics and library builds.
 
 ## Run Node code
 

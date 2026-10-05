@@ -11,7 +11,7 @@ Ordinary callbacks compile to native arrows. In UI files, component closures com
 
 This is an experimental **0.8 language**, with production-oriented packaging and tests. See [the syntax contract and limitations](docs/syntax.md) before adopting it. Until published to npm and the Marketplace, install a locally built tarball and VSIX.
 
-Documentation: [getting started](docs/getting-started.md) · [playground](docs/playground.md) · [readiness and support](docs/readiness.md). The private `apps/docs` workspace builds the searchable site; use `pnpm docs:dev` locally. Its Pages deployment target is [swiftuijs.github.io/twill](https://swiftuijs.github.io/twill/); repository Pages must be enabled with GitHub Actions as the source.
+Documentation: [getting started](docs/getting-started.md) · [practical patterns](docs/patterns.md) · [playground](docs/playground.md) · [readiness and support](docs/readiness.md). The private `apps/docs` workspace builds the searchable site; use `pnpm docs:dev` locally. Its Pages deployment target is [swiftuijs.github.io/twill](https://swiftuijs.github.io/twill/); repository Pages must be enabled with GitHub Actions as the source.
 
 ## Quick start
 
@@ -119,7 +119,7 @@ function scoreOf(input: { score: number } | undefined) {
 `guard condition else { ... }` lowers to `if (!(condition)) { ... }`. `guard const name = expression else { ... }` lowers to a normal `const` and a nullish check; it evaluates the initializer once. Every failure path must explicitly exit with `return`, `throw`, `break` or `continue`. Existing variables and functions named `guard` remain valid.
 
 ```sh
-pnpm dev:general  # validation, typed array pipelines, async retry
+pnpm dev:general  # validation, typed pipelines, owned async workflows and outcomes
 ```
 
 ## Scope cleanup
