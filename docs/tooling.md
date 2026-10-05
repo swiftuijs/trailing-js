@@ -12,6 +12,7 @@ Use Node 22.13+ and the pnpm version pinned in the root `packageManager`. `corep
 | `examples/*`                             | Seven private applications/libraries, each with its own manifest                                        | Local Vite configurations; library adds declaration emission                                                    |
 | `editors/vscode`                         | VS Code extension and TextMate grammars                                                                 | Vite bundles a standalone CJS extension; preparation copies standard-library declarations, schemas and licenses |
 | `editors/vscode/twill-typescript-plugin` | Private `@swiftuijs/twill-vscode-tsserver` bridge bundled in the VSIX                                   | Vite bundles a CJS TS-server plugin                                                                             |
+| `apps/docs`                              | Private VitePress site, bilingual guides, local search and compiler worker playground                   | VitePress static site; shared `docs/` references                                                                |
 | Root                                     | Shared tests, scripts, configuration and release gates                                                  | Private pnpm workspace coordinator; not a published package                                                     |
 
 Workspace dependencies order builds and use public compiler exports. Vite 8 uses Rolldown for repository bundles; there is no separate tsup/esbuild build pipeline. esbuild remains a supported consumer adapter and is used in adapter/native-output tests. Examples exercise ordinary functions, cleanup, mixed TS/JS, React and Vue. No compiler special case exists for `@swiftuijs/ui`.
@@ -24,7 +25,7 @@ pnpm build                # all workspace bundles and compiler declarations
 pnpm check                # build, typecheck, tests, consumer checks, packaged VSIX probes
 pnpm format:check
 pnpm test:coverage
-pnpm package:core         # swiftuijs-twill-0.7.0.tgz at the root
+pnpm package:core         # swiftuijs-twill-0.8.0.tgz at the root
 pnpm editor:package       # dist/twill.vsix
 pnpm editor:test          # real VS Code extension-host tests against the VSIX
 # Headless Linux:
@@ -49,7 +50,7 @@ The report includes filenames, compiler settings and diagnostic text, but does n
 
 **Twill: Debug Current File** starts VS Code's built-in Node debugger with `--enable-source-maps --import @swiftuijs/twill/register`. Install the compiler in the application first; the extension bundles checking tools, not an application runtime installation. Set normal breakpoints in the `.twill` file. The command runs the selected file, so imported entry points and application environment should be configured through your normal Node launch configuration when needed.
 
-Browser applications use existing browser, React and Vue developer tools: emitted code has ordinary framework semantics and source maps. Twill needs no extra runtime inspector. `.vue` SFC processing and React Fast Refresh retain their documented integration limits.
+Browser applications use existing browser, React and Vue developer tools: emitted code has ordinary framework semantics and source maps. Twill needs no extra runtime inspector. For Vite 8 React development, use [the Fast Refresh adapter](frameworks.md). `.vue` SFC processing remains the responsibility of the standard Vue plugin.
 
 ## Validation and boundaries
 
@@ -83,3 +84,16 @@ pnpm exec twill declarations -p packages/app/tsconfig.json --build --json
 Use Vite library mode for JS output, then the declaration command for `.d.ts` and composed `.d.ts.map` output. Declaration module specifiers use ordinary `.js`/`.mjs`/`.cjs` names. Maps refer to original Twill/TS sources. Do not combine same-basename native and Twill files in one output directory: collisions are rejected. Errors prevent writes for the failing project; dependencies already emitted in a reference build remain on disk.
 
 `--build` traverses tsconfig references in dependency order and consumes their declarations; circular references fail explicitly. Referenced projects use their configured `declarationDir`/`outDir` (otherwise `dist`); `-o` overrides only the root project, relative to the current working directory. This emits declarations only, without incremental caching or `.tsbuildinfo`. The ordinary `twill check` command still checks one project at a time. For published libraries, set package `exports.types` to the generated entry declaration and `exports.import` to the Vite JS entry, as in the library example. Native consumers require neither Twill source parsing nor a Twill editor plugin.
+
+## Documentation workspace
+
+`apps/docs` is an independent private package. Canonical Markdown remains in `docs/`; the site consumes it directly, avoiding duplicated references. VitePress uses a scoped, security-patched Vite 6 dependency for the site. Core, tooling, editor and examples retain their Vite 8 builds.
+
+```sh
+pnpm docs:dev
+pnpm docs:build
+pnpm docs:preview
+pnpm test:browser # build first; Chromium must be available
+```
+
+The default site base is `/twill/`; set `TWILL_DOCS_BASE=/` for root hosting. GitHub Pages deploys the built `apps/docs/dist` artifact on main updates. Configure the repository Pages source as GitHub Actions before the first deployment. Local search stays in the browser; the Playground uses a disposable, time-limited worker and performs syntax lowering only. It does not upload source, execute input or supply project type diagnostics.

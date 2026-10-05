@@ -13,7 +13,9 @@ function jsxSource(root: string): string | undefined {
   const cached = jsxConfigs.get(filename);
   if (
     cached &&
-    [...cached.files].every(([file, time]) => existsSync(file) && statSync(file).mtimeMs === time)
+    [...cached.files].every(
+      ([file, time]) => (existsSync(file) ? statSync(file).mtimeMs : -1) === time,
+    )
   )
     return cached.source;
   const files = new Map<string, number>();
@@ -25,7 +27,7 @@ function jsxSource(root: string): string | undefined {
       // Only read configuration, not the project's source tree.
       readDirectory: () => [],
       readFile(file) {
-        if (existsSync(file)) files.set(file, statSync(file).mtimeMs);
+        files.set(file, existsSync(file) ? statSync(file).mtimeMs : -1);
         return ts.sys.readFile(file);
       },
       getCurrentDirectory: () => root,
@@ -50,4 +52,17 @@ export function loadConfig(root = process.cwd()): Config {
     if (!['implicitReturn', '$schema'].includes(key))
       throw new Error(`${filename}: unknown option ${key}`);
   return { implicitReturn: value.implicitReturn, jsxImportSource };
+}
+
+/** Config dependencies, including inherited tsconfigs and optional new files. */
+export function configurationFiles(root: string): string[] {
+  jsxSource(root);
+  const tsconfig = ts.findConfigFile(root, ts.sys.fileExists);
+  return [
+    ...new Set([
+      resolve(root, 'twill.config.json'),
+      resolve(root, 'tsconfig.json'),
+      ...(tsconfig ? [...(jsxConfigs.get(tsconfig)?.files.keys() ?? [tsconfig])] : []),
+    ]),
+  ];
 }

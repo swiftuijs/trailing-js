@@ -1,6 +1,6 @@
 {
   "name": "@swiftuijs/twill",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Twill: a JS/TS syntax-sugar language with trailing closures, guards, block-scoped defer, build plugins, type checking, and editor support.",
   "main": "./dist/typescript-plugin.cjs",
   "repository": {
@@ -111,17 +111,25 @@
     "./declarations": {
       "types": "./dist/declarations.d.ts",
       "import": "./dist/declarations.js"
+    },
+    "./vite-react": {
+      "types": "./dist/vite-react.d.ts",
+      "import": "./dist/vite-react.js"
     }
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",
-    "vue": "^3.3.0"
+    "vue": "^3.3.0",
+    "@vitejs/plugin-react": "^6.1.1"
   },
   "peerDependenciesMeta": {
     "react": {
       "optional": true
     },
     "vue": {
+      "optional": true
+    },
+    "@vitejs/plugin-react": {
       "optional": true
     }
   },
@@ -138,6 +146,7 @@
   "devDependencies": {
     "vite": "^8.3.2",
     "vite-plugin-dts": "^5.1.2",
-    "@types/node": "^26.6.4"
+    "@types/node": "^26.6.4",
+    "@vitejs/plugin-react": "^6.1.1"
   }
 }

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.8.0
+
+Add an independent `apps/docs` VitePress workspace with shared reference sources, English/Chinese guides, local search, Twill highlighting and an actual compiler playground in a disposable browser worker. GitHub Pages builds and desktop/mobile browser checks validate the site without running submitted code. Pin the stable documentation framework to patched Vite 6, with a dependency audit gate and maintained update configuration.
+
+Add the optional `@swiftuijs/twill/vite-react` adapter for Vite 8 / React plugin 6 Fast Refresh, retaining hook state through Twill and native TS edits. Fix Vite client import analysis incorrectly treating optional configuration as browser dependencies. Watch inherited and newly created/deleted configuration files, invalidate affected environment graphs, and report invalid live configuration without crashing the server.
+
+Add a TypeScript 5.9 syntax/formatter corpus, 200 seeded differential runtime cases combining closures, guards and cleanup, and synchronized release/tag/artifact checks. This closes specific workflow gaps; the 0.x language remains experimental, with broader application validation, advanced editor refactoring and incremental declaration builds still outstanding.
+
 ## 0.7.0
 
 Make every example a private pnpm workspace package with its own dependencies, Vite builds, checking, formatting and lint commands. The VS Code workspace exposes its own build/package/test entry points; the root coordinates shared validation.

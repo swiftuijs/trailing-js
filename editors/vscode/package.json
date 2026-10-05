@@ -2,7 +2,7 @@
   "name": "twill",
   "displayName": "Twill",
   "description": "Syntax highlighting and TypeScript language support for the Twill JS/TS syntax-sugar language.",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "type": "module",
   "scripts": {

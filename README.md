@@ -9,7 +9,9 @@ const doubled = [1, 2, 3].map { value in value * 2 };
 
 Ordinary callbacks compile to native arrows. In UI files, component closures compile directly to standard JSX: React children or lazy Vue slots. Import components directly from any library. `@swiftuijs/ui` is one example consumer; the compiler has no component-library lists or special cases.
 
-This is an experimental **0.6 language**, with production-oriented packaging and tests. See [the syntax contract and limitations](docs/syntax.md) before adopting it. Until published to npm and the Marketplace, install a locally built tarball and VSIX.
+This is an experimental **0.8 language**, with production-oriented packaging and tests. See [the syntax contract and limitations](docs/syntax.md) before adopting it. Until published to npm and the Marketplace, install a locally built tarball and VSIX.
+
+Documentation: [getting started](docs/getting-started.md) · [playground](docs/playground.md) · [readiness and support](docs/readiness.md). The private `apps/docs` workspace builds the searchable site; use `pnpm docs:dev` locally. Its Pages deployment target is [swiftuijs.github.io/twill](https://swiftuijs.github.io/twill/); repository Pages must be enabled with GitHub Actions as the source.
 
 ## Quick start
 
@@ -22,7 +24,7 @@ pnpm install --frozen-lockfile
 pnpm build
 pnpm package:core
 # In your application:
-npm install /path/to/swiftuijs-twill-0.7.0.tgz
+npm install /path/to/swiftuijs-twill-0.8.0.tgz
 ```
 
 In Vite:

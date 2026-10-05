@@ -10,3 +10,5 @@ packages/twill/LICENSE
 .vscode-test
 
 **/dist
+
+**/.vitepress/cache/

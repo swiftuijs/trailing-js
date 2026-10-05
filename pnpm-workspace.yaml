@@ -1,11 +1,18 @@
 packages:
   - packages/*
+  - apps/*
   - examples/*
   - editors/vscode
   - editors/vscode/twill-typescript-plugin
 
 minimumReleaseAgeExclude:
   - '@swiftuijs/ui@0.1.1'
+
+# VitePress 1 is stable but its Vite 5 dependency is no longer security patched.
+# Its Vue plugin supports Vite 6; the site build/dev/preview and browser gates
+# validate this scoped upgrade (GHSA-fx2h-pf6j-xcff). Core builds stay on Vite 8.
+overrides:
+  'vitepress@1.6.4>vite': '^6.4.3'
 
 # The repository builds with Vite/Rolldown. esbuild is retained only for its
 # supported adapter and consumer tests; its native test binary needs setup.

@@ -15,6 +15,9 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm verify:release
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
       - run: pnpm check
       - run: pnpm format:check
       - run: xvfb-run -a pnpm editor:test
@@ -22,6 +25,9 @@ jobs:
       - run: node scripts/verify-package.mjs --packed
       - run: pnpm package:tooling
       - run: node scripts/verify-tooling.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:browser
+      - run: pnpm verify:release --artifacts
       - run: gh release create "$RELEASE_TAG" --verify-tag --generate-notes *.tgz dist/twill.vsix
         env:
           GH_TOKEN: ${{ github.token }}

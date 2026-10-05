@@ -1,0 +1,113 @@
+:root {
+  --vp-c-brand-1: #38654a;
+  --vp-c-brand-2: #487a5d;
+  --vp-c-brand-3: #38654a;
+  --vp-c-brand-soft: rgba(56, 101, 74, 0.12);
+  --vp-home-hero-name-color: var(--vp-c-brand-1);
+}
+.dark {
+  --vp-c-brand-1: #93cba5;
+  --vp-c-brand-2: #a9dfba;
+  --vp-c-brand-3: #38654a;
+  --vp-c-brand-soft: rgba(147, 203, 165, 0.14);
+}
+.VPHome {
+  padding-bottom: 64px !important;
+}
+.twill-playground {
+  margin: 24px 0;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.playground-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: var(--vp-c-bg-soft);
+}
+.playground-toolbar label,
+.playground-editors label {
+  font-size: 13px;
+  font-weight: 600;
+}
+.playground-toolbar select {
+  font: inherit;
+  font-size: 14px;
+  padding: 6px 30px 6px 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+  background: var(--vp-c-bg);
+}
+.playground-toolbar button {
+  margin-left: auto;
+  padding: 7px 18px;
+  background: var(--vp-c-brand-3);
+  color: white;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: 6px;
+}
+.playground-toolbar button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.playground-editors {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.playground-editors > div {
+  min-width: 0;
+  padding: 16px;
+}
+.playground-editors > div + div {
+  border-left: 1px solid var(--vp-c-divider);
+}
+.playground-editors label {
+  display: block;
+  margin-bottom: 12px;
+}
+.playground-editors textarea {
+  resize: vertical;
+  width: 100%;
+  min-height: 340px;
+  padding: 12px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 6px;
+  background: var(--vp-c-bg-alt);
+  color: var(--vp-c-text-1);
+  font: 13px/1.7 var(--vp-font-family-mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  overflow: auto;
+}
+.playground-toolbar :focus-visible,
+.playground-editors textarea:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 3px;
+}
+.playground-status,
+.playground-note {
+  margin: 0 !important;
+  padding: 0 16px 12px;
+  font-size: 13px;
+}
+.playground-note {
+  color: var(--vp-c-text-2);
+  line-height: 1.6;
+}
+@media (max-width: 700px) {
+  .playground-editors {
+    grid-template-columns: 1fr;
+  }
+  .playground-editors > div + div {
+    border-left: 0;
+    border-top: 1px solid var(--vp-c-divider);
+  }
+  .playground-editors textarea {
+    min-height: 230px;
+  }
+}

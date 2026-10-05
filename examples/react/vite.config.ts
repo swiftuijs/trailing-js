@@ -1,4 +1,4 @@
 import { defineConfig } from 'vite';
-import twill from '@swiftuijs/twill/vite';
+import twillReact from '@swiftuijs/twill/vite-react';
 
-export default defineConfig({ plugins: [twill()] });
+export default defineConfig({ plugins: twillReact() });

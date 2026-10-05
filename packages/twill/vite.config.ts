@@ -16,6 +16,7 @@ const entries = [
   'register',
   'loader',
   'vite',
+  'vite-react',
   'rollup',
   'esbuild',
   'webpack',
@@ -44,7 +45,12 @@ export default defineConfig({
     minify: false,
     sourcemap: true,
     rolldownOptions: {
-      external: [...builtinModules, /^node:/, ...Object.keys(metadata.dependencies)],
+      external: [
+        ...builtinModules,
+        /^node:/,
+        ...Object.keys(metadata.dependencies),
+        ...Object.keys(metadata.peerDependencies),
+      ],
       output: { banner: (chunk) => (chunk.name === 'cli' ? '#!/usr/bin/env node' : '') },
     },
   },

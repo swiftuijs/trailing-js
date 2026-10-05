@@ -1,5 +1,5 @@
 {
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Twill: a JS/TS syntax-sugar language with trailing closures, guards, block-scoped defer, build plugins, type checking, and editor support.",
   "repository": {
     "type": "git",
@@ -39,7 +39,9 @@
     "@swiftuijs/twill": "workspace:*",
     "@swiftuijs/twill-formatter": "workspace:*",
     "@swiftuijs/twill-linter": "workspace:*",
-    "eslint": "^10.12.0"
+    "eslint": "^10.12.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@playwright/test": "^1.56.1"
   },
   "scripts": {
     "build": "pnpm -r --workspace-concurrency=1 run build",
@@ -47,7 +49,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "check": "pnpm build && pnpm typecheck && pnpm test && pnpm lint && pnpm format:check && pnpm test:package && pnpm editor:package",
+    "check": "pnpm verify:release && pnpm build && pnpm typecheck && pnpm test && pnpm lint && pnpm format:check && pnpm test:package && pnpm editor:package",
     "test:package": "node scripts/verify-package.mjs",
     "editor:build": "pnpm --filter twill... run build && pnpm --filter twill verify",
     "editor:package": "pnpm --filter twill package",
@@ -67,6 +69,11 @@
     "lint:fix": "eslint examples --fix",
     "benchmark:project": "node scripts/benchmark-project.mjs",
     "package:tooling": "pnpm --filter @swiftuijs/twill-formatter pack --out swiftuijs-twill-formatter-%v.tgz && pnpm --filter @swiftuijs/twill-linter pack --out swiftuijs-twill-linter-%v.tgz",
-    "test:tooling": "pnpm package:core && pnpm package:tooling && node scripts/verify-tooling.mjs"
+    "test:tooling": "pnpm package:core && pnpm package:tooling && node scripts/verify-tooling.mjs",
+    "docs:dev": "pnpm --filter @swiftuijs/twill run build && pnpm --filter @swiftuijs/twill-docs dev",
+    "docs:build": "pnpm --filter @swiftuijs/twill-docs... run build",
+    "docs:preview": "pnpm --filter @swiftuijs/twill-docs preview",
+    "test:browser": "playwright test",
+    "verify:release": "node scripts/verify-release.mjs"
   }
 }

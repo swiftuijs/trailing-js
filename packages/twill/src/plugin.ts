@@ -1,7 +1,8 @@
 import { dirname, isAbsolute, resolve } from 'node:path';
+import { existsSync } from 'node:fs';
 import { createUnplugin } from 'unplugin';
 import { isTwillFile, type TransformOptions } from './compiler.js';
-import { loadConfig } from './config.js';
+import { loadConfig, configurationFiles } from './config.js';
 import { transpile, transpileNative } from './transpile.js';
 import {
   isDependency,
@@ -23,6 +24,7 @@ export const twillPlugin = createUnplugin<PluginOptions | undefined, false>(
   (options = {}, meta) => {
     let root = options.root ?? process.cwd();
     let config = { ...loadConfig(root), ...options };
+    let servingVite = false;
     // Reuse native host emission where it already exists.
     const nativeSources = options.nativeSources ?? !['vite', 'esbuild'].includes(meta.framework);
     return {
@@ -44,6 +46,7 @@ export const twillPlugin = createUnplugin<PluginOptions | undefined, false>(
         configResolved(viteConfig) {
           root = options.root ?? viteConfig.root;
           config = { ...loadConfig(root), ...options };
+          servingVite = viteConfig.command === 'serve';
         },
         config() {
           return {
@@ -53,15 +56,33 @@ export const twillPlugin = createUnplugin<PluginOptions | undefined, false>(
           };
         },
         configureServer(server) {
-          server.watcher.add([resolve(root, 'twill.config.json'), resolve(root, 'tsconfig.json')]);
-          server.watcher.on('change', (filename) => {
-            if (
-              filename === resolve(root, 'twill.config.json') ||
-              filename === resolve(root, 'tsconfig.json')
-            ) {
-              config = { ...loadConfig(root), ...options };
+          let files = new Set(configurationFiles(root).map((file) => resolve(file)));
+          server.watcher.add([...files]);
+          const changed = (filename: string) => {
+            if (files.has(resolve(filename))) {
+              try {
+                config = { ...loadConfig(root), ...options };
+              } catch (cause) {
+                const error = cause instanceof Error ? cause : new Error(String(cause));
+                server.config.logger.error(error.message);
+                server.ws.send({
+                  type: 'error',
+                  err: { message: error.message, stack: error.stack ?? '', plugin: 'twill' },
+                });
+                return;
+              }
+              files = new Set(configurationFiles(root).map((file) => resolve(file)));
+              server.watcher.add([...files]);
+              if (server.environments)
+                for (const environment of Object.values(server.environments))
+                  environment.moduleGraph.invalidateAll();
+              else server.moduleGraph.invalidateAll();
               server.ws.send({ type: 'full-reload' });
             }
+          };
+          server.watcher.on('change', changed).on('add', changed).on('unlink', changed);
+          server.httpServer?.once('close', () => {
+            server.watcher.off('change', changed).off('add', changed).off('unlink', changed);
           });
         },
       },
@@ -88,8 +109,12 @@ export const twillPlugin = createUnplugin<PluginOptions | undefined, false>(
         const filename = splitId(id)[0];
         if (isDependency(filename)) return null;
         if (isTwillFile(filename)) {
-          this.addWatchFile(resolve(root, 'twill.config.json'));
-          this.addWatchFile(resolve(root, 'tsconfig.json'));
+          // Vite's dev import analysis treats addWatchFile as a browser import.
+          // Watch config with the server instead; a missing optional config
+          // must never become an unresolved browser module.
+          if (!servingVite)
+            for (const file of configurationFiles(root))
+              if (existsSync(file)) this.addWatchFile(file);
           return transpile(source, { ...config, filename });
         }
         return nativeSources && needsTypeEmission(filename)

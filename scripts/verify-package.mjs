@@ -7,6 +7,7 @@ import assert from 'node:assert/strict';
 import { build, createServer } from 'vite';
 import { renderToStaticMarkup } from 'react-dom/server';
 import twill from '../packages/twill/dist/vite.js';
+import twillReact from '../packages/twill/dist/vite-react.js';
 import { probeTypeScriptPlugin } from './probe-typescript-plugin.mjs';
 import { npmConsumer as npm } from './npm-consumer.mjs';
 
@@ -47,6 +48,8 @@ try {
       `react@${repository.devDependencies.react}`,
       `@types/react@${repository.devDependencies['@types/react']}`,
       `vue@${repository.devDependencies.vue}`,
+      `vite@${repository.devDependencies.vite}`,
+      `@vitejs/plugin-react@${repository.devDependencies['@vitejs/plugin-react']}`,
     ],
     {
       cwd: root,
@@ -72,6 +75,9 @@ try {
   );
   assert.equal(esm.trim(), '1', 'The TS-server main entry must preserve compiler ESM exports');
   const { transform } = await import(pathToFileURL(join(base, 'index.js')).href);
+  const { default: installedReact } = await import(pathToFileURL(join(base, 'vite-react.js')).href);
+  assert(installedReact().length >= 2, 'Installed optional React integration must load its peer');
+  assert.throws(() => installedReact({ react: { jsxRuntime: 'classic' } }), /automatic JSX/);
   assert.equal(transform('fn() { 42 }').closures, 1);
   assert.equal(transform('function f(v) { guard v else { return 0; } return 1; }').guards, 1);
   assert.equal(transform('function f() { defer { console.log("done"); } }').defers, 1);
@@ -310,9 +316,20 @@ for (const name of ['react', 'vue']) {
       root,
       configFile: false,
       logLevel: 'silent',
-      plugins: [twill()],
+      plugins: name === 'react' ? twillReact() : [twill()],
       build: { outDir, emptyOutDir: true, sourcemap: true },
     });
+    if (name === 'react') {
+      const { readdirSync } = await import('node:fs');
+      const javascript = readdirSync(join(outDir, 'assets'))
+        .filter((file) => file.endsWith('.js'))
+        .map((file) => readFileSync(join(outDir, 'assets', file), 'utf8'))
+        .join('\n');
+      assert(
+        !javascript.includes('/@react-refresh') && !javascript.includes('$RefreshReg$'),
+        'Production bundles must exclude refresh instrumentation',
+      );
+    }
   } finally {
     rmSync(outDir, { recursive: true, force: true });
   }

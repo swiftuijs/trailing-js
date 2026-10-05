@@ -6,7 +6,7 @@ GitHub uses [Linguist](https://github.com/github-linguist/linguist) to classify 
 
 Add these lines to the root `.gitattributes` in each repository containing Twill source, then commit and push the file:
 
-```gitattributes
+```text
 *.twill linguist-language=TypeScript
 *.twillx linguist-language=TSX
 ```

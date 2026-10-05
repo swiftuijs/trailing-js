@@ -1,5 +1,5 @@
 import { readVsix } from './read-vsix.mjs';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import assert from 'node:assert/strict';
@@ -14,6 +14,11 @@ try {
     /^extension\/(?:node_modules\/|dist\/typescript-lib\/|syntaxes\/|package\.json$)/.test(name),
   );
   const manifest = JSON.parse(files.get('extension/package.json').toString());
+  assert.equal(
+    manifest.version,
+    JSON.parse(readFileSync('package.json', 'utf8')).version,
+    'Stale VSIX version',
+  );
   for (const grammar of manifest.contributes.grammars)
     assert(
       files.has('extension/' + grammar.path.replace(/^\.\//, '')),
