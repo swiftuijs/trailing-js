@@ -20,6 +20,19 @@ const options = {
   types: [],
 };
 describe('native declaration builds', () => {
+  it('exports inferred member callback results as ordinary declarations', () => {
+    const root = fixture();
+    writeFileSync(
+      join(root, 'tsconfig.json'),
+      JSON.stringify({ compilerOptions: options, include: ['*.twill'], exclude: ['dist'] }),
+    );
+    writeFileSync(
+      join(root, 'index.twill'),
+      'export const names=[{name:"Ada",active:true}].filter { .active }.map { .name };',
+    );
+    expect(emitDeclarations(join(root, 'tsconfig.json')).diagnostics).toEqual([]);
+    expect(readFileSync(join(root, 'dist/index.d.ts'), 'utf8')).toContain('names: string[]');
+  });
   it('exports inferred switch expression unions to native consumers', () => {
     const root = fixture();
     writeFileSync(

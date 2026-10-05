@@ -6,6 +6,18 @@ import { LiveCompiler, type CompilationState } from './playground/live-compiler'
 import type { CompileError } from './playground/protocol';
 
 const snippets = {
+  members: {
+    filename: 'example.twill',
+    jsxImportSource: 'react',
+    note: 'Leading member access uses the callback’s first argument. Nested callbacks bind independently; the output is an ordinary arrow.',
+    source: `const users = [
+  { name: 'Ada', active: true },
+  { name: 'Grace', active: false },
+];
+
+const activeUsers = users.filter { .active };
+const names = activeUsers.map { .name.toUpperCase() };`,
+  },
   callbacks: {
     filename: 'example.twill',
     jsxImportSource: 'react',
@@ -210,6 +222,7 @@ onBeforeUnmount(() => {
           <label for="twill-example">Example</label>
           <select id="twill-example" v-model="selected" @change="choose">
             <option value="callbacks">Ordinary callbacks</option>
+            <option value="members">Implicit members</option>
             <option value="cleanup">Guard and defer</option>
             <option value="branching">Typed outcome matching</option>
             <option value="react">React component</option>

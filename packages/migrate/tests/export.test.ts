@@ -55,7 +55,7 @@ function nativeDiagnostics(config: string) {
 it('exports a checked mixed graph with rewritten imports, native TS checking and execution', async () => {
   const input = {
     'values.twill':
-      'export type Amount = number; export const doubled = [1,2,3].map { n in n * 2 };',
+      'export type Amount = number; export const doubled = [1,2,3].map { n in n * 2 }; export const names=[{name:"Ada",active:true}].filter { .active }.map { .name };',
     'cleanup.twill':
       'export function calculate(value:number|undefined) { let closed = false; defer { closed=true; } guard const amount=value else { return 0; } return amount * 2; }',
     'consumer.ts':
@@ -80,6 +80,7 @@ it('exports a checked mixed graph with rewritten imports, native TS checking and
   const exports: any = {};
   new Function('exports', code)(exports);
   expect(exports.doubled).toEqual([2, 4, 6]);
+  expect(exports.names).toEqual(['Ada']);
   for (const [name, text] of Object.entries(input))
     expect(readFileSync(join(root, name), 'utf8')).toBe(text);
 });

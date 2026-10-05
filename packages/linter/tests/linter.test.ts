@@ -31,6 +31,25 @@ describe('ESLint Twill processor', () => {
     expect(result!.output).toContain('map { n in const value=');
     expect(result!.messages).toEqual([]);
   });
+  it('preserves implicit member syntax through safe fixes and ordinary lint rules', async () => {
+    const source =
+      'export const users=[{active:true}]; export const selected=users.filter { let enabled=true; return .active && enabled; };';
+    const [result] = await engine({ rules: { 'prefer-const': 'error' } }, true).lintText(source, {
+      filePath: 'members.twill',
+    });
+    expect(result!.messages).toEqual([]);
+    expect(result!.output).toContain('const enabled=true');
+    expect(result!.output).not.toMatch(/__twill|=>/);
+    const [unsafe] = await engine({ rules: { 'prefer-const': 'error' } }, true).lintText(
+      source.replace(
+        'let enabled=true; return .active && enabled;',
+        'let enabled=.active; return enabled;',
+      ),
+      { filePath: 'members-unsafe.twill' },
+    );
+    expect(unsafe!.messages[0]).toMatchObject({ ruleId: 'prefer-const', fix: undefined });
+    expect(unsafe!.output).toBeUndefined();
+  });
   it('reports original syntax errors and suppresses generated-helper lint', async () => {
     const [broken] = await engine().lintText('fn {', { filePath: 'broken.twill' });
     expect(broken!.messages[0]).toMatchObject({ fatal: true, severity: 2, line: 1 });

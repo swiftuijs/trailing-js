@@ -44,6 +44,10 @@ it.each([
 
 describe('Prettier Twill plugin', () => {
   it.each([
+    'const active=users.filter { .active && .verified };',
+    'const value=users.map { . /* property */ active ? .name : "missing" };',
+    'const names=groups.map { .users.filter { .active }.map { .profile?.name ?? "missing" } };',
+    'const values=users.map { defer { .close(); } guard .active else { return 0; } return .value; };',
     'const value=fn() { /*header*/ (a: number /*type*/) in /*body*/ a+1 };',
     'const value=fn { a in // body\na+1 }; // tail',
     'const value=fn { /* no params */ 1 } done: { /* second */ 2 };',

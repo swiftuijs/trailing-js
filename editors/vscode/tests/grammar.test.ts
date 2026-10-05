@@ -32,6 +32,16 @@ it('loads the shipped TextMate grammar and highlights the closure delimiter', as
           token.scopes.includes('keyword.control.twill'),
       ),
     ).toBe(true);
+    const memberLine = 'users.filter { .active }';
+    expect(
+      loaded!
+        .tokenizeLine(memberLine, INITIAL)
+        .tokens.some(
+          (token) =>
+            memberLine.slice(token.startIndex, token.endIndex) === 'active' &&
+            token.scopes.includes('variable.other.property.twill'),
+        ),
+    ).toBe(true);
     const deferLine = 'function f() { defer /* cleanup */ { close(); } }';
     expect(
       loaded!

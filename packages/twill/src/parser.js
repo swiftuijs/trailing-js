@@ -15,7 +15,7 @@ const bases = {
 // `guard` remains an ordinary JS identifier unless its expression is followed
 // by a top-level `else`. Token lookahead ignores strings/comments and balanced
 // groups; it never rewrites source or attempts to parse the expression itself.
-function guardAt(input, offset) {
+function guardAt(input, offset, implicitMember = false) {
   const lexer = Parser.tokenizer(input.slice(offset), { ecmaVersion: 'latest' });
   const stack = [];
   let first = true;
@@ -27,7 +27,8 @@ function guardAt(input, offset) {
         first &&
         ['=', '.', '?.', ':', '++/--', '*', '/', '%', '==/!=/===/!==', 'in', 'instanceof'].includes(
           label,
-        )
+        ) &&
+        !(implicitMember && label === '.')
       )
         return false;
       if (
@@ -166,6 +167,7 @@ function parserFor(language) {
     classSuperDepth = null;
     subscriptDepth = 0;
     derivedClassElement = false;
+    implicitClosure = null;
 
     locate(offset) {
       if (!this.lineStarts) {
@@ -191,13 +193,27 @@ function parserFor(language) {
         const node = this.startNode();
         const async = this.canAwait;
         this.next();
-        const cleanup = this.parseArrowExpression(this.startNode(), [], async, false);
+        const enclosing = this.implicitClosure;
+        const implicit =
+          enclosing && this.currentVarScope() === this.scopeStack[enclosing.scopeIndex]
+            ? enclosing
+            : null;
+        const previousScope = implicit?.scopeIndex;
+        if (implicit) implicit.scopeIndex = this.scopeStack.length;
+        let cleanup;
+        try {
+          // A defer body captures its enclosing callback's receiver, like a
+          // named parameter. Ordinary nested functions remain separate scopes.
+          cleanup = this.parseArrowExpression(this.startNode(), [], async, false);
+        } finally {
+          if (implicit) implicit.scopeIndex = previousScope;
+        }
         node.awaited = awaits(cleanup.body);
         cleanup.async = node.awaited;
         node.cleanup = cleanup;
         return this.finishNode(node, 'DeferStatement');
       }
-      if (!this.isContextual('guard') || !guardAt(this.input, this.end))
+      if (!this.isContextual('guard') || !guardAt(this.input, this.end, !!this.implicitClosure))
         return super.parseStatement(context, ...args);
       const node = this.startNode();
       node.singleStatement = !!context;
@@ -290,6 +306,20 @@ function parserFor(language) {
     }
 
     parseExprAtom(...args) {
+      if (this.type === tt.dot) {
+        const closure = this.implicitClosure;
+        if (!closure || this.currentVarScope() !== this.scopeStack[closure.scopeIndex])
+          this.raise(
+            this.start,
+            'Implicit member access requires a trailing closure without a parameter header.',
+          );
+        // A zero-width receiver lets Acorn parse the original dot/property chain.
+        // The compiler supplies one hygienic parameter; property tokens stay mapped.
+        const node = this.startNode();
+        node.name = '__twillImplicit';
+        closure.members.push(node);
+        return this.finishNodeAt(node, 'Identifier', this.start, this.startLoc);
+      }
       if (this.type === tt._switch) return this.parseSwitchExpression();
       if (language === 'ts' && this.type === tt.relational && this.value === '<') {
         const node = this.startNode();
@@ -439,8 +469,24 @@ function parserFor(language) {
       // parseArrowExpression supplies the real function scope, including return,
       // await, lexical this/super, duplicate bindings and strict-mode checks.
       this.skipHeader = header?.end ?? null;
-      const arrow = this.parseArrowExpression(node, params, async, false);
-      this.closures.push({ node: arrow, callee, label, header, parameterText, async });
+      const previous = this.implicitClosure;
+      const implicit = header ? null : { scopeIndex: this.scopeStack.length, members: [] };
+      this.implicitClosure = implicit;
+      let arrow;
+      try {
+        arrow = this.parseArrowExpression(node, params, async, false);
+      } finally {
+        this.implicitClosure = previous;
+      }
+      this.closures.push({
+        node: arrow,
+        callee,
+        label,
+        header,
+        parameterText,
+        async,
+        implicitMembers: implicit?.members ?? [],
+      });
       return arrow;
     }
 
@@ -546,7 +592,11 @@ export function parse(source, language = 'ts', sourceType = 'module') {
   const switches = [];
   const visit = (node) => {
     if (!node || typeof node !== 'object') return;
-    if (node.type === 'ArrowFunctionExpression') live.add(node);
+    if (
+      node.type === 'ArrowFunctionExpression' ||
+      (node.type === 'Identifier' && node.start === node.end && node.name === '__twillImplicit')
+    )
+      live.add(node);
     if (node.trailing) calls.push(node);
     if (node.type === 'GuardStatement') guards.push(node);
     if (node.type === 'DeferStatement') defers.push(node);
@@ -565,6 +615,15 @@ export function parse(source, language = 'ts', sourceType = 'module') {
     defers,
     switches,
     comments,
-    closures: parser.closures.filter((closure) => live.has(closure.node)),
+    closures: parser.closures
+      .filter((closure) => live.has(closure.node))
+      .map((closure) => ({
+        ...closure,
+        // TS backtracking can discard tentative expression parses. Only receivers
+        // reachable in the final tree may add a parameter or source insertion.
+        implicitMembers: closure.implicitMembers
+          .filter((node) => live.has(node))
+          .map((node) => node.start),
+      })),
   };
 }

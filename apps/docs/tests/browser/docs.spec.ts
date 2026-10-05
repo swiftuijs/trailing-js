@@ -140,6 +140,11 @@ test('live compilation, highlighted examples, located errors and recovery', asyn
   await expect(source.locator('.twill-token-keyword')).not.toHaveCount(0);
   await expect(generated(page).locator('.twill-token-keyword')).not.toHaveCount(0);
   await screenshot(page, info, 'playground');
+  await page.getByLabel('Example', { exact: true }).selectOption('members');
+  await expect(generated(page)).toContainText('.active');
+  await expect(generated(page)).toContainText('=>');
+  await expect(generated(page)).not.toContainText('__twillImplicit');
+  await expect(source).toContainText('users.filter { .active }');
   await page.getByLabel('Example', { exact: true }).selectOption('cleanup');
   await expect(page.getByRole('status')).toContainText('1 guard · 1 defer');
   await expect(generated(page)).toContainText('finally');

@@ -3,6 +3,9 @@
   "scopeName": "source.twill.ts",
   "patterns": [
     {
+      "include": "#implicit-member"
+    },
+    {
       "include": "#defer"
     },
     {
@@ -33,12 +36,23 @@
     }
   ],
   "repository": {
+    "implicit-member": {
+      "match": "(?<![\\w$.)\\]])(\\.)([A-Za-z_$][\\w$]*)",
+      "captures": {
+        "1": {
+          "name": "punctuation.accessor.twill"
+        },
+        "2": {
+          "name": "variable.other.property.twill"
+        }
+      }
+    },
     "defer": {
       "match": "\\bdefer\\b(?=(?:[^\\S\\r\\n]|/\\*[^\\r\\n]*?\\*/)*\\{)",
       "name": "keyword.control.twill"
     },
     "guard": {
-      "match": "\\bguard\\b(?=\\s+(?:const\\b|[^\\s;=:.]))",
+      "match": "\\bguard\\b(?=\\s+(?:const\\b|[^\\s;=:]))",
       "name": "keyword.control.twill"
     },
     "guard-binding": {
@@ -145,6 +159,9 @@
   "injections": {
     "L:source.twill.ts -comment -string": {
       "patterns": [
+        {
+          "include": "#implicit-member"
+        },
         {
           "include": "#defer"
         },

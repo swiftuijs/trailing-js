@@ -2,6 +2,8 @@
 
 Twill is a dialect of JS/TS using existing engines and TypeScript's type system. Install `@swiftuijs/twill` as a development dependency; the CLI is `twill`. `.twill` / `.twillx` use TypeScript / TSX, including JavaScript syntax with optional types. Native JS remains a native source format.
 
+The callback shorthand `users.filter { .active }` reads a member of the first argument without naming it. Nested callbacks bind independently, and TypeScript still checks the property. See [implicit member callbacks](./syntax.md#implicit-member-callbacks).
+
 ## Language principles
 
 - JS/TS defines values, types, modules, exceptions, lexical scope and asynchronous execution. Existing standard syntax retains its semantics.

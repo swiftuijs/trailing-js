@@ -61,6 +61,7 @@ type ClosureMetadata = {
   label: { start: number; end: number } | null;
   header: { end: number; inStart: number; asyncEnd: number | null; parenthesized: boolean } | null;
   async: boolean;
+  implicitMembers: number[];
 };
 function walk(node: Node, visit: (node: Node) => void): void {
   visit(node);
@@ -74,7 +75,7 @@ function walk(node: Node, visit: (node: Node) => void): void {
   }
 }
 function calleeName(node: Node): string | undefined {
-  if (node.type === 'Identifier') return node.name;
+  if (node.type === 'Identifier') return node.start === node.end ? undefined : node.name;
   if (node.type === 'MemberExpression' && !node.computed) {
     const object = calleeName(node.object);
     if (object) return `${object}.${node.property.name}`;
@@ -114,6 +115,7 @@ export function transform(source: string, options: TransformOptions = {}) {
     patternGuards.length ||
     parsed.switches.length ||
     parsed.defers.length ||
+    parsed.closures.some((closure) => closure.implicitMembers.length) ||
     /\.twillx$/.test(filename.split(/[?#]/, 1)[0]!)
   )
     walk(parsed.ast, (node) => {
@@ -172,6 +174,34 @@ export function transform(source: string, options: TransformOptions = {}) {
       );
     }),
   );
+  for (const call of componentCalls) {
+    const implicit = call.trailing.closures.flatMap(
+      (closure: Node) => metadataByNode.get(closure)!.implicitMembers,
+    )[0];
+    if (implicit !== undefined)
+      throw new TwillSyntaxError(source, filename, {
+        message:
+          'Implicit member access is for ordinary callbacks. Use explicit parameters for component render props or slots.',
+        pos: implicit,
+        loc: {
+          line: source.slice(0, implicit).split(/\r\n|[\r\n\u2028\u2029]/).length,
+          column: source
+            .slice(0, implicit)
+            .split(/\r\n|[\r\n\u2028\u2029]/)
+            .at(-1)!.length,
+        },
+      });
+  }
+  let implicitCounter = 0;
+  for (const metadata of parsed.closures) {
+    if (!metadata.implicitMembers.length) continue;
+    let name: string;
+    do name = `__twillArg${implicitCounter++}`;
+    while (usedNames.has(name));
+    usedNames.add(name);
+    code.overwrite(metadata.node.start, metadata.node.start + 1, `(${name}) => {`);
+    for (const offset of metadata.implicitMembers) code.appendLeft(offset, name);
+  }
   // TypeScript only reads file-level leading pragmas, and the last wins.
   const leadingComments = parsed.comments
     .filter((comment) => comment.start < (parsed.ast.body[0]?.start ?? source.length))
@@ -401,7 +431,8 @@ export function transform(source: string, options: TransformOptions = {}) {
         );
         if (metadata.async && !header.parenthesized) code.appendLeft(header.asyncEnd!, ' (');
         code.overwrite(header.inStart, header.end, `${header.parenthesized ? '' : ') '}=> {`);
-      } else code.overwrite(closure.start, closure.start + 1, '() => {');
+      } else if (!metadata.implicitMembers.length)
+        code.overwrite(closure.start, closure.start + 1, '() => {');
       if (content && !singleContent) {
         let collector: string;
         do collector = `__twillChildren${counter++}`;

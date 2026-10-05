@@ -61,6 +61,17 @@ export async function run() {
   try {
     for (const grammar of grammars) {
       const loaded = (await registry.loadGrammar(grammar.scopeName))!;
+      const memberLine = 'users.filter { .active }';
+      assert(
+        loaded
+          .tokenizeLine(memberLine, INITIAL)
+          .tokens.some(
+            (token) =>
+              memberLine.slice(token.startIndex, token.endIndex) === 'active' &&
+              token.scopes.includes('variable.other.property.twill'),
+          ),
+        `${grammar.name}: implicit property highlighting`,
+      );
       let state = INITIAL;
       const controls: string[] = [];
       for (const line of [
@@ -127,6 +138,49 @@ export async function run() {
   assert(formatting.getText().includes('map { item in'));
   assert(formatting.getText().includes('value: number'));
   console.log('PASS: packaged formatter preserves Twill syntax and TypeScript annotations');
+
+  const implicitDocument = await open('members.twill');
+  const memberItems = await eventually(
+    () => completions(implicitDocument, position(implicitDocument, '.act }', 4)),
+    (list) => !!list?.items.some((item) => label(item) === 'active'),
+  );
+  assert(memberItems!.items.some((item) => label(item) === 'name'));
+  const memberHover = await vscode.commands.executeCommand<vscode.Hover[]>(
+    'vscode.executeHoverProvider',
+    implicitDocument.uri,
+    position(implicitDocument, '.active }', 2),
+  );
+  assert(
+    memberHover?.some((hover) =>
+      hover.contents.some(
+        (content) =>
+          typeof content !== 'string' &&
+          'value' in content &&
+          content.value.includes('active: boolean'),
+      ),
+    ),
+  );
+  const memberFormats = await vscode.commands.executeCommand<vscode.TextEdit[]>(
+    'vscode.executeFormatDocumentProvider',
+    implicitDocument.uri,
+    { tabSize: 2, insertSpaces: true },
+  );
+  assert(memberFormats?.length);
+  const memberFormat = new vscode.WorkspaceEdit();
+  memberFormat.set(implicitDocument.uri, memberFormats!);
+  assert(await vscode.workspace.applyEdit(memberFormat));
+  assert(implicitDocument.getText().includes('.active'));
+  assert(!implicitDocument.getText().includes('__twillImplicit'));
+  const memberRename = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
+    'vscode.executeDocumentRenameProvider',
+    implicitDocument.uri,
+    position(implicitDocument, '.active', 2),
+    'enabled',
+  );
+  assert(memberRename && (await vscode.workspace.applyEdit(memberRename)));
+  assert(implicitDocument.getText().includes('.enabled'));
+  assert(implicitDocument.getText().includes('enabled: true'));
+  console.log('PASS: implicit member completion, hover, formatting and property rename');
 
   const branching = await open('branching.twill');
   const branchMembers = await eventually(

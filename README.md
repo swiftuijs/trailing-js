@@ -37,10 +37,10 @@ TypeScript already expresses these behaviors with branches, `try/finally`, arrow
 ## Small syntax, existing semantics
 
 ```twill
-const names = users.filter { user in
-  user.active;
-}.map { user in
-  user.name;
+const names = users.filter {
+  .active;
+}.map {
+  .name;
 };
 
 type Outcome = { kind: 'ok'; value: number } | { kind: 'error'; message: string };

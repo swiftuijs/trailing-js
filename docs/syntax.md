@@ -15,6 +15,31 @@ One expression statement implicitly returns its value. Multiple statements have 
 
 Subsequent closures require labels. Labels lower to positional callbacks, without reflection on TypeScript signatures or parameter names. Labels need not match a function's parameter names. `new Constructor { ... }` and trailing closures on tagged template expressions are not supported; write an ordinary callback or explicitly call the returned function.
 
+## Implicit member callbacks
+
+A trailing closure without a parameter header may use `.property` to access its first callback argument:
+
+```twill
+const activeUsers = users.filter {
+  .active;
+};
+const names = users.filter {
+  .active && .verified;
+}.map {
+  .profile?.name ?? 'Anonymous';
+};
+```
+
+This lowers to ordinary arrows such as `users.filter(user => user.active)`. Callback types come from the normal API; unknown members produce TypeScript diagnostics. Member chains, method calls, optional chains and operators keep native JS semantics. A method such as `.matches(query)` retains its receiver. Each `.property` is an ordinary property read, not a cached value or a property-name string.
+
+Nested trailing closures bind independently: `groups.map { .users.filter { .active } }` reads `users` from the group and `active` from each user. Within one closure, all leading member accesses refer to its first argument. Use a named header for additional arguments or references to an outer callback's parameter.
+
+Explicit `return`, guards and lexical blocks can use the same shorthand. A `defer` body captures the enclosing callback's receiver. Ordinary nested functions, arrows, class fields and methods do not inherit the shorthand; give the outer parameter a name when capturing it there. A headerless closure that never uses a leading member retains its existing zero-parameter behavior.
+
+Do not mix shorthand with an explicit parameter header, including `() in`. Component children/render-prop/slot closures require their normal content or explicit parameter syntax; ordinary callbacks inside them may use shorthand. `implicitReturn: false` still disables single-expression returns, so write an explicit return with that option.
+
+This is Twill's first-argument member shorthand. It does not implement Swift's contextual enum/static-member lookup, `$0`/`$1` parameters or general point-free function composition. Use native expressions outside trailing closures. No helper, proxy or language runtime is introduced.
+
 ## Ambiguities and semicolons
 
 `fn() { ... }` is extension syntax, even across a newline. Write `fn(); { ... }` for a separate block. Bare names or member expressions followed by a brace on another line remain separate statements; keep `run { ... }` on one line or write `run()\n{ ... }`.

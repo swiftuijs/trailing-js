@@ -1,8 +1,18 @@
 {
   "node": "v24.19.0",
   "packageVersion": "0.9.0",
-  "scope": "Minified application output for four representative supported paths; excludes host/framework runtime and does not cover expression IIFEs, dynamic cleanup or child collection.",
+  "scope": "Minified application output for five representative supported paths; excludes host/framework runtime and does not cover expression IIFEs, dynamic cleanup or child collection.",
   "results": [
+    {
+      "name": "implicit-members",
+      "bytes": 76,
+      "gzipBytes": 91,
+      "nativeBytes": 76,
+      "byteParity": true,
+      "extraBytes": 0,
+      "behaviorParity": true,
+      "frameworkRuntimeExternal": false
+    },
     {
       "name": "validated-pipeline",
       "bytes": 88,

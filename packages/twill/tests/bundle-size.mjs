@@ -10,6 +10,22 @@ import twill from '../dist/esbuild.js';
 const root = mkdtempSync(join(tmpdir(), 'twill-bundle-size-'));
 const fixtures = [
   {
+    name: 'implicit-members',
+    extension: 'twill',
+    nativeExtension: 'ts',
+    inputs: [
+      [],
+      [
+        { active: true, name: 'Ada' },
+        { active: false, name: 'Grace' },
+      ],
+    ],
+    sugar:
+      'export function run(users: {active:boolean;name:string}[]) { return users.filter { .active }.map { .name }; }',
+    native:
+      'export function run(users: {active:boolean;name:string}[]) { return users.filter(user => user.active).map(user => user.name); }',
+  },
+  {
     name: 'validated-pipeline',
     extension: 'twill',
     nativeExtension: 'ts',
@@ -118,7 +134,7 @@ try {
     node: process.version,
     packageVersion: JSON.parse(readFileSync(new URL('../package.json', import.meta.url))).version,
     scope:
-      'Minified application output for four representative supported paths; excludes host/framework runtime and does not cover expression IIFEs, dynamic cleanup or child collection.',
+      'Minified application output for five representative supported paths; excludes host/framework runtime and does not cover expression IIFEs, dynamic cleanup or child collection.',
     results,
   };
   const output = process.argv.indexOf('--output');

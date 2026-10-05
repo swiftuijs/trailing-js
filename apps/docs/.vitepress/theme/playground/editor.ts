@@ -48,7 +48,7 @@ const colors = HighlightStyle.define([
 // Native TS/JSX highlighting tolerates incomplete syntax. Add contextual Twill
 // keywords without coloring string, comment or regular-expression contents.
 const keywords = new MatchDecorator({
-  regexp: /\bdefer\b(?=(?:[^\S\r\n]|\/\*[^\r\n]*?\*\/)*\{)|\bguard\b(?=\s+(?:const\b|[^\s;=:.]))/g,
+  regexp: /\bdefer\b(?=(?:[^\S\r\n]|\/\*[^\r\n]*?\*\/)*\{)|\bguard\b(?=\s+(?:const\b|[^\s;=:]))/g,
   decorate(add, from, to, _match, view) {
     const node = syntaxTree(view.state).resolveInner(from, 1);
     if (/String|Comment|RegExp/.test(node.name)) return;

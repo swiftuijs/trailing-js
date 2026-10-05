@@ -13,6 +13,10 @@ export async function parse(source: string, options: ParserOptions<any>) {
   const filename = options.filepath ?? 'input.twill';
   const parsed = parseSyntax(source, { filename });
   const layout = new MagicString(source);
+  const implicitMembers = new Set<number>(
+    parsed.closures.flatMap((closure: any) => closure.implicitMembers),
+  );
+  for (const offset of implicitMembers) layout.appendLeft(offset, '__twillImplicit');
   const labels = new Map<string, any>();
   for (const guard of parsed.guards) {
     if (guard.binding) {
@@ -101,7 +105,9 @@ export async function parse(source: string, options: ParserOptions<any>) {
   };
   const generatedLines = lineStarts(code),
     sourceLines = lineStarts(source);
+  const implicitStarts = new Map<number, number>();
   const originalOffset = (offset: number) => {
+    if (implicitStarts.has(offset)) return implicitStarts.get(offset)!;
     let low = 0,
       high = generatedLines.length;
     while (low + 1 < high) {
@@ -113,6 +119,10 @@ export async function parse(source: string, options: ParserOptions<any>) {
     if (position.line == null || position.column == null) return offset === 0 ? 0 : source.length;
     return sourceLines[position.line - 1]! + position.column;
   };
+  for (const match of code.matchAll(/__twillImplicit(?=\.)/g)) {
+    const dot = originalOffset(match.index! + match[0].length);
+    if (implicitMembers.has(dot)) implicitStarts.set(match.index!, dot);
+  }
   const closuresByEnd = new Map<number, any>(
     parsed.closures.map((item: any) => [item.node.end, item]),
   );
@@ -161,6 +171,16 @@ export async function parse(source: string, options: ParserOptions<any>) {
     node.start = originalOffset(start);
     node.end = end > start ? originalOffset(end - 1) + 1 : node.start;
     node.range = [node.start, node.end];
+    if (
+      node.type === 'Identifier' &&
+      node.name === '__twillImplicit' &&
+      implicitMembers.has(originalOffset(end))
+    ) {
+      node.name = '';
+      node.start = originalOffset(end);
+      node.end = node.start;
+      node.range = [node.start, node.end];
+    }
     if (node.type === 'ArrowFunctionExpression' && node.body.type === 'BlockStatement') {
       const closure = closuresByEnd.get(node.body.end);
       if (closure) {

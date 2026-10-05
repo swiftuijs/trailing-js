@@ -23,6 +23,7 @@ for (const [extension, language] of Object.entries({
     name: 'Twill ' + language,
     scopeName: 'source.twill.' + { twill: 'ts', twillx: 'tsx' }[extension],
     patterns: [
+      { include: '#implicit-member' },
       { include: '#defer' },
       { include: '#guard-binding' },
       { include: '#guard' },
@@ -40,12 +41,19 @@ for (const [extension, language] of Object.entries({
       { include: 'source.' + language },
     ],
     repository: {
+      'implicit-member': {
+        match: '(?<![\\w$.)\\]])(\\.)([A-Za-z_$][\\w$]*)',
+        captures: {
+          1: { name: 'punctuation.accessor.twill' },
+          2: { name: 'variable.other.property.twill' },
+        },
+      },
       defer: {
         match: '\\bdefer\\b(?=(?:[^\\S\\r\\n]|/\\*[^\\r\\n]*?\\*/)*\\{)',
         name: 'keyword.control.twill',
       },
       guard: {
-        match: '\\bguard\\b(?=\\s+(?:const\\b|[^\\s;=:.]))',
+        match: '\\bguard\\b(?=\\s+(?:const\\b|[^\\s;=:]))',
         name: 'keyword.control.twill',
       },
       'guard-binding': {
@@ -108,6 +116,7 @@ for (const [extension, language] of Object.entries({
   grammar.injections = {
     [`L:${grammar.scopeName} -comment -string`]: {
       patterns: [
+        { include: '#implicit-member' },
         { include: '#defer' },
         { include: '#guard-binding' },
         { include: '#guard' },
