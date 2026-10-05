@@ -22,7 +22,7 @@ Tests exercise behavior by executing lowered closures, checking actual diagnosti
 
 ## Workspace builds
 
-The private root is a pnpm workspace. `packages/twill` is the public compiler/toolchain; `editors/vscode` is the extension; its private `twill-typescript-plugin` workspace supplies the automatic VS Code TS-server bridge. Workspace dependencies define build order and keep imports on public package APIs. Tests and test dependencies live in their owning packages. The root coordinates shared configuration and validation.
+The private root is a pnpm workspace. `packages/twill` is the public compiler/toolchain; `editors/vscode` is the extension; the sibling `editors/twill-typescript-plugin` package supplies its automatic VS Code TS-server bridge. Workspace dependencies define build order and keep imports on public package APIs. Tests and test dependencies live in their owning packages. The root coordinates shared configuration and validation.
 
 Vite 8 library mode (Rolldown) builds the compiler's ESM entries and CJS TS-server entry, standalone editor bundles, and extension-host test bundle. `vite-plugin-dts` emits declarations for the tool's own TypeScript API. It does not implement declaration emission for user Twill libraries. Runtime dependencies remain external in the public ESM compiler; the editor embeds its dependencies and standard-library declarations. VSIX staging copies only required production files, avoiding reliance on pnpm hoisting or workspace symlinks.
 
