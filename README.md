@@ -60,25 +60,13 @@ Ordinary closures become arrows; guards become branches. Direct-return switch ex
 | `.twillx`                    | TSX, native JSX and component closures                      |
 | `.ts`, `.tsx`, `.js`, `.jsx` | Ordinary source files, retaining their native syntax        |
 
-Twill and native files can import each other through the build adapters, virtual checker and Node ESM loader. Your normal `tsconfig.json` supplies types and JSX settings. No `twill.config.json` is required. Native `tsc` cannot parse dialect source; use `twill check` and [standard declaration output](docs/tooling.md#user-library-declarations).
+Twill and native files can import each other through the build adapters, virtual checker and Node ESM loader. Your normal `tsconfig.json` supplies types and JSX settings. No `twill.config.json` is required. Native `tsc` cannot parse dialect source; use `twill check` and [standard declaration output](docs/libraries.md).
 
 ## Try it
 
 The [playground](https://swiftuijs.github.io/twill/playground) runs the actual compiler locally, with live highlighting and generated-source inspection. It does not execute your code or type-check project imports.
 
-For an application, install reviewed tarballs and the VSIX from a successful [CI build](https://github.com/swiftuijs/twill/actions), or build them locally:
-
-```sh
-git clone https://github.com/swiftuijs/twill.git
-cd twill
-pnpm install --frozen-lockfile
-pnpm build
-pnpm package:core
-pnpm package:tooling
-pnpm editor:package
-```
-
-Repository development requires Node 22.13+ (or Node 24+) and the pnpm version pinned in `packageManager`. The distributed compiler supports Node 20.19+ or 22.12+.
+For an application, download and extract the `twill-packages` artifact from a successful [CI build](https://github.com/swiftuijs/twill/actions/workflows/ci.yml). It includes the compiler/tooling tarballs, `twill.vsix` and a checksum manifest. The distributed compiler supports Node 20.19+ or 22.12+.
 
 Install the compiler tarball as a development dependency in your application, then add the Vite adapter:
 
@@ -99,7 +87,7 @@ Rename one module to `.twill`, update its imports, include it in your usual tsco
 pnpm exec twill check -p tsconfig.json
 ```
 
-Install `dist/twill.vsix` with VS Code's **Install from VSIX** command. Follow [getting started](docs/getting-started.md) for formatter/linter setup, and [framework development](docs/frameworks.md) for React Fast Refresh and Vue integration.
+Install the extracted `twill.vsix` with VS Code's **Install from VSIX** command. Follow [getting started](docs/getting-started.md) for formatter/linter setup, and [framework development](docs/frameworks.md) for React Fast Refresh and Vue integration.
 
 ## A complete working loop
 
@@ -122,7 +110,7 @@ Representative native/dialect bundles are compared for behavior and byte size; r
 
 ## Contributing
 
-The repository is a pnpm workspace with Vite builds. Compiler, formatter, linter and migration packages, editor packages, examples and the English documentation site own their code and tests.
+The repository is a pnpm workspace with Vite builds. See the [development guide](docs/contributing/tooling.md) for checkout, dependency and build commands. Compiler, formatter, linter and migration packages, editor packages, examples and the English documentation site own their code and tests.
 
 ```sh
 pnpm check
@@ -131,4 +119,4 @@ pnpm test:browser        # requires Playwright Chromium
 pnpm docs:dev
 ```
 
-See [contributing](CONTRIBUTING.md), [architecture](docs/architecture.md), [language design](docs/language.md) and [release instructions](docs/releasing.md). MIT licensed.
+See [contributing](CONTRIBUTING.md), [architecture](docs/contributing/architecture.md), [language design](docs/language.md) and [release instructions](docs/contributing/releasing.md). MIT licensed.

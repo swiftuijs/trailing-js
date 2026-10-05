@@ -115,11 +115,6 @@ These checks observe cancellation at explicit boundaries. They do not interrupt 
 
 ## Run the complete example
 
-From a built repository checkout:
-
-```sh
-pnpm dev:general
-pnpm --filter @swiftuijs/twill-example-general test:example
-```
+Use the [ledger workflow](https://github.com/swiftuijs/twill/tree/main/examples/general) as a reference for your own application. It combines boundary validation, an owned resource and expected outcomes using ordinary TS interfaces.
 
 The example verifies empty and valid ledgers, malformed input, invalid rows, integer overflow, acquisition/read/cleanup failures and cancellation before and after acquisition. It also reads a real temporary file and verifies that its owned handle is closed before the result resolves. The Vite build includes the workflow in the normal SSR bundle.

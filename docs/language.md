@@ -1,6 +1,6 @@
 # Twill: a JS/TS syntax-sugar language
 
-Twill is a dialect of JS/TS using existing engines and TypeScript's type system. The repository is `swiftuijs/twill`, the package is `@swiftuijs/twill`, and the CLI is `twill`. `.twill` / `.twillx` use TypeScript / TSX, including JavaScript syntax with optional types. Native JS remains a native source format.
+Twill is a dialect of JS/TS using existing engines and TypeScript's type system. Install `@swiftuijs/twill` as a development dependency; the CLI is `twill`. `.twill` / `.twillx` use TypeScript / TSX, including JavaScript syntax with optional types. Native JS remains a native source format.
 
 ## Language principles
 
@@ -41,4 +41,4 @@ Node and browser execution use normal emitted JavaScript. npm libraries do not n
 
 React component closures compile to normal JSX elements and children; Vue closures become lazy slots, including named slots. The standard JSX runtime setting selects React, Vue or another automatic JSX runtime. Vue SFC and React Fast Refresh still need their host integrations; support for component libraries does not imply support for every source format or development transform.
 
-Native TS/JS and Twill share module graphs through the build integrations, virtual checker, Node ESM loader and TS-server editor bridge. The CLI provides a virtual-project checker and single-file source generation. Native `tsc` cannot parse dialect source, and `twill declarations` is used to emit standard library declarations and `--build` to visit references. Vite emits library JS; native `tsc --build` cannot parse Twill directly. The VSIX supports safe rename, auto-imports, import organization and mapped quick fixes. Formatter and linter plugins are independent workspace packages; general refactoring remains incomplete. Packaging and CI are production-oriented; the language itself is experimental and should not be presented as a mature replacement for TypeScript.
+Native TS/JS and Twill share module graphs through the build integrations, virtual checker, Node ESM loader and TS-server editor bridge. The CLI provides a virtual-project checker and single-file source generation. Native `tsc` cannot parse dialect source, and `twill declarations` is used to emit standard library declarations and `--build` to visit references. Vite emits library JS; native `tsc --build` cannot parse Twill directly. The VSIX supports safe rename, auto-imports, import organization and mapped quick fixes. Formatter and linter plugins install as independent packages; general refactoring remains incomplete. Twill is experimental; review [supported workflows](./readiness.md) and pilot it in your application before a production commitment.

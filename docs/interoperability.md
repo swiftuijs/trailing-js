@@ -4,7 +4,7 @@ All source formats can coexist in one module graph. Twill imports native `.ts`/`
 
 ## Build and check
 
-Install `@swiftuijs/twill` and use its `/vite`, `/esbuild`, `/rollup`, `/webpack` or `/rspack` plugin. All five integrations test a native TS entry importing JS, which imports Twill, which imports native TS/JS. Standard source stays standard: a native block after a call is not a trailing closure, and native functions named guard/defer keep normal behavior.
+Install `@swiftuijs/twill` and use its `/vite`, `/esbuild`, `/rollup`, `/webpack` or `/rspack` plugin. Choose the integration that matches your existing build; the application entry can remain native TS or JS. Standard source stays standard: a native block after a call is not a trailing closure, and native functions named guard/defer keep normal behavior.
 
 Vite/esbuild use their own native TS/JSX pipeline by default, avoiding duplicate compilation. Rollup/webpack/rspack enable Twill's standard TypeScript emitter for local `.ts`, `.mts`, `.tsx` and `.jsx`; it does not run the Twill parser on them. `nativeSources: false` delegates this work to another configured plugin/loader; `true` explicitly selects Twill's native emitter. Declaration files and npm dependencies are excluded from this emission. Existing CommonJS transformations remain the host's responsibility.
 
@@ -24,7 +24,7 @@ Use `twill check -p tsconfig.json`. Recommended settings for a source-only mixed
 }
 ```
 
-Imported local dependencies are checked even when they are outside the include glob. The virtual checker permits explicit TS extensions because it does not emit a project. Native JS remains JS/JSDoc; `checkJs` controls diagnostics. A Twill export is fully typed in TS/JS consumers: no ambient `declare module '*.twill'` escape hatch is needed. Native `tsc` does not parse Twill; use Twill's checker and a supported build integration. Project references and declaration emission remain outside the checker.
+Imported local dependencies are checked even when they are outside the include glob. The virtual checker permits explicit TS extensions because it does not emit a project. Native JS remains JS/JSDoc; `checkJs` controls diagnostics. A Twill export is fully typed in TS/JS consumers: no ambient `declare module '*.twill'` escape hatch is needed. Native `tsc` does not parse Twill; use Twill's checker and a supported build integration. `twill check` checks one project; use the [library declaration command](./libraries.md) for declaration emission and referenced declaration builds.
 
 ## Resolution
 
@@ -46,7 +46,7 @@ This integration supports ESM `import` and `import()`. Use dynamic `import()` to
 
 ## Editor
 
-Install the VSIX. It includes the private `@swiftuijs/twill-vscode-tsserver` TS-server bridge and configures it automatically for native TS/JS documents in projects with a tsconfig. If VS Code already has the project open during installation, restart its TS server. Hover, signatures, completion, diagnostics and definitions read the virtual mixed project, while Twill documents retain their own providers. Unsaved Twill content is shared through the TS extension's configuration API; native snapshots include unsaved TS/JS edits. Definitions and related diagnostics map to original dialect files.
+Install the VSIX. It automatically supplies cross-file types and mapped navigation for native TS/JS documents in projects with a tsconfig. If VS Code already has the project open during installation, restart its TS server. Hover, signatures, completion, diagnostics and definitions read the virtual mixed project, while Twill documents retain their own providers. Unsaved Twill and native TS/JS edits participate in the same mixed project. Definitions and related diagnostics map to original dialect files.
 
 Other TS-server editors can load the installed npm package with this tsconfig setting:
 
@@ -56,4 +56,4 @@ Other TS-server editors can load the installed npm package with this tsconfig se
 
 The plugin is a CommonJS entry for TS-server loading; the compiler's ESM imports still use the package's normal exports. The bridge uses the Twill TypeScript 5.9 virtual checker and the native host's library paths. It adds a cached language service for configured mixed projects. Unchanged source versions retain snapshots and programs; it does not replace runtime execution. Other editors' unsaved dialect buffers need their own configuration integration. Auto-import edits, organize imports and rename also map across dialect boundaries; native TypeScript import-alias rename semantics are preserved. Unmappable edits are withheld. Formatting and general refactoring are not supplied by this bridge.
 
-Run `pnpm dev:mixed` for the complete working example in `examples/mixed`.
+See the [mixed-source example](https://github.com/swiftuijs/twill/tree/main/examples/mixed) for a complete module graph. Configure your own application following [getting started](./getting-started.md) and the [editor guide](./tooling.md).

@@ -20,34 +20,40 @@ const pages = [
       { text: 'Why Twill?', link: '/why-twill' },
       { text: 'Getting started', link: '/getting-started' },
       { text: 'Playground', link: '/playground' },
+    ],
+  },
+  {
+    text: 'Language',
+    items: [
       { text: 'Language overview', link: '/language' },
+      { text: 'Syntax and semantics', link: '/syntax' },
       { text: 'Practical patterns', link: '/patterns' },
+    ],
+  },
+  {
+    text: 'Development workflow',
+    items: [
+      { text: 'Editor and tooling', link: '/tooling' },
+      { text: 'Build tools', link: '/build-tools' },
+      { text: 'React and Vue', link: '/frameworks' },
+      { text: 'Mixed TS / JS', link: '/interoperability' },
+      { text: 'Libraries and declarations', link: '/libraries' },
       { text: 'Adoption and migration', link: '/adoption' },
     ],
   },
   {
     text: 'Reference',
     items: [
-      { text: 'Syntax and semantics', link: '/syntax' },
-      { text: 'Mixed TS / JS', link: '/interoperability' },
-      { text: 'Tooling and libraries', link: '/tooling' },
-      { text: 'Framework development', link: '/frameworks' },
+      { text: 'CLI reference', link: '/cli' },
       { text: 'Performance', link: '/performance' },
-    ],
-  },
-  {
-    text: 'Project',
-    items: [
-      { text: 'Readiness and support', link: '/readiness' },
-      { text: 'Architecture', link: '/architecture' },
-      { text: 'Language design RFC', link: '/rfcs/0001-practical-language' },
-      { text: 'Releasing', link: '/releasing' },
       { text: 'GitHub highlighting', link: '/github' },
+      { text: 'Readiness and support', link: '/readiness' },
     ],
   },
 ];
 export default defineConfig({
   srcDir: '../../docs',
+  srcExclude: ['contributing/**', 'rfcs/**'],
   outDir: './dist',
   base: process.env.TWILL_DOCS_BASE ?? '/twill/',
   title: 'Twill',

@@ -20,9 +20,10 @@ The packaged editor supports original-source definitions, references, completion
 
 ## Export back to native TS
 
-The optional `@swiftuijs/twill-migrate` package exports a checked source graph into a new directory:
+Install the optional `@swiftuijs/twill-migrate` tarball from the same reviewed build as the compiler. It exports a checked source graph into a new directory:
 
 ```sh
+pnpm add -D /path/to/swiftuijs-twill-migrate-0.9.0.tgz
 pnpm exec twill-migrate -p tsconfig.json -o ../native-project --dry-run --json
 pnpm exec twill-migrate -p tsconfig.json -o ../native-project
 ```

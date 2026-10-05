@@ -25,7 +25,7 @@ export default function App() {
 }
 ```
 
-Editing component text preserves compatible hook state. Hook signature changes can remount the component, and modules mixing component exports with incompatible noncomponent exports can invalidate the boundary. These are the standard React Fast Refresh rules. Production builds include no refresh runtime. Browser tests exercise state retention, a native TS helper update and original-source mappings.
+Editing component text preserves compatible hook state. Hook signature changes can remount the component, and modules mixing component exports with incompatible noncomponent exports can invalidate the boundary. These are the standard React Fast Refresh rules. Production builds include no refresh runtime. Source maps retain original Twill locations.
 
 `TwillReactOptions` has `twill` and `react` fields for each plugin's standard options. The automatic JSX runtime is required. This adapter targets Vite 8 / React plugin 6; ordinary Twill build adapters do not require the optional React plugin. SSR frameworks still need their own integration and preamble handling, as with the standard Vite React plugin.
 

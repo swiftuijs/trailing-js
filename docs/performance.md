@@ -66,11 +66,11 @@ Unchanged editor snapshots, transforms and mapping decoders are cached. The nati
 
 ## Application output and distribution budgets
 
-`pnpm --filter @swiftuijs/twill test:size` builds equivalent native and dialect application fixtures with real esbuild bundling and minification. A guarded filter/map pipeline emits 88 bytes in both forms; a React single-child component emits 121 bytes in both forms. The checks compare byte counts and executed behavior, and reject compiler/runtime dependencies in the application graph. Identifier mangling can choose different short names. React's normal JSX runtime is external in this comparison. These small fixtures do not cover every application, dynamic cleanup or general child collection.
+Equivalent native and dialect application fixtures are built with real esbuild bundling and minification. A guarded filter/map pipeline emits 88 bytes in both forms; a React single-child component emits 121 bytes in both forms. The checks compare byte counts and executed behavior, and reject compiler/runtime dependencies in the application graph. Identifier mangling can choose different short names. React's normal JSX runtime is external in this comparison. These small fixtures do not cover every application, dynamic cleanup or general child collection.
 
 The VSIX ships one pinned TypeScript engine shared on disk by its two editor hosts, standard-library declarations, the checker and the lightweight formatter. The engine still runs in each host process; sharing its distribution does not imply shared process memory. The standalone formatter loads TS/ESTree support rather than Node's automatic parser discovery.
 
-Compressed release budgets are enforced by `pnpm verify:release --artifacts` and the VSIX package check:
+Distributed builds enforce these compressed artifact size limits:
 
 | Artifact                   | Maximum compressed size |
 | -------------------------- | ----------------------- |
@@ -80,21 +80,10 @@ Compressed release budgets are enforced by `pnpm verify:release --artifacts` and
 | Migration tarball          | 28 KiB                  |
 | VSIX, including its engine | 3 MiB                   |
 
-Tarball budgets cover the package's own files, not installed npm dependencies. Development tools remain outside application bundles. Changes to these budgets require inspecting the generated contents and updating the documented contract; wall-clock benchmark artifacts complement these deterministic checks.
+Tarball budgets cover the package's own files, not installed npm dependencies. Development tools remain outside application bundles. These are distribution limits, not application bundle budgets or build-time guarantees.
 
-## Reproduce
+## Evaluate your application
 
-```sh
-pnpm install --frozen-lockfile
-pnpm --filter @swiftuijs/twill build
-pnpm --filter @swiftuijs/twill-formatter build
-pnpm benchmark --output compiler-results.json
-pnpm benchmark:project --output project-results.json
-pnpm benchmark:branching --output branching-results.json
-pnpm --filter @swiftuijs/twill test:size --output ../../bundle-results.json
-pnpm package:core && pnpm package:tooling
-pnpm editor:package
-pnpm release:manifest
-```
+Measure build time, edited-file feedback and representative runtime paths before and after adopting a module. Use the same dependencies, hardware and production build settings. Inspect emitted code and bundle size, and exercise cleanup and error paths; warmed microbenchmarks can hide allocation costs that matter elsewhere.
 
-Compiler reports include package version, commit, dirty-tree state and the built-JavaScript digest. Cleanup results identify single-direct and dynamic-loop workloads; the single-direct output is also checked against a minimal handwritten callback/finally implementation. CI uploads a fresh benchmark artifact. Correctness and output equivalence are enforced; wall-clock thresholds are not enforced across different runners. Profile your application's representative workloads before drawing conclusions about performance.
+The reports above include their inputs, sampling methods, environment and build identity. Instructions for reproducing repository benchmarks are in the [contributor development guide](https://github.com/swiftuijs/twill/blob/main/docs/contributing/tooling.md#benchmark-changes). Correctness and output budgets are enforced; wall-clock thresholds are not enforced across different runners.

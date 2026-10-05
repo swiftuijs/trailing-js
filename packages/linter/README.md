@@ -2,8 +2,10 @@
 
 An ESLint 9/10 flat-config plugin for `.twill` and `.twillx`, with typescript-eslint rules, original-source diagnostics and conservative fixes.
 
+Packages are currently distributed as reviewed tarballs. Follow [getting started](../../docs/getting-started.md) to obtain them, then install in your application:
+
 ```sh
-pnpm add -D @swiftuijs/twill-linter eslint
+pnpm add -D /path/to/swiftuijs-twill-linter-0.9.0.tgz eslint
 ```
 
 `eslint.config.mjs`:

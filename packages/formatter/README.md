@@ -2,8 +2,10 @@
 
 Prettier 3.9 plugin for `.twill` and `.twillx`. Formats native TS/TSX and preserves trailing closures, guards and defer. It uses Prettier's own TypeScript parser/printer; compilation helpers never enter formatted source.
 
+Packages are currently distributed as reviewed tarballs. Follow [getting started](../../docs/getting-started.md) to obtain them, then install in your application:
+
 ```sh
-pnpm add -D @swiftuijs/twill-formatter prettier
+pnpm add -D /path/to/swiftuijs-twill-formatter-0.9.0.tgz prettier
 ```
 
 `.prettierrc.json`:

@@ -44,6 +44,41 @@ test('English documentation navigation, search, highlighting and responsive layo
   expect(errors).toEqual([]);
 });
 
+test('user tooling guides and search exclude repository maintenance', async ({ page }, info) => {
+  await page.goto('tooling');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Editor and tooling');
+  await expect(page.locator('.vp-doc')).toContainText('your application root');
+  await expect(page.locator('.vp-doc')).toContainText('twill check -p tsconfig.json');
+  await expect(page.locator('.vp-doc')).not.toContainText('pnpm editor:package');
+  await expect(page.locator('.VPSidebar a[href*="/contributing/"]')).toHaveCount(0);
+  await expect(page.locator('.VPSidebar a[href*="/rfcs/"]')).toHaveCount(0);
+  await page.locator('.vp-doc').getByRole('link', { name: 'build tools', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Build tools');
+  await page.locator('.vp-doc').getByRole('link', { name: 'declaration emission' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Libraries and declarations');
+  await page.locator('.vp-doc').getByRole('link', { name: 'CLI options' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('CLI reference');
+  const sitemap = await (await page.request.get('sitemap.xml')).text();
+  for (const path of ['tooling', 'build-tools', 'libraries', 'cli'])
+    expect(sitemap).toContain('/' + path);
+  for (const path of ['/contributing/', '/rfcs/', '/architecture', '/releasing'])
+    expect(sitemap).not.toContain(path);
+  await page.getByRole('button', { name: 'Search' }).click();
+  await page.getByRole('searchbox').fill('Repository development');
+  await expect(page.locator('.VPLocalSearchBox .result')).not.toHaveCount(0);
+  await expect(
+    page.locator(
+      '.VPLocalSearchBox a[href*="/contributing/"], .VPLocalSearchBox a[href*="/rfcs/"]',
+    ),
+  ).toHaveCount(0);
+  await expect(page.locator('.VPLocalSearchBox')).not.toContainText('Repository development');
+  await page.keyboard.press('Escape');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  await screenshot(page, info, 'user-cli');
+});
+
 test('product comparisons, adoption links and readiness stay usable', async ({ page }, info) => {
   const errors: string[] = [];
   const requested: string[] = [];

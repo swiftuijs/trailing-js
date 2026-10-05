@@ -48,16 +48,14 @@ This is source export rather than a complete application installer. Dependencies
 | Tool                         | Tested contract                                                  |
 | ---------------------------- | ---------------------------------------------------------------- |
 | Compiler consumers           | Node 20.19+ or 22.12+                                            |
-| Repository development       | Node 22.13+ or 24+, pnpm 11.19                                   |
 | Checker and editor semantics | TypeScript 5.9                                                   |
 | React development adapter    | Vite 8, React plugin 6, automatic JSX runtime; React 18/19 peers |
 | Formatter                    | Prettier 3.9                                                     |
 | Linter                       | ESLint 9/10 flat configuration                                   |
 | VS Code                      | Minimum 1.95.3 and current stable                                |
-| Documentation                | VitePress 1.6; Chromium desktop and mobile viewport tests        |
 
 Validation covers execution, type checking, source mappings, actual bundler builds, independently installed tarballs and real VS Code extension hosts. CI runs on Linux, Windows and macOS. The grammar corpus exercises TypeScript constructs with closures, while seeded differential tests compare combined callbacks, guards and cleanup against handwritten JavaScript. These checks cover the documented workflows; they do not prove every application or language construct works.
 
 ## Distribution
 
-The compiler, formatter, linter and optional source migration tool are public package targets. The repository root, examples and documentation are private workspaces. Reviewed tarballs and VSIX artifacts can be built from the repository; npm and Marketplace publication are separate maintainer operations. See [getting started](getting-started.md) for installation and [releasing](releasing.md) for artifact verification.
+Install reviewed compiler/tooling tarballs into your application and the VSIX into VS Code. Public npm and Marketplace publication is pending. Downloaded build artifacts include a release manifest with SHA-256 checksums; verify them before installing. See [getting started](getting-started.md) for the current installation path.

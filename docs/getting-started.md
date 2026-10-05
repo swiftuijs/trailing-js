@@ -8,19 +8,9 @@ The [playground](./playground.md) runs the actual compiler in a browser worker. 
 
 ## Install a reviewed build
 
-The packages have not been published to npm or the Marketplace yet. Use the `twill-packages` artifact from a successful [CI run](https://github.com/swiftuijs/twill/actions), or build a checkout:
+The packages have not been published to npm or the Marketplace yet. Download the `twill-packages` artifact from a successful [CI run](https://github.com/swiftuijs/twill/actions/workflows/ci.yml) and extract it outside your application's source directory. It contains reviewed package tarballs, `twill.vsix` and a checksum manifest.
 
-```sh
-git clone https://github.com/swiftuijs/twill.git
-cd twill
-pnpm install --frozen-lockfile
-pnpm build
-pnpm package:core
-pnpm package:tooling
-pnpm editor:package
-```
-
-Repository development uses Node 22.13+ (or Node 24+) and the pnpm version in `packageManager`. The distributed compiler supports Node 20.19+. Install the generated tarballs into an application:
+The compiler supports Node 20.19+ or 22.12+. From **your application root**, install the compiler and optional formatting/linting packages using the extracted tarball paths:
 
 ```sh
 pnpm add -D /path/to/swiftuijs-twill-0.9.0.tgz
@@ -28,7 +18,7 @@ pnpm add -D /path/to/swiftuijs-twill-formatter-0.9.0.tgz prettier
 pnpm add -D /path/to/swiftuijs-twill-linter-0.9.0.tgz eslint
 ```
 
-Install `dist/twill.vsix` with VS Code's **Extensions → Install from VSIX** command. The extension includes TypeScript checking and formatting; your application supplies framework types and dependencies.
+Install the extracted `twill.vsix` with VS Code's **Extensions → Install from VSIX** command. The extension includes TypeScript checking and formatting; your application supplies framework types and dependencies.
 
 ## Write an ordinary module
 
@@ -61,9 +51,11 @@ A basic `tsconfig.json`:
 }
 ```
 
-Place both files in `src`. Use `pnpm exec twill check -p tsconfig.json` for type checking. Native `tsc` cannot parse Twill source. Native consumers can use [generated declarations](./tooling.md#user-library-declarations).
+Place both files in `src`. Use `pnpm exec twill check -p tsconfig.json` for type checking. Native `tsc` cannot parse Twill source. Native consumers can use [generated declarations](./libraries.md).
 
 ## Build with Vite
+
+In your existing Vite application, keep its usual entry point and scripts and add the Twill adapter to `vite.config.ts`. Install Vite alongside the compiler if it is not already present. Other bundler configurations are in [build tools](./build-tools.md).
 
 ```ts
 import { defineConfig } from 'vite';
@@ -97,7 +89,7 @@ pnpm eslint src
 pnpm exec twill check -p tsconfig.json
 ```
 
-Use `recommendedTypeChecked` for type-aware linting; it requires a tsconfig and detects missing union cases in switches, even with a `default` branch. Add normal browser/Node globals for your application. VS Code's ESLint extension can validate `twill-typescript` and `twill-tsx`. See [practical patterns](./patterns.md) for validation, owned resources and explicit outcomes, and [tooling](./tooling.md) for safe fixes, debugging, diagnostics and library builds.
+Use `recommendedTypeChecked` for type-aware linting; it requires a tsconfig and detects missing union cases in switches, even with a `default` branch. Add normal browser/Node globals for your application. VS Code's ESLint extension can validate `twill-typescript` and `twill-tsx`. See [practical patterns](./patterns.md) for validation, owned resources and explicit outcomes, and [tooling](./tooling.md) for safe fixes, debugging and diagnostics.
 
 ## Run Node code
 
@@ -110,3 +102,7 @@ The loader handles local mixed TS/JS/Twill imports. It does not transform depend
 ## Adopt one module or export native sources
 
 Keep native TS/JS files alongside Twill and start with a validation or resource-management task. The optional migration package can export a checked source graph to a new native TS/TSX directory without modifying originals. See [adoption and migration](./adoption.md) for the commands, dependency setup and export boundaries.
+
+## Building Twill itself
+
+Application users do not need to clone the Twill repository. If you want to build the packages from source or contribute to the language, use the [repository development guide](https://github.com/swiftuijs/twill/blob/main/docs/contributing/tooling.md).
