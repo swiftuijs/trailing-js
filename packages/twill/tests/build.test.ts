@@ -54,7 +54,7 @@ it('inherits the standard JSX runtime for Twill and native files in the React ad
   );
   writeFileSync(
     join(root, 'runtime.ts'),
-    'export const jsx = (type: unknown, props: unknown) => ({ type, props, runtime: "custom" }); export const jsxs = jsx;',
+    'export const jsx = (type: unknown, props: unknown) => ({ type, props, runtime: "custom" }); export const jsxs = jsx; export const jsxDEV = jsx;',
   );
   // The component value need not execute: both views are plain runtime records.
   writeFileSync(
