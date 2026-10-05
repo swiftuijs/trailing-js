@@ -114,7 +114,7 @@ export function transform(source: string, options: TransformOptions = {}) {
     patternGuards.length ||
     parsed.switches.length ||
     parsed.defers.length ||
-    /\.twillx$/.test(filename)
+    /\.twillx$/.test(filename.split(/[?#]/, 1)[0]!)
   )
     walk(parsed.ast, (node) => {
       if (node.type === 'Identifier') usedNames.add(node.name);
@@ -407,7 +407,6 @@ export function transform(source: string, options: TransformOptions = {}) {
         do collector = `__twillChildren${counter++}`;
         while (usedNames.has(collector));
         const bodyStart = metadata.header?.end ?? closure.start + 1;
-        code.appendLeft(bodyStart, `const ${collector} = [];`);
         const collect = (statement: Node): void => {
           switch (statement.type) {
             case 'ExpressionStatement':
@@ -457,6 +456,9 @@ export function transform(source: string, options: TransformOptions = {}) {
           }
         };
         body.forEach(collect);
+        // Prefix after collecting so a compact first expression cannot place
+        // its push wrapper before the collector declaration at the same offset.
+        code.prependLeft(bodyStart, `const ${collector} = [];`);
         code.prependLeft(
           closure.end - 1,
           vue

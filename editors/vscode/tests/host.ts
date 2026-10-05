@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import assert from 'node:assert/strict';
-import { join, dirname } from 'node:path';
+import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { Registry, INITIAL } from 'vscode-textmate';
@@ -36,14 +36,16 @@ export async function run() {
       readFileSync(join(extension.extensionPath, 'syntaxes', name + '.tmLanguage.json'), 'utf8'),
     ),
   );
+  const nativeExtension = vscode.extensions.all.find((extension) =>
+    extension.packageJSON.contributes?.grammars?.some(
+      (grammar: { scopeName: string }) => grammar.scopeName === 'source.ts',
+    ),
+  );
+  assert(nativeExtension, 'The built-in TypeScript grammar extension must be available');
   const nativeGrammars = ['TypeScript', 'TypeScriptReact'].map((name) =>
     JSON.parse(
       readFileSync(
-        join(
-          dirname(process.execPath),
-          'resources/app/extensions/typescript-basics/syntaxes',
-          name + '.tmLanguage.json',
-        ),
+        join(nativeExtension.extensionPath, 'syntaxes', name + '.tmLanguage.json'),
         'utf8',
       ),
     ),

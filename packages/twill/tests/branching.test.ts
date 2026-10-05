@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import ts from 'typescript';
 import { transform } from '../src/compiler';
 import { parse } from '../src/parser.js';
 import { TwillProject } from '../src/project';
@@ -308,4 +309,31 @@ it('composes switch values with native JSX and component children', () => {
   const output = transform(source, { filename: 'view.twillx' });
   expect(output.switches).toBe(1);
   expect(() => parse(output.code, 'tsx')).not.toThrow();
+});
+
+it('preserves outer bindings in UI collectors even with query-suffixed filenames', () => {
+  const source = 'const __twillChildren0="outer";const view=Panel {"one";"two";__twillChildren0;};';
+  const result = transform(source, { filename: 'view.twillx?import', language: 'tsx' });
+  const javascript = ts.transpileModule(result.code, {
+    compilerOptions: {
+      target: ts.ScriptTarget.ES2022,
+      jsx: ts.JsxEmit.React,
+      jsxFactory: 'element',
+    },
+  }).outputText;
+  expect(
+    ts.transpileModule(result.code, {
+      reportDiagnostics: true,
+      compilerOptions: { jsx: ts.JsxEmit.React, jsxFactory: 'element' },
+    }).diagnostics,
+  ).toEqual([]);
+  const value = Function(
+    'Panel',
+    'element',
+    javascript + ';return view;',
+  )(
+    () => {},
+    (_tag: unknown, _props: unknown, children: unknown) => children,
+  );
+  expect(value).toEqual(['one', 'two', 'outer']);
 });
