@@ -13,13 +13,16 @@ describe('ESLint Twill processor', () => {
       overrideConfig: [...twill.configs.recommended!, { files: ['**/*.ts'], ...extra }],
       fix,
     });
-  it.each(['\n', '\r\n', '\u2028'])('maps original ranges across %j', async (newline) => {
-    const source = `export const result = [1].map { n in n*2 };${newline}const unused = 1;`;
-    const [result] = await engine().lintText(source, { filePath: 'fixture.twill' });
-    expect(
-      result!.messages.find((message) => message.ruleId === '@typescript-eslint/no-unused-vars'),
-    ).toMatchObject({ ruleId: '@typescript-eslint/no-unused-vars', line: 2, column: 7 });
-  });
+  it.each(['\n', '\r\n', '\r', '\u2028', '\u2029'])(
+    'maps original ranges across %j',
+    async (newline) => {
+      const source = `export const result = [1].map { n in n*2 };${newline}const unused = 1;`;
+      const [result] = await engine().lintText(source, { filePath: 'fixture.twill' });
+      expect(
+        result!.messages.find((message) => message.ruleId === '@typescript-eslint/no-unused-vars'),
+      ).toMatchObject({ ruleId: '@typescript-eslint/no-unused-vars', line: 2, column: 7 });
+    },
+  );
   it('applies only source-preserving fixes without lowering the dialect', async () => {
     const source = 'export const result=[1].map { n in let value=n*2; return value; };';
     const [result] = await engine({ rules: { 'prefer-const': 'error' } }, true).lintText(source, {

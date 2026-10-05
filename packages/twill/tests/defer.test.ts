@@ -216,4 +216,37 @@ describe('contextual defer', () => {
     compile('function run(e){ defer /* same line */ { e.push(1); } }')(events);
     expect(events).toEqual([1]);
   });
+  it('uses one callback for a single direct cleanup without allocating a stack', () => {
+    const source =
+      'function run(events, early) { if(early) return 1; defer { events.push("cleanup"); } events.push("body"); return 2; }';
+    const result = transform(source, { filename: 'single.twill', language: 'js' });
+    expect(result.code).not.toMatch(/__twillDefers|\.push\(\(|\.pop\(|while\s*\(|catch\s*\(/);
+    const run = compile(source);
+    const events: string[] = [];
+    expect(run(events, true)).toBe(1);
+    expect(events).toEqual([]);
+    expect(run(events, false)).toBe(2);
+    expect(events).toEqual(['body', 'cleanup']);
+  });
+  it('retains the dynamic stack when one statement can register repeatedly', () => {
+    const source = 'function run(events) { for(let i=0;i<3;i++) defer { events.push(i); } }';
+    const result = transform(source, { filename: 'loop.twill', language: 'js' });
+    expect(result.code).toContain('.pop()');
+    const events: number[] = [];
+    compile(source)(events);
+    expect(events).toEqual([2, 1, 0]);
+  });
+  it('preserves cleanup TDZ failures and does not await an unreached async cleanup', async () => {
+    expect(() =>
+      compile('function run() { defer { void later; } return 1; const later = 2; }')(),
+    ).toThrow(ReferenceError);
+    const run = compile(
+      'async function run(early) { if(early) return 1; defer { await Promise.resolve(); } return 2; }',
+    );
+    const events: string[] = [];
+    const result = run(true).then(() => events.push('resolved'));
+    await Promise.resolve().then(() => events.push('tick'));
+    await result;
+    expect(events).toEqual(['resolved', 'tick']);
+  });
 });

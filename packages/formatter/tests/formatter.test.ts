@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { format } from '../src/index.js';
+import { format, formatGenerated } from '../src/index.js';
 import { transform } from '@swiftuijs/twill';
 import { parseSyntax } from '@swiftuijs/twill/syntax';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -16,6 +16,32 @@ function normalize(value: any): any {
       .map(([key, child]) => [key, normalize(child)]),
   );
 }
+it.each([
+  {
+    filename: 'cleanup.twill',
+    source: 'function run(events: string[]) { defer { events.push("clean"); } return 1; }',
+  },
+  {
+    filename: 'multiple.twill',
+    source:
+      'function run(events: string[]) { defer { events.push("old"); } defer { events.push("new"); } return 1; }',
+  },
+  {
+    filename: 'view.twillx',
+    source: 'declare const Card: any; export const view = Card { <span>child</span>; };',
+  },
+])('formats generated code without changing its AST: $filename', async ({ filename, source }) => {
+  const result = transform(source, { filename });
+  const filepath = filename.replace(/\.twillx$/, '.tsx').replace(/\.twill$/, '.ts');
+  const pretty = await formatGenerated(result.code, { filepath });
+  expect(await formatGenerated(pretty, { filepath })).toBe(pretty);
+  expect(normalize(parseSyntax(pretty, { filename }).ast)).toEqual(
+    normalize(parseSyntax(result.code, { filename }).ast),
+  );
+  expect(result.map.sourcesContent).toEqual([source]);
+  expect(pretty).toContain('\n');
+});
+
 describe('Prettier Twill plugin', () => {
   it.each([
     'const value=fn() { /*header*/ (a: number /*type*/) in /*body*/ a+1 };',

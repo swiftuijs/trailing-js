@@ -20,3 +20,14 @@ it('tracks inherited and missing tsconfig files, then refreshes when they appear
   rmSync(parent);
   expect(loadConfig(root).jsxImportSource).toBeUndefined();
 });
+
+it('uses an explicitly selected tsconfig rather than a neighboring default', () => {
+  const root = mkdtempSync(join(tmpdir(), 'twill-config-'));
+  roots.push(root);
+  writeFileSync(join(root, 'tsconfig.json'), '{"compilerOptions":{"jsxImportSource":"react"}}');
+  writeFileSync(join(root, 'base.json'), '{"compilerOptions":{"jsxImportSource":"vue"}}');
+  const selected = join(root, 'tsconfig.vue.json');
+  writeFileSync(selected, '{"extends":"./base.json"}');
+  expect(loadConfig(root).jsxImportSource).toBe('react');
+  expect(loadConfig(root, selected).jsxImportSource).toBe('vue');
+});

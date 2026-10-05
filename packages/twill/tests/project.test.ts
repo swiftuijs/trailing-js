@@ -32,6 +32,18 @@ function project(files: Record<string, string>, options = {}) {
   return { project, root };
 }
 
+it('lowers JSX with the same runtime as an explicitly selected project', () => {
+  const { root } = project({
+    'tsconfig.vue.json':
+      '{"extends":"./tsconfig.json","compilerOptions":{"jsx":"react-jsx","jsxImportSource":"vue"}}',
+    'view.twillx': 'declare const Card: any; export const view = Card { "child"; };',
+  });
+  const selected = new TwillProject(join(root, 'tsconfig.vue.json'));
+  cleanups.push(() => selected.dispose());
+  expect(selected.compilerOptions.jsxImportSource).toBe('vue');
+  expect(selected.transformed(join(root, 'view.twillx'))!.code).toContain('default:');
+});
+
 describe('virtual TypeScript projects', () => {
   it('infers callback parameters and checks cross-file imports', () => {
     const { project: p } = project({

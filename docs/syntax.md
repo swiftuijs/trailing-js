@@ -38,10 +38,14 @@ The failure block must provably exit: a direct `return`, `throw`, `break`, or `c
 
 ## Defer
 
-```ts
+```twill
 function example(events: string[]) {
-  defer { events.push('first'); }
-  defer { events.push('second'); }
+  defer {
+    events.push('first');
+  }
+  defer {
+    events.push('second');
+  }
   return 42;
 } // events gains 'second', then 'first'
 ```
@@ -56,7 +60,7 @@ Cleanup may use local loops, local break/continue, nested functions and nested `
 
 All registered cleanups run even if the body or an earlier cleanup fails. A cleanup failure replaces the pending return/body error; a subsequent cleanup failure replaces that error, including `throw undefined`. If no cleanup fails, the original completion survives. This matches nested `try/finally`, rather than aggregating errors or using `SuppressedError`.
 
-Lowering creates a lazy local array, cleanup arrows and a `try/finally` drain. Mixed sync/async registrations additionally store a small descriptor per cleanup. No runtime module is imported. Blocks without defer are untouched. Direct function-body function declarations retain hoisting, captures, directives and var/parameter bindings via generated initializers; JS JSDoc remains attached. Function overloads/ambient function declarations directly in a function body containing defer are currently rejected with a diagnostic; place the helper in a separate scope. This restriction is preferable to silently changing type semantics.
+A single direct cleanup lowers to one optional callback and native `try/finally`, without an array, loop or error accumulator. Multiple or control-flow registrations use a lazy local array and reverse-order drain. Mixed sync/async registrations additionally store a small descriptor per cleanup. No runtime module is imported. Blocks without defer are untouched. Direct function-body function declarations retain hoisting, captures, directives and var/parameter bindings via generated initializers; JS JSDoc remains attached. Function overloads/ambient function declarations directly in a function body containing defer are currently rejected with a diagnostic; place the helper in a separate scope. This restriction is preferable to silently changing type semantics.
 
 ## Component closures in `.twillx`
 
@@ -82,4 +86,4 @@ JSX lowers to the selected automatic runtime in build plugins and the Node loade
 
 Local imports are supported. Standard resolver aliases, package exports and bare packages are delegated to the host; custom extensionless aliases should include the full extension when the host cannot resolve them. The opt-in Node loader emits local native ESM TS/TSX/JSX as well as Twill and delegates npm dependencies to Node. Native TS/JS documents in configured VS Code mixed projects use the bundled TS-server bridge for cross-file types and mapped definitions. See [interoperability](interoperability.md) for loader and CommonJS boundaries.
 
-The VS Code extension's common-input recovery is deliberately limited. Arbitrarily malformed input can temporarily suspend semantic assistance; strict syntax diagnostics remain visible. Rename, auto-import edits, import organization and safe spelling fixes map back to source. Unmappable edits are withheld. Formatting, general refactoring/fix-all and React Fast Refresh are future work.
+The VS Code extension's common-input recovery is deliberately limited. Arbitrarily malformed input can temporarily suspend semantic assistance; strict syntax diagnostics remain visible. Rename, auto-import edits, import organization and safe spelling fixes map back to source. Unmappable edits are withheld. Document formatting uses the Prettier package. The Vite React adapter supplies Fast Refresh. General refactoring and fix-all are unavailable.

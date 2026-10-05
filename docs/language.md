@@ -15,19 +15,19 @@ The compiler is a build dependency. Production bundles contain the lowered code 
 
 ## Features borrowed from Swift
 
-| Feature                                                    | Status                       | Lowering / decision                                                                                                                                               |
-| ---------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Trailing and multiple trailing closures                    | Implemented                  | Native arrow callbacks; labels supply positional argument order                                                                                                   |
-| Single-expression closure return                           | Implemented                  | Ordinary `return`; multi-statement bodies retain JS rules                                                                                                         |
-| `guard … else`                                             | Supported                    | Negated `if` and an explicitly exiting failure branch                                                                                                             |
-| Optional binding                                           | Implemented as `guard const` | `const` plus nullish check; TS narrows the binding                                                                                                                |
-| UI child collection                                        | Implemented in `.twillx`     | A local array and ordered pushes through control flow; inside natural component closures                                                                          |
-| `defer`                                                    | Supported                    | Block-local lazy callback stack and finally; reverse cleanup order, explicit async await, all cleanups run, lexical captures and function-body hoisting preserved |
-| Optional chaining, nullish fallback, async/await, generics | Use existing JS/TS           | Avoid duplicate syntax for capabilities already present                                                                                                           |
-| SwiftUI state/property wrappers, observation               | Use normal framework APIs    | Hidden state insertion could violate React hooks or Vue tracking; native JSX preserves the framework's lifecycle                                                  |
-| Swift structs/value semantics, actors, ownership           | Outside baseline             | Would change the JS runtime model and need copying, scheduling or a separate semantic system                                                                      |
+| Feature                                                    | Status                       | Lowering / decision                                                                                                                                             |
+| ---------------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Trailing and multiple trailing closures                    | Implemented                  | Native arrow callbacks; labels supply positional argument order                                                                                                 |
+| Single-expression closure return                           | Implemented                  | Ordinary `return`; multi-statement bodies retain JS rules                                                                                                       |
+| `guard … else`                                             | Supported                    | Negated `if` and an explicitly exiting failure branch                                                                                                           |
+| Optional binding                                           | Implemented as `guard const` | `const` plus nullish check; TS narrows the binding                                                                                                              |
+| UI child collection                                        | Implemented in `.twillx`     | A local array and ordered pushes through control flow; inside natural component closures                                                                        |
+| `defer`                                                    | Supported                    | One callback or a lazy stack with finally; reverse cleanup order, explicit async await, all cleanups run, lexical captures and function-body hoisting preserved |
+| Optional chaining, nullish fallback, async/await, generics | Use existing JS/TS           | Avoid duplicate syntax for capabilities already present                                                                                                         |
+| SwiftUI state/property wrappers, observation               | Use normal framework APIs    | Hidden state insertion could violate React hooks or Vue tracking; native JSX preserves the framework's lifecycle                                                |
+| Swift structs/value semantics, actors, ownership           | Outside baseline             | Would change the JS runtime model and need copying, scheduling or a separate semantic system                                                                    |
 
-`defer` intentionally incurs local stack and closure allocations; native `try/finally` remains available for simple cleanup or allocation-sensitive loops.
+`defer` allocates a cleanup closure for each reached registration. Multiple or control-flow registrations additionally allocate a lazy local stack. Native `try/finally` remains available for allocation-sensitive loops.
 
 ## Ecosystem boundaries
 

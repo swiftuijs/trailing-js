@@ -9,6 +9,7 @@ import { build as vite, createServer } from 'vite';
 import esbuildPlugin from '../src/esbuild';
 import rollupPlugin from '../src/rollup';
 import vitePlugin from '../src/vite';
+import twillReact from '../src/vite-react';
 import webpack from 'webpack';
 import { rspack } from '@rspack/core';
 import webpackPlugin from '../src/webpack';
@@ -44,6 +45,47 @@ function fixture() {
   );
   return root;
 }
+
+it('inherits the standard JSX runtime for Twill and native files in the React adapter', async () => {
+  const root = fixture();
+  writeFileSync(
+    join(root, 'tsconfig.json'),
+    '{"compilerOptions":{"jsx":"react-jsx","jsxImportSource":"custom"}}',
+  );
+  writeFileSync(
+    join(root, 'runtime.ts'),
+    'export const jsx = (type: unknown, props: unknown) => ({ type, props, runtime: "custom" }); export const jsxs = jsx; export const jsxDEV = jsx;',
+  );
+  // The component value need not execute: both views are plain runtime records.
+  writeFileSync(
+    join(root, 'custom.tsx'),
+    'const Card = "article"; export const native = <Card>child</Card>;',
+  );
+  writeFileSync(
+    join(root, 'custom.twillx'),
+    'const Card = "article"; export const dialect = Card { "child"; };',
+  );
+  const server = await createServer({
+    root,
+    configFile: false,
+    plugins: twillReact({ twill: { root } }),
+    resolve: {
+      alias: {
+        'custom/jsx-runtime': join(root, 'runtime.ts'),
+        'custom/jsx-dev-runtime': join(root, 'runtime.ts'),
+      },
+    },
+    server: { middlewareMode: true },
+  });
+  try {
+    const dialect = await server.ssrLoadModule('/custom.twillx');
+    const native = await server.ssrLoadModule('/custom.tsx');
+    expect(dialect.dialect).toEqual(native.native);
+    expect(dialect.dialect.runtime).toBe('custom');
+  } finally {
+    await server.close();
+  }
+});
 
 describe('real build tools', () => {
   it('bundles TypeScript and extensionless imports with esbuild', async () => {

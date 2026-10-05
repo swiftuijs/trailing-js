@@ -1,5 +1,6 @@
 import * as prettier from 'prettier';
 import * as estree from 'prettier/plugins/estree';
+import * as typescript from 'prettier/plugins/typescript';
 import { parse } from './parser';
 import type { Plugin, Printer, ParserOptions, Doc } from 'prettier';
 
@@ -116,6 +117,15 @@ export function format(source: string, options: prettier.Options = {}) {
     ...options,
     parser: 'twill',
     plugins: [...(options.plugins ?? []), plugin],
+  });
+}
+/** Format generated TS/TSX for display, without dialect parsing or lowering.
+ * This text has no source map. Keep the compiler result for mapped tooling. */
+export function formatGenerated(source: string, options: prettier.Options = {}) {
+  return prettier.format(source, {
+    ...options,
+    parser: 'typescript',
+    plugins: [...(options.plugins ?? []), typescript, estree],
   });
 }
 export default plugin;

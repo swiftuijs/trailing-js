@@ -1,6 +1,7 @@
 import { transform, TwillSyntaxError } from '@swiftuijs/twill';
+import { formatGenerated } from '@swiftuijs/twill-formatter';
 import type { CompileRequest, CompileResponse } from './playground/protocol';
-self.onmessage = ({ data }: MessageEvent<CompileRequest>) => {
+self.onmessage = async ({ data }: MessageEvent<CompileRequest>) => {
   let response: CompileResponse;
   try {
     if (data.source.length > 20_000)
@@ -10,10 +11,18 @@ self.onmessage = ({ data }: MessageEvent<CompileRequest>) => {
       filename: data.filename,
       jsxImportSource: data.jsxImportSource,
     });
+    let code = result.code;
+    try {
+      code = await formatGenerated(code, {
+        filepath: data.filename.replace(/\.twillx$/, '.tsx').replace(/\.twill$/, '.ts'),
+      });
+    } catch {
+      // Keep valid output available if the display formatter cannot handle it.
+    }
     response = {
       id: data.id,
       result: {
-        code: result.code,
+        code,
         closures: result.closures,
         guards: result.guards,
         defers: result.defers,

@@ -17,7 +17,7 @@ function children(node: Node, visit: (child: Node) => void) {
   }
 }
 
-/** Scope-local callback stacks, emitted only for blocks containing defer. */
+/** Scope-local cleanup callbacks; dynamic registrations use lazy stacks. */
 export function lowerDefers(
   source: string,
   ast: Node,
@@ -85,20 +85,24 @@ export function lowerDefers(
   for (const scope of scopes) {
     if (!scope.defers.length) continue;
     const { block } = scope;
-    const stack = fresh('Defers');
-    const failure = fresh('Failure');
-    const failed = fresh('Failed');
-    const callback = fresh('Cleanup');
-    const error = fresh('Error');
+    const statements = block.body as Node[];
+    // A direct statement executes at most once per block entry. Nested or
+    // unbraced-loop registrations still require the dynamic stack.
+    const single = scope.defers.length === 1 && statements.includes(scope.defers[0]!);
+    const stack = fresh(single ? 'Cleanup' : 'Defers');
+    const failure = single ? '' : fresh('Failure');
+    const failed = single ? '' : fresh('Failed');
+    const callback = single ? stack : fresh('Cleanup');
+    const error = single ? '' : fresh('Error');
     const anyAsync = scope.defers.some((node) => node.awaited);
     const allAsync = scope.defers.every((node) => node.awaited);
     const mixed = anyAsync && !allAsync;
     const callbackType = mixed ? '{ run: () => unknown; async: boolean }' : '() => unknown';
-    const annotation = language.startsWith('ts') ? `: Array<${callbackType}> | undefined` : '';
-    const jsdoc = language.startsWith('js')
-      ? `\n/** @type {Array<${callbackType}> | undefined} */\n`
-      : '';
-    const statements = block.body as Node[];
+    const storageType = single
+      ? '(() => unknown) | undefined'
+      : `Array<${callbackType}> | undefined`;
+    const annotation = language.startsWith('ts') ? `: ${storageType}` : '';
+    const jsdoc = language.startsWith('js') ? `\n/** @type {${storageType}} */\n` : '';
     let start = contentStarts.get(block) ?? block.start + 1;
     // StaticBlock.start includes the `static` token, unlike BlockStatement.
     if (block.type === 'StaticBlock') start = statements[0]!.start;
@@ -138,9 +142,19 @@ export function lowerDefers(
       code.appendLeft(declaration.end, ';');
     }
     for (const node of scope.defers) {
-      const prefix = `(${stack} ??= []).push(${mixed ? `{ async: ${node.awaited}, run: ` : ''}${node.awaited ? 'async ' : ''}() => `;
+      const arrow = `${node.awaited ? 'async ' : ''}() => `;
+      const prefix = single
+        ? `${stack} = ${arrow}`
+        : `(${stack} ??= []).push(${mixed ? `{ async: ${node.awaited}, run: ` : ''}${arrow}`;
       code.overwrite(node.start, node.cleanup.body.start, prefix);
-      code.appendLeft(node.end, `${mixed ? '}' : ''});`);
+      code.appendLeft(node.end, single ? ';' : `${mixed ? '}' : ''});`);
+    }
+    if (single) {
+      // Guard the await as well as the call: unreached async cleanup must not
+      // add a microtask turn. Native finally preserves all completion kinds.
+      const call = allAsync ? `if (${stack}) await ${stack}();` : `${stack}?.();`;
+      code.prependLeft(block.end - 1, `\n} finally { ${call} }\n`);
+      continue;
     }
     const call = mixed
       ? `if (${callback}.async) await ${callback}.run(); else ${callback}.run();`

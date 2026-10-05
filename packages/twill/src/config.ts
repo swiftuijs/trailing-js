@@ -7,8 +7,8 @@ type Config = Pick<TransformOptions, 'implicitReturn' | 'jsxImportSource'>;
 const jsxConfigs = new Map<string, { files: Map<string, number>; source?: string }>();
 
 /** Use the project's standard JSX setting, including extended tsconfigs. */
-function jsxSource(root: string): string | undefined {
-  const filename = ts.findConfigFile(root, ts.sys.fileExists);
+function jsxSource(root: string, configFile?: string): string | undefined {
+  const filename = configFile ?? ts.findConfigFile(root, ts.sys.fileExists);
   if (!filename) return undefined;
   const cached = jsxConfigs.get(filename);
   if (
@@ -39,9 +39,9 @@ function jsxSource(root: string): string | undefined {
   return source;
 }
 
-export function loadConfig(root = process.cwd()): Config {
+export function loadConfig(root = process.cwd(), configFile?: string): Config {
   const filename = resolve(root, 'twill.config.json');
-  const jsxImportSource = jsxSource(root);
+  const jsxImportSource = jsxSource(root, configFile);
   if (!existsSync(filename)) return { jsxImportSource };
   const value = JSON.parse(readFileSync(filename, 'utf8'));
   if (!value || typeof value !== 'object' || Array.isArray(value))

@@ -9,7 +9,7 @@ import {
 } from '@swiftuijs/twill/project';
 import { isTwillFile } from '@swiftuijs/twill';
 import { TwillEditor, type SourceEdit } from '@swiftuijs/twill/editor';
-import { format } from '@swiftuijs/twill-formatter';
+import { format, formatGenerated } from '@swiftuijs/twill-formatter';
 import { inspectProject } from '@swiftuijs/twill/doctor';
 
 const languages = ['twill-typescript', 'twill-tsx'];
@@ -30,14 +30,14 @@ export function activate(context: vscode.ExtensionContext) {
         output.appendLine(String(error));
         return undefined;
       });
-  const syncBridge = () => {
+  const syncBridge = (reloadFiles: string[] = []) => {
     const overlays = Object.fromEntries(
       vscode.workspace.textDocuments
         .filter((document) => document.uri.scheme === 'file' && isTwillFile(document.fileName))
         .map((document) => [sourceFilename(document.fileName), document.getText()]),
     );
     void bridge?.then((api) =>
-      api?.configurePlugin('@swiftuijs/twill-vscode-tsserver', { overlays }),
+      api?.configurePlugin('@swiftuijs/twill-vscode-tsserver', { overlays, reloadFiles }),
     );
   };
   const projects = new Map<string, TwillProject>();
@@ -219,6 +219,9 @@ export function activate(context: vscode.ExtensionContext) {
   const diskChanged = (uri: vscode.Uri, discover = false) => {
     const filename = sourceFilename(uri.fsPath);
     if (isDependency(filename)) return;
+    // Native consumers can have a bridge project without an open Twill file.
+    // The bridge knows its inherited config files; send disk events directly.
+    if (filename.endsWith('.json')) syncBridge([filename]);
     for (const [root, project] of projects) {
       if (
         !filename.startsWith(root + '/') &&
@@ -596,11 +599,21 @@ export function activate(context: vscode.ExtensionContext) {
       const source = vscode.window.activeTextEditor?.document;
       if (!source || !isTwillFile(source.fileName)) return;
       const result = safely(source, (project) => project.transformed(source.fileName));
-      if (result)
+      if (result) {
+        let content = result.code;
+        try {
+          content = await formatGenerated(content, {
+            filepath: source.fileName.replace(/\.twillx$/, '.tsx').replace(/\.twill$/, '.ts'),
+          });
+        } catch (error) {
+          // Display formatting must not turn valid compilation into a failure.
+          output.appendLine(`Generated source formatting: ${String(error)}`);
+        }
         await vscode.window.showTextDocument(
-          await vscode.workspace.openTextDocument({ content: result.code, language: 'typescript' }),
+          await vscode.workspace.openTextDocument({ content, language: 'typescript' }),
           vscode.ViewColumn.Beside,
         );
+      }
     }),
   );
   context.subscriptions.push(

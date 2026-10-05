@@ -24,7 +24,7 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
   const [command, input, ...extra] = positionals;
   if (values.help || !command) {
     console.log(
-      'twill compile <file> [-o output.ts] [--js]\ntwill check [-p tsconfig.json] [--json]\ntwill doctor [-p tsconfig.json] [--json]\ntwill declarations [-p tsconfig.json] [-o dist] [--build] [--json]\n\ncompile keeps TypeScript types by default; --js erases types and lowers JSX.\nCommands read twill.config.json from the project root.',
+      'twill compile <file> [-o output.ts] [--js]\ntwill check [-p tsconfig.json] [--json]\ntwill doctor [-p tsconfig.json] [--json]\ntwill declarations [-p tsconfig.json] [-o dist] [--build] [--json]\n\ncompile keeps TypeScript types by default; --js erases types and lowers JSX.\nCommands use the optional twill.config.json from the project root.',
     );
     return 0;
   }
@@ -86,7 +86,10 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
     throw new Error('Expected compile <file> or check. Use --help for usage.');
   const filename = resolve(input);
   const root = values.project ? dirname(resolve(values.project)) : process.cwd();
-  const options = { ...loadConfig(root), filename };
+  const options = {
+    ...loadConfig(root, values.project ? resolve(values.project) : undefined),
+    filename,
+  };
   const source = readFileSync(filename, 'utf8');
   const result = values.js ? transpile(source, options) : transform(source, options);
   if (values.out) {

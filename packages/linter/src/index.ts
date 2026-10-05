@@ -13,14 +13,16 @@ import { loadConfig } from '@swiftuijs/twill/config';
 import { dirname, resolve } from 'node:path';
 import { statSync } from 'node:fs';
 import type { ESLint, Linter, Rule } from 'eslint';
+import metadata from '../package.json' with { type: 'json' };
+import { SourcePositions } from './positions.js';
 
 type State = {
   source: string;
   filename: string;
   result?: TransformResult;
   error?: any;
-  original: ts.SourceFile;
-  generated?: ts.SourceFile;
+  original: SourcePositions;
+  generated?: SourcePositions;
   project?: TwillProject;
 };
 const pending = new Map<string, State>();
@@ -64,35 +66,24 @@ function projectFor(filename: string) {
   return cached.project;
 }
 
-// MagicString maps use LF lines; ESLint/TypeScript also count CR and Unicode
-// separators. Convert absolute offsets at that boundary, not reported lines.
-const lfPosition = (text: string, offset: number) => {
-  const prefix = text.slice(0, offset);
-  return { line: prefix.split('\n').length, column: offset - prefix.lastIndexOf('\n') - 1 };
-};
-const lfOffset = (text: string, line: number, column: number) => {
-  let start = 0;
-  for (let index = 1; index < line; index++) start = text.indexOf('\n', start) + 1;
-  return start + column;
-};
 function originalOffset(state: State, offset: number) {
-  const position = lfPosition(state.result!.code, offset);
+  const position = state.generated!.mapPosition(offset);
   const point = originalPosition(state.result!, position.line, position.column);
   return point.line == null || point.column == null
     ? undefined
-    : lfOffset(state.source, point.line, point.column);
+    : state.original.mapOffset(point.line, point.column);
 }
 function fix(state: State, value: Rule.Fix | undefined): Rule.Fix | undefined {
   if (!value) return undefined;
   const [start, end] = value.range;
   const offset = originalOffset(state, start);
   if (offset === undefined) return undefined;
-  const position = lfPosition(state.source, offset);
+  const position = state.original.mapPosition(offset);
   const generated = generatedPosition(state.result!, position.line, position.column);
   if (
     generated.line == null ||
     generated.column == null ||
-    lfOffset(state.result!.code, generated.line, generated.column) !== start ||
+    state.generated!.mapOffset(generated.line, generated.column) !== start ||
     state.source.slice(offset, offset + end - start) !== state.result!.code.slice(start, end)
   )
     return undefined;
@@ -106,7 +97,7 @@ const processor: Linter.Processor = {
     const state: State = {
       source,
       filename,
-      original: ts.createSourceFile(filename, source, ts.ScriptTarget.Latest),
+      original: new SourcePositions(source),
     };
     pending.set(filename, state);
     try {
@@ -116,11 +107,7 @@ const processor: Linter.Processor = {
         ...loadConfig(config ? dirname(config) : dirname(filename)),
         filename,
       });
-      state.generated = ts.createSourceFile(
-        filename + '.ts',
-        state.result.code,
-        ts.ScriptTarget.Latest,
-      );
+      state.generated = new SourcePositions(state.result.code);
       return [
         {
           text: state.result.code,
@@ -189,7 +176,7 @@ const processor: Linter.Processor = {
 };
 
 const virtualParser = {
-  meta: { name: '@swiftuijs/twill-linter/parser', version: '0.7.0' },
+  meta: { name: '@swiftuijs/twill-linter/parser', version: metadata.version },
   parseForESLint(code: string, options: any) {
     const original = normalize(options.filePath ?? '').replace(/\/(?:\d+_)?source\.tsx?$/, '');
     const state = pending.get(original);
@@ -210,7 +197,7 @@ const virtualParser = {
 };
 
 const plugin: ESLint.Plugin & { configs: Record<string, Linter.Config[]> } = {
-  meta: { name: '@swiftuijs/twill-linter', version: '0.7.0' },
+  meta: { name: '@swiftuijs/twill-linter', version: metadata.version },
   processors: { twill: processor },
   configs: {} as Record<string, Linter.Config[]>,
 };
