@@ -75,9 +75,22 @@ try {
   );
   assert.equal(esm.trim(), '1', 'The TS-server main entry must preserve compiler ESM exports');
   const { transform } = await import(pathToFileURL(join(base, 'index.js')).href);
-  const { default: installedReact } = await import(pathToFileURL(join(base, 'vite-react.js')).href);
-  assert(installedReact().length >= 2, 'Installed optional React integration must load its peer');
-  assert.throws(() => installedReact({ react: { jsxRuntime: 'classic' } }), /automatic JSX/);
+  // Vite loads native Rolldown bindings. Run this consumer in a child process
+  // so Windows releases its DLL before the temporary installation is removed.
+  execFileSync(
+    process.execPath,
+    [
+      '--input-type=module',
+      '-e',
+      `
+    import assert from 'node:assert/strict';
+    import twillReact from '@swiftuijs/twill/vite-react';
+    assert(twillReact().length >= 2, 'Installed optional React integration must load its peer');
+    assert.throws(() => twillReact({react:{jsxRuntime:'classic'}}), /automatic JSX/);
+  `,
+    ],
+    { cwd: root, stdio: 'pipe' },
+  );
   assert.equal(transform('fn() { 42 }').closures, 1);
   assert.equal(transform('function f(v) { guard v else { return 0; } return 1; }').guards, 1);
   assert.equal(transform('function f() { defer { console.log("done"); } }').defers, 1);
