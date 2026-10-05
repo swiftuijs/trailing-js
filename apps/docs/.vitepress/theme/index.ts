@@ -1,10 +1,17 @@
 import DefaultTheme from 'vitepress/theme';
 import type { Theme } from 'vitepress';
-import Playground from './Playground.vue';
+import { defineAsyncComponent } from 'vue';
 import './style.css';
 export default {
   extends: DefaultTheme,
   enhanceApp({ app }) {
-    app.component('TwillPlayground', Playground);
+    app.component(
+      'TwillHome',
+      defineAsyncComponent(() => import('./Home.vue')),
+    );
+    app.component(
+      'TwillPlayground',
+      defineAsyncComponent(() => import('./Playground.vue')),
+    );
   },
 } satisfies Theme;

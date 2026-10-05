@@ -22,7 +22,7 @@ test('English documentation navigation, search, highlighting and responsive layo
   await page.goto('./');
   await expect(page).toHaveTitle(/Twill/);
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Twill');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Clearer flow.Same TypeScript.');
   await expect(page.locator('vite-error-overlay')).toHaveCount(0);
   await expect(page.locator('div.language-twill code span[style]')).not.toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
@@ -41,6 +41,54 @@ test('English documentation navigation, search, highlighting and responsive layo
   const sitemap = await page.request.get('sitemap.xml');
   expect(sitemap.ok()).toBe(true);
   expect(await sitemap.text()).not.toContain('/zh/');
+  expect(errors).toEqual([]);
+});
+
+test('product comparisons, adoption links and readiness stay usable', async ({ page }, info) => {
+  const errors: string[] = [];
+  const requested: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  page.on('request', (request) => requested.push(request.url()));
+  await page.goto('./');
+  await expect(page.getByRole('tab', { name: 'Validation', exact: true })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await expect(page.getByRole('tabpanel')).toContainText('guard const user');
+  await page.getByRole('tab', { name: 'Cleanup', exact: true }).click();
+  await expect(page.getByRole('tabpanel')).toContainText('defer');
+  await expect(page.getByRole('tabpanel')).toContainText('callbacks allocate');
+  await page.getByRole('tab', { name: 'Cleanup', exact: true }).press('ArrowRight');
+  await expect(page.getByRole('tab', { name: 'Business states', exact: true })).toBeFocused();
+  await expect(page.getByRole('tabpanel')).toContainText('satisfies never');
+  await expect(page.getByRole('tabpanel')).toContainText('twill check');
+  await page.getByRole('tab', { name: 'Business states', exact: true }).press('End');
+  await expect(page.getByRole('tab', { name: 'Callbacks', exact: true })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+  await expect(page.getByRole('tabpanel')).toContainText(/\.filter \{ user in\s+user\.active/);
+  await page.getByRole('tab', { name: 'Callbacks', exact: true }).press('Home');
+  await expect(page.getByRole('tab', { name: 'Validation', exact: true })).toBeFocused();
+  expect(
+    requested.filter((url) =>
+      /(?:compiler\.worker|\/editor[.-][^/]+\.js|\/Playground[.-][^/]+\.js)/.test(url),
+    ),
+  ).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  await screenshot(page, info, 'comparison');
+  await page.getByRole('link', { name: 'Read why Twill', exact: true }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Why Twill?');
+  await expect(
+    page.getByRole('heading', { name: /Put cleanup next to acquisition/ }),
+  ).toBeVisible();
+  await page.goto('readiness');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Readiness and support');
+  await expect(page.locator('.vp-doc')).toContainText(
+    'A broad production-ready claim would go beyond the current evidence.',
+  );
   expect(errors).toEqual([]);
 });
 

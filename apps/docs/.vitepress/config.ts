@@ -17,6 +17,7 @@ const pages = [
   {
     text: 'Start here',
     items: [
+      { text: 'Why Twill?', link: '/why-twill' },
       { text: 'Getting started', link: '/getting-started' },
       { text: 'Playground', link: '/playground' },
       { text: 'Language overview', link: '/language' },
@@ -37,7 +38,7 @@ const pages = [
   {
     text: 'Project',
     items: [
-      { text: 'Support and limitations', link: '/readiness' },
+      { text: 'Readiness and support', link: '/readiness' },
       { text: 'Architecture', link: '/architecture' },
       { text: 'Language design RFC', link: '/rfcs/0001-practical-language' },
       { text: 'Releasing', link: '/releasing' },
@@ -51,7 +52,7 @@ export default defineConfig({
   base: process.env.TWILL_DOCS_BASE ?? '/twill/',
   title: 'Twill',
   description:
-    'A small syntax-sugar layer over TypeScript and JavaScript. Trailing closures, guard and defer; ordinary JS engines and framework semantics.',
+    'Clearer flow. Same TypeScript. Make validation, cleanup and business states explicit, with ordinary JavaScript output and a complete development toolchain.',
   cleanUrls: true,
   lastUpdated: true,
   head: [
@@ -62,6 +63,7 @@ export default defineConfig({
   themeConfig: {
     sidebar: pages,
     nav: [
+      { text: 'Why Twill', link: '/why-twill' },
       { text: 'Guide', link: '/getting-started' },
       { text: 'Playground', link: '/playground' },
       { text: 'Support', link: '/readiness' },

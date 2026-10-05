@@ -1,6 +1,17 @@
-# Support and limitations
+# Readiness and support
 
-Twill is an experimental JS/TS dialect. Its compiler, editor and build integrations support a complete development workflow, with the boundaries below. Evaluate it against your application's syntax, dependencies and deployment environment before adopting it.
+Twill 0.9 is an experimental JS/TS dialect with a tested development workflow. It is ready for a scoped evaluation of the documented compiler, editor and build integrations. A broad production-ready claim would go beyond the current evidence.
+
+## Adoption status
+
+| Area                     | Current evidence                                                                                                            | Remaining gate                                                                      |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| End-to-end workflow      | Executable compiler checks, mixed TS/JS, real packaged VS Code hosts, formatter/linter and independently installed packages | Validate your application syntax, libraries and failure paths                       |
+| Runtime and bundle costs | Native/dialect behavior comparisons, deterministic output budgets and reproducible synthetic benchmarks                     | Real dependency-heavy applications, target engines and representative hot paths     |
+| Distribution             | Reviewed tarballs and VSIX build artifacts, version/checksum validation and a tag-release workflow                          | Public registry releases and a documented compatibility/support commitment          |
+| Adoption                 | One-file opt-in, native declarations and checked source export                                                              | Real team pilots demonstrating maintained editor responsiveness and review benefits |
+
+Tests make supported behavior reviewable; they do not establish a production track record. Before a production commitment, choose a reviewed version, verify the host workflow, measure your project and agree how updates and regressions will be handled. See [why Twill](why-twill.md) for benefits and tradeoffs and [gradual adoption](adoption.md) for a pilot path.
 
 ## Language and ecosystem
 

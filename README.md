@@ -1,21 +1,72 @@
 # Twill
 
-**Twill** is a general-purpose syntax-sugar language built on JavaScript and TypeScript. It borrows concise syntax from Swift and compiles to ordinary JS/TS, with source maps, build plugins, a type checker, and a VS Code extension. Data processing, Node services, async workflows and UI code use the same language.
+**Clearer flow. Same TypeScript.**
 
-```ts
-const doubled = [1, 2, 3].map { value in value * 2 };
-// → [1, 2, 3].map((value) => { return value * 2; });
+Twill is a small syntax-sugar language for JavaScript and TypeScript. Make validation, cleanup and business states explicit with guards, `defer`, trailing closures and checked switch expressions. Compile to ordinary JavaScript, keep TS types and mix Twill with your existing code.
+
+[Documentation](https://swiftuijs.github.io/twill/) · [Why Twill?](docs/why-twill.md) · [Playground](https://swiftuijs.github.io/twill/playground) · [Getting started](docs/getting-started.md) · [Support](docs/readiness.md)
+
+```twill
+async function readOwned(acquire: () => Promise<TextDocument>) {
+  const document = await acquire();
+  defer {
+    await document.close();
+  }
+
+  guard const text = await document.readText() else {
+    return 'Missing';
+  }
+  return text.toUpperCase();
+}
 ```
 
-Ordinary callbacks compile to native arrows. In UI files, component closures compile directly to standard JSX: React children or lazy Vue slots. Import components directly from any library. `@swiftuijs/ui` is one example consumer; the compiler has no component-library lists or special cases.
+The successful path stays in view; release sits next to acquisition. Registration is block-scoped, cleanup is awaited explicitly, and `return await` keeps an owned resource alive until its work finishes. The output uses ordinary JS control flow.
 
-This is an experimental **0.9 language**, with production-oriented packaging and tests. See [the syntax contract and limitations](docs/syntax.md) before adopting it. Until published to npm and the Marketplace, install a locally built tarball and VSIX.
+**Status:** experimental 0.9. The documented toolchain is tested, including real VS Code hosts and independent package installs. Packages are available as built tarballs and a VSIX; npm and Marketplace publication are pending. Use a scoped pilot before a production commitment. See [readiness and adoption limits](docs/readiness.md).
 
-Documentation: [getting started](docs/getting-started.md) · [practical patterns](docs/patterns.md) · [adoption and migration](docs/adoption.md) · [playground](docs/playground.md) · [readiness and support](docs/readiness.md). The private `apps/docs` workspace builds the searchable site; use `pnpm docs:dev` locally. Its Pages deployment target is [swiftuijs.github.io/twill](https://swiftuijs.github.io/twill/); repository Pages must be enabled with GitHub Actions as the source.
+## Why use Twill?
 
-## Quick start
+- **Make early exits explicit.** `guard … else` requires an exiting failure path. `guard const` evaluates once, preserves zero and false, and keeps native TS narrowing.
+- **Keep cleanup beside ownership.** Register `defer` immediately after acquisition; reached registrations run on scope exit in reverse order, including failures.
+- **Catch omitted business states.** Match ordinary TS discriminated unions and bind their payloads. `twill check` verifies expression exhaustiveness when a variant is added.
+- **Keep callbacks and composition readable.** Trailing closures work with normal callback APIs. In UI files, component closures become native JSX children or lazy Vue slots.
+- **Adopt one module at a time.** Two-way TS/JS imports, standard framework APIs, generated declarations and optional native source export keep the integration incremental.
 
-The distributed package requires Node **20.19+ or 22.12+** and is ESM. Use **Node 22.13+** and the pinned **pnpm 11** to develop the repository; Vite builds every workspace package. Enable pnpm through Corepack (`corepack enable`) or install the version in `packageManager`. See [the monorepo and tooling guide](docs/tooling.md).
+TypeScript already expresses these behaviors with branches, `try/finally`, arrows and unions. Twill supplies a more explicit syntax for recurring tasks; it earns its place when review clarity outweighs an additional compiler integration. Read the [code comparisons and tradeoffs](docs/why-twill.md).
+
+## Small syntax, existing semantics
+
+```twill
+const names = users.filter { user in
+  user.active;
+}.map { user in
+  user.name;
+};
+
+type Outcome = { kind: 'ok'; value: number } | { kind: 'error'; message: string };
+function describe(outcome: Outcome): string {
+  return switch (outcome) {
+    case { kind: 'ok', value }: value.toFixed(2);
+    case { kind: 'error', message }: message;
+  };
+}
+```
+
+Ordinary closures become arrows; guards become branches. Direct-return switch expressions become native switches; other expression positions use an IIFE. No language runtime library is introduced. `defer` allocates callbacks and dynamic registrations use a local stack; general component child collection uses arrays. These costs are [documented and measured](docs/performance.md).
+
+| File                         | Use                                                         |
+| ---------------------------- | ----------------------------------------------------------- |
+| `.twill`                     | TypeScript, including JavaScript syntax with optional types |
+| `.twillx`                    | TSX, native JSX and component closures                      |
+| `.ts`, `.tsx`, `.js`, `.jsx` | Ordinary source files, retaining their native syntax        |
+
+Twill and native files can import each other through the build adapters, virtual checker and Node ESM loader. Your normal `tsconfig.json` supplies types and JSX settings. No `twill.config.json` is required. Native `tsc` cannot parse dialect source; use `twill check` and [standard declaration output](docs/tooling.md#user-library-declarations).
+
+## Try it
+
+The [playground](https://swiftuijs.github.io/twill/playground) runs the actual compiler locally, with live highlighting and generated-source inspection. It does not execute your code or type-check project imports.
+
+For an application, install reviewed tarballs and the VSIX from a successful [CI build](https://github.com/swiftuijs/twill/actions), or build them locally:
 
 ```sh
 git clone https://github.com/swiftuijs/twill.git
@@ -23,11 +74,17 @@ cd twill
 pnpm install --frozen-lockfile
 pnpm build
 pnpm package:core
-# In your application:
-npm install /path/to/swiftuijs-twill-0.9.0.tgz
+pnpm package:tooling
+pnpm editor:package
 ```
 
-In Vite:
+Repository development requires Node 22.13+ (or Node 24+) and the pnpm version pinned in `packageManager`. The distributed compiler supports Node 20.19+ or 22.12+.
+
+Install the compiler tarball as a development dependency in your application, then add the Vite adapter:
+
+```sh
+pnpm add -D /path/to/swiftuijs-twill-0.9.0.tgz
+```
 
 ```ts
 import { defineConfig } from 'vite';
@@ -36,244 +93,42 @@ import twill from '@swiftuijs/twill/vite';
 export default defineConfig({ plugins: [twill()] });
 ```
 
-The repository, npm package and CLI are `swiftuijs/twill`, `@swiftuijs/twill` and `twill`. `twill.config.json` is optional: trailing closures, single-expression returns, guards and cleanup work with the default settings. Existing projects keep their normal TypeScript and framework configuration.
-
-| Source extension | Base language |
-| ---------------- | ------------- |
-| `.twill`         | TypeScript    |
-| `.twillx`        | TSX           |
-
-These are the only dialect extensions. JavaScript syntax works in both as TypeScript’s subset; types are optional. `.twillx` also enables JSX and component closures. Native `.ts`, `.tsx`, `.js` and `.jsx` files keep their normal parsers and JS/JSDoc behavior. Files ending in `.js` or `.jsx` are never secretly opted into Twill.
-
-```ts
-// main.twill
-const values: number[] = [1, 2, 3];
-export const doubled = values.map { value in value * 2 };
-```
-
-Run type checking separately from bundling:
+Rename one module to `.twill`, update its imports, include it in your usual tsconfig and run:
 
 ```sh
-npx twill check -p tsconfig.json
+pnpm exec twill check -p tsconfig.json
 ```
 
-Include the extended files in your `tsconfig.json`, for example `"include": ["src/**/*"]`. The checker reads your real TypeScript settings, infers callback types, resolves explicit and extensionless local imports, and maps errors back to the original files. Ordinary `tsc` does not parse this syntax.
+Install `dist/twill.vsix` with VS Code's **Install from VSIX** command. Follow [getting started](docs/getting-started.md) for formatter/linter setup, and [framework development](docs/frameworks.md) for React Fast Refresh and Vue integration.
 
-## Mixing Twill with TS and JS
+## A complete working loop
 
-Both import directions work: Twill can import native TS/JS, and native TS/JS can import Twill. Values, exported types, type-only imports, re-exports and dynamic imports use normal module semantics. Cyclic imports retain ESM live bindings.
+| Tool                 | What it provides                                                                                           |
+| -------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Compiler and checker | Syntax lowering, original-source diagnostics, native TS types and generated declarations                   |
+| VS Code extension    | Completion, signatures, hover, definitions, references, mixed-file rename, safe quick fixes and formatting |
+| Formatter and linter | Independent Prettier and ESLint packages, including optional type-aware exhaustive linting                 |
+| Build and execution  | Vite, Rollup, esbuild, webpack and Rspack adapters; an opt-in Node ESM loader                              |
+| Debugging            | Source maps, generated-source viewer, project diagnostics and original-source Node breakpoints             |
+| Migration            | Optional checked source export to formatted native TS/TSX                                                  |
 
-```ts
-// helpers.ts
-export const twice = (value: number): number => value * 2;
+React children, render props, Vue slots and component libraries use native framework contracts. There are no component registries or Twill-specific wrapping APIs; `@swiftuijs/ui` is one example consumer. Seven independent [examples](examples/README.md) cover ordinary workflows, mixed sources, cleanup, React, Vue and library output.
 
-// math.twill
-import { twice } from './helpers.ts';
-export const doubled = [1, 2, 3].map { value in twice(value) };
+## Choosing it responsibly
 
-// consumer.ts (or consumer.js without the annotation)
-import { doubled } from './math.twill';
-const result: number[] = doubled;
-```
+Twill is a useful candidate for nullable workflows, owned resources, typed state handling and callback-heavy code. It is still an experimental dialect. Parser coverage follows a tested TS 5.9 contract; arbitrary workspace TS versions, general editor refactoring, native incremental `tsc --build`, a CommonJS Twill loader and every SSR framework are outside its current guarantees.
 
-Use the Twill build plugin, `twill check`, and the VSIX for a mixed project. Vite/esbuild retain their native TS pipeline; bare Rollup/webpack/rspack receive standard TS/TSX/JSX emission by default. Set `nativeSources: false` when another plugin owns that emission. Native files never use Twill parsing or implicit-return rules. npm dependencies retain their host's handling.
+Representative native/dialect bundles are compared for behavior and byte size; release artifacts have enforced size budgets. Synthetic benchmarks do not establish whole-application speed or team productivity. Profile your actual workload and exercise failure paths. See [support](docs/readiness.md), [performance](docs/performance.md) and [gradual adoption](docs/adoption.md).
+
+## Contributing
+
+The repository is a pnpm workspace with Vite builds. Compiler, formatter, linter and migration packages, editor packages, examples and the English documentation site own their code and tests.
 
 ```sh
-pnpm dev:mixed     # JS → TS → Twill → TS/JS, with exported types and dynamic imports
-npx twill check -p tsconfig.json
-node --enable-source-maps --import @swiftuijs/twill/register src/main.js
-```
-
-The opt-in Node loader compiles local ESM `.ts`, `.mts`, `.tsx` and `.jsx` as well as Twill, including on Node 20. Standard JS/CJS keeps Node handling. See [interoperability](docs/interoperability.md) for resolution rules, editor setup and CommonJS boundaries. Plain `tsc` does not understand Twill source; TS-server plugins provide editor assistance, rather than changing the command-line compiler.
-
-## Typed outcome matching
-
-```twill
-type Result = { kind: 'ok'; value: number } | { kind: 'error'; message: string };
-function describe(input: { result: Result } | null): string {
-  guard const { result } = input else {
-    return 'Missing';
-  }
-  return switch (result) {
-    case { kind: 'ok', value }: value.toFixed(2);
-    case { kind: 'error', message }: message;
-  };
-}
-```
-
-Run `twill check` to prove that every union variant is handled. Native switch statements retain their semantics. Direct-return switch expressions add no function; other expression positions use a synchronous lexical IIFE. The [syntax contract](docs/syntax.md) covers binding scope, defaults, exhaustiveness and suspension limits.
-
-## Closures
-
-```ts
-run { console.log('hello'); };           // no ordinary arguments
-items.map { item in item.name };       // a single expression returns its value
-items.map { (item: Item) in item.id };  // typed / destructured / default / rest params
-withTask() { async () in await fetch('/api') };
-
-perform(21) { value in value * 2 } completion: { value in
-  console.log(value);
-};
-// perform(21, value => value * 2, value => { console.log(value); });
-```
-
-Multiple closure labels are readable names; JavaScript receives positional callbacks in written order. Multi-statement ordinary closures require an explicit `return`. Closures use arrow-function lexical `this`, `arguments`, and `super`.
-
-## Early exits and nullish bindings
-
-```ts
-function greeting(input: string | null) {
-  guard input != null else { return 'Hello'; }
-  return `Hello, ${input.toUpperCase()}`; // TS knows input is a string
-}
-
-function scoreOf(input: { score: number } | undefined) {
-  guard const score = input?.score else { return 0; }
-  return score; // checks null/undefined, keeps 0
-}
-```
-
-`guard condition else { ... }` lowers to `if (!(condition)) { ... }`. `guard const name = expression else { ... }` lowers to a normal `const` and a nullish check; it evaluates the initializer once. Every failure path must explicitly exit with `return`, `throw`, `break` or `continue`. Existing variables and functions named `guard` remain valid.
-
-```sh
-pnpm dev:general  # validation, typed pipelines, owned async workflows and outcomes
-```
-
-## Scope cleanup
-
-```ts
-async function read(path: string) {
-  const file = await open(path, 'r');
-  defer { await file.close(); }
-  return await file.readFile('utf8');
-}
-```
-
-`defer { ... }` registers cleanup in the nearest explicit block or function body. Reached cleanups run in reverse registration order when the scope exits, including returns, exceptions, and loop exits. Async cleanup uses explicit `await` and finishes before the scope exits. Await resource-dependent work before returning it: `return promise` leaves an async function's scope before that promise settles, just as with native `try/finally`.
-
-A single direct cleanup compiles to one callback and native `try/finally`. Multiple or control-flow registrations use a lazy local stack. Each reached cleanup allocates a closure; the dynamic path allocates a stack only when registration is reached. All registered cleanups run even if one throws; the last cleanup error replaces an earlier body or cleanup error. See [the detailed contract](docs/syntax.md#defer) for capture, exception and control-flow rules. Existing `defer()`, assignments, properties and labels retain JS behavior. The keyword and opening brace must be on the same line.
-
-```sh
-pnpm dev:defer  # real file handles and temporary-directory cleanup
-```
-
-## Components without configuration or wrappers
-
-```ts
-// App.twillx — import real components directly.
-import { VStack, Text, Button } from '@swiftuijs/ui';
-
-export function App() {
-  return VStack({ spacing: 12 }) {
-    Text({ key: 'greeting' }) { 'Hello' };
-    Button({ key: 'save', onClick: () => console.log('clicked') }) { 'Save' };
-  };
-}
-```
-
-The empty argument list is optional: `map { value in value * 2 }` and `map() { value in value * 2 }` have the same behavior. Generic calls also work without it: `map<number> { value in value * 2 }`.
-
-No `twill.config.json`, component-name list or adapter binding is needed. In `.twillx`, an uppercase component name (including `UI.Card`) followed by a trailing closure is component syntax, just like uppercase JSX tags. Props are an optional single object; a single child is passed directly; multiple child expressions are collected through conditions, loops, switches and try blocks. Native JSX works alongside it. React elements in collected arrays need stable `key` props. A component closure with an `in` parameter header becomes a lazy function child for render-prop APIs, for example `Data { value in <span>{value}</span> }`. Component props and children are checked by the framework’s native JSX types; hooks, memo, classes and refs keep their normal lifecycle.
-
-`.twill` always treats trailing closures as ordinary callbacks, including uppercase functions. In `.twillx`, lowercase callbacks stay ordinary: `items.map { value in value * 2 }`. Parenthesize an uppercase callable to use callback semantics: `(Run) { () in 42 }`. Calls without a trailing closure remain normal calls; use `<Icon />` for a component without child content. This syntax distinction avoids guessing component types or maintaining component registries.
-
-Vue uses lazy default slots, including scoped and named slots:
-
-```ts
-// View.twillx
-import { defineComponent } from 'vue';
-import { Panel } from 'your-vue-library';
-
-export default defineComponent({
-  setup() {
-    return () => Panel({ title: 'Hello' }) {
-      'Content';
-    } footer: { 'Footer' };
-  },
-});
-```
-
-The normal `compilerOptions.jsxImportSource` setting in `tsconfig.json` (including `extends`) or a standard `/** @jsxImportSource vue */` file pragma selects the JSX runtime. Without either setting, direct Vue imports select Vue; otherwise React is the default. Set `jsxImportSource: "vue"` in Vue projects whose files import only third-party components, and use `jsx: "react-jsx"` for automatic JSX type checking. A project containing both frameworks can use per-file pragmas. No component registration is required. Vue’s JSX types define its checking limits; Twill does not invent a second prop/slot type system. `.vue` SFC processing remains the host Vue plugin’s responsibility.
-
-Runnable examples:
-
-```sh
-pnpm dev:react   # @swiftuijs/ui example
-pnpm dev:vue     # independent Vue components
-pnpm example:check
-```
-
-## Build tools and Node
-
-The default exports under `/vite`, `/rollup`, `/esbuild`, `/webpack`, and `/rspack` share the same options and are tested with real builds. Place the plugin before consumers that parse source syntax. They lower types and JSX and compose source maps.
-
-```ts
-import twill from '@swiftuijs/twill/esbuild';
-await build({ entryPoints: ['src/main.twill'], bundle: true, plugins: [twill()] });
-```
-
-Plugin options override `twill.config.json`: `implicitReturn`, `jsxImportSource`, `root`, `sourceType`, `resolveExtensions`, and `nativeSources`. Relative extensionless imports search native sources before Twill sources, including directory indexes; use explicit extensions when names would be ambiguous. Explicit existing paths and bare packages remain with the host resolver.
-
-Node can load extended ESM files directly:
-
-```sh
-node --enable-source-maps --import @swiftuijs/twill/register src/main.twill
-```
-
-The loader is opt-in, erases TypeScript types in Twill and local native ESM sources, and composes inline source maps. Type checking remains `twill check`. For JSX emitted by the loader, provide the React JSX runtime; Vue examples use `h()` and slots instead.
-
-Inspect generated code, or write code and a map:
-
-```sh
-npx twill compile src/main.twill
-npx twill compile src/main.twill --js -o generated/main.js
-```
-
-The single-file compile command preserves import specifiers; use a bundler for standalone distribution.
-
-## Editor
-
-```sh
-pnpm editor:package
-code --install-extension dist/twill.vsix
-```
-
-VS Code supports syntax highlighting, TypeScript diagnostics, hover, contextual member/React prop completion, signature help, definitions, references, automatic imports, cross-file rename, import organization and mapped quick fixes. Completion and edits use original Twill coordinates, including unsaved mixed projects. The extension bundles its language tooling; it does not require a globally installed compiler.
-
-The extension reads the nearest `tsconfig.json` and `twill.config.json`. It recovers common incomplete member expressions while typing; builds always reject invalid syntax. A bundled TS-server bridge supplies diagnostics, hover, completion, signatures, definitions and references to native TS/JS documents in configured mixed projects. Unsaved Twill and native changes are synchronized, and definitions map back to original files. The extension bundles standard-library declarations for its standalone checker. Use `twill check` for authoritative project checks. Rename and import organization also map edits from native TS/JS back into Twill. Edits that cannot be safely represented in the original syntax are withheld. Document formatting and ESLint integration are available through the formatter/linter packages. General refactoring and fix-all are unavailable. The [Vite React adapter](docs/frameworks.md) provides Fast Refresh.
-
-`Twill: Show Generated TypeScript` opens lowered source; `Twill: Show Project Diagnostics` opens a diagnostic report. `Twill: Debug Current File` starts the built-in Node debugger using source maps and the installed `@swiftuijs/twill/register` loader. Install the compiler in your application before debugging. You can also run `npx twill doctor -p tsconfig.json --json` for a scriptable configuration and diagnostics report.
-
-The packaged VSIX is tested in a real VS Code extension host, including completion edits, imports, mixed-file rename, quick fixes and breakpoints on original Twill lines.
-
-TextMate grammars in `editors/vscode/syntaxes` can be reused by other editors that supply TypeScript/JavaScript base grammars. This repository's `.gitattributes` selects TypeScript/TSX highlighting on GitHub. See [GitHub integration](docs/github.md) to enable it in other repositories and understand the requirements for official Twill recognition.
-
-## Performance and language direction
-
-Ordinary closures become native arrow functions; guards become native branches and bindings. They add no runtime helpers. Tests compare minified output with equivalent handwritten JS. Single-expression React children are direct JSX values; general child collection uses arrays and may use an IIFE, while Vue slots remain lazy. UI uses the framework's normal JSX runtime; `defer` uses one callback or a lazy stack, according to the registration pattern. These costs are explicit and measured, rather than presented as zero overhead.
-
-The compiler adds build-time work. It parses the dialect, emits high-resolution maps, and erases types/lowers JSX when necessary. Plain JS skips the TS transpilation stage. Parser classes, source-map decoding, and unchanged editor snapshots are reused; completion documentation resolves on selection rather than for every suggestion.
-
-See [measured results and methodology](docs/performance.md) and [language design / Swift feature decisions](docs/language.md). Twill implements trailing closures, single-expression closure returns, guards, nullish bindings, automatic UI child collection and `defer`. Switch expressions and discriminated-union patterns use the existing TS type system. If expressions and shorthand parameters remain design candidates. JS/TS supplies optional chaining, nullish coalescing, async/await and types already.
-
-See [readiness and remaining work](docs/readiness.md) for current editor boundaries, performance gaps and the priorities before a stable production claim.
-
-```sh
-pnpm build
-pnpm benchmark --output benchmark-results.json
-```
-
-## Development and release
-
-```sh
-pnpm install --frozen-lockfile
 pnpm check
-pnpm test:coverage
-pnpm deps:check
+pnpm editor:test          # requires a graphical host; use xvfb-run -a on headless Linux
+pnpm test:browser        # requires Playwright Chromium
+pnpm docs:dev
 ```
 
-Checks cover syntax execution, TS/JSX compatibility, mappings, type inference, incomplete-editor input, all five bundlers, framework rendering, independently installed npm tarballs, Node loading, and VSIX packaging. CI repeats them on Linux, Windows, and macOS. See [architecture](docs/architecture.md), [contributing](CONTRIBUTING.md), and [release instructions](docs/releasing.md).
-
-MIT licensed. Ordinary Twill code has no React/Vue runtime dependency. UI output imports the selected standard JSX runtime.
-
-The monorepo also includes independently installable [`@swiftuijs/twill-formatter`](packages/formatter/README.md) (Prettier), [`@swiftuijs/twill-linter`](packages/linter/README.md) (ESLint), and optional [`@swiftuijs/twill-migrate`](packages/migrate/README.md) (native source export). Every [example](examples/README.md) is its own workspace package. The VSIX bundles document formatting; the standard ESLint extension can lint the Twill language IDs. Use `twill declarations -p tsconfig.json -o dist [--build]` after a Vite library build to distribute native declarations and source maps. See [tooling setup and declaration builds](docs/tooling.md).
+See [contributing](CONTRIBUTING.md), [architecture](docs/architecture.md), [language design](docs/language.md) and [release instructions](docs/releasing.md). MIT licensed.
