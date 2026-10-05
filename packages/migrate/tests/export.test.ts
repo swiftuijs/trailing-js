@@ -99,6 +99,22 @@ it('previews without writing and refuses existing or source directories', async 
   expect(readFileSync(join(outDir, 'keep'), 'utf8')).toBe('keep');
 });
 
+it('exports destructured guards and exhaustive matching to checked native TS', async () => {
+  const { tsconfig, outDir } = fixture({
+    'model.ts': 'export type Result={kind:"ok";value:number}|{kind:"bad";error:string};',
+    'main.twill':
+      'import type {Result} from "./model.ts";export function describe(input:{result:Result}|null){guard const {result}=input else{return "empty";}return switch(result){case {kind:"ok",value}: value.toFixed();case {kind:"bad",error}: error;};}',
+    'consumer.ts':
+      'import {describe} from "./main.twill";export const value:string=describe({result:{kind:"ok",value:3}});',
+  });
+  const result = await exportProject(tsconfig, { outDir });
+  expect(result.diagnostics).toEqual([]);
+  expect(nativeDiagnostics(result.tsconfig)).toEqual([]);
+  const source = readFileSync(join(outDir, 'main.ts'), 'utf8');
+  expect(source).toContain('satisfies never');
+  expect(source).not.toContain('=>');
+});
+
 it('exports TSX with native JSX typing and serializes standard TS enum options', async () => {
   const { tsconfig, outDir } = fixture(
     {

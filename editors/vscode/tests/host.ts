@@ -59,6 +59,51 @@ export async function run() {
   assert(formatting.getText().includes('value: number'));
   console.log('PASS: packaged formatter preserves Twill syntax and TypeScript annotations');
 
+  const branching = await open('branching.twill');
+  const branchMembers = await eventually(
+    () => completions(branching, position(branching, 'amount.toFixed', 7)),
+    (list) => !!list?.items.some((item) => label(item) === 'toFixed'),
+  );
+  assert(branchMembers!.items.some((item) => label(item) === 'toPrecision'));
+  const branchRename = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
+    'vscode.executeDocumentRenameProvider',
+    branching.uri,
+    position(branching, 'amount}', 1),
+    'total',
+  );
+  assert(branchRename && (await vscode.workspace.applyEdit(branchRename)));
+  assert(branching.getText().includes('value: total}'));
+  assert(branching.getText().includes('total.toFixed()'));
+  const branchFormats = await vscode.commands.executeCommand<vscode.TextEdit[]>(
+    'vscode.executeFormatDocumentProvider',
+    branching.uri,
+    { tabSize: 2, insertSpaces: true },
+  );
+  assert(branchFormats?.length);
+  const branchFormatEdit = new vscode.WorkspaceEdit();
+  branchFormatEdit.set(branching.uri, branchFormats!);
+  assert(await vscode.workspace.applyEdit(branchFormatEdit));
+  assert(branching.getText().includes('guard const { result: item }'));
+  assert(branching.getText().includes('return switch (item)'));
+  await eventually(
+    async () => vscode.languages.getDiagnostics(branching.uri),
+    (items) => items.length === 0,
+  );
+  const omit = new vscode.WorkspaceEdit();
+  omit.replace(
+    branching.uri,
+    new vscode.Range(new vscode.Position(0, 0), branching.positionAt(branching.getText().length)),
+    branching.getText().replace(/\s*case \{ kind: "bad", error \}: error;/, ''),
+  );
+  assert(await vscode.workspace.applyEdit(omit));
+  await eventually(
+    async () => vscode.languages.getDiagnostics(branching.uri),
+    (items) => items.some((item) => item.code === 1360),
+  );
+  console.log(
+    'PASS: destructured guard and pattern switch completion, rename, formatting and exhaustive diagnostics',
+  );
+
   const view = await open('view.twillx');
   const props = await eventually(
     () => completions(view, position(view, 'tit }', 3)),

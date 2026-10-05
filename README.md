@@ -9,7 +9,7 @@ const doubled = [1, 2, 3].map { value in value * 2 };
 
 Ordinary callbacks compile to native arrows. In UI files, component closures compile directly to standard JSX: React children or lazy Vue slots. Import components directly from any library. `@swiftuijs/ui` is one example consumer; the compiler has no component-library lists or special cases.
 
-This is an experimental **0.8 language**, with production-oriented packaging and tests. See [the syntax contract and limitations](docs/syntax.md) before adopting it. Until published to npm and the Marketplace, install a locally built tarball and VSIX.
+This is an experimental **0.9 language**, with production-oriented packaging and tests. See [the syntax contract and limitations](docs/syntax.md) before adopting it. Until published to npm and the Marketplace, install a locally built tarball and VSIX.
 
 Documentation: [getting started](docs/getting-started.md) · [practical patterns](docs/patterns.md) · [adoption and migration](docs/adoption.md) · [playground](docs/playground.md) · [readiness and support](docs/readiness.md). The private `apps/docs` workspace builds the searchable site; use `pnpm docs:dev` locally. Its Pages deployment target is [swiftuijs.github.io/twill](https://swiftuijs.github.io/twill/); repository Pages must be enabled with GitHub Actions as the source.
 
@@ -24,7 +24,7 @@ pnpm install --frozen-lockfile
 pnpm build
 pnpm package:core
 # In your application:
-npm install /path/to/swiftuijs-twill-0.8.0.tgz
+npm install /path/to/swiftuijs-twill-0.9.0.tgz
 ```
 
 In Vite:
@@ -85,6 +85,23 @@ node --enable-source-maps --import @swiftuijs/twill/register src/main.js
 ```
 
 The opt-in Node loader compiles local ESM `.ts`, `.mts`, `.tsx` and `.jsx` as well as Twill, including on Node 20. Standard JS/CJS keeps Node handling. See [interoperability](docs/interoperability.md) for resolution rules, editor setup and CommonJS boundaries. Plain `tsc` does not understand Twill source; TS-server plugins provide editor assistance, rather than changing the command-line compiler.
+
+## Typed outcome matching
+
+```twill
+type Result = { kind: 'ok'; value: number } | { kind: 'error'; message: string };
+function describe(input: { result: Result } | null): string {
+  guard const { result } = input else {
+    return 'Missing';
+  }
+  return switch (result) {
+    case { kind: 'ok', value }: value.toFixed(2);
+    case { kind: 'error', message }: message;
+  };
+}
+```
+
+Run `twill check` to prove that every union variant is handled. Native switch statements retain their semantics. Direct-return switch expressions add no function; other expression positions use a synchronous lexical IIFE. The [syntax contract](docs/syntax.md) covers binding scope, defaults, exhaustiveness and suspension limits.
 
 ## Closures
 
@@ -237,7 +254,7 @@ Ordinary closures become native arrow functions; guards become native branches a
 
 The compiler adds build-time work. It parses the dialect, emits high-resolution maps, and erases types/lowers JSX when necessary. Plain JS skips the TS transpilation stage. Parser classes, source-map decoding, and unchanged editor snapshots are reused; completion documentation resolves on selection rather than for every suggestion.
 
-See [measured results and methodology](docs/performance.md) and [language design / Swift feature decisions](docs/language.md). Twill implements trailing closures, single-expression closure returns, guards, nullish bindings, automatic UI child collection and `defer`. If/switch expressions and shorthand parameters remain design candidates. JS/TS supplies optional chaining, nullish coalescing, async/await and types already.
+See [measured results and methodology](docs/performance.md) and [language design / Swift feature decisions](docs/language.md). Twill implements trailing closures, single-expression closure returns, guards, nullish bindings, automatic UI child collection and `defer`. Switch expressions and discriminated-union patterns use the existing TS type system. If expressions and shorthand parameters remain design candidates. JS/TS supplies optional chaining, nullish coalescing, async/await and types already.
 
 See [readiness and remaining work](docs/readiness.md) for current editor boundaries, performance gaps and the priorities before a stable production claim.
 

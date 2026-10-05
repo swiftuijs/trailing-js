@@ -26,32 +26,39 @@ function displayAmount(input: unknown): string {
 
 The guard binding checks only `null` and `undefined`, so zero is retained. It evaluates the initializer once. The exiting failure branch lets TypeScript narrow the binding for the remaining code. Currency represented in integer cents still needs overflow checks when summed; it does not remove JavaScript's numeric limits.
 
-Use ordinary validation libraries for complex schemas. Twill does not synthesize validators from TypeScript annotations.
+For an optional object result, destructure only after its nullish check succeeds:
+
+```twill
+function accountLabel(find: () => { name?: string } | undefined): string {
+  guard const { name = 'Anonymous' } = find() else {
+    return 'Missing account';
+  }
+  return name;
+}
+```
+
+Only the whole result is checked. Defaults and getters keep native behavior; the pattern names are unavailable in the failure branch. Use ordinary validation libraries for complex schemas. Twill does not synthesize validators from TypeScript annotations.
 
 ## Separate expected outcomes from exceptions
 
 Use a normal TS discriminated union when callers are expected to handle several business outcomes:
 
-```ts
+```twill
 type Outcome =
   | { readonly kind: 'ok'; readonly totalCents: number }
   | { readonly kind: 'invalid'; readonly reason: string };
 
 function describe(outcome: Outcome): string {
-  switch (outcome.kind) {
-    case 'ok':
-      return `${outcome.totalCents} cents`;
-    case 'invalid':
-      return outcome.reason;
-    default:
-      throw new TypeError('Unknown outcome');
-  }
+  return switch (outcome) {
+    case { kind: 'ok', totalCents }: `${totalCents} cents`;
+    case { kind: 'invalid', reason }: reason;
+  };
 }
 ```
 
 The union carries the payload appropriate to each state. Avoid independent `success`, `error` and `value` fields that permit contradictory combinations. `readonly` prevents writes through these types; it does not freeze objects at runtime.
 
-Enable exhaustive switch checking with the existing type-aware ESLint configuration:
+Run `twill check` to prove that this expression handles every variant. Adding a union variant exposes a missing case. There is no result wrapper or enum runtime. Native switch statements remain available; enable their exhaustive checking with the type-aware ESLint configuration:
 
 ```js
 import twill from '@swiftuijs/twill-linter';

@@ -20,6 +20,21 @@ const options = {
   types: [],
 };
 describe('native declaration builds', () => {
+  it('exports inferred switch expression unions to native consumers', () => {
+    const root = fixture();
+    writeFileSync(
+      join(root, 'tsconfig.json'),
+      JSON.stringify({ compilerOptions: options, include: ['*.twill'], exclude: ['dist'] }),
+    );
+    writeFileSync(
+      join(root, 'index.twill'),
+      'type Result={kind:"ok";value:number}|{kind:"bad";error:string};export function unwrap(input:{result:Result}|null){guard const {result}=input else{return undefined;}return switch(result){case {kind:"ok",value}: value;case {kind:"bad",error}: error;};}',
+    );
+    expect(emitDeclarations(join(root, 'tsconfig.json')).diagnostics).toEqual([]);
+    expect(readFileSync(join(root, 'dist/index.d.ts'), 'utf8')).toContain(
+      'string | number | undefined',
+    );
+  });
   it('emits interoperable declarations, module specifiers and original-source maps', () => {
     const root = fixture();
     writeFileSync(

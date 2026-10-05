@@ -49,40 +49,38 @@ export async function summarizeLedger(
   guard Array.isArray(input) else {
     return { kind: 'invalid', reason: 'shape' };
   }
-  const payments: Payment[] = [];
+  const references: string[] = [];
   let totalCents = 0;
   for (let row = 0; row < input.length; row++) {
-    guard const payment = decodePayment(input[row]) else {
+    guard const { reference, amountCents } = decodePayment(input[row]) else {
       return { kind: 'invalid', reason: 'row', row };
     }
-    const next = totalCents + payment.amountCents;
+    const next = totalCents + amountCents;
     guard Number.isSafeInteger(next) else {
       return { kind: 'invalid', reason: 'overflow', row };
     }
     totalCents = next;
-    payments.push(payment);
+    references.push(reference);
   }
   return {
     kind: 'ok',
     value: {
-      references: payments.map { payment in
-        payment.reference;
-      },
+      references,
       totalCents,
     },
   };
 }
 
-/** A native TS discriminated union makes each outcome's payload available. */
+/** TypeScript proves that every ledger outcome is handled. */
 export function describeOutcome(outcome: LedgerOutcome): string {
-  switch (outcome.kind) {
-    case 'ok':
-      return `${outcome.value.references.length} payments: ${outcome.value.totalCents} cents`;
-    case 'invalid':
-      return `Invalid ${outcome.reason}${outcome.row === undefined ? '' : ` at row ${outcome.row}`}`;
-    default:
-      throw new TypeError('Unknown ledger outcome');
-  }
+  return switch (outcome) {
+    case { kind: 'ok', value }: `${value.references.length} payments: ${value.totalCents} cents`;
+    case {
+      kind: 'invalid',
+      reason,
+      row,
+    }: `Invalid ${reason}${row === undefined ? '' : ` at row ${row}`}`;
+  };
 }
 
 export async function demoWorkflow() {

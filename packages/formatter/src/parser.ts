@@ -26,6 +26,33 @@ export async function parse(source: string, options: ParserOptions<any>) {
       layout.overwrite(guard.elseStart, guard.elseStart + 4, ')');
     }
   }
+  const switchesByEnd = new Map<number, any>();
+  const casesByStart = new Map<number, any>();
+  const tagNames = new Map<number, string>();
+  for (const expression of parsed.switches) {
+    let temporary = `__TwillSwitch${switchesByEnd.size}`;
+    while (source.includes(temporary)) temporary += '_';
+    switchesByEnd.set(expression.end, expression);
+    layout.overwrite(expression.start, expression.start + 6, `(() => { const ${temporary} = `);
+    layout.remove(expression.parenStart, expression.parenStart + 1);
+    layout.overwrite(expression.parenEnd, expression.parenEnd + 1, `; switch (${temporary})`);
+    layout.overwrite(expression.end - 1, expression.end, '}})()');
+    for (const branch of expression.cases) {
+      casesByStart.set(branch.start, branch);
+      if (branch.pattern) {
+        layout.overwrite(branch.start, branch.pattern.start, 'case 0: { const ');
+        tagNames.set(branch.start, temporary + 'Tag');
+        layout.overwrite(branch.tag.value.start, branch.tag.value.end, temporary + 'Tag');
+        layout.overwrite(
+          branch.colonStart,
+          branch.colonStart + 1,
+          ` = undefined; ${branch.throw ? '' : 'return '}`,
+        );
+        layout.appendLeft(branch.valueEnd, '; }');
+        if (source[branch.end - 1] === ';') layout.remove(branch.end - 1, branch.end);
+      } else if (!branch.throw) layout.appendLeft(branch.colonStart + 1, ' return ');
+    }
+  }
   const closures = new Map<number, any>(parsed.closures.map((item: any) => [item.node, item]));
   for (const call of parsed.calls) {
     const { hadParens, callEnd, originalArgs } = call.trailing;
@@ -144,6 +171,42 @@ export async function parse(source: string, options: ParserOptions<any>) {
         node.end = closure.node.end;
         node.body.start = closure.header?.end ?? closure.node.start;
         node.body.range[0] = node.body.start;
+        node.range = [node.start, node.end];
+      }
+    }
+    if (node.type === 'SwitchCase') {
+      const branch = casesByStart.get(node.start);
+      if (branch) {
+        node.type = 'TwillSwitchCase';
+        const statements = branch.pattern ? node.consequent[0].body : node.consequent;
+        node.value = statements.at(-1).argument;
+        node.throw = branch.throw;
+        if (branch.pattern) {
+          node.pattern = statements[0].declarations[0].id;
+          const tag = node.pattern.properties.find(
+            (property: Node) => property.value?.name === tagNames.get(branch.start),
+          );
+          tag.value = {
+            ...branch.tag.value,
+            range: [branch.tag.value.start, branch.tag.value.end],
+          };
+        }
+        delete node.consequent;
+        node.start = branch.start;
+        node.end = branch.end;
+        node.range = [node.start, node.end];
+      }
+    }
+    if (node.type === 'CallExpression' && node.callee.type === 'ArrowFunctionExpression') {
+      const expression = switchesByEnd.get(node.end);
+      if (expression && node.callee.body.body[1]?.type === 'SwitchStatement') {
+        node.type = 'TwillSwitchExpression';
+        node.discriminant = node.callee.body.body[0].declarations[0].init;
+        node.cases = node.callee.body.body[1].cases;
+        delete node.callee;
+        delete node.arguments;
+        node.start = expression.start;
+        node.end = expression.end;
         node.range = [node.start, node.end];
       }
     }

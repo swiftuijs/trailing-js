@@ -139,15 +139,41 @@ const processor: Linter.Processor = {
       if (!message.line || !message.column) return [message];
       const generated = state.generated!;
       const start = generated.getPositionOfLineAndCharacter(message.line - 1, message.column - 1);
-      const offset = originalOffset(state, start);
+      let offset = originalOffset(state, start);
+      let expressionSwitch = false;
+      if (
+        message.ruleId === '@typescript-eslint/switch-exhaustiveness-check' &&
+        state.project &&
+        (offset === undefined || state.result!.code[start] !== state.source[offset])
+      ) {
+        // Expression subjects use a generated once-evaluated local. Report the
+        // missing union arm on the source-backed switch keyword instead.
+        const file = state.project.service.getProgram()?.getSourceFile(virtualFilename(filename));
+        const visit = (node: ts.Node) => {
+          if (ts.isSwitchStatement(node) && node.expression.getStart() === start) {
+            const sourceStart = originalOffset(state, node.getStart());
+            if (
+              sourceStart !== undefined &&
+              state.source.slice(sourceStart, sourceStart + 6) === 'switch'
+            ) {
+              offset = sourceStart;
+              expressionSwitch = true;
+            }
+          } else if (start >= node.getFullStart() && start < node.end) ts.forEachChild(node, visit);
+        };
+        if (file) visit(file);
+      }
       if (
         offset === undefined ||
-        (start < state.result!.code.length && state.result!.code[start] !== state.source[offset])
+        (!expressionSwitch &&
+          start < state.result!.code.length &&
+          state.result!.code[start] !== state.source[offset])
       )
         return [];
       const position = state.original.getLineAndCharacterOfPosition(offset);
-      const endOffset =
-        message.endLine && message.endColumn
+      const endOffset = expressionSwitch
+        ? offset + 6
+        : message.endLine && message.endColumn
           ? originalOffset(
               state,
               generated.getPositionOfLineAndCharacter(message.endLine - 1, message.endColumn - 1),

@@ -23,9 +23,9 @@ pnpm editor:package
 Repository development uses Node 22.13+ (or Node 24+) and the pnpm version in `packageManager`. The distributed compiler supports Node 20.19+. Install the generated tarballs into an application:
 
 ```sh
-pnpm add -D /path/to/swiftuijs-twill-0.8.0.tgz
-pnpm add -D /path/to/swiftuijs-twill-formatter-0.8.0.tgz prettier
-pnpm add -D /path/to/swiftuijs-twill-linter-0.8.0.tgz eslint
+pnpm add -D /path/to/swiftuijs-twill-0.9.0.tgz
+pnpm add -D /path/to/swiftuijs-twill-formatter-0.9.0.tgz prettier
+pnpm add -D /path/to/swiftuijs-twill-linter-0.9.0.tgz eslint
 ```
 
 Install `dist/twill.vsix` with VS Code's **Extensions → Install from VSIX** command. The extension includes TypeScript checking and formatting; your application supplies framework types and dependencies.

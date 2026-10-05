@@ -45,6 +45,8 @@ const fixture = {
   'imports.twill':
     'import { unused, twice } from "./api.twill";\nexport const values = [1].map { n in twice(n) };\n',
   'fix.twill': 'export const values = [1].map { value in value.toFixd(2) };\n',
+  'branching.twill':
+    'type Result={kind:"ok";value:number}|{kind:"bad";error:string};\nexport function describe(input:{result:Result}|null){guard const {result: item}=input else{return "empty";}return switch(item){case {kind:"ok",value: amount}: amount.toFixed();case {kind:"bad",error}: error;};}\n',
   'view.twillx': `import type { ReactNode } from 'react';\ndeclare function Card(props: { title: string; onClick?: (event: { x: number }) => void; children?: ReactNode }): ReactNode;\nexport const view = Card({ tit }) { 'Hello' };\n`,
   'debug.twill':
     'const run = (body: () => void) => body();\nrun {\n  const value = 21;\n  debugger;\n  console.log(value * 2);\n};\n',

@@ -210,11 +210,8 @@ function parserFor(language) {
         this.next();
         this.parseVar(declaration, false, 'const');
         node.binding = this.finishNode(declaration, 'VariableDeclaration');
-        if (
-          node.binding.declarations.length !== 1 ||
-          node.binding.declarations[0].id.type !== 'Identifier'
-        )
-          this.raise(node.start, 'guard const requires one identifier binding.');
+        if (node.binding.declarations.length !== 1)
+          this.raise(node.start, 'guard const requires one binding declaration.');
       } else node.test = this.parseExpression();
       node.elseStart = this.start;
       this.expect(tt._else);
@@ -293,6 +290,7 @@ function parserFor(language) {
     }
 
     parseExprAtom(...args) {
+      if (this.type === tt._switch) return this.parseSwitchExpression();
       if (language === 'ts' && this.type === tt.relational && this.value === '<') {
         const node = this.startNode();
         this.tsInType(() => {
@@ -307,6 +305,96 @@ function parserFor(language) {
         return this.finishNode(node, 'TSTypeAssertion');
       }
       return super.parseExprAtom(...args);
+    }
+
+    parseSwitchExpression() {
+      const node = this.startNode();
+      this.next();
+      node.parenStart = this.start;
+      node.discriminant = this.parseParenExpression();
+      node.parenEnd = this.lastTokStart;
+      this.expect(tt.braceL);
+      node.cases = [];
+      let mode,
+        discriminator,
+        sawDefault = false;
+      while (this.type !== tt.braceR) {
+        const branch = this.startNode();
+        const isCase = this.type === tt._case;
+        if (!isCase && this.type !== tt._default) this.unexpected();
+        this.next();
+        this.enterScope(0); // Each expression arm has its own lexical bindings.
+        if (!isCase) {
+          if (sawDefault) this.raise(branch.start, 'Multiple default clauses.');
+          sawDefault = true;
+          branch.test = null;
+        } else if (this.type === tt.braceL) {
+          if (mode === 'value')
+            this.raise(branch.start, 'Cannot mix object patterns and value cases.');
+          mode = 'pattern';
+          const errors = {
+            shorthandAssign: -1,
+            trailingComma: -1,
+            parenthesizedAssign: -1,
+            parenthesizedBind: -1,
+            doubleProto: -1,
+          };
+          const pattern = this.parseObj(false, errors);
+          const tags = pattern.properties.filter(
+            (property) =>
+              property.type === 'Property' &&
+              !property.computed &&
+              !property.method &&
+              property.kind === 'init' &&
+              ((property.value.type === 'Literal' && !property.value.regex) ||
+                (property.value.type === 'UnaryExpression' &&
+                  ['+', '-'].includes(property.value.operator) &&
+                  property.value.argument.type === 'Literal' &&
+                  typeof property.value.argument.value === 'number')),
+          );
+          if (tags.length !== 1)
+            this.raise(
+              pattern.start,
+              'An object case needs exactly one literal discriminator; other properties bind values.',
+            );
+          const tag = tags[0];
+          const key = String(tag.key.name ?? tag.key.value);
+          if (discriminator !== undefined && key !== discriminator)
+            this.raise(tag.start, 'Object cases must use the same discriminator property.');
+          discriminator = key;
+          pattern.properties = pattern.properties.filter((property) => property !== tag);
+          this.toAssignable(pattern, true, errors);
+          this.checkLValPattern(pattern, 2, false);
+          pattern.properties.push(tag);
+          pattern.properties.sort((a, b) => a.start - b.start);
+          branch.pattern = pattern;
+          branch.tag = tag;
+        } else {
+          if (mode === 'pattern')
+            this.raise(branch.start, 'Cannot mix object patterns and value cases.');
+          mode = 'value';
+          branch.test = this.parseExpression();
+        }
+        branch.colonStart = this.start;
+        this.expect(tt.colon);
+        if (this.type === tt._throw) {
+          const thrown = this.parseThrowStatement(this.startNode());
+          branch.value = thrown.argument;
+          branch.throw = true;
+          branch.valueEnd = thrown.end;
+        } else {
+          branch.value = this.parseMaybeAssign();
+          branch.valueEnd = this.lastTokEnd;
+          this.semicolon();
+        }
+        this.exitScope();
+        node.cases.push(this.finishNode(branch, 'TwillSwitchCase'));
+      }
+      this.next();
+      if (!node.cases.length)
+        this.raise(node.start, 'A switch expression requires at least one arm.');
+      node.discriminator = discriminator;
+      return this.finishNode(node, 'TwillSwitchExpression');
     }
 
     next(...args) {
@@ -455,12 +543,14 @@ export function parse(source, language = 'ts', sourceType = 'module') {
   const calls = [];
   const guards = [];
   const defers = [];
+  const switches = [];
   const visit = (node) => {
     if (!node || typeof node !== 'object') return;
     if (node.type === 'ArrowFunctionExpression') live.add(node);
     if (node.trailing) calls.push(node);
     if (node.type === 'GuardStatement') guards.push(node);
     if (node.type === 'DeferStatement') defers.push(node);
+    if (node.type === 'TwillSwitchExpression') switches.push(node);
     for (const [key, value] of Object.entries(node)) {
       if (key === 'trailing' || key === 'loc') continue;
       if (Array.isArray(value)) value.forEach(visit);
@@ -473,6 +563,7 @@ export function parse(source, language = 'ts', sourceType = 'module') {
     calls,
     guards,
     defers,
+    switches,
     comments,
     closures: parser.closures.filter((closure) => live.has(closure.node)),
   };
