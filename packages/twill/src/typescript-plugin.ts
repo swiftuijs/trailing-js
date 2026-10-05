@@ -16,6 +16,14 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
   };
   const contexts = new Map<ts.server.Project, Context>();
   let overlays: Record<string, string> = {};
+  const readOverlays = (incoming: unknown): Record<string, string> =>
+    incoming && typeof incoming === 'object'
+      ? Object.fromEntries(
+          Object.entries(incoming).filter(
+            ([file, text]) => isTwillFile(file) && typeof text === 'string',
+          ),
+        )
+      : {};
   const createProject = (info: ts.server.PluginCreateInfo) =>
     new TwillProject(
       info.project.getProjectName(),
@@ -115,6 +123,9 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
     create(info) {
       const config = info.project.getProjectName();
       if (!/\.json$/.test(config)) return info.languageService;
+      // configurePlugin may precede project creation. TS-server passes its
+      // latest override through info.config instead of invoking the change hook.
+      if (info.config?.overlays !== undefined) overlays = readOverlays(info.config.overlays);
       const project = createProject(info);
       const context: Context = {
         project,
@@ -262,14 +273,7 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
     onConfigurationChanged(config) {
       const incoming = config?.overlays;
       const previous = overlays;
-      overlays =
-        incoming && typeof incoming === 'object'
-          ? (Object.fromEntries(
-              Object.entries(incoming).filter(
-                ([file, text]) => isTwillFile(file) && typeof text === 'string',
-              ),
-            ) as Record<string, string>)
-          : {};
+      overlays = readOverlays(incoming);
       const changed = [...new Set([...Object.keys(previous), ...Object.keys(overlays)])].filter(
         (file) => previous[file] !== overlays[file],
       );

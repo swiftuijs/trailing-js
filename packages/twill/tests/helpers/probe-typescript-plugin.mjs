@@ -103,7 +103,28 @@ export async function probeTypeScriptPlugin(probeLocation, pluginName) {
     );
     return result;
   };
+  const callerOverlay = 'import { label } from "./api.twill";\nexport const result = label(2);';
+  const assertCallerReferences = (references) => {
+    const callerRefs = references.refs.filter(
+      (entry) => entry.file.replaceAll('\\', '/') === caller.replaceAll('\\', '/'),
+    );
+    assert.equal(callerRefs.length, 2);
+    for (const entry of callerRefs) {
+      const line = callerOverlay.split('\n')[entry.start.line - 1];
+      assert.equal(
+        line.slice(entry.start.offset - 1, entry.end.offset - 1),
+        'label',
+        JSON.stringify(entry),
+      );
+    }
+  };
   try {
+    // The editor can send unsaved overlays before a native document creates
+    // the configured TS-server project. Those overrides arrive in create(info.config).
+    await send('configurePlugin', {
+      pluginName,
+      configuration: { overlays: { [caller.replaceAll('\\', '/')]: callerOverlay } },
+    });
     send('open', { file: main, fileContent: source }, false);
     const info = await send('quickinfo', {
       file: main,
@@ -137,6 +158,7 @@ export async function probeTypeScriptPlugin(probeLocation, pluginName) {
       ),
     );
     assert(references.refs.every((entry) => !/\.twill\.ts$/.test(entry.file)));
+    assertCallerReferences(references);
     const rename = await send('rename', {
       file: api,
       line: 1,
@@ -167,7 +189,6 @@ export async function probeTypeScriptPlugin(probeLocation, pluginName) {
     );
     const apiOverlay =
       'export function label(value: number): number { const run=(body:()=>number)=>body(); return run() { value }; }';
-    const callerOverlay = 'import { label } from "./api.twill";\nexport const result = label(2);';
     await send('configurePlugin', {
       pluginName,
       configuration: {
@@ -183,18 +204,7 @@ export async function probeTypeScriptPlugin(probeLocation, pluginName) {
       line: 1,
       offset: source.lastIndexOf('label') + 2,
     });
-    const callerRefs = updatedReferences.refs.filter(
-      (entry) => entry.file.replaceAll('\\', '/') === caller.replaceAll('\\', '/'),
-    );
-    assert.equal(callerRefs.length, 2);
-    for (const entry of callerRefs) {
-      const line = callerOverlay.split('\n')[entry.start.line - 1];
-      assert.equal(
-        line.slice(entry.start.offset - 1, entry.end.offset - 1),
-        'label',
-        JSON.stringify(entry),
-      );
-    }
+    assertCallerReferences(updatedReferences);
   } catch (error) {
     const log = readFileSync(join(root, 'server.log'), 'utf8')
       .split('\n')
