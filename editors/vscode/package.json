@@ -101,7 +101,7 @@
   },
   "devDependencies": {
     "@swiftuijs/twill": "workspace:*",
-    "typescript": "^5.9.3",
+    "typescript": "^7.0.2",
     "vite": "^8.3.2",
     "@types/node": "^26.6.4",
     "@types/vscode": "^1.140.0",
