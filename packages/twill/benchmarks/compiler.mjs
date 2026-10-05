@@ -117,6 +117,21 @@ for (const runtime of ['react', 'vue']) {
 // observable and warm both functions; report overhead rather than hiding it.
 const cleanupResults = [];
 const iterations = 10000;
+// Separate function bodies keep each measured call target monomorphic. A shared
+// batch(run) call site can favor the function warmed first through JIT inlining.
+const runtimeBatch = (run, registrations, name) =>
+  Function(
+    'run',
+    'assert',
+    `return function ${name}() {
+      const state = { body: 0, cleanup: 0 };
+      let observed = 0;
+      for (let index = 0; index < ${iterations}; index++) observed ^= run(state);
+      assert.equal(state.body, ${iterations});
+      assert.equal(state.cleanup, ${(iterations * registrations * (registrations + 1)) / 2});
+      return observed;
+    }`,
+  )(run, assert);
 for (const registrations of [1, 10, 100]) {
   const source = `function run(state) {
     for (let i = 0; i < ${registrations}; i++) defer { state.cleanup += i + 1; }
@@ -130,18 +145,10 @@ for (const registrations of [1, 10, 100]) {
     transform(source, { filename: 'cleanup.twill', language: 'js' }).code + '; return run;',
   )();
   const handwritten = Function(native + '; return run;')();
-  const batch = (run) => {
-    const state = { body: 0, cleanup: 0 };
-    let observed = 0;
-    for (let i = 0; i < iterations; i++) observed ^= run(state);
-    assert.equal(state.body, iterations);
-    assert.equal(state.cleanup, (iterations * registrations * (registrations + 1)) / 2);
-    return observed;
-  };
   // More runtime warmup batches let the engine settle its optimization tiers;
   // the compiler stages above retain their original five-warmup methodology.
-  const defer = measure(() => batch(compiled), 50);
-  const nativeFinally = measure(() => batch(handwritten), 50);
+  const defer = measure(runtimeBatch(compiled, registrations, 'batchDefer'), 50);
+  const nativeFinally = measure(runtimeBatch(handwritten, registrations, 'batchFinally'), 50);
   cleanupResults.push({
     kind: 'dynamic-loop',
     registrations,
@@ -167,16 +174,8 @@ for (const registrations of [1, 10, 100]) {
   const native = Function(
     'return function run(state) { try { state.body++; return state.body; } finally { state.cleanup += 1; } };',
   )();
-  const batch = (run) => {
-    const state = { body: 0, cleanup: 0 };
-    let observed = 0;
-    for (let index = 0; index < iterations; index++) observed ^= run(state);
-    assert.equal(state.body, iterations);
-    assert.equal(state.cleanup, iterations);
-    return observed;
-  };
-  const defer = measure(() => batch(compiled), 50);
-  const nativeFinally = measure(() => batch(native), 50);
+  const defer = measure(runtimeBatch(compiled, 1, 'batchSingleDefer'), 50);
+  const nativeFinally = measure(runtimeBatch(native, 1, 'batchSingleFinally'), 50);
   cleanupResults.push({
     kind: 'single-direct',
     registrations: 1,
@@ -210,6 +209,7 @@ const report = {
     cleanupWarmups: 50,
     sourceMaps: 'high-resolution with embedded source',
     includesStartup: false,
+    cleanupCallSites: 'Separate monomorphic batch functions per implementation',
     ordinaryClosureRuntimeCodeIdentical: true,
     componentRuntimeCodeIdenticalToNativeJSX: ['react', 'vue'],
     cleanupReference:
