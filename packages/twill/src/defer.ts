@@ -98,11 +98,11 @@ export function lowerDefers(
     const allAsync = scope.defers.every((node) => node.awaited);
     const mixed = anyAsync && !allAsync;
     const callbackType = mixed ? '{ run: () => unknown; async: boolean }' : '() => unknown';
-    const storageType = single ? '(() => unknown) | undefined' : `Array<${callbackType}> | undefined`;
+    const storageType = single
+      ? '(() => unknown) | undefined'
+      : `Array<${callbackType}> | undefined`;
     const annotation = language.startsWith('ts') ? `: ${storageType}` : '';
-    const jsdoc = language.startsWith('js')
-      ? `\n/** @type {${storageType}} */\n`
-      : '';
+    const jsdoc = language.startsWith('js') ? `\n/** @type {${storageType}} */\n` : '';
     let start = contentStarts.get(block) ?? block.start + 1;
     // StaticBlock.start includes the `static` token, unlike BlockStatement.
     if (block.type === 'StaticBlock') start = statements[0]!.start;

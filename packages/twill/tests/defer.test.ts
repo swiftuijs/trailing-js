@@ -229,8 +229,7 @@ describe('contextual defer', () => {
     expect(events).toEqual(['body', 'cleanup']);
   });
   it('retains the dynamic stack when one statement can register repeatedly', () => {
-    const source =
-      'function run(events) { for(let i=0;i<3;i++) defer { events.push(i); } }';
+    const source = 'function run(events) { for(let i=0;i<3;i++) defer { events.push(i); } }';
     const result = transform(source, { filename: 'loop.twill', language: 'js' });
     expect(result.code).toContain('.pop()');
     const events: number[] = [];

@@ -69,7 +69,12 @@ it('inherits the standard JSX runtime for Twill and native files in the React ad
     root,
     configFile: false,
     plugins: twillReact({ twill: { root } }),
-    resolve: { alias: { 'custom/jsx-runtime': join(root, 'runtime.ts') } },
+    resolve: {
+      alias: {
+        'custom/jsx-runtime': join(root, 'runtime.ts'),
+        'custom/jsx-dev-runtime': join(root, 'runtime.ts'),
+      },
+    },
     server: { middlewareMode: true },
   });
   try {

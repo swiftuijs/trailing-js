@@ -21,34 +21,48 @@ it('bridge edits retain unrelated transforms, snapshots and native script versio
   writeFileSync(
     config,
     JSON.stringify({
-      compilerOptions: { strict: true, target: 'ES2022', moduleResolution: 'Bundler', module: 'ESNext' },
+      compilerOptions: {
+        strict: true,
+        target: 'ES2022',
+        moduleResolution: 'Bundler',
+        module: 'ESNext',
+      },
       include: ['*'],
     }),
   );
   const disk = 'export const first = [1].map { n in n + 1 };';
   writeFileSync(first, disk);
   writeFileSync(second, 'export const second = [2].map { n in n + 2 };');
-  writeFileSync(main, 'import { first } from "./first"; import { second } from "./second"; export const result = [first, second];');
+  writeFileSync(
+    main,
+    'import { first } from "./first"; import { second } from "./second"; export const result = [first, second];',
+  );
   const logs: string[] = [];
   const fallback = vi.fn(() => []);
   const update = vi.spyOn(TwillProject.prototype, 'update');
   const info = {
     project: {
       getProjectName: () => config,
-      projectService: { getScriptInfo: () => undefined, logger: { info: (text: string) => logs.push(text) } },
+      projectService: {
+        getScriptInfo: () => undefined,
+        logger: { info: (text: string) => logs.push(text) },
+      },
     },
     languageService: { getSemanticDiagnostics: fallback, dispose: vi.fn() },
     languageServiceHost: {
       getDefaultLibFileName: ts.getDefaultLibFilePath,
       getScriptFileNames: () => [main],
       getScriptVersion: () => '1',
-      getScriptSnapshot: (file: string) => existsSync(file)
-        ? ts.ScriptSnapshot.fromString(readFileSync(file, 'utf8')) : undefined,
+      getScriptSnapshot: (file: string) =>
+        existsSync(file) ? ts.ScriptSnapshot.fromString(readFileSync(file, 'utf8')) : undefined,
     },
   };
   const plugin = init({ typescript: ts });
   const service = plugin.create(info as unknown as ts.server.PluginCreateInfo);
-  cleanups.push(() => { service.dispose(); rmSync(root, { recursive: true, force: true }); });
+  cleanups.push(() => {
+    service.dispose();
+    rmSync(root, { recursive: true, force: true });
+  });
   expect(service.getSemanticDiagnostics(main)).toEqual([]);
   const project = update.mock.contexts[0] as TwillProject;
   const unrelated = project.transformed(second);

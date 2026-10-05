@@ -40,8 +40,12 @@ The failure block must provably exit: a direct `return`, `throw`, `break`, or `c
 
 ```twill
 function example(events: string[]) {
-  defer { events.push('first'); }
-  defer { events.push('second'); }
+  defer {
+    events.push('first');
+  }
+  defer {
+    events.push('second');
+  }
   return 42;
 } // events gains 'second', then 'first'
 ```

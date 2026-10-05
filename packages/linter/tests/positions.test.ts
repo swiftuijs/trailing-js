@@ -11,7 +11,10 @@ it('matches TypeScript coordinates across mixed newlines and UTF-16 characters',
     expect(positions.getLineAndCharacterOfPosition(offset)).toEqual(point);
     expect(positions.getPositionOfLineAndCharacter(point.line, point.character)).toBe(offset);
     const prefix = text.slice(0, offset);
-    const mapped = { line: prefix.split('\n').length, column: offset - prefix.lastIndexOf('\n') - 1 };
+    const mapped = {
+      line: prefix.split('\n').length,
+      column: offset - prefix.lastIndexOf('\n') - 1,
+    };
     expect(positions.mapPosition(offset)).toEqual(mapped);
     expect(positions.mapOffset(mapped.line, mapped.column)).toBe(offset);
   }

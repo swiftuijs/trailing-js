@@ -154,12 +154,19 @@ for (const registrations of [1, 10, 100]) {
 }
 // A single direct statement needs only a callback and native finally.
 {
-  const source = 'function run(state) { defer { state.cleanup += 1; } state.body++; return state.body; }';
+  const source =
+    'function run(state) { defer { state.cleanup += 1; } state.body++; return state.body; }';
   const output = transform(source, { filename: 'single.twill', language: 'js' }).code;
-  const minimal = 'function run(state) { let cleanup; try { cleanup = () => { state.cleanup += 1; }; state.body++; return state.body; } finally { cleanup?.(); } }';
-  assert.equal((await minify(output, { minify: true })).code, (await minify(minimal, { minify: true })).code);
+  const minimal =
+    'function run(state) { let cleanup; try { cleanup = () => { state.cleanup += 1; }; state.body++; return state.body; } finally { cleanup?.(); } }';
+  assert.equal(
+    (await minify(output, { minify: true })).code,
+    (await minify(minimal, { minify: true })).code,
+  );
   const compiled = Function(output + '; return run;')();
-  const native = Function('return function run(state) { try { state.body++; return state.body; } finally { state.cleanup += 1; } };')();
+  const native = Function(
+    'return function run(state) { try { state.body++; return state.body; } finally { state.cleanup += 1; } };',
+  )();
   const batch = (run) => {
     const state = { body: 0, cleanup: 0 };
     let observed = 0;

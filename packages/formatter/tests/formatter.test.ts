@@ -17,9 +17,19 @@ function normalize(value: any): any {
   );
 }
 it.each([
-  { filename: 'cleanup.twill', source: 'function run(events: string[]) { defer { events.push("clean"); } return 1; }' },
-  { filename: 'multiple.twill', source: 'function run(events: string[]) { defer { events.push("old"); } defer { events.push("new"); } return 1; }' },
-  { filename: 'view.twillx', source: 'declare const Card: any; export const view = Card { <span>child</span>; };' },
+  {
+    filename: 'cleanup.twill',
+    source: 'function run(events: string[]) { defer { events.push("clean"); } return 1; }',
+  },
+  {
+    filename: 'multiple.twill',
+    source:
+      'function run(events: string[]) { defer { events.push("old"); } defer { events.push("new"); } return 1; }',
+  },
+  {
+    filename: 'view.twillx',
+    source: 'declare const Card: any; export const view = Card { <span>child</span>; };',
+  },
 ])('formats generated code without changing its AST: $filename', async ({ filename, source }) => {
   const result = transform(source, { filename });
   const filepath = filename.replace(/\.twillx$/, '.tsx').replace(/\.twill$/, '.ts');
