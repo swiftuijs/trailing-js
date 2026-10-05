@@ -9,7 +9,7 @@ import {
 } from '@swiftuijs/twill/project';
 import { isTwillFile } from '@swiftuijs/twill';
 import { TwillEditor, type SourceEdit } from '@swiftuijs/twill/editor';
-import { format } from '@swiftuijs/twill-formatter';
+import { format, formatGenerated } from '@swiftuijs/twill-formatter';
 import { inspectProject } from '@swiftuijs/twill/doctor';
 
 const languages = ['twill-typescript', 'twill-tsx'];
@@ -596,11 +596,21 @@ export function activate(context: vscode.ExtensionContext) {
       const source = vscode.window.activeTextEditor?.document;
       if (!source || !isTwillFile(source.fileName)) return;
       const result = safely(source, (project) => project.transformed(source.fileName));
-      if (result)
+      if (result) {
+        let content = result.code;
+        try {
+          content = await formatGenerated(content, {
+            filepath: source.fileName.replace(/\.twillx$/, '.tsx').replace(/\.twill$/, '.ts'),
+          });
+        } catch (error) {
+          // Display formatting must not turn valid compilation into a failure.
+          output.appendLine(`Generated source formatting: ${String(error)}`);
+        }
         await vscode.window.showTextDocument(
-          await vscode.workspace.openTextDocument({ content: result.code, language: 'typescript' }),
+          await vscode.workspace.openTextDocument({ content, language: 'typescript' }),
           vscode.ViewColumn.Beside,
         );
+      }
     }),
   );
   context.subscriptions.push(

@@ -13,7 +13,7 @@ describe('ESLint Twill processor', () => {
       overrideConfig: [...twill.configs.recommended!, { files: ['**/*.ts'], ...extra }],
       fix,
     });
-  it.each(['\n', '\r\n', '\u2028'])('maps original ranges across %j', async (newline) => {
+  it.each(['\n', '\r\n', '\r', '\u2028', '\u2029'])('maps original ranges across %j', async (newline) => {
     const source = `export const result = [1].map { n in n*2 };${newline}const unused = 1;`;
     const [result] = await engine().lintText(source, { filePath: 'fixture.twill' });
     expect(

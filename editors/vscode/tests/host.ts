@@ -203,9 +203,13 @@ export async function run() {
   console.log('PASS: cross-file rename works from Twill and native TS with unsaved overlays');
 
   await vscode.window.showTextDocument(api);
+  const originalSource = api.getText();
   await vscode.commands.executeCommand('twill.showGenerated');
   assert.equal(vscode.window.activeTextEditor?.document.languageId, 'typescript');
-  assert(vscode.window.activeTextEditor?.document.getText().includes('=>'));
+  const generated = vscode.window.activeTextEditor!.document.getText();
+  assert(generated.includes('=>'));
+  assert.match(generated, /=>\s*\{\n\s+return/);
+  assert.equal(api.getText(), originalSource, 'Generated display must not edit source');
   const invalidView = new vscode.WorkspaceEdit();
   invalidView.replace(
     view.uri,

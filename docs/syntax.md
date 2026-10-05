@@ -38,7 +38,7 @@ The failure block must provably exit: a direct `return`, `throw`, `break`, or `c
 
 ## Defer
 
-```ts
+```twill
 function example(events: string[]) {
   defer { events.push('first'); }
   defer { events.push('second'); }
@@ -56,7 +56,7 @@ Cleanup may use local loops, local break/continue, nested functions and nested `
 
 All registered cleanups run even if the body or an earlier cleanup fails. A cleanup failure replaces the pending return/body error; a subsequent cleanup failure replaces that error, including `throw undefined`. If no cleanup fails, the original completion survives. This matches nested `try/finally`, rather than aggregating errors or using `SuppressedError`.
 
-Lowering creates a lazy local array, cleanup arrows and a `try/finally` drain. Mixed sync/async registrations additionally store a small descriptor per cleanup. No runtime module is imported. Blocks without defer are untouched. Direct function-body function declarations retain hoisting, captures, directives and var/parameter bindings via generated initializers; JS JSDoc remains attached. Function overloads/ambient function declarations directly in a function body containing defer are currently rejected with a diagnostic; place the helper in a separate scope. This restriction is preferable to silently changing type semantics.
+A single direct cleanup lowers to one optional callback and native `try/finally`, without an array, loop or error accumulator. Multiple or control-flow registrations use a lazy local array and reverse-order drain. Mixed sync/async registrations additionally store a small descriptor per cleanup. No runtime module is imported. Blocks without defer are untouched. Direct function-body function declarations retain hoisting, captures, directives and var/parameter bindings via generated initializers; JS JSDoc remains attached. Function overloads/ambient function declarations directly in a function body containing defer are currently rejected with a diagnostic; place the helper in a separate scope. This restriction is preferable to silently changing type semantics.
 
 ## Component closures in `.twillx`
 

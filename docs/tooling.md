@@ -38,7 +38,7 @@ xvfb-run -a pnpm editor:test
 
 The VSIX supports completion, partial React prop keys and contextual callback members, hover/signatures/navigation, diagnostics, auto-imports, mixed-file rename, import organization and safe quick fixes. Selecting a completion applies edits to original Twill text. Renaming a local shorthand prop value keeps the public prop key; renaming the contract keeps the local binding. Native TS/JS import-alias rename follows TypeScript semantics. Source edits are rejected when they cannot be represented safely in the dialect; document formatting is bundled; full refactoring/fix-all is not advertised.
 
-**Twill: Show Generated TypeScript** displays the lowered document. **Twill: Show Project Diagnostics** displays configuration, source counts, versions, diagnostics and check duration. The same report is available from the CLI:
+**Twill: Show Generated TypeScript** displays formatted TS/TSX for reading. Formatting uses the formatter package's native parser and does not alter source or compiler maps. **Twill: Show Project Diagnostics** displays configuration, source counts, versions, diagnostics and check duration. The same report is available from the CLI:
 
 ```sh
 pnpm exec twill doctor -p examples/mixed/tsconfig.json --json

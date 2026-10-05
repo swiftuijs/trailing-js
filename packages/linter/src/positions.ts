@@ -1,0 +1,40 @@
+/** Source-map lines use LF; ESLint positions also count CR and Unicode separators. */
+export class SourcePositions {
+  private native = [0];
+  private mapped = [0];
+
+  constructor(text: string) {
+    const breaks = /\r\n|[\n\r\u2028\u2029]/g;
+    while (breaks.exec(text)) this.native.push(breaks.lastIndex);
+    for (let index = 0; index < text.length; index++)
+      if (text[index] === '\n') this.mapped.push(index + 1);
+  }
+
+  private position(starts: number[], offset: number) {
+    let low = 0;
+    let high = starts.length;
+    while (low + 1 < high) {
+      const middle = (low + high) >>> 1;
+      if (starts[middle]! <= offset) low = middle;
+      else high = middle;
+    }
+    return { line: low, character: offset - starts[low]! };
+  }
+
+  getLineAndCharacterOfPosition(offset: number) {
+    return this.position(this.native, offset);
+  }
+
+  getPositionOfLineAndCharacter(line: number, column: number) {
+    return this.native[line]! + column;
+  }
+
+  mapPosition(offset: number) {
+    const position = this.position(this.mapped, offset);
+    return { line: position.line + 1, column: position.character };
+  }
+
+  mapOffset(line: number, column: number) {
+    return this.mapped[line - 1]! + column;
+  }
+}

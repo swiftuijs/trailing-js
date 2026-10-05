@@ -36,9 +36,15 @@ try {
   const formatted = readFileSync(join(root, 'main.twill'), 'utf8');
   assert(formatted.includes('map { n in'));
   run(['node_modules/prettier/bin/prettier.cjs', '--check', 'main.twill']);
+  const generated = run([
+    '--input-type=module',
+    '-e',
+    'import {formatGenerated} from "@swiftuijs/twill-formatter"; console.log(await formatGenerated("const result:number=42;",{filepath:"result.ts"}));',
+  ]);
+  assert(generated.includes('const result: number = 42;'));
   writeFileSync(
     join(root, 'consumer.mts'),
-    `import formatter,{format} from '@swiftuijs/twill-formatter'; void formatter; void format;`,
+    `import formatter,{format,formatGenerated} from '@swiftuijs/twill-formatter'; void formatter; void format; void formatGenerated;`,
   );
   run([
     'node_modules/typescript/bin/tsc',

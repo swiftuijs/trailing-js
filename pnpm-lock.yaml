@@ -139,6 +139,12 @@ importers:
       '@swiftuijs/twill':
         specifier: workspace:*
         version: link:../../packages/twill
+      '@swiftuijs/twill-formatter':
+        specifier: workspace:*
+        version: link:../../packages/formatter
+      prettier:
+        specifier: 'catalog:'
+        version: 3.9.9
       vue:
         specifier: 'catalog:'
         version: 3.5.43(typescript@5.9.3)

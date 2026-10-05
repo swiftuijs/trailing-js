@@ -256,6 +256,7 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
     },
     onConfigurationChanged(config) {
       const incoming = config?.overlays;
+      const previous = overlays;
       overlays =
         incoming && typeof incoming === 'object'
           ? (Object.fromEntries(
@@ -264,16 +265,19 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
               ),
             ) as Record<string, string>)
           : {};
+      const changed = [...new Set([...Object.keys(previous), ...Object.keys(overlays)])].filter(
+        (file) => previous[file] !== overlays[file],
+      );
+      if (!changed.length) return;
       for (const context of contexts.values()) {
-        for (const file of context.project.sourceFiles())
-          if (isTwillFile(file)) {
-            syncProtocolSource(context, file, overlays[file]);
-            context.project.update(file, overlays[file]);
-          }
-        for (const [file, text] of Object.entries(overlays))
-          if (file.startsWith(sourceFilename(context.project.root) + '/'))
-            context.project.update(file, text);
-        context.versions.clear();
+        const sources = new Set(context.project.sourceFiles());
+        for (const file of changed) {
+          if (!file.startsWith(sourceFilename(context.project.root) + '/') && !sources.has(file))
+            continue;
+          syncProtocolSource(context, file, overlays[file]);
+          context.project.update(file, overlays[file]);
+          context.versions.delete(file);
+        }
       }
     },
   };

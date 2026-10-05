@@ -95,7 +95,7 @@ export class TwillProject {
     const configFile = sourceFilename(resolve(tsconfig));
     this.root = dirname(configFile);
     this.recover = projectOptions.recover ?? false;
-    this.options = { ...loadConfig(this.root), ...options };
+    this.options = { ...loadConfig(this.root, configFile), ...options };
     const configReads = new Set([
       configFile,
       sourceFilename(resolve(this.root, 'twill.config.json')),

@@ -86,7 +86,10 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
     throw new Error('Expected compile <file> or check. Use --help for usage.');
   const filename = resolve(input);
   const root = values.project ? dirname(resolve(values.project)) : process.cwd();
-  const options = { ...loadConfig(root), filename };
+  const options = {
+    ...loadConfig(root, values.project ? resolve(values.project) : undefined),
+    filename,
+  };
   const source = readFileSync(filename, 'utf8');
   const result = values.js ? transpile(source, options) : transform(source, options);
   if (values.out) {

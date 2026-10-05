@@ -60,6 +60,8 @@ test('live compilation, highlighted examples, located errors and recovery', asyn
   await page.getByLabel('Example', { exact: true }).selectOption('cleanup');
   await expect(page.getByRole('status')).toContainText('1 guard · 1 defer');
   await expect(generated(page)).toContainText('finally');
+  await expect(generated(page)).not.toContainText('__twillDefers');
+  await expect(generated(page)).toContainText('__twillCleanup');
   await expect(source.locator('.twill-contextual-keyword')).toHaveText(['defer', 'guard']);
   await page.getByLabel('Example', { exact: true }).selectOption('react');
   await expect(generated(page)).toContainText('<Panel>');
