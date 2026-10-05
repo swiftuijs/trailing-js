@@ -1,6 +1,6 @@
 # RFC 0001: Practical language direction
 
-**Status: Active design guidance.** This document defines product priorities and acceptance criteria. Unimplemented candidates are identified explicitly; this is not a language specification. The public [language guide](../docs/language.md) and [syntax contract](../docs/syntax.md) describe shipped behavior.
+**Status: Active design guidance.** This document defines product priorities and acceptance criteria. Unimplemented candidates are identified explicitly; this is not a language specification. The public [language guide](../language.md) and [syntax contract](../syntax.md) describe shipped behavior.
 
 ## Problem and product promise
 
@@ -14,7 +14,7 @@ Three tasks anchor the evaluation:
 2. Acquire a resource and visibly release it on every exit, including awaited failures and cancellation.
 3. Add a business-state variant and discover which handlers are now incomplete.
 
-The [ledger workflow](../examples/general/workflow.twill) exercises all three using current syntax and ordinary TS domain types. Its executable tests are in the owning example package. These examples demonstrate behavior; they do not establish adoption or universal performance claims.
+The [ledger workflow](https://github.com/swiftuijs/twill/blob/main/examples/general/workflow.twill) exercises all three using current syntax and ordinary TS domain types. Its executable tests are in the owning example package. These examples demonstrate behavior; they do not establish adoption or universal performance claims.
 
 ## Borrow the benefit, choose the native mechanism
 
@@ -38,7 +38,7 @@ Destructured `guard const` checks the whole initializer once and destructures on
 
 Switch expressions use native TS unions. Object cases bind the selected variant's payload; the checker proves exhaustiveness without an enum wrapper or separate type system. Native switch statements retain their grammar and semantics. Direct returns lower to native branches; other expression positions require a synchronous IIFE and disclose that cost. Await/yield inside the switch requires a direct return; no implicit async scheduling is added.
 
-The [syntax contract](../docs/syntax.md) defines evaluation order, scopes, discriminator reads, source positions and limitations. The optional `recommendedTypeChecked` linter additionally checks native switches, including omitted union variants when a default exists. Transpile-only builds cannot prove arbitrary external types.
+The [syntax contract](../syntax.md) defines evaluation order, scopes, discriminator reads, source positions and limitations. The optional `recommendedTypeChecked` linter additionally checks native switches, including omitted union variants when a default exists. Transpile-only builds cannot prove arbitrary external types.
 
 If expressions, optional-success bindings and broader matching predicates remain candidates. They need evidence beyond reducing punctuation, and must preserve inference, exact edits and the runtime model.
 
@@ -60,7 +60,7 @@ This is not a blanket prohibition on standard decorators or user libraries. Nati
 
 A readable feature is not useful if the editor loses inference or the project cannot gradually adopt it. Keep two-way TS/JS imports, normal framework types, optional configuration and one-file opt-in. Do not add component registries, mandatory runtime wrappers or a duplicate standard library.
 
-Before expanding the grammar substantially, prioritize reliable incomplete-input assistance, safe mapped edits, references/refactoring coverage and realistic project performance. Current support and remaining boundaries stay in [readiness](../docs/readiness.md); this proposal does not claim those gaps are already closed.
+Before expanding the grammar substantially, prioritize reliable incomplete-input assistance, safe mapped edits, references/refactoring coverage and realistic project performance. Current support and remaining boundaries stay in [readiness](../readiness.md); this proposal does not claim those gaps are already closed.
 
 The optional `@swiftuijs/twill-migrate` tool exports a checked single-project source graph to formatted native TS, rewrites relative dialect imports and preserves originals. Its boundaries are documented in the migration package: application installation, project references and computed runtime paths need separate handling. The single-file `twill compile` command still preserves import specifiers. Broader project export and refactoring coverage remain adoption priorities.
 

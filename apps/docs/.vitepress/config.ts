@@ -39,6 +39,7 @@ const pages = [
     items: [
       { text: 'Support and limitations', link: '/readiness' },
       { text: 'Architecture', link: '/architecture' },
+      { text: 'Language design RFC', link: '/rfcs/0001-practical-language' },
       { text: 'Releasing', link: '/releasing' },
       { text: 'GitHub highlighting', link: '/github' },
     ],
