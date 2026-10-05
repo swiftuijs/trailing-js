@@ -75,4 +75,70 @@ describe('ESLint Twill processor', () => {
       rmSync(root, { recursive: true, force: true });
     }
   });
+  it.each(['twill', 'twillx', 'ts'])(
+    'detects omitted union cases even with a default in %s source',
+    async (extension) => {
+      const root = mkdtempSync(join(tmpdir(), 'twill-exhaustive-'));
+      try {
+        writeFileSync(
+          join(root, 'tsconfig.json'),
+          JSON.stringify({
+            compilerOptions: {
+              strict: true,
+              target: 'ES2022',
+              module: 'ESNext',
+              moduleResolution: 'Bundler',
+              types: [],
+            },
+            include: ['**/*'],
+          }),
+        );
+        const filename = join(root, `states.${extension}`);
+        const source = [
+          'type Outcome = { kind: "ok"; value: number } | { kind: "error"; error: string };',
+          'export function display(outcome: Outcome) {',
+          extension === 'ts'
+            ? 'return [outcome].map(value => {'
+            : 'return [outcome].map { value in',
+          'switch (value.kind) {',
+          'case "ok": return String(value.value);',
+          'default: return "fallback";',
+          '}',
+          extension === 'ts' ? '}); }' : '}; }',
+        ].join('\n');
+        writeFileSync(filename, source);
+        const eslint = new ESLint({
+          cwd: root,
+          overrideConfigFile: true,
+          overrideConfig: twill.configs.recommendedTypeChecked,
+        });
+        const rule = '@typescript-eslint/switch-exhaustiveness-check';
+        const [missing] = await eslint.lintText(source, { filePath: filename });
+        expect(missing!.messages.filter((message) => message.ruleId === rule)).toEqual([
+          expect.objectContaining({
+            severity: 2,
+            line: 4,
+            column: 9,
+            message: expect.stringContaining('"error"'),
+          }),
+        ]);
+        const complete = source.replace('default:', 'case "error": return value.error;\ndefault:');
+        writeFileSync(filename, complete);
+        const [valid] = await eslint.lintText(complete, { filePath: filename });
+        expect(valid!.messages).toEqual([]);
+        const extended = complete.replace(
+          'error: string };',
+          'error: string } | { kind: "canceled" };',
+        );
+        writeFileSync(filename, extended);
+        const [changed] = await eslint.lintText(extended, { filePath: filename });
+        expect(changed!.messages.find((message) => message.ruleId === rule)?.message).toContain(
+          '"canceled"',
+        );
+      } finally {
+        disposeProjects();
+        rmSync(root, { recursive: true, force: true });
+      }
+    },
+  );
 });

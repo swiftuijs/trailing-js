@@ -97,7 +97,7 @@ pnpm eslint src
 pnpm exec twill check -p tsconfig.json
 ```
 
-Use `recommendedTypeChecked` for type-aware linting; it requires a tsconfig. Add normal browser/Node globals for your application. VS Code's ESLint extension can validate `twill-typescript` and `twill-tsx`. See [tooling](./tooling.md) for safe fixes, debugging, diagnostics and library builds.
+Use `recommendedTypeChecked` for type-aware linting; it requires a tsconfig and detects missing union cases in switches, even with a `default` branch. Add normal browser/Node globals for your application. VS Code's ESLint extension can validate `twill-typescript` and `twill-tsx`. See [practical patterns](./patterns.md) for validation, owned resources and explicit outcomes, and [tooling](./tooling.md) for safe fixes, debugging, diagnostics and library builds.
 
 ## Run Node code
 
@@ -106,3 +106,7 @@ node --enable-source-maps --import @swiftuijs/twill/register src/main.twill
 ```
 
 The loader handles local mixed TS/JS/Twill imports. It does not transform dependencies or replace Node's CommonJS behavior.
+
+## Adopt one module or export native sources
+
+Keep native TS/JS files alongside Twill and start with a validation or resource-management task. The optional migration package can export a checked source graph to a new native TS/TSX directory without modifying originals. See [adoption and migration](./adoption.md) for the commands, dependency setup and export boundaries.

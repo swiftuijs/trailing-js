@@ -1,0 +1,106 @@
+import type { ImportOptions, LedgerOutcome, Payment, TextDocument } from './workflow-models.ts';
+
+/** Validate untrusted data; readonly annotations alone do not validate JSON. */
+export function decodePayment(input: unknown): Payment | undefined {
+  guard typeof input === 'object' && input !== null else {
+    return undefined;
+  }
+  guard 'reference' in input && typeof input.reference === 'string' else {
+    return undefined;
+  }
+  const reference = input.reference.trim();
+  guard reference.length > 0 else {
+    return undefined;
+  }
+  guard const amountCents = 'amountCents' in input ? input.amountCents : undefined else {
+    return undefined;
+  }
+  guard typeof amountCents === 'number' &&
+    Number.isSafeInteger(amountCents) &&
+    amountCents >= 0 else {
+    return undefined;
+  }
+  return { reference, amountCents };
+}
+
+/** Take ownership only after acquisition succeeds; await release on every exit. */
+export async function summarizeLedger(
+  options: ImportOptions,
+  acquire: () => Promise<TextDocument>,
+): Promise<LedgerOutcome> {
+  options.signal?.throwIfAborted();
+  const document = await acquire();
+  defer {
+    await document.close();
+  }
+  options.signal?.throwIfAborted();
+  const text = await document.readText();
+  // Cooperative cancellation: this does not interrupt an adapter's pending IO.
+  options.signal?.throwIfAborted();
+  let input: unknown;
+  try {
+    input = JSON.parse(text);
+  } catch (error) {
+    guard error instanceof SyntaxError else {
+      throw error;
+    }
+    return { kind: 'invalid', reason: 'json' };
+  }
+  guard Array.isArray(input) else {
+    return { kind: 'invalid', reason: 'shape' };
+  }
+  const payments: Payment[] = [];
+  let totalCents = 0;
+  for (let row = 0; row < input.length; row++) {
+    guard const payment = decodePayment(input[row]) else {
+      return { kind: 'invalid', reason: 'row', row };
+    }
+    const next = totalCents + payment.amountCents;
+    guard Number.isSafeInteger(next) else {
+      return { kind: 'invalid', reason: 'overflow', row };
+    }
+    totalCents = next;
+    payments.push(payment);
+  }
+  return {
+    kind: 'ok',
+    value: {
+      references: payments.map { payment in
+        payment.reference;
+      },
+      totalCents,
+    },
+  };
+}
+
+/** A native TS discriminated union makes each outcome's payload available. */
+export function describeOutcome(outcome: LedgerOutcome): string {
+  switch (outcome.kind) {
+    case 'ok':
+      return `${outcome.value.references.length} payments: ${outcome.value.totalCents} cents`;
+    case 'invalid':
+      return `Invalid ${outcome.reason}${outcome.row === undefined ? '' : ` at row ${outcome.row}`}`;
+    default:
+      throw new TypeError('Unknown ledger outcome');
+  }
+}
+
+export async function demoWorkflow() {
+  const events: string[] = [];
+  const outcome = await summarizeLedger({}) {
+    Promise.resolve({
+      readText: () =>
+        Promise.resolve(
+          JSON.stringify([
+            { reference: 'free', amountCents: 0 },
+            { reference: 'paid', amountCents: 1250 },
+          ]),
+        ),
+      close: async () => {
+        await Promise.resolve();
+        events.push('closed');
+      },
+    });
+  };
+  return { outcome, events, message: describeOutcome(outcome) };
+}

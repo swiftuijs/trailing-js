@@ -12,6 +12,7 @@ export default [
         window: 'readonly',
         setTimeout: 'readonly',
         URL: 'readonly',
+        AbortController: 'readonly',
       },
     },
   },

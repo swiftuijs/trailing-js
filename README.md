@@ -11,7 +11,7 @@ Ordinary callbacks compile to native arrows. In UI files, component closures com
 
 This is an experimental **0.8 language**, with production-oriented packaging and tests. See [the syntax contract and limitations](docs/syntax.md) before adopting it. Until published to npm and the Marketplace, install a locally built tarball and VSIX.
 
-Documentation: [getting started](docs/getting-started.md) · [playground](docs/playground.md) · [readiness and support](docs/readiness.md). The private `apps/docs` workspace builds the searchable site; use `pnpm docs:dev` locally. Its Pages deployment target is [swiftuijs.github.io/twill](https://swiftuijs.github.io/twill/); repository Pages must be enabled with GitHub Actions as the source.
+Documentation: [getting started](docs/getting-started.md) · [practical patterns](docs/patterns.md) · [adoption and migration](docs/adoption.md) · [playground](docs/playground.md) · [readiness and support](docs/readiness.md). The private `apps/docs` workspace builds the searchable site; use `pnpm docs:dev` locally. Its Pages deployment target is [swiftuijs.github.io/twill](https://swiftuijs.github.io/twill/); repository Pages must be enabled with GitHub Actions as the source.
 
 ## Quick start
 
@@ -119,7 +119,7 @@ function scoreOf(input: { score: number } | undefined) {
 `guard condition else { ... }` lowers to `if (!(condition)) { ... }`. `guard const name = expression else { ... }` lowers to a normal `const` and a nullish check; it evaluates the initializer once. Every failure path must explicitly exit with `return`, `throw`, `break` or `continue`. Existing variables and functions named `guard` remain valid.
 
 ```sh
-pnpm dev:general  # validation, typed array pipelines, async retry
+pnpm dev:general  # validation, typed pipelines, owned async workflows and outcomes
 ```
 
 ## Scope cleanup
@@ -221,9 +221,9 @@ pnpm editor:package
 code --install-extension dist/twill.vsix
 ```
 
-VS Code supports syntax highlighting, TypeScript diagnostics, hover, contextual member/React prop completion, signature help, definitions, automatic imports, cross-file rename, import organization and mapped quick fixes. Completion and edits use original Twill coordinates, including unsaved mixed projects. The extension bundles its language tooling; it does not require a globally installed compiler.
+VS Code supports syntax highlighting, TypeScript diagnostics, hover, contextual member/React prop completion, signature help, definitions, references, automatic imports, cross-file rename, import organization and mapped quick fixes. Completion and edits use original Twill coordinates, including unsaved mixed projects. The extension bundles its language tooling; it does not require a globally installed compiler.
 
-The extension reads the nearest `tsconfig.json` and `twill.config.json`. It recovers common incomplete member expressions while typing; builds always reject invalid syntax. A bundled TS-server bridge supplies diagnostics, hover, completion, signatures and definitions to native TS/JS documents in configured mixed projects. Unsaved Twill and native changes are synchronized, and definitions map back to original files. The extension bundles standard-library declarations for its standalone checker. Use `twill check` for authoritative project checks. Rename and import organization also map edits from native TS/JS back into Twill. Edits that cannot be safely represented in the original syntax are withheld. Document formatting and ESLint integration are available through the formatter/linter packages. General refactoring and fix-all are unavailable. The [Vite React adapter](docs/frameworks.md) provides Fast Refresh.
+The extension reads the nearest `tsconfig.json` and `twill.config.json`. It recovers common incomplete member expressions while typing; builds always reject invalid syntax. A bundled TS-server bridge supplies diagnostics, hover, completion, signatures, definitions and references to native TS/JS documents in configured mixed projects. Unsaved Twill and native changes are synchronized, and definitions map back to original files. The extension bundles standard-library declarations for its standalone checker. Use `twill check` for authoritative project checks. Rename and import organization also map edits from native TS/JS back into Twill. Edits that cannot be safely represented in the original syntax are withheld. Document formatting and ESLint integration are available through the formatter/linter packages. General refactoring and fix-all are unavailable. The [Vite React adapter](docs/frameworks.md) provides Fast Refresh.
 
 `Twill: Show Generated TypeScript` opens lowered source; `Twill: Show Project Diagnostics` opens a diagnostic report. `Twill: Debug Current File` starts the built-in Node debugger using source maps and the installed `@swiftuijs/twill/register` loader. Install the compiler in your application before debugging. You can also run `npx twill doctor -p tsconfig.json --json` for a scriptable configuration and diagnostics report.
 
@@ -259,4 +259,4 @@ Checks cover syntax execution, TS/JSX compatibility, mappings, type inference, i
 
 MIT licensed. Ordinary Twill code has no React/Vue runtime dependency. UI output imports the selected standard JSX runtime.
 
-The monorepo also includes independently installable [`@swiftuijs/twill-formatter`](packages/formatter/README.md) (Prettier) and [`@swiftuijs/twill-linter`](packages/linter/README.md) (ESLint). Every [example](examples/README.md) is its own workspace package. The VSIX bundles document formatting; the standard ESLint extension can lint the Twill language IDs. Use `twill declarations -p tsconfig.json -o dist [--build]` after a Vite library build to distribute native declarations and source maps. See [tooling setup and declaration builds](docs/tooling.md).
+The monorepo also includes independently installable [`@swiftuijs/twill-formatter`](packages/formatter/README.md) (Prettier), [`@swiftuijs/twill-linter`](packages/linter/README.md) (ESLint), and optional [`@swiftuijs/twill-migrate`](packages/migrate/README.md) (native source export). Every [example](examples/README.md) is its own workspace package. The VSIX bundles document formatting; the standard ESLint extension can lint the Twill language IDs. Use `twill declarations -p tsconfig.json -o dist [--build]` after a Vite library build to distribute native declarations and source maps. See [tooling setup and declaration builds](docs/tooling.md).

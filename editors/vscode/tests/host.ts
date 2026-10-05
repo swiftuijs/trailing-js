@@ -171,6 +171,45 @@ export async function run() {
   );
   console.log('PASS: dependency disk changes refresh diagnostics without losing unsaved buffers');
 
+  const references = await eventually(
+    () =>
+      vscode.commands.executeCommand<vscode.Location[]>(
+        'vscode.executeReferenceProvider',
+        api.uri,
+        position(api, 'twice', 1),
+      ),
+    (entries) => !!entries?.some((entry) => entry.uri.fsPath.endsWith('consumer.ts')),
+  );
+  assert(references!.some((entry) => entry.uri.fsPath.endsWith('auto.twill')));
+  for (const entry of references!) {
+    const document = await vscode.workspace.openTextDocument(entry.uri);
+    assert.equal(
+      document.getText(entry.range),
+      'twice',
+      JSON.stringify({ file: entry.uri.fsPath, range: entry.range, source: document.getText() }),
+    );
+    assert(!/\.twill\.ts$/.test(entry.uri.fsPath));
+  }
+  const nativeConsumer = await open('consumer.ts');
+  const nativeReferences = await eventually(
+    () =>
+      vscode.commands.executeCommand<vscode.Location[]>(
+        'vscode.executeReferenceProvider',
+        nativeConsumer.uri,
+        position(nativeConsumer, 'twice', 1),
+      ),
+    (entries) => !!entries?.some((entry) => entry.uri.fsPath.endsWith('api.twill')),
+  );
+  for (const entry of nativeReferences!) {
+    const document = await vscode.workspace.openTextDocument(entry.uri);
+    assert.equal(
+      document.getText(entry.range),
+      'twice',
+      JSON.stringify({ file: entry.uri.fsPath, range: entry.range, source: document.getText() }),
+    );
+  }
+  console.log('PASS: references from Twill and native TS map to unsaved original source');
+
   const renamed = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
     'vscode.executeDocumentRenameProvider',
     api.uri,

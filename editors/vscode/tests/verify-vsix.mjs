@@ -5,6 +5,7 @@ import { join, dirname } from 'node:path';
 import assert from 'node:assert/strict';
 import { probeTypeScriptPlugin } from '../../../packages/twill/tests/helpers/probe-typescript-plugin.mjs';
 import { fileURLToPath } from 'node:url';
+import { statSync } from 'node:fs';
 
 process.chdir(fileURLToPath(new URL('../../../', import.meta.url)));
 
@@ -26,6 +27,14 @@ try {
     );
   assert(files.has('extension/node_modules/@swiftuijs/twill-vscode-tsserver/dist/index.cjs'));
   assert(files.has('extension/dist/typescript-lib/lib.es2022.full.d.ts'));
+  assert(files.has('extension/node_modules/typescript/lib/typescript.js'));
+  const engine = JSON.parse(files.get('extension/node_modules/typescript/package.json').toString());
+  assert.equal(engine.version, '5.9.3', 'The shared engine must match the tested TS contract');
+  assert.equal(manifest.dependencies.typescript, engine.version);
+  assert(
+    statSync('dist/twill.vsix').size <= 3 * 1024 * 1024,
+    'VSIX exceeds the 3 MiB compressed budget',
+  );
   for (const [name, contents] of files) {
     const path = join(root, name);
     mkdirSync(dirname(path), { recursive: true });

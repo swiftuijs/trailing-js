@@ -105,6 +105,48 @@ it.each(['ts', 'twill'])('auto-imports a %s export into a trailing closure', (ex
   expect(project.diagnostics()).toEqual([]);
 });
 
+it('finds references across unsaved Twill, TS and JS sources in original coordinates', () => {
+  const source = 'export function twice(value: number) { return value * 2; }';
+  const { project, editor, file } = fixture({
+    'math.twill': source,
+    'consumer.ts': 'import { twice } from "./math.twill"; export const result = twice(2);',
+    'client.js': 'import { twice } from "./math.twill"; export const result = twice(3);',
+    'caller.twill':
+      'import { twice } from "./math.twill"; export const result = [1].map { n in twice(n) };',
+  });
+  project.update(file('caller.twill'), project.text(file('caller.twill'))! + '\nvoid twice(4);');
+  const references = editor.references(file('math.twill'), source.indexOf('twice') + 1)!;
+  expect(new Set(references.map((entry) => entry.fileName))).toEqual(
+    new Set(['math.twill', 'consumer.ts', 'client.js', 'caller.twill'].map(file)),
+  );
+  expect(references.filter((entry) => entry.isDefinition)).toHaveLength(1);
+  expect(references.filter((entry) => entry.fileName === file('caller.twill'))).toHaveLength(3);
+  for (const entry of references)
+    expect(
+      project
+        .text(entry.fileName)!
+        .slice(entry.textSpan.start, entry.textSpan.start + entry.textSpan.length),
+    ).toBe('twice');
+  const native = project.text(file('consumer.ts'))!;
+  expect(editor.references(file('consumer.ts'), native.lastIndexOf('twice') + 1)?.length).toBe(
+    references.length,
+  );
+});
+
+it('does not expose generated component closing tags or cleanup helpers as references', () => {
+  const source = card + `export const view = Card({ title: 'Hi' }) { 'Hello' };`;
+  const { editor, project, file } = fixture({ 'view.twillx': source });
+  const references = editor.references(file('view.twillx'), source.indexOf('function Card') + 10)!;
+  expect(references).toHaveLength(2);
+  expect(references.map((entry) => entry.textSpan.start)).toEqual([
+    source.indexOf('function Card') + 9,
+    source.indexOf('Card({'),
+  ]);
+  const cleanup = 'export function run() { defer { void 1; } return 2; }';
+  project.update(file('cleanup.twill'), cleanup);
+  expect(editor.references(file('cleanup.twill'), cleanup.indexOf('defer')) ?? []).toEqual([]);
+});
+
 it('renames exports and references across Twill, TS and JS', () => {
   const source =
     'export function twice(value: number) { return [value].map { item in item * 2 }[0]!; }';

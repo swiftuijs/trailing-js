@@ -1,5 +1,5 @@
 import { cpSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { resolve, join, dirname } from 'node:path';
 import { createRequire } from 'node:module';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -42,6 +42,29 @@ delete pluginManifest.devDependencies;
 delete pluginManifest.scripts;
 writeFileSync(join(plugin, 'package.json'), JSON.stringify(pluginManifest, null, 2) + '\n');
 const require = createRequire(import.meta.url);
+// Both editor hosts share one pinned engine, independent of workspace installs.
+const typescriptRoot = dirname(require.resolve('typescript/package.json'));
+const typescript = join(stage, 'node_modules/typescript');
+mkdirSync(join(typescript, 'lib'), { recursive: true });
+for (const name of ['LICENSE.txt', 'ThirdPartyNoticeText.txt', 'lib/typescript.js'])
+  cpSync(join(typescriptRoot, name), join(typescript, name));
+const engineManifest = JSON.parse(readFileSync(join(typescriptRoot, 'package.json')));
+writeFileSync(
+  join(typescript, 'package.json'),
+  JSON.stringify(
+    {
+      name: engineManifest.name,
+      version: engineManifest.version,
+      license: engineManifest.license,
+      private: true,
+      main: './lib/typescript.js',
+    },
+    null,
+    2,
+  ) + '\n',
+);
+manifest.dependencies.typescript = engineManifest.version;
+writeFileSync(join(stage, 'package.json'), JSON.stringify(manifest, null, 2) + '\n');
 mkdirSync(resolve('dist'), { recursive: true });
 execFileSync(
   process.execPath,

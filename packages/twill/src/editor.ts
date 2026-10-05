@@ -151,6 +151,39 @@ export class TwillEditor {
     );
   }
 
+  /** Read-only navigation must also exclude generated helpers and duplicate JSX tags. */
+  referenceGroups(filename: string, position: number): ts.ReferencedSymbol[] | undefined {
+    const groups = this.project.service.findReferences(
+      virtualFilename(filename),
+      this.project.toGeneratedOffset(filename, position),
+    );
+    const mapped = <T extends ts.DocumentSpan>(entry: T): T | undefined => {
+      const fileName = sourceFilename(entry.fileName);
+      const textSpan = this.mapSpan(fileName, entry.textSpan);
+      if (!textSpan) return undefined;
+      const contextSpan = entry.contextSpan && this.mapSpan(fileName, entry.contextSpan);
+      return { ...entry, fileName, textSpan, contextSpan };
+    };
+    return groups?.flatMap((group) => {
+      const definition = mapped(group.definition);
+      if (!definition) return [];
+      const seen = new Set<string>();
+      const references = group.references.flatMap((reference) => {
+        const entry = mapped(reference);
+        if (!entry) return [];
+        const key = `${entry.fileName}:${entry.textSpan.start}:${entry.textSpan.length}`;
+        if (seen.has(key)) return [];
+        seen.add(key);
+        return [entry];
+      });
+      return [{ definition, references }];
+    });
+  }
+
+  references(filename: string, position: number) {
+    return this.referenceGroups(filename, position)?.flatMap((group) => group.references);
+  }
+
   renameInfo(filename: string, position: number): ts.RenameInfo {
     const info = this.project.service.getRenameInfo(
       virtualFilename(filename),

@@ -38,7 +38,9 @@ jobs:
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         run: node packages/twill/tests/consumer.mjs --packed
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: pnpm package:tooling && node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs
+        run: pnpm package:tooling && node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs && node packages/migrate/tests/consumer.mjs
+      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
+        run: pnpm release:manifest && pnpm --filter @swiftuijs/twill test:size --output ../../bundle-results.json
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
         run: pnpm benchmark --output benchmark-results.json
       - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
@@ -53,6 +55,8 @@ jobs:
             packages/*/coverage/
             benchmark-results.json
             project-results.json
+            release-manifest.json
+            bundle-results.json
   node20-consumer:
     runs-on: ubuntu-latest
     steps:
@@ -72,7 +76,7 @@ jobs:
       # Vitest 5 and VSCE 4 require Node 22. The distributed compiler, loader,
       # type checker and build adapters also support Node 20 consumers.
       - run: node packages/twill/tests/consumer.mjs --packed
-      - run: node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs
+      - run: node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs && node packages/migrate/tests/consumer.mjs
   editor:
     runs-on: ubuntu-latest
     strategy:

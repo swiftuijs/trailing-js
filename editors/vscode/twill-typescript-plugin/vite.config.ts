@@ -5,6 +5,7 @@ export default defineConfig(
   nodeViteConfig({
     entry: 'src/index.ts',
     filename: 'index.cjs',
+    external: ['typescript'],
     minify: true,
     footer: 'module.exports = module.exports.default;',
   }),

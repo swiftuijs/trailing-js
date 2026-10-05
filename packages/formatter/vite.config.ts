@@ -7,7 +7,11 @@ export default defineConfig({
   plugins: [dts({ tsconfigPath: 'tsconfig.build.json', entryRoot: 'src', outDirs: ['dist'] })],
   build: {
     ssr: true,
-    lib: { entry: 'src/index.ts', formats: ['es'], fileName: () => 'index.js' },
+    lib: {
+      entry: { index: 'src/index.ts', standalone: 'src/standalone.ts' },
+      formats: ['es'],
+      fileName: (_format, name) => name + '.js',
+    },
     target: 'node20',
     minify: false,
     sourcemap: true,

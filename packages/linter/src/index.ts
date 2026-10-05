@@ -218,6 +218,19 @@ function configuration(typed: boolean): Linter.Config[] {
         ...(typed ? { parserOptions: { projectService: true } } : {}),
       },
     })),
+    ...(typed
+      ? [
+          {
+            files,
+            rules: {
+              '@typescript-eslint/switch-exhaustiveness-check': [
+                'error',
+                { considerDefaultExhaustiveForUnions: false },
+              ] satisfies Linter.RuleEntry,
+            },
+          },
+        ]
+      : []),
   ];
 }
 plugin.configs.recommended = configuration(false);

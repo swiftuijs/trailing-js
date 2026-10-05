@@ -20,6 +20,8 @@ const pages = [
       { text: 'Getting started', link: '/getting-started' },
       { text: 'Playground', link: '/playground' },
       { text: 'Language overview', link: '/language' },
+      { text: 'Practical patterns', link: '/patterns' },
+      { text: 'Adoption and migration', link: '/adoption' },
     ],
   },
   {

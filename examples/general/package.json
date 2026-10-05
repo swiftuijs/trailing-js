@@ -12,7 +12,7 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test:example": "node tests/run.mjs"
+    "test:example": "node tests/run.mjs && node --import @swiftuijs/twill/register tests/workflow.mjs"
   },
   "devDependencies": {
     "@swiftuijs/twill": "workspace:*",

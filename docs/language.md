@@ -10,6 +10,7 @@ Twill is a dialect of JS/TS using existing engines and TypeScript's type system.
 - Ordinary trailing closures and guards add no runtime helpers. Features requiring allocations, closures, scheduling or resource stacks must disclose and measure their cost.
 - New contextual statements preserve existing JS identifier uses. `defer { ... }` requires a same-line brace; `defer()`, properties, assignments and labels are ordinary JS. Existing JS keywords keep their meanings.
 - Correct source positions, TS inference, editor support, strict diagnostics, cross-platform builds and published syntax contracts are part of a feature's implementation.
+- Prefer explicit validation, resource ownership and business outcomes. Existing TS types and normal libraries are the first choice when they express the same intent without new syntax.
 
 The compiler is a build dependency. Production bundles contain the lowered code and whatever normal runtime libraries the application imports. `transform()` preserves TypeScript; build plugins and the Node loader erase types and lower JSX. The type checker uses TypeScript 5.9, not a parallel type system. Unsupported syntax fails with a diagnostic; it is not guessed or silently discarded.
 
@@ -24,10 +25,14 @@ The compiler is a build dependency. Production bundles contain the lowered code 
 | UI child collection                                        | Implemented in `.twillx`     | A local array and ordered pushes through control flow; inside natural component closures                                                                        |
 | `defer`                                                    | Supported                    | One callback or a lazy stack with finally; reverse cleanup order, explicit async await, all cleanups run, lexical captures and function-body hoisting preserved |
 | Optional chaining, nullish fallback, async/await, generics | Use existing JS/TS           | Avoid duplicate syntax for capabilities already present                                                                                                         |
+| Associated-value enums and immutable data                  | Use existing TS              | Discriminated unions and readonly types; no wrapper runtime, hidden freezing or value copying                                                                   |
+| Exhaustive switches                                        | Opt-in typed linting         | `recommendedTypeChecked` checks missing union variants even with `default`; run ESLint to enforce it                                                            |
 | SwiftUI state/property wrappers, observation               | Use normal framework APIs    | Hidden state insertion could violate React hooks or Vue tracking; native JSX preserves the framework's lifecycle                                                |
 | Swift structs/value semantics, actors, ownership           | Outside baseline             | Would change the JS runtime model and need copying, scheduling or a separate semantic system                                                                    |
 
 `defer` allocates a cleanup closure for each reached registration. Multiple or control-flow registrations additionally allocate a lazy local stack. Native `try/finally` remains available for allocation-sensitive loops.
+
+See [practical patterns](./patterns.md) for boundary validation, explicit results, owned cleanup and cooperative cancellation in ordinary application code.
 
 ## Ecosystem boundaries
 

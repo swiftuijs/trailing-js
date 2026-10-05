@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, statSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 
 const manifest = (path) => JSON.parse(readFileSync(path, 'utf8'));
 const version = manifest('package.json').version;
@@ -8,6 +9,7 @@ for (const path of [
   'packages/twill/package.json',
   'packages/formatter/package.json',
   'packages/linter/package.json',
+  'packages/migrate/package.json',
   'editors/vscode/package.json',
   'editors/vscode/twill-typescript-plugin/package.json',
 ])
@@ -25,22 +27,47 @@ for (const path of [
   'editors/vscode/twill-typescript-plugin/package.json',
 ])
   assert.equal(manifest(path).private, true, `Internal workspace must be private: ${path}`);
-for (const name of ['twill', 'formatter', 'linter']) {
+const artifacts = [];
+const budgets = { twill: 650 * 1024, formatter: 24 * 1024, linter: 24 * 1024, migrate: 28 * 1024 };
+for (const name of ['twill', 'formatter', 'linter', 'migrate']) {
   const pkg = manifest(`packages/${name}/package.json`);
   assert(!pkg.private && pkg.publishConfig.access === 'public', `Publication metadata: ${name}`);
   assert(pkg.repository.url.includes('swiftuijs/twill'), `Repository metadata: ${name}`);
   if (process.argv.includes('--artifacts')) {
+    const archive = `swiftuijs-${name === 'twill' ? name : 'twill-' + name}-${version}.tgz`;
+    assert(existsSync(archive), `Missing ${name} archive`);
+    const bytes = statSync(archive).size;
     assert(
-      existsSync(`swiftuijs-${name === 'twill' ? name : 'twill-' + name}-${version}.tgz`),
-      `Missing ${name} archive`,
+      bytes <= budgets[name],
+      `${archive} exceeds its ${budgets[name]} byte compressed budget`,
     );
+    artifacts.push({
+      filename: archive,
+      bytes,
+      sha256: createHash('sha256').update(readFileSync(archive)).digest('hex'),
+    });
     for (const entry of Object.values(pkg.exports))
       for (const path of typeof entry === 'string' ? [entry] : Object.values(entry))
         assert(existsSync(`packages/${name}/${path}`), `Missing public export: ${name}/${path}`);
   }
 }
-if (process.argv.includes('--artifacts'))
+if (process.argv.includes('--artifacts')) {
   assert(existsSync('dist/twill.vsix'), 'Missing editor artifact');
+  const bytes = statSync('dist/twill.vsix').size;
+  assert(bytes <= 3 * 1024 * 1024, 'VSIX exceeds its 3 MiB compressed budget');
+  artifacts.push({
+    filename: 'twill.vsix',
+    bytes,
+    sha256: createHash('sha256').update(readFileSync('dist/twill.vsix')).digest('hex'),
+  });
+}
+if (process.argv.includes('--manifest')) {
+  assert(process.argv.includes('--artifacts'), '--manifest requires --artifacts');
+  writeFileSync(
+    'release-manifest.json',
+    JSON.stringify({ version, hashAlgorithm: 'sha256', artifacts }, null, 2) + '\n',
+  );
+}
 console.log(
   `Release ${version}: synchronized versions, changelog${process.argv.includes('--artifacts') ? ', artifacts and exports' : ''} verified.`,
 );

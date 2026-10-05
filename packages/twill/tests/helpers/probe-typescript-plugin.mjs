@@ -12,6 +12,7 @@ export async function probeTypeScriptPlugin(probeLocation, pluginName) {
   const main = join(root, 'main.ts');
   const api = join(root, 'api.twill');
   const js = join(root, 'consumer.js');
+  const caller = join(root, 'caller.twill');
   const source = 'import {label} from "./api.twill"; export const answer: string = label(2);';
   writeFileSync(
     join(root, 'tsconfig.json'),
@@ -24,14 +25,18 @@ export async function probeTypeScriptPlugin(probeLocation, pluginName) {
         module: 'ESNext',
         moduleResolution: 'Bundler',
       },
-      include: ['*.ts', '*.js'],
+      include: ['*.ts', '*.js', '*.twill'],
     }),
   );
   writeFileSync(
     api,
-    'export function label(value: number): string { const run=(body:()=>string)=>body(); const values: number[] = [value]; return run() { values.map() { item in String(item) }.join(",") }; }',
+    'export function label(value: number): string { const run=(body:()=>string)=>body(); const values: number[] = [value]; return run() { values.map() { item in String(item) }.join(",") }; } export const unused = 0;',
   );
   writeFileSync(main, source);
+  writeFileSync(
+    caller,
+    'import {unused, label} from "./api.twill"; export const result = label(2);',
+  );
   writeFileSync(js, 'import {label} from "./api.twill"; export const wrong = label("bad");');
   const child = spawn(
     process.execPath,
@@ -98,7 +103,28 @@ export async function probeTypeScriptPlugin(probeLocation, pluginName) {
     );
     return result;
   };
+  const callerOverlay = 'import { label } from "./api.twill";\nexport const result = label(2);';
+  const assertCallerReferences = (references) => {
+    const callerRefs = references.refs.filter(
+      (entry) => entry.file.replaceAll('\\', '/') === caller.replaceAll('\\', '/'),
+    );
+    assert.equal(callerRefs.length, 2);
+    for (const entry of callerRefs) {
+      const line = callerOverlay.split('\n')[entry.start.line - 1];
+      assert.equal(
+        line.slice(entry.start.offset - 1, entry.end.offset - 1),
+        'label',
+        JSON.stringify(entry),
+      );
+    }
+  };
   try {
+    // The editor can send unsaved overlays before a native document creates
+    // the configured TS-server project. Those overrides arrive in create(info.config).
+    await send('configurePlugin', {
+      pluginName,
+      configuration: { overlays: { [caller.replaceAll('\\', '/')]: callerOverlay } },
+    });
     send('open', { file: main, fileContent: source }, false);
     const info = await send('quickinfo', {
       file: main,
@@ -116,6 +142,23 @@ export async function probeTypeScriptPlugin(probeLocation, pluginName) {
     assert.equal(definitions[0].file.replaceAll('\\', '/'), api.replaceAll('\\', '/'));
     assert.equal(definitions[0].start.line, 1);
     assert.equal(definitions[0].start.offset, 'export function '.length + 1);
+    const references = await send('references', {
+      file: main,
+      line: 1,
+      offset: source.lastIndexOf('label') + 2,
+    });
+    const apiReferences = references.refs.filter(
+      (entry) => entry.file.replaceAll('\\', '/') === api.replaceAll('\\', '/'),
+    );
+    assert.equal(apiReferences.length, 1);
+    assert.equal(apiReferences[0].start.offset, 'export function '.length + 1);
+    assert(
+      references.refs.some(
+        (entry) => entry.file.replaceAll('\\', '/') === js.replaceAll('\\', '/'),
+      ),
+    );
+    assert(references.refs.every((entry) => !/\.twill\.ts$/.test(entry.file)));
+    assertCallerReferences(references);
     const rename = await send('rename', {
       file: api,
       line: 1,
@@ -144,16 +187,24 @@ export async function probeTypeScriptPlugin(probeLocation, pluginName) {
         (diagnostic) => diagnostic.code === 2322,
       ),
     );
+    const apiOverlay =
+      'export function label(value: number): number { const run=(body:()=>number)=>body(); return run() { value }; }';
     await send('configurePlugin', {
       pluginName,
       configuration: {
         overlays: {
-          [api.replaceAll('\\', '/')]:
-            'export function label(value: number): number { const run=(body:()=>number)=>body(); return run() { value }; }',
+          [api.replaceAll('\\', '/')]: apiOverlay,
+          [caller.replaceAll('\\', '/')]: callerOverlay,
         },
       },
     });
     assert.deepEqual(await send('semanticDiagnosticsSync', { file: main }), []);
+    const updatedReferences = await send('references', {
+      file: main,
+      line: 1,
+      offset: source.lastIndexOf('label') + 2,
+    });
+    assertCallerReferences(updatedReferences);
   } catch (error) {
     const log = readFileSync(join(root, 'server.log'), 'utf8')
       .split('\n')
