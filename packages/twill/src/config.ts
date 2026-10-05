@@ -59,10 +59,12 @@ export function configurationFiles(root: string): string[] {
   jsxSource(root);
   const tsconfig = ts.findConfigFile(root, ts.sys.fileExists);
   return [
-    ...new Set([
-      resolve(root, 'twill.config.json'),
-      resolve(root, 'tsconfig.json'),
-      ...(tsconfig ? [...(jsxConfigs.get(tsconfig)?.files.keys() ?? [tsconfig])] : []),
-    ]),
+    ...new Set(
+      [
+        resolve(root, 'twill.config.json'),
+        resolve(root, 'tsconfig.json'),
+        ...(tsconfig ? [...(jsxConfigs.get(tsconfig)?.files.keys() ?? [tsconfig])] : []),
+      ].map((file) => resolve(file)),
+    ),
   ];
 }

@@ -57,33 +57,44 @@ export const twillPlugin = createUnplugin<PluginOptions | undefined, false>(
         },
         configureServer(server) {
           let files = new Set(configurationFiles(root).map((file) => resolve(file)));
-          server.watcher.add([...files]);
+          // Watch the parent of an absent file. Registering a missing path
+          // directly can narrow Chokidar's directory filter and lose additions.
+          const watch = () =>
+            server.watcher.add([...files].map((file) => (existsSync(file) ? file : dirname(file))));
+          watch();
+          let update: ReturnType<typeof setTimeout> | undefined;
           const changed = (filename: string) => {
             if (files.has(resolve(filename))) {
-              try {
-                config = { ...loadConfig(root), ...options };
-              } catch (cause) {
-                const error = cause instanceof Error ? cause : new Error(String(cause));
-                server.config.logger.error(error.message);
-                server.ws.send({
-                  type: 'error',
-                  err: { message: error.message, stack: error.stack ?? '', plugin: 'twill' },
-                });
-                return;
-              }
-              files = new Set(configurationFiles(root).map((file) => resolve(file)));
-              server.watcher.add([...files]);
-              if (server.environments)
-                for (const environment of Object.values(server.environments))
-                  environment.moduleGraph.invalidateAll();
-              else server.moduleGraph.invalidateAll();
-              server.ws.send({ type: 'full-reload' });
+              clearTimeout(update);
+              // Chokidar throttles rapid changes for 50 ms. Read after that
+              // window so consecutive saves use the final contents, and a
+              // correction after an error overlay produces another event.
+              update = setTimeout(() => {
+                try {
+                  config = { ...loadConfig(root), ...options };
+                } catch (cause) {
+                  const error = cause instanceof Error ? cause : new Error(String(cause));
+                  server.config.logger.error(error.message);
+                  server.ws.send({
+                    type: 'error',
+                    err: { message: error.message, stack: error.stack ?? '', plugin: 'twill' },
+                  });
+                  return;
+                }
+                files = new Set(configurationFiles(root).map((file) => resolve(file)));
+                watch();
+                if (server.environments)
+                  for (const environment of Object.values(server.environments))
+                    environment.moduleGraph.invalidateAll();
+                else server.moduleGraph.invalidateAll();
+                server.ws.send({ type: 'full-reload' });
+              }, 75);
             }
           };
           server.watcher.on('change', changed).on('add', changed).on('unlink', changed);
-          server.httpServer?.once('close', () => {
-            server.watcher.off('change', changed).off('add', changed).off('unlink', changed);
-          });
+          server.httpServer?.once('close', () => clearTimeout(update));
+          // Chokidar removes listeners when the watcher closes. HTTP can close
+          // and reopen independently of the watcher during server setup.
         },
       },
       resolveId(id, importer) {
