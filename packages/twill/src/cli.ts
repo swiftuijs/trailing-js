@@ -24,7 +24,7 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
   const [command, input, ...extra] = positionals;
   if (values.help || !command) {
     console.log(
-      'twill compile <file> [-o output.ts] [--js]\ntwill check [-p tsconfig.json] [--json]\ntwill doctor [-p tsconfig.json] [--json]\ntwill declarations [-p tsconfig.json] [-o dist] [--build] [--json]\n\ncompile keeps TypeScript types by default; --js erases types and lowers JSX.\nCommands read twill.config.json from the project root.',
+      'twill compile <file> [-o output.ts] [--js]\ntwill check [-p tsconfig.json] [--json]\ntwill doctor [-p tsconfig.json] [--json]\ntwill declarations [-p tsconfig.json] [-o dist] [--build] [--json]\n\ncompile keeps TypeScript types by default; --js erases types and lowers JSX.\nCommands use the optional twill.config.json from the project root.',
     );
     return 0;
   }

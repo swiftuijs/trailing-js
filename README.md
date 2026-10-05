@@ -36,7 +36,7 @@ import twill from '@swiftuijs/twill/vite';
 export default defineConfig({ plugins: [twill()] });
 ```
 
-The repository, npm package, CLI and configuration are `swiftuijs/twill`, `@swiftuijs/twill`, `twill` and `twill.config.json`. No legacy aliases are provided.
+The repository, npm package and CLI are `swiftuijs/twill`, `@swiftuijs/twill` and `twill`. `twill.config.json` is optional: trailing closures, single-expression returns, guards and cleanup work with the default settings. Existing projects keep their normal TypeScript and framework configuration.
 
 | Source extension | Base language |
 | ---------------- | ------------- |
