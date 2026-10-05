@@ -6,7 +6,7 @@ Start with a module whose control flow benefits from explicit validation or clea
 
 Good candidates are request validation, nullable lookup results, owned file/transaction workflows and callback-based data processing. [Practical patterns](./patterns.md) show a ledger importer with expected errors, overflow checks, awaited release and cooperative cancellation. The [general example](../examples/general/workflow.twill) has execution tests for those failure paths.
 
-For stateful business logic, native TS discriminated unions plus `recommendedTypeChecked` linting expose missing switch cases when a state is added. Configure lint in CI to enforce that policy. Twill's guard statements require explicit exits; nullish bindings preserve zero and false. Neither mechanism replaces runtime validation of untrusted data.
+For stateful business logic, native TS discriminated unions and switch expressions expose omitted cases through `twill check` when a state is added. `recommendedTypeChecked` linting additionally checks native switch statements and explicit-default coverage. Configure lint in CI to enforce that policy. Twill's guard statements require explicit exits; nullish bindings preserve zero and false. Neither mechanism replaces runtime validation of untrusted data.
 
 ## Keep the development loop complete
 
