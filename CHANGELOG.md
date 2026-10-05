@@ -6,6 +6,8 @@ Add an independent `apps/docs` VitePress workspace with shared reference sources
 
 Add the optional `@swiftuijs/twill/vite-react` adapter for Vite 8 / React plugin 6 Fast Refresh, retaining hook state through Twill and native TS edits. Fix Vite client import analysis incorrectly treating optional configuration as browser dependencies. Watch inherited and newly created/deleted configuration files, invalidate affected environment graphs, and report invalid live configuration without crashing the server.
 
+Node loader emission targets ES2022 so native TypeScript `using` / `await using` resource management works on supported Node 20 consumers as well as newer engines. Independent consumer checks exercise native async disposal together with Twill's `defer`.
+
 Add a TypeScript 5.9 syntax/formatter corpus, 200 seeded differential runtime cases combining closures, guards and cleanup, and synchronized release/tag/artifact checks. This closes specific workflow gaps; the 0.x language remains experimental, with broader application validation, advanced editor refactoring and incremental declaration builds still outstanding.
 
 ## 0.7.0

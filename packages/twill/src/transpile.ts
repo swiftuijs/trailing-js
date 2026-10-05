@@ -3,7 +3,11 @@ import remapping from '@ampproject/remapping';
 import MagicString from 'magic-string';
 import { transform, inferLanguage, type TransformOptions } from './compiler.js';
 
-export function transpile(source: string, options: TransformOptions = {}) {
+export function transpile(
+  source: string,
+  options: TransformOptions = {},
+  target = ts.ScriptTarget.ESNext,
+) {
   const filename = options.filename ?? 'input.twill';
   const result = transform(source, options);
   const language = options.language ?? inferLanguage(filename);
@@ -13,6 +17,7 @@ export function transpile(source: string, options: TransformOptions = {}) {
     language,
     result.map.toString(),
     options.jsxImportSource,
+    target,
   );
 }
 
@@ -23,6 +28,7 @@ export function transpileNative(
   language = inferLanguage(filename),
   syntaxMap?: string,
   jsxImportSource?: string,
+  target = ts.ScriptTarget.ESNext,
 ) {
   // Plain JavaScript needs no type erasure or JSX transform. Leave modern JS
   // (including comments and import attributes) to the host's target pipeline.
@@ -38,7 +44,7 @@ export function transpileNative(
   const output = ts.transpileModule(source, {
     fileName: syntaxMap ? filename + (language.endsWith('x') ? '.tsx' : '.ts') : filename,
     compilerOptions: {
-      target: ts.ScriptTarget.ESNext,
+      target,
       module: ts.ModuleKind.ESNext,
       jsx: ts.JsxEmit.ReactJSX,
       jsxImportSource,

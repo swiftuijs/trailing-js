@@ -40,6 +40,8 @@ node --enable-source-maps --import @swiftuijs/twill/register src/main.js
 
 Any local ESM `.js`, `.ts`, `.mts` or Twill entry can start the graph. The loader emits standard JS for local ESM TS/TSX/JSX, including TS constructs such as enums that native type stripping cannot handle. It does not require native Node TS support, so the same graph runs on supported Node 20/22/24 versions. Native JS and CJS loading is delegated to Node; npm dependencies keep their normal loaders. Emitted JSX uses the project’s standard automatic JSX runtime setting, React by default; Vue component closures use its lazy slot runtime.
 
+Loader emission targets ES2022, lowering native TypeScript `using` and `await using` even on Node 20. Native resource disposal composes with Twill's block-scoped `defer`; independent consumer checks verify their execution order. Include `ESNext.Disposable` in your TypeScript libraries when checking disposal APIs. Plain `.js` files retain the Node engine's own syntax support.
+
 This integration supports ESM `import` and `import()`. Use dynamic `import()` to reach Twill from CommonJS. Static CommonJS `require()` of Twill and TypeScript `.cts` emission require separate host handling. Existing exports restrictions and non-resolution errors are preserved; fallback applies only to missing local modules/directory imports. Native TS and Twill frames both retain original filenames and line numbers under source maps.
 
 ## Editor

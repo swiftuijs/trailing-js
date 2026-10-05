@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -231,6 +231,35 @@ try {
     { cwd: root, encoding: 'utf8' },
   );
   assert.deepEqual(JSON.parse(interop), { values: [1, 2], dynamic: [0, 4] });
+  mkdirSync(join(root, 'resources'));
+  writeFileSync(
+    join(root, 'resources/helper.ts'),
+    `export async function work(events: string[]) {
+    await using handle = { async [Symbol.asyncDispose]() { events.push('async'); } };
+    events.push('body');
+  }`,
+  );
+  writeFileSync(
+    join(root, 'resources/main.twill'),
+    `import {work} from './helper.ts';
+    async function run() {
+      const events: string[] = [];
+      defer { events.push('defer'); }
+      using handle = { [Symbol.dispose]() { events.push('sync'); } };
+      await work(events); events.push('returned'); return events;
+    }
+    console.log(JSON.stringify(await run()));`,
+  );
+  const resources = execFileSync(
+    process.execPath,
+    ['--import', '@swiftuijs/twill/register', 'resources/main.twill'],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.deepEqual(
+    JSON.parse(resources),
+    ['body', 'async', 'returned', 'sync', 'defer'],
+    'Native TS resources and dialect cleanup must work on every supported Node consumer',
+  );
   writeFileSync(
     join(root, 'thrower.ts'),
     'export function fail(): never {\n  const value: number = 1;\n  throw new Error("mapped native failure " + value);\n}\n',
