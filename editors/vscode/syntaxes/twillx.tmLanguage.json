@@ -6,7 +6,13 @@
       "include": "#defer"
     },
     {
+      "include": "#guard-binding"
+    },
+    {
       "include": "#guard"
+    },
+    {
+      "include": "#switch-expression"
     },
     {
       "include": "#closure-header"
@@ -35,6 +41,87 @@
       "match": "\\bguard\\b(?=\\s+(?:const\\b|[^\\s;=:.]))",
       "name": "keyword.control.twill"
     },
+    "guard-binding": {
+      "name": "meta.guard.binding.twill",
+      "begin": "\\b(guard)\\s+(const)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.twill"
+        },
+        "2": {
+          "name": "storage.type.tsx"
+        }
+      },
+      "end": "(?<![\\w$.])\\belse\\b(?=\\s*\\{)",
+      "endCaptures": {
+        "0": {
+          "name": "keyword.control.twill"
+        }
+      },
+      "patterns": [
+        {
+          "include": "source.tsx#object-binding-pattern-const"
+        },
+        {
+          "include": "source.tsx#array-binding-pattern-const"
+        },
+        {
+          "include": "source.tsx"
+        }
+      ]
+    },
+    "switch-expression": {
+      "name": "meta.switch.expression.twill",
+      "begin": "(?<![\\w$.])(switch)\\b(?=\\s*\\()",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.twill"
+        }
+      },
+      "end": "\\}",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.section.block.end.twill"
+        }
+      },
+      "patterns": [
+        {
+          "include": "source.tsx#comment"
+        },
+        {
+          "begin": "\\(",
+          "end": "\\)",
+          "patterns": [
+            {
+              "include": "source.tsx#expression"
+            }
+          ]
+        },
+        {
+          "begin": "\\{",
+          "end": "(?=\\})",
+          "patterns": [
+            {
+              "begin": "(?<![\\w$.])(case|default)\\b",
+              "beginCaptures": {
+                "1": {
+                  "name": "keyword.control.twill"
+                }
+              },
+              "end": "(?=:)",
+              "patterns": [
+                {
+                  "include": "source.tsx#expression"
+                }
+              ]
+            },
+            {
+              "include": "source.tsx#statements"
+            }
+          ]
+        }
+      ]
+    },
     "closure-header": {
       "begin": "(\\{)(?=\\s*(?:async\\s+)?(?:[A-Za-z_$][\\w$]*(?:\\s*,\\s*[A-Za-z_$][\\w$]*)*|\\([^;{}]*\\))\\s+in\\b)",
       "beginCaptures": {
@@ -62,7 +149,13 @@
           "include": "#defer"
         },
         {
+          "include": "#guard-binding"
+        },
+        {
           "include": "#guard"
+        },
+        {
+          "include": "#switch-expression"
         },
         {
           "include": "#closure-header"

@@ -1,6 +1,10 @@
 import * as vscode from 'vscode';
 import assert from 'node:assert/strict';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { Registry, INITIAL } from 'vscode-textmate';
+import { loadWASM, OnigScanner, OnigString } from 'vscode-oniguruma';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 async function eventually<T>(action: () => PromiseLike<T>, accept: (value: T) => boolean) {
@@ -24,6 +28,69 @@ export async function run() {
   const extension = vscode.extensions.getExtension('swiftuijs.twill')!;
   assert(extension, 'The extracted VSIX must be installed');
   await extension.activate();
+  const require = createRequire(join(root, '../tests.cjs'));
+  const wasm = readFileSync(require.resolve('vscode-oniguruma/release/onig.wasm'));
+  await loadWASM(wasm.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength));
+  const grammars = ['twill', 'twillx'].map((name) =>
+    JSON.parse(
+      readFileSync(join(extension.extensionPath, 'syntaxes', name + '.tmLanguage.json'), 'utf8'),
+    ),
+  );
+  const nativeGrammars = ['TypeScript', 'TypeScriptReact'].map((name) =>
+    JSON.parse(
+      readFileSync(
+        join(
+          dirname(process.execPath),
+          'resources/app/extensions/typescript-basics/syntaxes',
+          name + '.tmLanguage.json',
+        ),
+        'utf8',
+      ),
+    ),
+  );
+  const registry = new Registry({
+    onigLib: Promise.resolve({
+      createOnigScanner: (patterns) => new OnigScanner(patterns),
+      createOnigString: (text) => new OnigString(text),
+    }),
+    loadGrammar: async (scope) =>
+      [...grammars, ...nativeGrammars].find((grammar) => grammar.scopeName === scope) ?? null,
+  });
+  try {
+    for (const grammar of grammars) {
+      const loaded = (await registry.loadGrammar(grammar.scopeName))!;
+      let state = INITIAL;
+      const controls: string[] = [];
+      for (const line of [
+        'function describe(input: Result) {',
+        'guard const { result } = input else { return "missing"; }',
+        'return switch (result) {',
+        'case { kind: "ok", value }: value.toFixed();',
+        'default: "unknown";',
+        '};',
+        'const words = "guard else switch case default";',
+        'object.switch();',
+        '}',
+      ]) {
+        const tokens = loaded.tokenizeLine(line, state);
+        state = tokens.ruleStack;
+        for (const token of tokens.tokens)
+          if (token.scopes.some((scope) => scope.startsWith('keyword.control')))
+            controls.push(line.slice(token.startIndex, token.endIndex));
+      }
+      for (const word of ['guard', 'else', 'switch', 'case', 'default'])
+        assert.equal(
+          controls.filter((control) => control === word).length,
+          1,
+          `${grammar.name}: ${word} must highlight once, excluding strings/properties`,
+        );
+    }
+  } finally {
+    registry.dispose();
+  }
+  console.log(
+    'PASS: shipped TS/TSX grammars highlight guard and switch expressions with actual built-in TS grammars',
+  );
   const open = async (name: string) => {
     const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(join(root, name)));
     await vscode.window.showTextDocument(doc);

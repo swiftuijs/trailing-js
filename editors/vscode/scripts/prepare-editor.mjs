@@ -24,7 +24,9 @@ for (const [extension, language] of Object.entries({
     scopeName: 'source.twill.' + { twill: 'ts', twillx: 'tsx' }[extension],
     patterns: [
       { include: '#defer' },
+      { include: '#guard-binding' },
       { include: '#guard' },
+      { include: '#switch-expression' },
       // A real closure header has `in` before its first statement. The body
       // delegates strings, comments, templates, JSX and nested syntax to VS Code.
       { include: '#closure-header' },
@@ -46,6 +48,52 @@ for (const [extension, language] of Object.entries({
         match: '\\bguard\\b(?=\\s+(?:const\\b|[^\\s;=:.]))',
         name: 'keyword.control.twill',
       },
+      'guard-binding': {
+        name: 'meta.guard.binding.twill',
+        begin: '\\b(guard)\\s+(const)\\b',
+        beginCaptures: {
+          1: { name: 'keyword.control.twill' },
+          2: { name: 'storage.type.' + language },
+        },
+        end: '(?<![\\w$.])\\belse\\b(?=\\s*\\{)',
+        endCaptures: { 0: { name: 'keyword.control.twill' } },
+        patterns: [
+          { include: 'source.' + language + '#object-binding-pattern-const' },
+          { include: 'source.' + language + '#array-binding-pattern-const' },
+          { include: 'source.' + language },
+        ],
+      },
+      // Consume the keyword before entering native expression/statement
+      // regions. A zero-width native switch rule would recursively inject
+      // itself at the same offset, and TS normally treats return switch as a call.
+      'switch-expression': {
+        name: 'meta.switch.expression.twill',
+        begin: '(?<![\\w$.])(switch)\\b(?=\\s*\\()',
+        beginCaptures: { 1: { name: 'keyword.control.twill' } },
+        end: '\\}',
+        endCaptures: { 0: { name: 'punctuation.section.block.end.twill' } },
+        patterns: [
+          { include: 'source.' + language + '#comment' },
+          {
+            begin: '\\(',
+            end: '\\)',
+            patterns: [{ include: 'source.' + language + '#expression' }],
+          },
+          {
+            begin: '\\{',
+            end: '(?=\\})',
+            patterns: [
+              {
+                begin: '(?<![\\w$.])(case|default)\\b',
+                beginCaptures: { 1: { name: 'keyword.control.twill' } },
+                end: '(?=:)',
+                patterns: [{ include: 'source.' + language + '#expression' }],
+              },
+              { include: 'source.' + language + '#statements' },
+            ],
+          },
+        ],
+      },
       'closure-header': {
         begin:
           '(\\{)(?=\\s*(?:async\\s+)?(?:[A-Za-z_$][\\w$]*(?:\\s*,\\s*[A-Za-z_$][\\w$]*)*|\\([^;{}]*\\))\\s+in\\b)',
@@ -59,7 +107,13 @@ for (const [extension, language] of Object.entries({
   // Reach custom syntax inside the base grammar's function/block regions.
   grammar.injections = {
     [`L:${grammar.scopeName} -comment -string`]: {
-      patterns: [{ include: '#defer' }, { include: '#guard' }, { include: '#closure-header' }],
+      patterns: [
+        { include: '#defer' },
+        { include: '#guard-binding' },
+        { include: '#guard' },
+        { include: '#switch-expression' },
+        { include: '#closure-header' },
+      ],
     },
   };
   writeFileSync(
