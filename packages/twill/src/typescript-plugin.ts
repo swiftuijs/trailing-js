@@ -1,5 +1,6 @@
 import type ts from 'typescript/lib/tsserverlibrary';
 import { statSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { TwillProject, sourceFilename, virtualFilename } from './project.js';
 import { isTwillFile } from './compiler.js';
 import { TwillEditor } from './editor.js';
@@ -15,6 +16,12 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
   };
   const contexts = new Map<ts.server.Project, Context>();
   let overlays: Record<string, string> = {};
+  const createProject = (info: ts.server.PluginCreateInfo) =>
+    new TwillProject(
+      info.project.getProjectName(),
+      {},
+      { defaultLibFileName: (options) => info.languageServiceHost.getDefaultLibFileName(options) },
+    );
   const syncProtocolSource = (context: Context, file: string, text: string | undefined) => {
     // TS-server converts plugin offsets into protocol line/column positions
     // using its own ScriptInfo. Keep that text aligned with the virtual
@@ -108,13 +115,7 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
     create(info) {
       const config = info.project.getProjectName();
       if (!/\.json$/.test(config)) return info.languageService;
-      const project = new TwillProject(
-        config,
-        {},
-        {
-          defaultLibFileName: (options) => info.languageServiceHost.getDefaultLibFileName(options),
-        },
-      );
+      const project = createProject(info);
       const context: Context = {
         project,
         info,
@@ -151,7 +152,6 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
           }
         };
       };
-      const service = context.project.service;
       for (const key of [
         'getQuickInfoAtPosition',
         'getCompletionsAtPosition',
@@ -159,7 +159,7 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
         'getSignatureHelpItems',
       ] as const)
         use(key, (file, offset, ...args) =>
-          (service[key] as any)(
+          (context.project.service[key] as any)(
             virtualFilename(file),
             context.project.toGeneratedOffset(file, offset),
             ...args,
@@ -171,12 +171,13 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
         'getImplementationAtPosition',
       ] as const)
         use(key, (file, offset) =>
-          service[key](virtualFilename(file), context.project.toGeneratedOffset(file, offset))?.map(
-            (value) => entry(context, value),
-          ),
+          context.project.service[key](
+            virtualFilename(file),
+            context.project.toGeneratedOffset(file, offset),
+          )?.map((value) => entry(context, value)),
         );
       use('getDefinitionAndBoundSpan', (file, offset) => {
-        const result = service.getDefinitionAndBoundSpan(
+        const result = context.project.service.getDefinitionAndBoundSpan(
           virtualFilename(file),
           context.project.toGeneratedOffset(file, offset),
         );
@@ -204,7 +205,7 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
         return [...files.values()];
       };
       use('getCompletionEntryDetails', (file, offset, ...args) => {
-        const details = (service.getCompletionEntryDetails as any)(
+        const details = (context.project.service.getCompletionEntryDetails as any)(
           virtualFilename(file),
           context.project.toGeneratedOffset(file, offset),
           ...args,
@@ -226,7 +227,7 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
           sync(context);
           if (!context.project.sourceFiles().some(isTwillFile))
             return originalOrganize(scope, format, preferences);
-          const changes = service.organizeImports(
+          const changes = context.project.service.organizeImports(
             { ...scope, fileName: virtualFilename(scope.fileName) },
             format,
             preferences,
@@ -239,7 +240,9 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
       };
       for (const key of ['getSemanticDiagnostics', 'getSyntacticDiagnostics'] as const)
         use(key, (file) =>
-          service[key](virtualFilename(file)).map((value) => diagnostic(context, value)),
+          context.project.service[key](virtualFilename(file)).map((value) =>
+            diagnostic(context, value),
+          ),
         );
       const dispose = proxy.dispose;
       proxy.dispose = () => {
@@ -268,16 +271,39 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
       const changed = [...new Set([...Object.keys(previous), ...Object.keys(overlays)])].filter(
         (file) => previous[file] !== overlays[file],
       );
-      if (!changed.length) return;
+      const reloadFiles: string[] = Array.isArray(config?.reloadFiles)
+        ? config.reloadFiles.filter((file: unknown) => typeof file === 'string').map(sourceFilename)
+        : [];
+      if (!changed.length && !reloadFiles.length) return;
       for (const context of contexts.values()) {
         const sources = new Set(context.project.sourceFiles());
-        for (const file of changed) {
+        const reload = reloadFiles.some(
+          (file) =>
+            context.project.configFiles.includes(file) ||
+            (file.endsWith('/package.json') &&
+              [...sources].some((source) => source.startsWith(dirname(file) + '/'))),
+        );
+        let reloaded = false;
+        if (reload) {
+          try {
+            const project = createProject(context.info);
+            context.project.dispose();
+            context.project = project;
+            context.editor = new TwillEditor(project);
+            context.versions.clear();
+            reloaded = true;
+          } catch (error) {
+            context.info.project.projectService.logger.info(`Twill configuration reload: ${error}`);
+          }
+        }
+        for (const file of reload ? new Set([...changed, ...Object.keys(overlays)]) : changed) {
           if (!file.startsWith(sourceFilename(context.project.root) + '/') && !sources.has(file))
             continue;
           syncProtocolSource(context, file, overlays[file]);
           context.project.update(file, overlays[file]);
           context.versions.delete(file);
         }
+        if (reloaded) context.info.project.refreshDiagnostics();
       }
     },
   };

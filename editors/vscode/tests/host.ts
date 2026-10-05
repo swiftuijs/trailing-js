@@ -202,6 +202,45 @@ export async function run() {
   );
   console.log('PASS: cross-file rename works from Twill and native TS with unsaved overlays');
 
+  const settings = await open('settings-consumer.ts');
+  const settingsUri = vscode.Uri.file(join(root, 'twill.config.json'));
+  const hoverType = async () => {
+    const items = await vscode.commands.executeCommand<vscode.Hover[]>(
+      'vscode.executeHoverProvider',
+      settings.uri,
+      position(settings, 'values;', 2),
+    );
+    return (
+      items
+        ?.flatMap((item) => item.contents)
+        .map((item) => (typeof item === 'string' ? item : item.value))
+        .join('\n') ?? ''
+    );
+  };
+  await eventually(hoverType, (text) => text.includes('number[]'));
+  try {
+    await vscode.workspace.fs.writeFile(settingsUri, Buffer.from('{"implicitReturn":false}'));
+    await eventually(hoverType, (text) => text.includes('void[]'));
+    await eventually(
+      async () => vscode.languages.getDiagnostics(settings.uri),
+      (items) => items.some((item) => item.code === 2322),
+    );
+    assert(
+      api.getText().includes('timesTwo(item)'),
+      'Configuration reload must retain unsaved source',
+    );
+  } finally {
+    await vscode.workspace.fs.delete(settingsUri);
+  }
+  await eventually(hoverType, (text) => text.includes('number[]'));
+  await eventually(
+    async () => vscode.languages.getDiagnostics(settings.uri),
+    (items) => !items.some((item) => item.code === 2322),
+  );
+  console.log(
+    'PASS: configuration saves refresh native TS hover and diagnostics with unsaved overlays',
+  );
+
   await vscode.window.showTextDocument(api);
   const originalSource = api.getText();
   await vscode.commands.executeCommand('twill.showGenerated');

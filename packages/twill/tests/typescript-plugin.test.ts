@@ -35,7 +35,7 @@ it('bridge edits retain unrelated transforms, snapshots and native script versio
   writeFileSync(second, 'export const second = [2].map { n in n + 2 };');
   writeFileSync(
     main,
-    'import { first } from "./first"; import { second } from "./second"; export const result = [first, second];',
+    'import { first } from "./first"; import { second } from "./second"; export const result: number[][] = [first, second];',
   );
   const logs: string[] = [];
   const fallback = vi.fn(() => []);
@@ -43,6 +43,7 @@ it('bridge edits retain unrelated transforms, snapshots and native script versio
   const info = {
     project: {
       getProjectName: () => config,
+      refreshDiagnostics: vi.fn(),
       projectService: {
         getScriptInfo: () => undefined,
         logger: { info: (text: string) => logs.push(text) },
@@ -84,6 +85,26 @@ it('bridge edits retain unrelated transforms, snapshots and native script versio
   expect(project.text(first)).toBe(disk);
   expect(service.getSemanticDiagnostics(main)).toEqual([]);
   expect(project.transformed(second)).toBe(unrelated);
+  const dialectConfig = sourceFilename(join(root, 'twill.config.json'));
+  plugin.onConfigurationChanged!({ overlays: { [first]: overlay } });
+  update.mockClear();
+  plugin.onConfigurationChanged!({
+    overlays: { [first]: overlay },
+    reloadFiles: [join(root, 'unrelated.json')],
+  });
+  expect(update).not.toHaveBeenCalled();
+  expect(info.project.refreshDiagnostics).not.toHaveBeenCalled();
+  writeFileSync(dialectConfig, '{"implicitReturn":false}');
+  plugin.onConfigurationChanged!({ overlays: { [first]: overlay }, reloadFiles: [dialectConfig] });
+  const replacement = update.mock.contexts.at(-1) as TwillProject;
+  expect(replacement).not.toBe(project);
+  expect(replacement.text(first)).toBe(overlay);
+  expect(service.getSemanticDiagnostics(main).map((item) => item.code)).toContain(2322);
+  writeFileSync(dialectConfig, '{"implicitReturn":true}');
+  plugin.onConfigurationChanged!({ overlays: { [first]: overlay }, reloadFiles: [dialectConfig] });
+  expect(service.getSemanticDiagnostics(main)).toEqual([]);
+  expect((update.mock.contexts.at(-1) as TwillProject).text(first)).toBe(overlay);
+  expect(info.project.refreshDiagnostics).toHaveBeenCalledTimes(2);
   expect(fallback).not.toHaveBeenCalled();
   expect(logs).toEqual([]);
 });

@@ -39,6 +39,9 @@ const fixture = {
   'scale.ts': 'export function scale(value: number): number { return value * 2; }\n',
   'auto.twill': 'export const answer = twice(21);\n',
   'consumer.ts': 'import { twice } from "./api.twill"; export const result: number = twice(21);\n',
+  'settings.twill': 'export const values = [1].map { n in n + 1 };\n',
+  'settings-consumer.ts':
+    'import { values } from "./settings.twill"; export const checked: number[] = values;\n',
   'imports.twill':
     'import { unused, twice } from "./api.twill";\nexport const values = [1].map { n in twice(n) };\n',
   'fix.twill': 'export const values = [1].map { value in value.toFixd(2) };\n',

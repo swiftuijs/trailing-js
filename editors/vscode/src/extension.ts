@@ -30,14 +30,14 @@ export function activate(context: vscode.ExtensionContext) {
         output.appendLine(String(error));
         return undefined;
       });
-  const syncBridge = () => {
+  const syncBridge = (reloadFiles: string[] = []) => {
     const overlays = Object.fromEntries(
       vscode.workspace.textDocuments
         .filter((document) => document.uri.scheme === 'file' && isTwillFile(document.fileName))
         .map((document) => [sourceFilename(document.fileName), document.getText()]),
     );
     void bridge?.then((api) =>
-      api?.configurePlugin('@swiftuijs/twill-vscode-tsserver', { overlays }),
+      api?.configurePlugin('@swiftuijs/twill-vscode-tsserver', { overlays, reloadFiles }),
     );
   };
   const projects = new Map<string, TwillProject>();
@@ -219,6 +219,9 @@ export function activate(context: vscode.ExtensionContext) {
   const diskChanged = (uri: vscode.Uri, discover = false) => {
     const filename = sourceFilename(uri.fsPath);
     if (isDependency(filename)) return;
+    // Native consumers can have a bridge project without an open Twill file.
+    // The bridge knows its inherited config files; send disk events directly.
+    if (filename.endsWith('.json')) syncBridge([filename]);
     for (const [root, project] of projects) {
       if (
         !filename.startsWith(root + '/') &&
