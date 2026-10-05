@@ -1,4 +1,5 @@
 import { TwillProject, virtualFilename } from '@swiftuijs/twill/project';
+import { TwillEditor } from '@swiftuijs/twill/editor';
 import { format } from '@swiftuijs/twill-formatter';
 import { performance } from 'node:perf_hooks';
 import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from 'node:fs';
@@ -45,6 +46,10 @@ if (child >= 0) {
         (_, i) => `import {value${i}} from './file${i}${i % 3 === 0 ? '.ts' : '.twill'}';`,
       ).join('\n') + '\nexport const answer = value1.map { n in n.toFixed(2) };';
     writeFileSync(main, source);
+    const member = join(root, 'members.twill');
+    const memberSource =
+      'export const users=[{active:true,name:"Ada"}];export const selected=users.filter { .active };';
+    writeFileSync(member, memberSource);
     const start = performance.now();
     project = new TwillProject(join(root, 'tsconfig.json'));
     assert.deepEqual(project.diagnostics(), []);
@@ -78,6 +83,17 @@ if (child >= 0) {
         ),
       );
     });
+    const editor = new TwillEditor(project);
+    const partial = memberSource.replace('.active', '.act');
+    project.update(member, partial);
+    const memberOffset = partial.indexOf('.act') + 4;
+    const warmMemberCompletion = measure(() =>
+      assert(
+        editor
+          .completions(member, memberOffset)
+          .info?.entries.some((entry) => entry.name === 'active'),
+      ),
+    );
     const largeSource = Array.from(
       { length: 1000 },
       (_, i) => `export const value${i}=[1,2,3].map { n in n*2 };`,
@@ -87,11 +103,12 @@ if (child >= 0) {
     const format1000ClosuresMs = performance.now() - formatStart;
     console.log(
       JSON.stringify({
-        sourceFiles: count + 1,
+        sourceFiles: count + 2,
         coldCheckMs,
         warmCheck,
         warmHover,
         changedHover,
+        warmMemberCompletion,
         format1000ClosuresMs,
         peakRssMiB: process.resourceUsage().maxRSS / 1024,
       }),
@@ -113,7 +130,7 @@ if (child >= 0) {
     node: process.version,
     cpu: cpus()[0]?.model,
     methodology:
-      'Isolated child process per size. 1/3 native TS, 2/3 Twill, one import fan-in. Cold virtual check includes TS libraries; 15 warm/edit samples. Synthetic workload, excludes VS Code UI, native bridge, bundler and application runtime. Formatter timing is a cold single sample.',
+      'Isolated child process per size. 1/3 native TS, 2/3 Twill, one import fan-in and one member-callback document. Cold virtual check includes TS libraries; 15 warm/edit samples, including contextual completion on an incomplete member name. Synthetic workload, excludes VS Code UI, native bridge, bundler and application runtime. Formatter timing is a cold single sample.',
     results,
   };
   const at = process.argv.indexOf('--output');

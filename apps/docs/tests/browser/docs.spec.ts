@@ -297,3 +297,30 @@ test('a failed compiler download can be retried without reloading the page', asy
   await expect(generated(page)).toContainText('greaterThanFour');
   await expect(page.getByRole('status')).toContainText('Compiled in');
 });
+
+test('input size limits preserve the current draft and generated output stays read-only', async ({
+  page,
+}) => {
+  await page.goto('playground');
+  const source = await editor(page);
+  await expect(page.getByRole('status')).toContainText('Compiled in');
+  const prefix = 'export const accepted = 42; //';
+  const valid = prefix + 'x'.repeat(20_000 - prefix.length);
+  await source.fill(valid);
+  await expect(generated(page)).toContainText('accepted = 42');
+  await expect(generated(page)).toHaveAttribute('contenteditable', 'false');
+  await expect(generated(page)).toHaveAttribute('aria-readonly', 'true');
+  await source.fill('export const rejected = 0; //' + 'x'.repeat(20_001));
+  await expect(page.getByText(/20,000/).last()).toBeVisible();
+  // CodeMirror virtualizes long lines; validate the complete draft rather than
+  // the currently visible fragment at the end of this 20,000-character line.
+  await expect
+    .poll(() =>
+      page.evaluate(() => JSON.parse(localStorage.getItem('twill.playground.draft')!).source),
+    )
+    .toBe(valid);
+  await expect(generated(page)).toContainText('accepted = 42');
+  await source.fill('export const recovered = [1].map { n in n + 1 };');
+  await expect(generated(page)).toContainText('recovered');
+  await expect(page.getByRole('status')).toContainText('Compiled in');
+});

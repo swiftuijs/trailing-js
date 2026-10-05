@@ -55,6 +55,7 @@
     "release:manifest": "node scripts/verify-release.mjs --artifacts --manifest",
     "test:examples": "pnpm --filter './examples/*' --workspace-concurrency=1 --if-present run test:example",
     "deps:check": "pnpm audit --audit-level moderate && pnpm peers check",
-    "benchmark:branching": "pnpm --filter @swiftuijs/twill run benchmark:branching"
+    "benchmark:branching": "pnpm --filter @swiftuijs/twill run benchmark:branching",
+    "editor:coverage": "pnpm --filter twill test:coverage:host"
   }
 }

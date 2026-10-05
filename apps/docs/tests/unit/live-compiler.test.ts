@@ -147,3 +147,34 @@ test('disposing cancels pending timers, active workers and late updates', () => 
   expect(states).toHaveLength(count);
   expect(workers).toHaveLength(1);
 });
+
+test('ignores unmatched response IDs and publishes a current syntax error once', () => {
+  client.update(input('current'), true);
+  workers[0]!.finish({ ...workers[0]!.requests[0]!, id: -1 });
+  expect(states.at(-1)).toMatchObject({ phase: 'compiling' });
+  workers[0]!.finish(undefined, true);
+  expect(states.at(-1)).toMatchObject({ phase: 'error', error: { offset: 2 } });
+});
+test('handles empty loading errors, stale callbacks and non-Error posting failures', () => {
+  client.update(input('first'), true);
+  const previous = workers[0]!;
+  previous.onerror?.({ message: '', preventDefault() {} } as ErrorEvent);
+  expect(states.at(-1)).toMatchObject({
+    phase: 'error',
+    error: { message: expect.stringContaining('could not load') },
+  });
+  client.update(input('retry'), true);
+  previous.onerror?.({
+    message: 'stale',
+    preventDefault() {
+      throw new Error('should be ignored');
+    },
+  } as unknown as ErrorEvent);
+  workers[1]!.finish();
+  expect(states.at(-1)).toMatchObject({ phase: 'ready', result: { code: 'retry' } });
+  vi.spyOn(workers[1]!, 'postMessage').mockImplementationOnce(() => {
+    throw 'posting failed';
+  });
+  client.update(input('next'), true);
+  expect(states.at(-1)).toMatchObject({ phase: 'error', error: { message: 'posting failed' } });
+});

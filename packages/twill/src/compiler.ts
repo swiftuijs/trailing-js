@@ -50,7 +50,7 @@ export class TwillSyntaxError extends SyntaxError {
     this.line = line;
     this.column = column;
     this.offset = error.pos ?? 0;
-    this.frame = `${source.split(/\r?\n/)[line - 1] ?? ''}\n${' '.repeat(column)}^`;
+    this.frame = `${source.split(/\r\n|[\r\n\u2028\u2029]/)[line - 1] ?? ''}\n${' '.repeat(column)}^`;
   }
 }
 

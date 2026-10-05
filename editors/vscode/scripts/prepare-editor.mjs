@@ -42,23 +42,23 @@ for (const [extension, language] of Object.entries({
     ],
     repository: {
       'implicit-member': {
-        match: '(?<![\\w$.)\\]])(\\.)([A-Za-z_$][\\w$]*)',
+        match: '(?<![\\w$.)}\\]])(\\.)([A-Za-z_$][\\w$]*)',
         captures: {
           1: { name: 'punctuation.accessor.twill' },
           2: { name: 'variable.other.property.twill' },
         },
       },
       defer: {
-        match: '\\bdefer\\b(?=(?:[^\\S\\r\\n]|/\\*[^\\r\\n]*?\\*/)*\\{)',
+        match: '(?<![\\w$.])\\bdefer\\b(?=(?:[^\\S\\r\\n]|/\\*[^\\r\\n]*?\\*/)*\\{)',
         name: 'keyword.control.twill',
       },
       guard: {
-        match: '\\bguard\\b(?=\\s+(?:const\\b|[^\\s;=:]))',
+        match: '(?<![\\w$.])\\bguard\\b(?=\\s+(?:const\\b|[^\\s;=:]))',
         name: 'keyword.control.twill',
       },
       'guard-binding': {
         name: 'meta.guard.binding.twill',
-        begin: '\\b(guard)\\s+(const)\\b',
+        begin: '(?<![\\w$.])\\b(guard)\\s+(const)\\b',
         beginCaptures: {
           1: { name: 'keyword.control.twill' },
           2: { name: 'storage.type.' + language },
@@ -104,26 +104,52 @@ for (const [extension, language] of Object.entries({
       },
       'closure-header': {
         begin:
-          '(\\{)(?=\\s*(?:async\\s+)?(?:[A-Za-z_$][\\w$]*(?:\\s*,\\s*[A-Za-z_$][\\w$]*)*|\\([^;{}]*\\))\\s+in\\b)',
+          '(\\{)(?=\\s*(?:async\\s+)?(?:[A-Za-z_$][\\w$]*(?:\\s*,\\s*[A-Za-z_$][\\w$]*)*|\\((?:[^;()]|\\([^()]*\\))*\\)(?:\\s*:[^;{}]*?)?)\\s+in\\b)',
         beginCaptures: { 1: { name: 'punctuation.section.block.begin.twill' } },
-        end: '\\bin\\b',
-        endCaptures: { 0: { name: 'keyword.control.twill' } },
-        patterns: [{ include: 'source.' + language }],
+        end: '\\}',
+        endCaptures: { 0: { name: 'punctuation.section.block.end.twill' } },
+        name: 'meta.trailing.closure.twill',
+        patterns: [
+          {
+            begin: '(?<=\\{)',
+            end: '\\bin\\b',
+            endCaptures: { 0: { name: 'keyword.control.twill' } },
+            patterns: [
+              { include: 'source.' + language + '#comment' },
+              { match: '\\basync\\b', name: 'storage.modifier.' + language },
+              { include: 'source.' + language + '#function-parameters' },
+              {
+                begin: ':',
+                end: '(?=\\bin\\b)',
+                patterns: [{ include: 'source.' + language + '#type' }],
+              },
+              { include: 'source.' + language + '#parameter-name' },
+            ],
+          },
+          ...(language === 'tsx'
+            ? [
+                { include: 'source.tsx#jsx-tag-without-attributes' },
+                { include: 'source.tsx#jsx-tag' },
+              ]
+            : []),
+          { include: 'source.' + language + '#statements' },
+        ],
       },
     },
   };
   // Reach custom syntax inside the base grammar's function/block regions.
   grammar.injections = {
-    [`L:${grammar.scopeName} -comment -string`]: {
-      patterns: [
-        { include: '#implicit-member' },
-        { include: '#defer' },
-        { include: '#guard-binding' },
-        { include: '#guard' },
-        { include: '#switch-expression' },
-        { include: '#closure-header' },
-      ],
-    },
+    [`L:${grammar.scopeName} -comment -string, L:${grammar.scopeName} meta.template.expression -comment -(meta.template.expression string)`]:
+      {
+        patterns: [
+          { include: '#implicit-member' },
+          { include: '#defer' },
+          { include: '#guard-binding' },
+          { include: '#guard' },
+          { include: '#switch-expression' },
+          { include: '#closure-header' },
+        ],
+      },
   };
   writeFileSync(
     `editors/vscode/syntaxes/${extension}.tmLanguage.json`,

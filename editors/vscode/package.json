@@ -12,7 +12,8 @@
     "verify": "node tests/verify-editor-plugin.mjs",
     "test": "node tests/test-editor.mjs",
     "test:unit": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage:host": "c8 --exclude-after-remap --check-coverage --statements=95 --lines=95 --functions=100 --branches=78 --include=\"**/extension.ts\" --extension=.ts --extension=.js --extension=.cjs --reporter=text --reporter=json --reporter=json-summary --reporter=html node tests/test-editor.mjs && node tests/verify-coverage.mjs"
   },
   "publisher": "swiftuijs",
   "license": "MIT",
@@ -102,19 +103,21 @@
     "@swiftuijs/twill-vscode-tsserver": "workspace:*"
   },
   "devDependencies": {
+    "@shikijs/langs": "2.5.0",
     "@swiftuijs/twill": "workspace:*",
-    "typescript": "catalog:",
-    "vite": "catalog:",
-    "@types/node": "catalog:",
-    "@types/vscode": "catalog:",
     "@swiftuijs/twill-formatter": "workspace:*",
-    "prettier": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/vscode": "catalog:",
     "@vscode/test-electron": "catalog:",
     "@vscode/vsce": "catalog:",
-    "vscode-textmate": "catalog:",
-    "vscode-oniguruma": "catalog:",
-    "yauzl": "catalog:",
+    "c8": "12.0.0",
+    "prettier": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
     "vitest": "catalog:",
-    "@types/react": "catalog:"
+    "vscode-oniguruma": "catalog:",
+    "vscode-textmate": "catalog:",
+    "yauzl": "catalog:"
   }
 }

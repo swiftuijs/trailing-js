@@ -106,13 +106,3 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
   } else process.stdout.write(result.code + '\n');
   return 0;
 }
-
-main()
-  .then((code) => {
-    process.exitCode = code;
-  })
-  .catch((error) => {
-    console.error(error.message);
-    if (error.frame) console.error(error.frame);
-    process.exitCode = 1;
-  });

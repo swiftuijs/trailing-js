@@ -26,6 +26,7 @@ pnpm build                # all workspace bundles and compiler declarations
 pnpm check                # build, typecheck, tests, consumer checks, packaged VSIX probes
 pnpm format:check
 pnpm test:coverage
+pnpm editor:coverage     # source coverage from the shipped VSIX in a real host
 pnpm package:core         # swiftuijs-twill-0.9.0.tgz at the root
 pnpm editor:package       # dist/twill.vsix
 pnpm editor:test          # real VS Code extension-host tests against the VSIX
@@ -34,6 +35,8 @@ xvfb-run -a pnpm editor:test
 ```
 
 `pnpm --filter @swiftuijs/twill build` builds only the compiler. `pnpm editor:build` builds the editor and its compiler/bridge dependencies. Fresh workspace imports need a build because they deliberately resolve through package exports. No npm lockfile or hoisted workspace installation is required. An independent npm consumer still installs and validates the public tarball as part of `pnpm test:package`.
+
+Coverage scopes, regression gates and edge-case contracts are described in [testing](./testing.md).
 
 ## Example and editor checks
 

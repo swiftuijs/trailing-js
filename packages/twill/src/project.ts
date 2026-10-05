@@ -407,7 +407,7 @@ export class TwillProject {
     const end = filename
       ? this.toOriginalOffset(filename, (diagnostic.start ?? 0) + (diagnostic.length ?? 1))
       : start + 1;
-    const before = source.slice(0, start).split('\n');
+    const before = source.slice(0, start).split(/\r\n|[\r\n\u2028\u2029]/);
     return {
       filename,
       line: before.length,

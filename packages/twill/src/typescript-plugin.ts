@@ -163,19 +163,32 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
           }
         };
       };
-      for (const key of [
-        'getQuickInfoAtPosition',
-        'getCompletionsAtPosition',
-        'getCompletionEntryDetails',
-        'getSignatureHelpItems',
-      ] as const)
-        use(key, (file, offset, ...args) =>
-          (context.project.service[key] as any)(
+      for (const key of ['getQuickInfoAtPosition', 'getSignatureHelpItems'] as const)
+        use(key, (file, offset, ...args) => {
+          const result = (context.project.service[key] as any)(
             virtualFilename(file),
             context.project.toGeneratedOffset(file, offset),
             ...args,
-          ),
-        );
+          );
+          if (!result) return result;
+          const field = key === 'getQuickInfoAtPosition' ? 'textSpan' : 'applicableSpan';
+          return { ...result, [field]: span(context, file, result[field]) };
+        });
+      use('getCompletionsAtPosition', (file, offset, preferences) => {
+        const { info } = context.editor.completions(file, offset, preferences);
+        if (!info || !isTwillFile(file)) return info;
+        return {
+          ...info,
+          optionalReplacementSpan:
+            info.optionalReplacementSpan &&
+            context.editor.mapSpan(file, info.optionalReplacementSpan),
+          entries: info.entries.map((entry) => ({
+            ...entry,
+            replacementSpan:
+              entry.replacementSpan && context.editor.mapSpan(file, entry.replacementSpan),
+          })),
+        };
+      });
       for (const key of [
         'getDefinitionAtPosition',
         'getTypeDefinitionAtPosition',
@@ -220,7 +233,7 @@ export default function init(_modules: { typescript: typeof ts }): ts.server.Plu
       use('getCompletionEntryDetails', (file, offset, ...args) => {
         const details = (context.project.service.getCompletionEntryDetails as any)(
           virtualFilename(file),
-          context.project.toGeneratedOffset(file, offset),
+          context.editor.completionLocation(file, offset).offset,
           ...args,
         ) as ts.CompletionEntryDetails | undefined;
         if (!details) return details;

@@ -55,6 +55,7 @@ jobs:
             *.tgz
             dist/twill.vsix
             packages/*/coverage/
+            apps/docs/coverage/
             benchmark-results.json
             project-results.json
             release-manifest.json
@@ -95,9 +96,21 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm editor:package
-      - run: xvfb-run -a pnpm editor:test
+      - if: matrix.vscode == 'stable'
+        run: xvfb-run -a pnpm editor:coverage
         env:
           TWILL_TEST_VSCODE_VERSION: ${{ matrix.vscode }}
+      - if: matrix.vscode != 'stable'
+        run: xvfb-run -a pnpm editor:test
+        env:
+          TWILL_TEST_VSCODE_VERSION: ${{ matrix.vscode }}
+      - if: always() && matrix.vscode == 'stable'
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: editor-coverage
+          path: |
+            editors/vscode/coverage/
+            !editors/vscode/coverage/tmp/**
   browser:
     runs-on: ubuntu-latest
     steps:

@@ -37,7 +37,7 @@
   ],
   "repository": {
     "implicit-member": {
-      "match": "(?<![\\w$.)\\]])(\\.)([A-Za-z_$][\\w$]*)",
+      "match": "(?<![\\w$.)}\\]])(\\.)([A-Za-z_$][\\w$]*)",
       "captures": {
         "1": {
           "name": "punctuation.accessor.twill"
@@ -48,16 +48,16 @@
       }
     },
     "defer": {
-      "match": "\\bdefer\\b(?=(?:[^\\S\\r\\n]|/\\*[^\\r\\n]*?\\*/)*\\{)",
+      "match": "(?<![\\w$.])\\bdefer\\b(?=(?:[^\\S\\r\\n]|/\\*[^\\r\\n]*?\\*/)*\\{)",
       "name": "keyword.control.twill"
     },
     "guard": {
-      "match": "\\bguard\\b(?=\\s+(?:const\\b|[^\\s;=:]))",
+      "match": "(?<![\\w$.])\\bguard\\b(?=\\s+(?:const\\b|[^\\s;=:]))",
       "name": "keyword.control.twill"
     },
     "guard-binding": {
       "name": "meta.guard.binding.twill",
-      "begin": "\\b(guard)\\s+(const)\\b",
+      "begin": "(?<![\\w$.])\\b(guard)\\s+(const)\\b",
       "beginCaptures": {
         "1": {
           "name": "keyword.control.twill"
@@ -137,27 +137,61 @@
       ]
     },
     "closure-header": {
-      "begin": "(\\{)(?=\\s*(?:async\\s+)?(?:[A-Za-z_$][\\w$]*(?:\\s*,\\s*[A-Za-z_$][\\w$]*)*|\\([^;{}]*\\))\\s+in\\b)",
+      "begin": "(\\{)(?=\\s*(?:async\\s+)?(?:[A-Za-z_$][\\w$]*(?:\\s*,\\s*[A-Za-z_$][\\w$]*)*|\\((?:[^;()]|\\([^()]*\\))*\\)(?:\\s*:[^;{}]*?)?)\\s+in\\b)",
       "beginCaptures": {
         "1": {
           "name": "punctuation.section.block.begin.twill"
         }
       },
-      "end": "\\bin\\b",
+      "end": "\\}",
       "endCaptures": {
         "0": {
-          "name": "keyword.control.twill"
+          "name": "punctuation.section.block.end.twill"
         }
       },
+      "name": "meta.trailing.closure.twill",
       "patterns": [
         {
-          "include": "source.ts"
+          "begin": "(?<=\\{)",
+          "end": "\\bin\\b",
+          "endCaptures": {
+            "0": {
+              "name": "keyword.control.twill"
+            }
+          },
+          "patterns": [
+            {
+              "include": "source.ts#comment"
+            },
+            {
+              "match": "\\basync\\b",
+              "name": "storage.modifier.ts"
+            },
+            {
+              "include": "source.ts#function-parameters"
+            },
+            {
+              "begin": ":",
+              "end": "(?=\\bin\\b)",
+              "patterns": [
+                {
+                  "include": "source.ts#type"
+                }
+              ]
+            },
+            {
+              "include": "source.ts#parameter-name"
+            }
+          ]
+        },
+        {
+          "include": "source.ts#statements"
         }
       ]
     }
   },
   "injections": {
-    "L:source.twill.ts -comment -string": {
+    "L:source.twill.ts -comment -string, L:source.twill.ts meta.template.expression -comment -(meta.template.expression string)": {
       "patterns": [
         {
           "include": "#implicit-member"

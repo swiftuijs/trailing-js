@@ -3,6 +3,7 @@ import remapping from '@ampproject/remapping';
 import {
   transform,
   TwillSyntaxError,
+  originalPosition,
   type TransformOptions,
   type TransformResult,
 } from './compiler.js';
@@ -47,10 +48,26 @@ export function recoverTransform(source: string, options: TransformOptions): Tra
         if (!opening) throw error;
         insertion = ({ '(': ')', '[': ']', '{': '}' } as Record<string, string>)[opening]!;
       } else throw error;
-      // Insertions from previous repairs shift offsets; source mappings for a
-      // suffix repair can all anchor at EOF, while member names anchor at the
-      // original dot. Subsequent suffix repairs remain at the same source EOF.
-      offset = Math.min(offset, source.length);
+      // Later parser errors refer to the repaired text. Map interior offsets
+      // back before inserting again; suffix repairs always anchor at source EOF.
+      if (offset >= text.length) offset = source.length;
+      else if (text !== source) {
+        const prefix = text.slice(0, offset).split('\n');
+        const point = originalPosition(
+          {
+            code: text,
+            map: repaired.generateMap({ source: options.filename, hires: true }),
+          } as TransformResult,
+          prefix.length,
+          prefix.at(-1)!.length,
+        );
+        const starts = [0];
+        for (const match of source.matchAll(/\n/g)) starts.push(match.index! + 1);
+        offset =
+          point.line == null || point.column == null
+            ? source.length
+            : starts[point.line - 1]! + point.column;
+      }
       repaired.appendLeft(offset, insertion);
       text = repaired.toString();
     }

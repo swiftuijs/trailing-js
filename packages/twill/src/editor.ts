@@ -38,7 +38,7 @@ export class TwillEditor {
     return result;
   }
 
-  completions(filename: string, position: number, preferences: ts.UserPreferences = {}) {
+  completionLocation(filename: string, position: number) {
     let offset = this.project.toGeneratedOffset(filename, position);
     // A repaired member name and generated arm punctuation can share the same
     // original boundary. Anchor requests at the source-backed dot instead.
@@ -77,6 +77,11 @@ export class TwillEditor {
       // positions. Only classify requests that TS identifies as member lists.
       props = { start: position, end: position };
     }
+    return { offset, props };
+  }
+
+  completions(filename: string, position: number, preferences: ts.UserPreferences = {}) {
+    let { offset, props } = this.completionLocation(filename, position);
     const info = this.project.service.getCompletionsAtPosition(virtualFilename(filename), offset, {
       includeCompletionsForModuleExports: true,
       includeCompletionsWithInsertText: true,

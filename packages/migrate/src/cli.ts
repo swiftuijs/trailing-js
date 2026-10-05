@@ -2,8 +2,9 @@ import { parseArgs } from 'node:util';
 import { resolve } from 'node:path';
 import { exportProject } from './index.js';
 
-async function main() {
+export async function main(args = process.argv.slice(2)): Promise<number> {
   const { values, positionals } = parseArgs({
+    args,
     options: {
       project: { type: 'string', short: 'p' },
       out: { type: 'string', short: 'o' },
@@ -16,7 +17,7 @@ async function main() {
     console.log(
       'twill-migrate -p tsconfig.json -o ../native-project [--dry-run] [--json]\nExports checked sources into a new directory outside the input project. Originals remain intact.',
     );
-    return;
+    return 0;
   }
   if (positionals.length || !values.out)
     throw new Error('Specify --out <new directory>. Use --help for usage.');
@@ -35,9 +36,5 @@ async function main() {
         `${result.written ? 'Exported' : 'Planned'} ${result.files.length} files; native config: ${result.tsconfig}`,
       );
   }
-  if (result.diagnostics.some((item) => item.category === 'error')) process.exitCode = 1;
+  return result.diagnostics.some((item) => item.category === 'error') ? 1 : 0;
 }
-main().catch((error) => {
-  console.error(error.message);
-  process.exitCode = 1;
-});

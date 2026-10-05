@@ -1,0 +1,148 @@
+import { afterEach, expect, it, vi } from 'vitest';
+import { mkdirSync, readFileSync, rmSync, writeFileSync, existsSync } from 'node:fs';
+import { join } from 'node:path';
+import { main } from '../src/cli';
+import { fixtureRoot } from './helpers/fixture';
+
+const roots: string[] = [];
+afterEach(() => {
+  roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true }));
+  vi.restoreAllMocks();
+});
+function fixture(source = 'export const result = [1, 2].map { value in value * 2 };') {
+  const root = fixtureRoot('cli-');
+  roots.push(root);
+  const config = join(root, 'tsconfig.json');
+  const input = join(root, 'main.twill');
+  writeFileSync(
+    config,
+    JSON.stringify({
+      compilerOptions: {
+        strict: true,
+        types: [],
+        target: 'ES2022',
+        module: 'ESNext',
+        moduleResolution: 'Bundler',
+      },
+      include: ['*.twill', '*.ts'],
+    }),
+  );
+  writeFileSync(input, source);
+  const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+  const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+  const stdout = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+  return { root, config, input, log, error, stdout };
+}
+
+it.each([[], ['--help'], ['compile', '--help']].map((args) => [args]))(
+  'prints usage for %j',
+  async (args) => {
+    const { log } = fixture();
+    expect(await main(args)).toBe(0);
+    expect(log).toHaveBeenCalledWith(expect.stringContaining('twill declarations'));
+  },
+);
+it.each(
+  [
+    ['unknown'],
+    ['compile'],
+    ['compile', 'a', 'b'],
+    ['check', 'file'],
+    ['doctor', 'file'],
+    ['declarations', 'file'],
+    ['--unknown'],
+  ].map((args) => [args]),
+)('rejects invalid arguments %j', async (args) => {
+  fixture();
+  await expect(main(args)).rejects.toThrow();
+});
+it('emits typed and runnable output with original source maps without changing the input', async () => {
+  const source = 'export const result: number[] = [1, 2].map { value in value * 2 };';
+  const { root, input, config } = fixture(source);
+  for (const js of [false, true]) {
+    const output = join(root, 'nested', js ? 'main.js' : 'main.ts');
+    expect(
+      await main(['compile', input, '-p', config, '-o', output, ...(js ? ['--js'] : [])]),
+    ).toBe(0);
+    const code = readFileSync(output, 'utf8');
+    expect(code).toContain('sourceMappingURL=' + (js ? 'main.js.map' : 'main.ts.map'));
+    expect(code.includes(': number[]')).toBe(!js);
+    const map = JSON.parse(readFileSync(output + '.map', 'utf8'));
+    expect(map.file).toBe(js ? 'main.js' : 'main.ts');
+    expect(map.sourcesContent).toEqual([source]);
+  }
+  expect(readFileSync(input, 'utf8')).toBe(source);
+  await expect(main(['compile', input, '-o', input])).rejects.toThrow('Output must differ');
+});
+it('prints code and never writes output for malformed source or missing input', async () => {
+  const { root, input, config, stdout } = fixture();
+  expect(await main(['compile', input, '-p', config])).toBe(0);
+  expect(stdout).toHaveBeenCalledWith(expect.stringContaining('return (value * 2)'));
+  writeFileSync(input, 'users.map { .');
+  const output = join(root, 'output.js');
+  await expect(main(['compile', input, '-p', config, '-o', output])).rejects.toThrow();
+  expect(existsSync(output)).toBe(false);
+  await expect(main(['compile', join(root, 'missing.twill')])).rejects.toThrow('ENOENT');
+});
+it.each(['check', 'doctor'])(
+  '%s reports success and source diagnostics in text and JSON',
+  async (command) => {
+    const { input, config, log, error } = fixture();
+    expect(await main([command, '-p', config])).toBe(0);
+    expect(await main([command, '-p', config, '--json'])).toBe(0);
+    const good = JSON.parse(log.mock.calls.at(-1)![0]);
+    expect(command === 'check' ? good : good.diagnostics).toEqual([]);
+    if (command === 'doctor')
+      expect(good).toMatchObject({ files: { twill: 1, native: 0 }, ok: true });
+    writeFileSync(input, 'export const result: number = "wrong";');
+    expect(await main([command, '-p', config])).toBe(1);
+    expect((command === 'check' ? error : log).mock.calls.flat().join('\n')).toContain('TS2322');
+    expect(await main([command, '-p', config, '--json'])).toBe(1);
+    const bad = JSON.parse(log.mock.calls.at(-1)![0]);
+    expect(command === 'check' ? bad : bad.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ code: 2322, filename: input.replaceAll('\\', '/') }),
+      ]),
+    );
+    if (command === 'doctor') expect(bad.ok).toBe(false);
+  },
+);
+it('declarations emits maps and reports invalid projects without partial output', async () => {
+  const { root, input, config, log, error } = fixture();
+  const output = join(root, 'types');
+  expect(await main(['declarations', '-p', config, '-o', output])).toBe(0);
+  expect(log).toHaveBeenCalledWith(expect.stringContaining('Emitted'));
+  expect(readFileSync(join(output, 'main.d.ts'), 'utf8')).toContain('number[]');
+  expect(await main(['declarations', '-p', config, '-o', output, '--json'])).toBe(0);
+  expect(JSON.parse(log.mock.calls.at(-1)![0]).diagnostics).toEqual([]);
+  writeFileSync(input, 'export const result: number = "wrong";');
+  const badOutput = join(root, 'invalid');
+  expect(await main(['declarations', '-p', config, '-o', badOutput])).toBe(1);
+  expect(error.mock.calls.flat().join('\n')).toContain('TS2322');
+  expect(existsSync(badOutput)).toBe(false);
+});
+it('declarations builds a reference-only solution and compile honors the selected config', async () => {
+  const { root, input, config } = fixture();
+  writeFileSync(join(root, 'twill.config.json'), '{"implicitReturn":false}');
+  const stdout = vi.mocked(process.stdout.write);
+  await main(['compile', input, '-p', config]);
+  expect(stdout.mock.calls.flat().join('')).not.toContain('return (');
+  const child = join(root, 'child');
+  mkdirSync(child);
+  writeFileSync(
+    join(child, 'tsconfig.json'),
+    JSON.stringify({ compilerOptions: { composite: true, types: [] }, include: ['*.twill'] }),
+  );
+  writeFileSync(join(child, 'api.twill'), 'export const value = 1;');
+  writeFileSync(join(root, 'solution.json'), '{"files":[],"references":[{"path":"./child"}]}');
+  expect(
+    await main([
+      'declarations',
+      '-p',
+      join(root, 'solution.json'),
+      '--build',
+      '-o',
+      join(root, 'built'),
+    ]),
+  ).toBe(0);
+});

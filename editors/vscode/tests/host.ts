@@ -72,6 +72,50 @@ export async function run() {
           ),
         `${grammar.name}: implicit property highlighting`,
       );
+      for (const line of [
+        'items.map { (value: number) in value + 1 };',
+        'items.map { async (value: number): Promise<number> in await read(value) };',
+        'const value = `${items.map { value in value.name }}`;',
+      ]) {
+        const tokens = loaded.tokenizeLine(line, INITIAL).tokens;
+        assert(
+          tokens.some(
+            (token) =>
+              line.slice(token.startIndex, token.endIndex) === 'in' &&
+              token.scopes.includes('keyword.control.twill'),
+          ),
+          `${grammar.name}: typed/template closure header ${line}`,
+        );
+      }
+      for (const line of [
+        'object.guard (true); object.defer();',
+        'const literal = "guard true else { return; } defer { close(); } .active";',
+        'const literal = `${"guard true else { return; } defer { close(); } .active"}`;',
+      ]) {
+        assert(
+          !loaded
+            .tokenizeLine(line, INITIAL)
+            .tokens.some(
+              (token) =>
+                token.scopes.includes('keyword.control.twill') ||
+                token.scopes.includes('variable.other.property.twill'),
+            ),
+          `${grammar.name}: literal/property exclusion ${line}`,
+        );
+      }
+      if (grammar.scopeName.endsWith('.tsx')) {
+        const line = 'const view = <div>{items.map { value in <span>{value.name}</span> }}</div>;';
+        assert(
+          loaded
+            .tokenizeLine(line, INITIAL)
+            .tokens.some(
+              (token) =>
+                line.slice(token.startIndex, token.endIndex) === 'span' &&
+                token.scopes.some((scope) => scope.startsWith('entity.name.tag')),
+            ),
+          'Native TSX tags inside trailing closures must remain highlighted',
+        );
+      }
       let state = INITIAL;
       const controls: string[] = [];
       for (const line of [
@@ -138,6 +182,32 @@ export async function run() {
   assert(formatting.getText().includes('map { item in'));
   assert(formatting.getText().includes('value: number'));
   console.log('PASS: packaged formatter preserves Twill syntax and TypeScript annotations');
+  const definitions = await eventually(
+    () =>
+      vscode.commands.executeCommand<vscode.Location[]>(
+        'vscode.executeDefinitionProvider',
+        formatting.uri,
+        position(formatting, 'scale(item)', 1),
+      ),
+    (locations) => !!locations?.some((location) => location.uri.fsPath.endsWith('scale.ts')),
+  );
+  const definition = definitions!.find((location) => location.uri.fsPath.endsWith('scale.ts'))!;
+  const definitionSource = await vscode.workspace.openTextDocument(definition.uri);
+  assert.equal(definitionSource.getText(definition.range), 'scale');
+  const signature = await eventually(
+    () =>
+      vscode.commands.executeCommand<vscode.SignatureHelp>(
+        'vscode.executeSignatureHelpProvider',
+        formatting.uri,
+        position(formatting, 'scale(item)', 6),
+      ),
+    (help) => !!help?.signatures.length,
+  );
+  assert(signature!.signatures[0].label.includes('value: number'));
+  assert.equal(signature!.activeParameter, 0);
+  console.log(
+    'PASS: definition navigation and signature help map from trailing closures to native TS',
+  );
 
   const implicitDocument = await open('members.twill');
   const memberItems = await eventually(
@@ -537,5 +607,65 @@ export async function run() {
     vscode.debug.removeBreakpoints([breakpoint]);
     trackers.forEach((tracker) => tracker.dispose());
   }
+  const broken = await open('broken.twill');
+  await eventually(
+    async () => vscode.languages.getDiagnostics(broken.uri),
+    (items) => items.some((item) => item.source === 'twill' && item.code === 90001),
+  );
+  const brokenEdits = await vscode.commands.executeCommand<vscode.TextEdit[]>(
+    'vscode.executeFormatDocumentProvider',
+    broken.uri,
+    { tabSize: 2, insertSpaces: true },
+  );
+  assert.equal(brokenEdits?.length ?? 0, 0, 'Invalid source must never return a formatting edit');
+  const noHover = await vscode.commands.executeCommand<vscode.Hover[]>(
+    'vscode.executeHoverProvider',
+    formatting.uri,
+    position(formatting, 'export'),
+  );
+  assert.equal(noHover?.length ?? 0, 0);
+  const temporary = await open('temporary.twill');
+  const temporaryTabs = vscode.window.tabGroups.all
+    .flatMap((group) => group.tabs)
+    .filter(
+      (tab) =>
+        tab.input instanceof vscode.TabInputText &&
+        tab.input.uri.toString() === temporary.uri.toString(),
+    );
+  assert(temporaryTabs.length, 'Temporary document must be open in a real editor tab');
+  await vscode.window.tabGroups.close(temporaryTabs);
+  assert(
+    !vscode.window.tabGroups.all
+      .flatMap((group) => group.tabs)
+      .some(
+        (tab) =>
+          tab.input instanceof vscode.TabInputText &&
+          tab.input.uri.toString() === temporary.uri.toString(),
+      ),
+    'Closing the tab must succeed',
+  );
+  const inferred = await open('../inferred/main.twill');
+  const inferredHover = await eventually(
+    () =>
+      vscode.commands.executeCommand<vscode.Hover[]>(
+        'vscode.executeHoverProvider',
+        inferred.uri,
+        position(inferred, 'n in', 0),
+      ),
+    (items) => !!items?.length,
+  );
+  assert(
+    inferredHover!.some((hover) =>
+      hover.contents.some(
+        (content) =>
+          typeof content !== 'string' && 'value' in content && content.value.includes('number'),
+      ),
+    ),
+  );
+  await vscode.commands.executeCommand('workbench.action.closeActiveEditor');
+  console.log(
+    'PASS: invalid source diagnostics, formatter failure, tab closure and config-free inferred project',
+  );
   console.log('Twill packaged VSIX extension-host integration checks passed.');
+  if (process.env.NODE_V8_COVERAGE) (await import('node:v8')).takeCoverage();
 }

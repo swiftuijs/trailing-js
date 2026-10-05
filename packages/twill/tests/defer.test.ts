@@ -250,3 +250,19 @@ describe('contextual defer', () => {
     expect(events).toEqual(['resolved', 'tick']);
   });
 });
+
+it('retains hoisted JSDoc annotations and stops at unrelated comments', () => {
+  const source = `export function run(value) {
+    // separate body comment
+    const result = helper(value);
+    defer { /* cleanup comment */ value = 0; }
+    /** @param {number} input */
+    function helper(input) { return input * 2; }
+    // unrelated comment after declaration
+    return result;
+  }`;
+  const output = transform(source, { language: 'js' }).code;
+  expect(output).toContain('/** @param {number} input */');
+  const run = Function(output.replace('export ', '') + '; return run;')();
+  expect(run(3)).toBe(6);
+});

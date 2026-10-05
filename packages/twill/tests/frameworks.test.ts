@@ -327,3 +327,35 @@ describe('natural component syntax', () => {
     expect(isTwillFile('app.twill.jsx')).toBe(false);
   });
 });
+
+it('preserves literal spread props, commented dynamic props, keys and native child control flow', () => {
+  const Card = (props: { title: string; children?: React.ReactNode }) =>
+    createElement('article', { title: props.title }, props.children);
+  const properties = { title: 'spread' };
+  expect(
+    renderToStaticMarkup(
+      compile('return Card({ ...properties, key: "stable" }) { "child"; };', { Card, properties }),
+    ),
+  ).toBe('<article title="spread">child</article>');
+  expect(
+    renderToStaticMarkup(
+      compile('return Card((properties), /* trailing */) { "child"; };', { Card, properties }),
+    ),
+  ).toBe('<article title="spread">child</article>');
+  const tree = compile(
+    `return Card(properties) {
+    if(false) "absent"; else "else";
+    outer: for(const n of [1,2]) { guard n === 1 else { continue outer; } String(n); }
+    try { throw new Error("caught"); } catch(error) { error.message; }
+    let n=0; do { "do"; n++; } while(n<1);
+  };`,
+    { Card, properties },
+  );
+  expect(renderToStaticMarkup(tree)).toBe('<article title="spread">else1caughtdo0</article>');
+});
+it.each([
+  ['Card(1, 2) { "child"; };', /accepts one props/],
+  ['Card {} done: {};', /one children closure/i],
+])('rejects component call shape without silently discarding arguments: %s', (source, message) => {
+  expect(() => transform(source as string, { filename: 'view.twillx' })).toThrow(message as RegExp);
+});

@@ -108,3 +108,223 @@ it('bridge edits retain unrelated transforms, snapshots and native script versio
   expect(fallback).not.toHaveBeenCalled();
   expect(logs).toEqual([]);
 });
+
+function bridgeFixture(files: Record<string, string>) {
+  const root = mkdtempSync(join(tmpdir(), 'twill-bridge-requests-'));
+  const config = join(root, 'tsconfig.json');
+  writeFileSync(
+    config,
+    JSON.stringify({
+      compilerOptions: {
+        strict: true,
+        types: [],
+        target: 'ES2022',
+        module: 'ESNext',
+        moduleResolution: 'Bundler',
+      },
+      include: ['*'],
+    }),
+  );
+  const sources = new Map(
+    Object.entries(files).map(([name, source]) => [sourceFilename(join(root, name)), source]),
+  );
+  for (const [file, text] of sources) writeFileSync(file, text);
+  const fallback = vi.fn(() => []);
+  const logs: string[] = [];
+  const scriptInfo = new Map(
+    [...sources].map(([file, text]) => {
+      let current = text;
+      return [
+        file,
+        {
+          isScriptOpen: () => false,
+          getSnapshot: () => ts.ScriptSnapshot.fromString(current),
+          editContent: vi.fn((start: number, end: number, text: string) => {
+            current = current.slice(0, start) + text + current.slice(end);
+          }),
+          reloadFromFile: vi.fn(() => {
+            current = readFileSync(file, 'utf8');
+          }),
+        },
+      ] as const;
+    }),
+  );
+  const info = {
+    project: {
+      getProjectName: () => config,
+      refreshDiagnostics: vi.fn(),
+      projectService: {
+        getScriptInfo: (file: string) => scriptInfo.get(file),
+        logger: { info: (text: string) => logs.push(text) },
+      },
+    },
+    languageService: Object.fromEntries(
+      [
+        'getSemanticDiagnostics',
+        'getSyntacticDiagnostics',
+        'getQuickInfoAtPosition',
+        'getCompletionsAtPosition',
+        'getCompletionEntryDetails',
+        'getSignatureHelpItems',
+        'getDefinitionAtPosition',
+        'getTypeDefinitionAtPosition',
+        'getImplementationAtPosition',
+        'getDefinitionAndBoundSpan',
+        'getRenameInfo',
+        'findRenameLocations',
+        'findReferences',
+        'getReferencesAtPosition',
+        'organizeImports',
+        'dispose',
+      ].map((key) => [key, fallback]),
+    ),
+    languageServiceHost: {
+      getDefaultLibFileName: ts.getDefaultLibFilePath,
+      getScriptFileNames: () => [...sources.keys()],
+      getScriptVersion: () => '1',
+      getScriptSnapshot: (file: string) =>
+        sources.has(file) ? ts.ScriptSnapshot.fromString(sources.get(file)!) : undefined,
+    },
+  };
+  const plugin = init({ typescript: ts });
+  const service = plugin.create(info as unknown as ts.server.PluginCreateInfo);
+  cleanups.push(() => {
+    service.dispose();
+    rmSync(root, { recursive: true, force: true });
+  });
+  return {
+    root,
+    config,
+    info,
+    plugin,
+    service,
+    sources,
+    scriptInfo,
+    fallback,
+    logs,
+    file: (name: string) => sourceFilename(join(root, name)),
+  };
+}
+
+it('maps TS-server completion, hover and signature spans for Twill source coordinates', () => {
+  const source = 'const users=[{name:"Ada",active:true}]; export const names=users.map { .na };';
+  const { service, file } = bridgeFixture({ 'members.twill': source });
+  const position = source.indexOf('.na') + 3;
+  const completion = service.getCompletionsAtPosition(file('members.twill'), position, {});
+  expect(completion?.isMemberCompletion).toBe(true);
+  expect(completion?.entries.map((entry) => entry.name)).toContain('name');
+  expect(completion?.optionalReplacementSpan).toEqual({ start: position - 2, length: 2 });
+  const info = service.getQuickInfoAtPosition(file('members.twill'), source.indexOf('users.map'));
+  expect(info?.textSpan).toEqual({ start: source.indexOf('users.map'), length: 5 });
+});
+it('maps mixed navigation, references, rename and import actions without virtual filenames', () => {
+  const source = 'export function twice(value:number){return [value].map { n in n * 2 }[0]!;}';
+  const native = 'import {twice} from "./api.twill"; export const result=twice(2);';
+  const { service, file } = bridgeFixture({
+    'api.twill': source,
+    'main.ts': native,
+    'auto.ts': 'export const result=twice(2);',
+  });
+  const offset = native.lastIndexOf('twice');
+  for (const definitions of [
+    service.getDefinitionAtPosition(file('main.ts'), offset),
+    service.getDefinitionAndBoundSpan(file('main.ts'), offset)?.definitions,
+  ]) {
+    expect(definitions?.[0]).toMatchObject({
+      fileName: file('api.twill'),
+      textSpan: { start: source.indexOf('twice'), length: 5 },
+    });
+  }
+  expect(service.getTypeDefinitionAtPosition(file('main.ts'), offset)).toBeDefined();
+  service.getImplementationAtPosition(file('main.ts'), offset);
+  expect(
+    service
+      .findReferences(file('main.ts'), offset)
+      ?.flatMap((group) => group.references.map((entry) => entry.fileName)),
+  ).toContain(file('api.twill'));
+  expect(
+    service
+      .getReferencesAtPosition(file('main.ts'), offset)
+      ?.some((entry) => entry.fileName === file('api.twill')),
+  ).toBe(true);
+  expect(service.getRenameInfo(file('main.ts'), offset, {}).canRename).toBe(true);
+  expect(
+    service.findRenameLocations(file('main.ts'), offset, false, false, true)?.length,
+  ).toBeGreaterThan(1);
+  expect(service.findRenameLocations(file('main.ts'), offset, true, false, true)).toBeUndefined();
+  const auto = file('auto.ts');
+  const completions = service.getCompletionsAtPosition(auto, 24, {
+    includeCompletionsForModuleExports: true,
+  });
+  const entry = completions?.entries.find((entry) => entry.name === 'twice' && entry.source)!;
+  expect(entry).toBeDefined();
+  const details = service.getCompletionEntryDetails(
+    auto,
+    24,
+    entry.name,
+    {},
+    entry.source,
+    {},
+    entry.data,
+  );
+  expect(details?.codeActions?.[0]?.changes?.[0]?.textChanges[0]?.newText).not.toContain(
+    '.twill.ts',
+  );
+  expect(
+    service
+      .organizeImports({ type: 'file', fileName: file('main.ts') }, {}, {})
+      .every((change) => !change.fileName.includes('.twill.ts')),
+  ).toBe(true);
+  expect(
+    service.getSignatureHelpItems(file('main.ts'), native.lastIndexOf('(2') + 1, undefined)?.items,
+  ).toHaveLength(1);
+});
+it('keeps protocol overlays aligned, restores disk sources and ignores invalid overlay entries', () => {
+  const source = 'export const value=[1].map { n in n + 1 };';
+  const { plugin, service, file, scriptInfo, sources, info } = bridgeFixture({
+    'api.twill': source,
+    'main.ts': 'import {value} from "./api.twill"; export const result:number[]=value;',
+  });
+  const api = file('api.twill');
+  const overlay = source.replace('n + 1', 'n + 3');
+  plugin.onConfigurationChanged!({
+    overlays: { [api]: overlay, [file('main.ts')]: 'bad native overlay', invalid: 1 },
+  });
+  expect(scriptInfo.get(api)?.editContent).toHaveBeenCalled();
+  expect(service.getSemanticDiagnostics(file('main.ts'))).toEqual([]);
+  expect(plugin.getExternalFiles!(info.project as unknown as ts.server.Project, 0)).toContain(api);
+  plugin.onConfigurationChanged!({ overlays: null });
+  expect(scriptInfo.get(api)?.reloadFromFile).toHaveBeenCalled();
+  sources.set(file('new.ts'), 'export const value=1;');
+  expect(service.getSyntacticDiagnostics(file('new.ts'))).toEqual([]);
+});
+it('preserves native services in inferred or pure-native projects and safely falls back on project failures', () => {
+  const native = bridgeFixture({ 'main.ts': 'export const value=1;' });
+  expect(native.service.getSemanticDiagnostics(native.file('main.ts'))).toEqual([]);
+  expect(native.fallback).toHaveBeenCalled();
+  expect(
+    native.service.organizeImports({ type: 'file', fileName: native.file('main.ts') }, {}, {}),
+  ).toEqual([]);
+  const inferredInfo = {
+    ...native.info,
+    project: { ...native.info.project, getProjectName: () => '/dev/null/inferredProject1*' },
+  };
+  expect(native.plugin.create(inferredInfo as unknown as ts.server.PluginCreateInfo)).toBe(
+    inferredInfo.languageService,
+  );
+  const dialect = bridgeFixture({ 'main.twill': 'export const value=1;' });
+  vi.spyOn(TwillProject.prototype, 'sourceFiles').mockImplementation(() => {
+    throw new Error('project unavailable');
+  });
+  expect(dialect.service.getQuickInfoAtPosition(dialect.file('main.twill'), 13)).toEqual([]);
+  expect(
+    dialect.service.findRenameLocations(dialect.file('main.twill'), 13, false, false),
+  ).toBeUndefined();
+  expect(dialect.service.getRenameInfo(dialect.file('main.twill'), 13, {})).toMatchObject({
+    canRename: false,
+  });
+  expect(
+    dialect.service.organizeImports({ type: 'file', fileName: dialect.file('main.twill') }, {}, {}),
+  ).toEqual([]);
+  expect(dialect.logs.join('\n')).toContain('project unavailable');
+});

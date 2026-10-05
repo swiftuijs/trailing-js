@@ -364,3 +364,61 @@ it('discovers created files and drops deleted roots without resetting other tran
   expect(project.sourceFiles()).not.toContain(file('new.twill'));
   expect(editor.organizeImports(file('main.twill'))).toEqual([]);
 });
+
+it('completes empty and separated JSX prop gaps without confusing prop values', () => {
+  const source = card + 'export const view=Card({  }) { "child"; };';
+  const { project, editor, file } = fixture({ 'view.twillx': source });
+  const position = source.indexOf('{  }') + 2;
+  const request = editor.completions(file('view.twillx'), position);
+  expect(request.props).toEqual({ start: position, end: position });
+  expect(request.info?.entries.map((entry) => entry.name)).toContain('title');
+  const updated = source.replace('{  }', '{ title: "Hello",  }');
+  project.update(file('view.twillx'), updated);
+  expect(
+    editor
+      .completions(file('view.twillx'), updated.indexOf(',  }') + 2)
+      .info?.entries.map((entry) => entry.name),
+  ).toContain('onClick');
+});
+it('completes a dot followed by whitespace and blocks edits of missing files or newly generated files', () => {
+  const source = 'export const values=[1].map { n in n. };';
+  const { editor, file } = fixture({ 'main.twill': source });
+  expect(
+    editor
+      .completions(file('main.twill'), source.indexOf('n. }') + 3)
+      .info?.entries.map((entry) => entry.name),
+  ).toContain('toFixed');
+  expect(editor.mapSpan(file('missing.ts'), { start: 0, length: 0 })).toBeUndefined();
+  expect(
+    editor.mapChanges([
+      {
+        fileName: file('generated.ts'),
+        isNewFile: true,
+        textChanges: [{ span: { start: 0, length: 0 }, newText: 'export {};' }],
+      },
+    ]),
+  ).toBeUndefined();
+  expect(editor.renameLocations(file('main.twill'), source.indexOf('export'))).toBeUndefined();
+});
+it('rewrites only virtual import/export literals in mapped source edits', () => {
+  const source = 'export const values=[1].map { n in n };';
+  const { project, editor, file } = fixture({ 'main.twill': source });
+  const filename = file('main.twill');
+  const edits = editor.mapChanges([
+    {
+      fileName: virtualFilename(filename),
+      textChanges: [
+        {
+          span: { start: 0, length: 0 },
+          newText:
+            'import {value} from "./api.twill.ts";\nexport {view} from "./view.twillx.tsx";\nconst mention="./api.twill.ts";\n',
+        },
+      ],
+    },
+  ]);
+  expect(edits?.[0]?.newText).toContain('from "./api.twill"');
+  expect(edits?.[0]?.newText).toContain('from "./view.twillx"');
+  expect(edits?.[0]?.newText).toContain('mention="./api.twill.ts"');
+  project.update(file('bad.twill'), 'users.map { . };');
+  expect(editor.mapSpan(file('native.ts'), { start: -1, length: 3 })).toBeUndefined();
+});

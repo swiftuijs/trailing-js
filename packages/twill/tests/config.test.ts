@@ -31,3 +31,37 @@ it('uses an explicitly selected tsconfig rather than a neighboring default', () 
   expect(loadConfig(root).jsxImportSource).toBe('react');
   expect(loadConfig(root, selected).jsxImportSource).toBe('vue');
 });
+
+it.each(['null', '[]', 'true', '1', '"config"'])(
+  'rejects a non-object configuration %s',
+  (source) => {
+    const root = mkdtempSync(join(tmpdir(), 'twill-config-'));
+    roots.push(root);
+    writeFileSync(join(root, 'twill.config.json'), source);
+    expect(() => loadConfig(root)).toThrow('expected an object');
+  },
+);
+it.each(['null', '"true"', '1', '[]', '{}'])(
+  'rejects a non-boolean implicitReturn %s',
+  (source) => {
+    const root = mkdtempSync(join(tmpdir(), 'twill-config-'));
+    roots.push(root);
+    writeFileSync(join(root, 'twill.config.json'), `{"implicitReturn":${source}}`);
+    expect(() => loadConfig(root)).toThrow('implicitReturn must be a boolean');
+  },
+);
+it('loads defaults without configuration, accepts schema metadata and diagnoses misspelled options', () => {
+  const root = mkdtempSync(join(tmpdir(), 'twill-config-'));
+  roots.push(root);
+  expect(loadConfig(root)).toEqual({ jsxImportSource: undefined });
+  expect(configurationFiles(root)).toEqual([
+    join(root, 'twill.config.json'),
+    join(root, 'tsconfig.json'),
+  ]);
+  writeFileSync(join(root, 'twill.config.json'), '{"implicitReturn":true,"$schema":"schema.json"}');
+  expect(loadConfig(root).implicitReturn).toBe(true);
+  writeFileSync(join(root, 'twill.config.json'), '{"implicitReturns":true}');
+  expect(() => loadConfig(root)).toThrow('unknown option implicitReturns');
+  writeFileSync(join(root, 'twill.config.json'), '{');
+  expect(() => loadConfig(root)).toThrow();
+});

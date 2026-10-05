@@ -45,8 +45,14 @@ for (const count of [10, 100, 1000]) {
     { length: count },
     (_, i) => `export const view${i} = Card { Label { "child" }; if (true) "tail"; };`,
   ).join('\n');
+  const members = Array.from(
+    { length: count },
+    (_, i) =>
+      `export const member${i} = [{active:true,name:"Ada"}].filter { .active }.map { .name };`,
+  ).join('\n');
   const stages = {
     transformTS: measure(() => transform(sugar, options)),
+    transformImplicitMembers: measure(() => transform(members, options)),
     transformJS: measure(() => transform(sugar, { filename: 'benchmark.twill', language: 'js' })),
     unchangedTS: measure(() => transform(plain, options)),
     pluginTS: measure(() => pluginTransform.call(context, sugar, 'benchmark.twill')),
@@ -69,6 +75,8 @@ for (const count of [10, 100, 1000]) {
   results.push({
     callbacks: count,
     bytes: Buffer.byteLength(sugar),
+    implicitMemberCallbacks: count * 2,
+    implicitMemberBytes: Buffer.byteLength(members),
     uiViews: count,
     uiBytes: Buffer.byteLength(uiSource),
     stages,
@@ -85,6 +93,24 @@ const emitted = await minify(transform(input, { filename: 'runtime.twill', langu
 });
 const reference = await minify(expected, { minify: true });
 if (emitted.code !== reference.code) throw new Error('Runtime equivalence check failed');
+const implicit = await minify(
+  transform('export function run(users) { return users.filter { .active }.map { .name }; }', {
+    language: 'js',
+  }).code,
+  { minifySyntax: true, minifyWhitespace: true },
+);
+const nativeMembers = await minify(
+  // Match local names and retain them: identifier-frequency heuristics depend
+  // on the unoptimized syntax and can pick different letters for equal code.
+  'export function run(users) { return users.filter(__twillArg0 => __twillArg0.active).map(__twillArg1 => __twillArg1.name); }',
+  { minifySyntax: true, minifyWhitespace: true },
+);
+assert.equal(
+  implicit.code,
+  nativeMembers.code,
+  'Implicit member callbacks must have identical minified runtime code',
+);
+
 // Component sugar uses only the same operations as handwritten native JSX.
 for (const runtime of ['react', 'vue']) {
   const sugar = 'export function App() { return Card { "child"; "tail"; }; }';
@@ -211,6 +237,7 @@ const report = {
     includesStartup: false,
     cleanupCallSites: 'Separate monomorphic batch functions per implementation',
     ordinaryClosureRuntimeCodeIdentical: true,
+    implicitMemberRuntimeCodeIdentical: true,
     componentRuntimeCodeIdenticalToNativeJSX: ['react', 'vue'],
     cleanupReference:
       'Handwritten native finally (reverse loop for dynamic registrations, direct statement for a single cleanup); same observable additions, no registration closures or stack. Batch assertions included in both timings.',

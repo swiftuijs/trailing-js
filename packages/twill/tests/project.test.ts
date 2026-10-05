@@ -176,3 +176,40 @@ describe('virtual TypeScript projects', () => {
     });
   });
 });
+
+it.each(['\n', '\r\n', '\r', '\u2028', '\u2029'])(
+  'reports semantic and syntax diagnostics in native line coordinates for %j',
+  (separator) => {
+    const source =
+      'export const prefix = "📦";' +
+      separator +
+      'export const result = [1].map { n in n.missing() };';
+    const { project: p, root } = project({ 'main.twill': source });
+    expect(p.diagnostics().find((item) => item.code === 2339)).toMatchObject({
+      line: 2,
+      column: source.split(separator)[1]!.indexOf('missing'),
+    });
+    p.update(join(root, 'main.twill'), 'export const prefix = 1;' + separator + 'users.map { . };');
+    expect(p.diagnostics().find((item) => item.code === 90001)).toMatchObject({ line: 2 });
+  },
+);
+it('explicit invalidation clears compiler caches while retaining unsaved source overlays', () => {
+  const { project: p, root } = project({ 'main.twill': 'export const value=[1].map { n in n };' });
+  const file = join(root, 'main.twill');
+  p.update(file, 'export const value=[2].map { n in n };');
+  const previous = p.transformed(file);
+  p.invalidate();
+  expect(p.transformed(file)).not.toBe(previous);
+  expect(p.text(file)).toContain('[2]');
+  expect(p.diagnostics()).toEqual([]);
+});
+it('reports unsupported project references and compiler options as configuration diagnostics', () => {
+  const { root } = project({ 'main.twill': 'export const value=1;' });
+  writeFileSync(
+    join(root, 'tsconfig.json'),
+    '{"compilerOptions":{"target":"ES2022","module":"CommonJS","moduleResolution":"Bundler"},"references":[{"path":"./reference"}],"include":["*.twill"]}',
+  );
+  const p = new TwillProject(join(root, 'tsconfig.json'));
+  cleanups.push(() => p.dispose());
+  expect(p.diagnostics().map((item) => item.code)).toEqual(expect.arrayContaining([90002, 5095]));
+});

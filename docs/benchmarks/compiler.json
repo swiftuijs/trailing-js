@@ -1,14 +1,14 @@
 {
-  "timestamp": "2026-10-05T04:11:48.788Z",
-  "version": "0.8.0",
-  "commit": "ba2733b3ce266b5d0bd5d15c6cfb5b0ee4be26a4",
-  "workingTreeDirty": false,
-  "buildDigest": "ba66dcbe670f9adcf7c1a78957189b36367b759e9f6c5a0646e3c6e330d535d6",
+  "timestamp": "2026-10-05T14:10:59.363Z",
+  "version": "0.9.0",
+  "commit": "ec945458d64cd36aa8a5547800eee037da884b42",
+  "workingTreeDirty": true,
+  "buildDigest": "f4c31b1dc83395c65ef02c3d1deaccde4f753420085a06256c2fb44dcb2c438d",
   "environment": {
-    "node": "v22.23.3",
+    "node": "v24.19.0",
     "platform": "linux",
     "arch": "x64",
-    "cpu": "AMD EPYC 7763 64-Core Processor"
+    "cpu": "AMD EPYC 9V74 80-Core Processor"
   },
   "methodology": {
     "samples": 15,
@@ -18,6 +18,7 @@
     "includesStartup": false,
     "cleanupCallSites": "Separate monomorphic batch functions per implementation",
     "ordinaryClosureRuntimeCodeIdentical": true,
+    "implicitMemberRuntimeCodeIdentical": true,
     "componentRuntimeCodeIdenticalToNativeJSX": ["react", "vue"],
     "cleanupReference": "Handwritten native finally (reverse loop for dynamic registrations, direct statement for a single cleanup); same observable additions, no registration closures or stack. Batch assertions included in both timings."
   },
@@ -25,120 +26,138 @@
     {
       "callbacks": 10,
       "bytes": 599,
+      "implicitMemberCallbacks": 20,
+      "implicitMemberBytes": 839,
       "uiViews": 10,
       "uiBytes": 679,
       "stages": {
         "transformTS": {
-          "medianMs": 3.741298000000029,
-          "p95Ms": 6.760225999999989
+          "medianMs": 2.189261999999985,
+          "p95Ms": 3.1461800000000153
+        },
+        "transformImplicitMembers": {
+          "medianMs": 2.0252440000000433,
+          "p95Ms": 6.677692999999977
         },
         "transformJS": {
-          "medianMs": 2.036927999999989,
-          "p95Ms": 3.522391999999968
+          "medianMs": 0.7918880000000286,
+          "p95Ms": 1.2214079999999967
         },
         "unchangedTS": {
-          "medianMs": 1.7689399999999296,
-          "p95Ms": 3.007046999999943
+          "medianMs": 1.0919419999999604,
+          "p95Ms": 2.005303999999967
         },
         "pluginTS": {
-          "medianMs": 9.43500599999993,
-          "p95Ms": 12.475745000000074
+          "medianMs": 5.016448999999966,
+          "p95Ms": 6.816131999999925
         },
         "transformUI": {
-          "medianMs": 3.194874000000027,
-          "p95Ms": 5.606597000000079
+          "medianMs": 2.0540280000000166,
+          "p95Ms": 2.848850000000084
         },
         "pluginUI": {
-          "medianMs": 8.984830999999986,
-          "p95Ms": 14.430069000000003
+          "medianMs": 6.887890000000084,
+          "p95Ms": 9.417306999999937
         },
         "typescriptOnly": {
-          "medianMs": 2.2535989999998947,
-          "p95Ms": 3.366323000000193
+          "medianMs": 1.6999910000000682,
+          "p95Ms": 2.4183889999999337
         },
         "map100Positions": {
-          "medianMs": 0.040263999999979205,
-          "p95Ms": 0.059901000000081694
+          "medianMs": 0.02487800000005791,
+          "p95Ms": 0.08309600000006867
         }
       }
     },
     {
       "callbacks": 100,
       "bytes": 6089,
+      "implicitMemberCallbacks": 200,
+      "implicitMemberBytes": 8489,
       "uiViews": 100,
       "uiBytes": 6889,
       "stages": {
         "transformTS": {
-          "medianMs": 19.727002000000084,
-          "p95Ms": 22.97883200000001
+          "medianMs": 15.00268600000004,
+          "p95Ms": 19.614854000000037
+        },
+        "transformImplicitMembers": {
+          "medianMs": 15.500499999999874,
+          "p95Ms": 21.932870999999977
         },
         "transformJS": {
-          "medianMs": 6.756849999999986,
-          "p95Ms": 9.582589999999982
+          "medianMs": 4.819962000000032,
+          "p95Ms": 10.642049999999927
         },
         "unchangedTS": {
-          "medianMs": 12.921012000000019,
-          "p95Ms": 15.624013000000105
+          "medianMs": 9.024662999999919,
+          "p95Ms": 12.874947999999904
         },
         "pluginTS": {
-          "medianMs": 29.94904899999983,
-          "p95Ms": 36.504215000000386
+          "medianMs": 22.050549000000046,
+          "p95Ms": 34.409014999999954
         },
         "transformUI": {
-          "medianMs": 13.83082800000011,
-          "p95Ms": 16.86882199999991
+          "medianMs": 10.892433999999867,
+          "p95Ms": 14.813448000000335
         },
         "pluginUI": {
-          "medianMs": 37.55350999999973,
-          "p95Ms": 51.233188000000155
+          "medianMs": 30.50702599999977,
+          "p95Ms": 36.725986999999805
         },
         "typescriptOnly": {
-          "medianMs": 6.77880099999993,
-          "p95Ms": 14.585227000000032
+          "medianMs": 5.947420999999849,
+          "p95Ms": 15.238510000000133
         },
         "map100Positions": {
-          "medianMs": 0.05117500000005748,
-          "p95Ms": 0.1656870000001618
+          "medianMs": 0.011968000000251777,
+          "p95Ms": 0.04422699999986435
         }
       }
     },
     {
       "callbacks": 1000,
       "bytes": 61889,
+      "implicitMemberCallbacks": 2000,
+      "implicitMemberBytes": 85889,
       "uiViews": 1000,
       "uiBytes": 69889,
       "stages": {
         "transformTS": {
-          "medianMs": 177.93670999999995,
-          "p95Ms": 199.97141900000042
+          "medianMs": 146.43850399999974,
+          "p95Ms": 176.81781299999966
+        },
+        "transformImplicitMembers": {
+          "medianMs": 206.06850699999995,
+          "p95Ms": 274.99265299999934
         },
         "transformJS": {
-          "medianMs": 82.85791300000164,
-          "p95Ms": 97.7735530000009
+          "medianMs": 66.02339700000084,
+          "p95Ms": 75.76888800000052
         },
         "unchangedTS": {
-          "medianMs": 134.9421480000001,
-          "p95Ms": 149.01448399999936
+          "medianMs": 118.74394699999903,
+          "p95Ms": 141.44848099999945
         },
         "pluginTS": {
-          "medianMs": 269.7596949999988,
-          "p95Ms": 409.8409039999988
+          "medianMs": 209.5525259999995,
+          "p95Ms": 247.217944
         },
         "transformUI": {
-          "medianMs": 145.12212600000203,
-          "p95Ms": 168.5958439999995
+          "medianMs": 124.54875899999752,
+          "p95Ms": 145.75888300000224
         },
         "pluginUI": {
-          "medianMs": 365.58817199999976,
-          "p95Ms": 512.7978540000004
+          "medianMs": 307.01412399999754,
+          "p95Ms": 348.2285349999984
         },
         "typescriptOnly": {
-          "medianMs": 71.25849200000084,
-          "p95Ms": 81.03046299999914
+          "medianMs": 59.843731000000844,
+          "p95Ms": 71.20629999999801
         },
         "map100Positions": {
-          "medianMs": 0.011130999999295454,
-          "p95Ms": 0.013223999998444924
+          "medianMs": 0.005879000000277301,
+          "p95Ms": 0.032439000002341345
         }
       }
     }
@@ -149,42 +168,42 @@
       "registrations": 1,
       "iterations": 10000,
       "defer": {
-        "medianMs": 0.2937950000014098,
-        "p95Ms": 0.4844989999983227
+        "medianMs": 0.2452110000012908,
+        "p95Ms": 0.6650159999990137
       },
       "nativeFinally": {
-        "medianMs": 0.018694000002142275,
-        "p95Ms": 0.036607999998523155
+        "medianMs": 0.013619999997899868,
+        "p95Ms": 0.014552000000549015
       },
-      "medianRatio": 15.716005133611949
+      "medianRatio": 18.003744496262925
     },
     {
       "kind": "dynamic-loop",
       "registrations": 10,
       "iterations": 10000,
       "defer": {
-        "medianMs": 1.4671110000017507,
-        "p95Ms": 1.523777999998856
+        "medianMs": 1.0548060000000987,
+        "p95Ms": 1.3144780000002356
       },
       "nativeFinally": {
-        "medianMs": 0.28451700000005076,
-        "p95Ms": 0.2937950000014098
+        "medianMs": 0.08454799999890383,
+        "p95Ms": 0.128764000000956
       },
-      "medianRatio": 5.156496799844962
+      "medianRatio": 12.47582438394491
     },
     {
       "kind": "dynamic-loop",
       "registrations": 100,
       "iterations": 10000,
       "defer": {
-        "medianMs": 16.082343999998557,
-        "p95Ms": 16.460042999999132
+        "medianMs": 19.745009000002028,
+        "p95Ms": 20.513952999997855
       },
       "nativeFinally": {
-        "medianMs": 1.260137000001123,
-        "p95Ms": 1.2726500000026135
+        "medianMs": 0.8284129999992729,
+        "p95Ms": 1.071831999997812
       },
-      "medianRatio": 12.76237742402947
+      "medianRatio": 23.834740642673836
     },
     {
       "kind": "single-direct",
@@ -193,14 +212,14 @@
       "generatedBytes": 212,
       "matchesMinimalCallbackFinally": true,
       "defer": {
-        "medianMs": 0.018674000002647517,
-        "p95Ms": 0.14597999999750755
+        "medianMs": 0.009894999999232823,
+        "p95Ms": 0.01098699999784003
       },
       "nativeFinally": {
-        "medianMs": 0.018693999998504296,
-        "p95Ms": 0.04420200000095065
+        "medianMs": 0.00991499999872758,
+        "p95Ms": 0.07698600000003353
       },
-      "medianRatio": 0.9989301382337445
+      "medianRatio": 0.9979828543119189
     }
   ]
 }

@@ -5,6 +5,8 @@ export default defineConfig({
     testTimeout: 30000,
     coverage: {
       provider: 'v8',
+      reporter: ['text', 'json', 'json-summary', 'html'],
+      thresholds: { statements: 99, branches: 90, functions: 100, lines: 100 },
       include: ['src/**'],
     },
   },

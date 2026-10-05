@@ -45,6 +45,12 @@ it.each([
 describe('Prettier Twill plugin', () => {
   it.each([
     'const active=users.filter { .active && .verified };',
+    'const value = fn(1, /* argument tail */) { (n: number) in n + 1 };',
+    'const __twillImplicit={value:2}; const result=users.map { .value + __twillImplicit.value };',
+    'const value=fn { (name="in", {value}={value:1}) in `${name}:${value}` };',
+    'const value=run { async value in await Promise.resolve(value) } done: { () in 1 };',
+    'function f(input){return switch(input){case {tag:-1,value}: value;case {tag:1,value}: throw new Error(String(value));default: 0;};}',
+
     'const value=users.map { . /* property */ active ? .name : "missing" };',
     'const names=groups.map { .users.filter { .active }.map { .profile?.name ?? "missing" } };',
     'const values=users.map { defer { .close(); } guard .active else { return 0; } return .value; };',

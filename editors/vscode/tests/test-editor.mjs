@@ -2,7 +2,8 @@ import { build } from 'vite';
 import { nodeViteConfig } from '../../../packages/twill/scripts/node-vite-config.mjs';
 import { readVsix } from './read-vsix.mjs';
 import { runTests } from '@vscode/test-electron';
-import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -18,8 +19,19 @@ for (const [name, contents] of files) {
   mkdirSync(dirname(target), { recursive: true });
   writeFileSync(target, contents);
 }
+if (process.env.NODE_V8_COVERAGE) {
+  // The VSIX omits development source maps. Supply its matching build map to
+  // the coverage collector, without changing a byte of the shipped bundle.
+  const bundle = resolve('editors/vscode/dist/extension.cjs');
+  assert.deepEqual(files.get('extension/dist/extension.cjs'), readFileSync(bundle));
+  const map = JSON.parse(readFileSync(bundle + '.map', 'utf8'));
+  map.sources = map.sources.map((source) => resolve(dirname(bundle), source));
+  writeFileSync(join(root, 'extension/dist/extension.cjs.map'), JSON.stringify(map));
+}
 const workspace = join(root, 'workspace');
 mkdirSync(workspace, { recursive: true });
+mkdirSync(join(root, 'inferred'), { recursive: true });
+writeFileSync(join(root, 'inferred/main.twill'), 'export const values = [1].map { n in n * 2 };\n');
 const fixture = {
   'tsconfig.json': JSON.stringify({
     compilerOptions: {
@@ -52,6 +64,8 @@ const fixture = {
   'view.twillx': `import type { ReactNode } from 'react';\ndeclare function Card(props: { title: string; onClick?: (event: { x: number }) => void; children?: ReactNode }): ReactNode;\nexport const view = Card({ tit }) { 'Hello' };\n`,
   'debug.twill':
     'const run = (body: () => void) => body();\nrun {\n  const value = 21;\n  debugger;\n  console.log(value * 2);\n};\n',
+  'broken.twill': 'export const values = [1].map { value in value + };\n',
+  'temporary.twill': 'export const value = 42;\n',
 };
 for (const [name, text] of Object.entries(fixture)) writeFileSync(join(workspace, name), text);
 await build({

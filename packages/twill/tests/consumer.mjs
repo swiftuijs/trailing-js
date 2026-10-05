@@ -163,10 +163,14 @@ import { createRequire } from 'node:module';
     join(root, 'branching.twill'),
     'type Result={kind:"ok";value:number}|{kind:"bad";error:string};export function describe(input:{result:Result}|null){guard const {result}=input else{return "empty";}return switch(result){case {kind:"ok",value}: value.toFixed();case {kind:"bad",error}: error;};}',
   );
-  execFileSync(process.execPath, [join(base, 'cli.js'), 'check', '-p', 'tsconfig.json'], {
-    cwd: root,
-    stdio: 'pipe',
-  });
+  execFileSync(
+    process.execPath,
+    [resolve(base, '..', installed.bin.twill), 'check', '-p', 'tsconfig.json'],
+    {
+      cwd: root,
+      stdio: 'pipe',
+    },
+  );
   const report = JSON.parse(
     execFileSync(
       process.execPath,
@@ -249,10 +253,14 @@ import { createRequire } from 'node:module';
     join(root, 'ui-consumer.twill'),
     'import {view} from "./react-view.twillx"; import {view as panel} from "./vue-view.twillx"; export const views = [view, panel];',
   );
-  execFileSync(process.execPath, [join(base, 'cli.js'), 'check', '-p', 'tsconfig.json'], {
-    cwd: root,
-    stdio: 'pipe',
-  });
+  execFileSync(
+    process.execPath,
+    [resolve(base, '..', installed.bin.twill), 'check', '-p', 'tsconfig.json'],
+    {
+      cwd: root,
+      stdio: 'pipe',
+    },
+  );
   writeFileSync(
     join(root, 'state.ts'),
     'import {read} from "./cycle.twill"; export let count: number = 1; export function increment() { count++; } export const get = () => read();',
@@ -374,10 +382,14 @@ import { createRequire } from 'node:module';
   writeFileSync(join(root, 'bad.twill'), 'export const x: string = [1].map() { n in n*2 };');
   let status = 0;
   try {
-    execFileSync(process.execPath, [join(base, 'cli.js'), 'check', '-p', 'tsconfig.json'], {
-      cwd: root,
-      stdio: 'pipe',
-    });
+    execFileSync(
+      process.execPath,
+      [resolve(base, '..', installed.bin.twill), 'check', '-p', 'tsconfig.json'],
+      {
+        cwd: root,
+        stdio: 'pipe',
+      },
+    );
   } catch (error) {
     status = error.status;
   }
