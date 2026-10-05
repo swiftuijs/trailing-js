@@ -183,7 +183,11 @@ export async function run() {
   assert(references!.some((entry) => entry.uri.fsPath.endsWith('auto.twill')));
   for (const entry of references!) {
     const document = await vscode.workspace.openTextDocument(entry.uri);
-    assert.equal(document.getText(entry.range), 'twice');
+    assert.equal(
+      document.getText(entry.range),
+      'twice',
+      JSON.stringify({ file: entry.uri.fsPath, range: entry.range, source: document.getText() }),
+    );
     assert(!/\.twill\.ts$/.test(entry.uri.fsPath));
   }
   const nativeConsumer = await open('consumer.ts');
@@ -198,7 +202,11 @@ export async function run() {
   );
   for (const entry of nativeReferences!) {
     const document = await vscode.workspace.openTextDocument(entry.uri);
-    assert.equal(document.getText(entry.range), 'twice');
+    assert.equal(
+      document.getText(entry.range),
+      'twice',
+      JSON.stringify({ file: entry.uri.fsPath, range: entry.range, source: document.getText() }),
+    );
   }
   console.log('PASS: references from Twill and native TS map to unsaved original source');
 

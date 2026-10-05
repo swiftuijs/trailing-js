@@ -12,6 +12,7 @@ export async function probeTypeScriptPlugin(probeLocation, pluginName) {
   const main = join(root, 'main.ts');
   const api = join(root, 'api.twill');
   const js = join(root, 'consumer.js');
+  const caller = join(root, 'caller.twill');
   const source = 'import {label} from "./api.twill"; export const answer: string = label(2);';
   writeFileSync(
     join(root, 'tsconfig.json'),
@@ -24,14 +25,18 @@ export async function probeTypeScriptPlugin(probeLocation, pluginName) {
         module: 'ESNext',
         moduleResolution: 'Bundler',
       },
-      include: ['*.ts', '*.js'],
+      include: ['*.ts', '*.js', '*.twill'],
     }),
   );
   writeFileSync(
     api,
-    'export function label(value: number): string { const run=(body:()=>string)=>body(); const values: number[] = [value]; return run() { values.map() { item in String(item) }.join(",") }; }',
+    'export function label(value: number): string { const run=(body:()=>string)=>body(); const values: number[] = [value]; return run() { values.map() { item in String(item) }.join(",") }; } export const unused = 0;',
   );
   writeFileSync(main, source);
+  writeFileSync(
+    caller,
+    'import {unused, label} from "./api.twill"; export const result = label(2);',
+  );
   writeFileSync(js, 'import {label} from "./api.twill"; export const wrong = label("bad");');
   const child = spawn(
     process.execPath,
@@ -160,16 +165,36 @@ export async function probeTypeScriptPlugin(probeLocation, pluginName) {
         (diagnostic) => diagnostic.code === 2322,
       ),
     );
+    const apiOverlay =
+      'export function label(value: number): number { const run=(body:()=>number)=>body(); return run() { value }; }';
+    const callerOverlay = 'import { label } from "./api.twill";\nexport const result = label(2);';
     await send('configurePlugin', {
       pluginName,
       configuration: {
         overlays: {
-          [api.replaceAll('\\', '/')]:
-            'export function label(value: number): number { const run=(body:()=>number)=>body(); return run() { value }; }',
+          [api.replaceAll('\\', '/')]: apiOverlay,
+          [caller.replaceAll('\\', '/')]: callerOverlay,
         },
       },
     });
     assert.deepEqual(await send('semanticDiagnosticsSync', { file: main }), []);
+    const updatedReferences = await send('references', {
+      file: main,
+      line: 1,
+      offset: source.lastIndexOf('label') + 2,
+    });
+    const callerRefs = updatedReferences.refs.filter(
+      (entry) => entry.file.replaceAll('\\', '/') === caller.replaceAll('\\', '/'),
+    );
+    assert.equal(callerRefs.length, 2);
+    for (const entry of callerRefs) {
+      const line = callerOverlay.split('\n')[entry.start.line - 1];
+      assert.equal(
+        line.slice(entry.start.offset - 1, entry.end.offset - 1),
+        'label',
+        JSON.stringify(entry),
+      );
+    }
   } catch (error) {
     const log = readFileSync(join(root, 'server.log'), 'utf8')
       .split('\n')
