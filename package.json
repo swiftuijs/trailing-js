@@ -1,6 +1,6 @@
 {
   "version": "0.1.1",
-  "description": "Twill: a JS/TS syntax-sugar language with trailing closures, guards, block-scoped defer, build plugins, type checking, and editor support.",
+  "description": "Twill extends TypeScript with Swift-inspired syntax: trailing closures, guards, defer and checked switch expressions. Compiles to ordinary JavaScript.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/swiftuijs/twill.git"

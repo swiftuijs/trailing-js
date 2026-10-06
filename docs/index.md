@@ -2,9 +2,11 @@
 layout: page
 sidebar: false
 aside: false
-title: Clearer flow. Same TypeScript.
+title: TypeScript. Clearer flow.
 titleTemplate: ':title | Twill'
-description: A Swift-inspired language for JavaScript and TypeScript, with guards, defer, trailing closures and checked switch expressions. Compiles to ordinary JavaScript.
+description: >-
+  Twill extends TypeScript with Swift-inspired syntax: trailing closures, guards,
+  defer and checked switch expressions. Compiles to ordinary JavaScript.
 ---
 
 <TwillHome>

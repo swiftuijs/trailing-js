@@ -1,6 +1,6 @@
 # <img src="https://twill.evecalm.com/logo.png" alt="Twill hummingbird" align="right" width="40" height="40" /> Twill formatter
 
-Prettier 3.9 plugin for Twill, a Swift-inspired language for JavaScript and TypeScript. Formats `.twill`, `.twillx` and native TS/TSX while preserving trailing closures, guards and defer. It uses Prettier's own TypeScript parser/printer; compilation helpers never enter formatted source.
+Prettier 3.9 plugin for Twill, a TypeScript-based language with Swift-inspired syntax extensions. Formats `.twill`, `.twillx` and native TS/TSX while preserving trailing closures, guards and defer. It uses Prettier's own TypeScript parser/printer; compilation helpers never enter formatted source.
 
 Install in your application:
 

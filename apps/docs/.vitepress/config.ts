@@ -60,7 +60,7 @@ export default defineConfig({
   base,
   title: 'Twill',
   description:
-    'A Swift-inspired language for JavaScript and TypeScript, with guards, defer, trailing closures and checked switch expressions. Compiles to ordinary JavaScript.',
+    'Twill extends TypeScript with Swift-inspired syntax: trailing closures, guards, defer and checked switch expressions. Compiles to ordinary JavaScript.',
   cleanUrls: true,
   lastUpdated: true,
   head: [

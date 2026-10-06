@@ -1,6 +1,6 @@
 # <img src="https://twill.evecalm.com/logo.png" alt="Twill hummingbird" align="right" width="40" height="40" /> Twill source export
 
-`@swiftuijs/twill-export` exports checked Twill projects to native TS/TSX. Twill is a Swift-inspired language for JavaScript and TypeScript. The package supplies the optional `twill export` subcommand and a programmatic API; applications do not ship it. Node 20.19+ or 22.12+ is required.
+`@swiftuijs/twill-export` exports checked Twill projects to native TS/TSX. Twill is a TypeScript-based language with Swift-inspired syntax extensions. The package supplies the optional `twill export` subcommand and a programmatic API; applications do not ship it. Node 20.19+ or 22.12+ is required.
 
 Install the compiler and optional export package into your application, then run:
 

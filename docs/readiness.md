@@ -1,6 +1,6 @@
 # Compatibility and limitations
 
-Twill 0.1 is an experimental JS/TS dialect with a tested development workflow. It is ready for a scoped evaluation of the documented compiler, editor and build integrations. A broad production-ready claim would go beyond the current evidence.
+Twill 0.1 is an experimental TypeScript extension language with a tested development workflow. It is ready for a scoped evaluation of the documented compiler, editor and build integrations. A broad production-ready claim would go beyond the current evidence.
 
 ## Adoption status
 
@@ -19,7 +19,7 @@ Trailing callbacks, destructured `guard`, `defer` and value/pattern switch expre
 
 Native TS/JS and Twill can import each other through the build adapters, virtual project checker and Node ESM loader. Source maps support original-source diagnostics and debugging. Libraries can emit standard declarations with `twill declarations`; native `tsc` cannot parse Twill source directly.
 
-The [syntax reference](syntax.md) defines supported syntax and ambiguity rules. Twill uses TypeScript's type system, but parser coverage is not identical to every TypeScript release. Unsupported constructs report diagnostics. A CommonJS Twill loader, Vue SFC compilation and arbitrary SSR framework integration are outside the supported host workflows.
+The [syntax reference](syntax.md) defines supported syntax and ambiguity rules. Twill extends TypeScript/TSX and uses TypeScript's type system, but the current release is not a complete TypeScript superset: parser coverage is not identical to every TypeScript release, and trailing closures can change how a call followed by a block is parsed. Unsupported constructs report diagnostics. A CommonJS Twill loader, Vue SFC compilation and arbitrary SSR framework integration are outside the supported host workflows.
 
 ## Editor assistance
 

@@ -59,16 +59,17 @@ function navigateTabs(event: KeyboardEvent) {
   <div class="twill-home">
     <header class="home-hero home-container">
       <div class="hero-copy">
-        <h1>Clearer flow.<span>Same TypeScript.</span></h1>
+        <h1>TypeScript.<span>Clearer flow.</span></h1>
         <p class="hero-description">
-          Twill is a Swift-inspired language for JavaScript and TypeScript. Write clearer code with
-          guards, defer and trailing closures; compile to ordinary JavaScript.
+          Twill extends TypeScript with Swift-inspired syntax. Add guards, defer, trailing closures
+          and checked switch expressions; keep TypeScript's types and compile to ordinary
+          JavaScript.
         </p>
         <div class="home-actions">
           <a class="home-button primary" :href="withBase('/playground')">Try the playground</a>
           <a class="home-button secondary" :href="withBase('/getting-started')">Get started</a>
         </div>
-        <p class="hero-status">JS / TS compatible · No language runtime · Experimental 0.1</p>
+        <p class="hero-status">TypeScript types · No language runtime · Experimental 0.1</p>
       </div>
       <figure class="hero-example">
         <div class="home-code-frame">

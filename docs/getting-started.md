@@ -1,6 +1,6 @@
 # Getting started
 
-Twill is a Swift-inspired language for JavaScript and TypeScript, with syntax that builds on TypeScript and TSX. Use `.twill` for TS (including ordinary JS syntax) and `.twillx` for TSX. Native `.ts`, `.tsx`, `.js` and `.jsx` files keep their usual syntax.
+Twill extends TypeScript and TSX with Swift-inspired syntax, using TypeScript's type system and compiling to ordinary JavaScript. Use `.twill` for TS (including ordinary JS syntax) and `.twillx` for TSX. Native `.ts`, `.tsx`, `.js` and `.jsx` files keep their usual syntax.
 
 ## Try it first
 

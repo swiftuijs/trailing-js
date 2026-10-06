@@ -1,12 +1,18 @@
-# Twill: a Swift-inspired language for JS/TS
+# Twill: TypeScript with Swift-inspired syntax extensions
 
-Twill is a Swift-inspired language for JavaScript and TypeScript. It brings Swift-style guards, `defer` and trailing closures to JS/TS, using existing JavaScript engines and TypeScript's type system. Install `@swiftuijs/twill` as a development dependency; the CLI is `twill`. `.twill` / `.twillx` use TypeScript / TSX, including JavaScript syntax with optional types. Native JS remains a native source format.
+Twill is a TypeScript-based language with Swift-inspired syntax extensions. It extends TypeScript and TSX with guards, `defer`, trailing closures and checked switch expressions, using TypeScript's type system and compiling to ordinary JavaScript. Install `@swiftuijs/twill` as a development dependency; the CLI is `twill`. `.twill` / `.twillx` use TypeScript / TSX, including JavaScript syntax with optional types. Native JS remains a native source format.
 
 The callback shorthand `users.filter { .active }` reads a member of the first argument without naming it. Nested callbacks bind independently, and TypeScript still checks the property. See [implicit member callbacks](./syntax.md#implicit-member-callbacks).
 
+## Relationship to TypeScript
+
+TypeScript and TSX are the foundation; Swift inspires the added syntax. Twill uses TypeScript's types, inference and checking, and JavaScript's values, modules, libraries and runtime behavior. The extensions lower to ordinary TS/TSX before type checking or JavaScript emission.
+
+The current release is a TypeScript extension language, with documented compatibility boundaries. A complete TypeScript superset would need to accept every valid TypeScript program. Twill's parser targets the supported TypeScript 5.9 corpus and does not cover every construct or combination. It also introduces parsing ambiguities: `run()` followed by a newline and `{ ... }` becomes a trailing closure; write `run(); { ... }` to retain a separate block. See the [ambiguity rules](./syntax.md#ambiguities-and-semicolons) and [compatibility details](./readiness.md).
+
 ## Language principles
 
-- JS/TS defines values, types, modules, exceptions, lexical scope and asynchronous execution. Existing standard syntax retains its semantics.
+- JS/TS defines values, types, modules, exceptions, lexical scope and asynchronous execution. Supported standard syntax retains its semantics after applying the documented ambiguity rules.
 - New syntax has a documented lowering to ordinary JS/TS. Generated programs use existing engines, bundlers, package exports and framework APIs.
 - Component closures in `.twillx` follow JSX’s uppercase naming convention and compile to native JSX. No component libraries or registries belong in the parser; the standard JSX runtime selects framework behavior. Ordinary `.twill` callbacks retain function semantics.
 - Ordinary trailing closures and guards add no runtime helpers. Features requiring allocations, closures, scheduling or resource stacks must disclose and measure their cost.

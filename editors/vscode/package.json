@@ -1,7 +1,7 @@
 {
   "name": "twill",
   "displayName": "Twill",
-  "description": "Twill language support: TypeScript completion, diagnostics, navigation, formatting and source debugging for .twill and .twillx.",
+  "description": "Twill: TypeScript with Swift-inspired syntax extensions. Completion, diagnostics, navigation, formatting and source debugging.",
   "version": "0.1.1",
   "private": true,
   "type": "module",

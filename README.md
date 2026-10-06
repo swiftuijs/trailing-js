@@ -1,8 +1,8 @@
 # <img src="https://twill.evecalm.com/logo.png" alt="Twill hummingbird" align="right" width="40" height="40" /> Twill
 
-**Clearer flow. Same TypeScript.**
+**TypeScript. Clearer flow.**
 
-Twill is a **Swift-inspired language for JavaScript and TypeScript**, built by [forth.ink](https://forth.ink). Make validation, cleanup and business states explicit with guards, `defer`, trailing closures and checked switch expressions. Compile to ordinary JavaScript, keep TS types and mix Twill with your existing code.
+Twill is a **TypeScript-based language with Swift-inspired syntax extensions**, built by [forth.ink](https://forth.ink). It extends TypeScript and TSX with guards, `defer`, trailing closures and checked switch expressions. Use TypeScript's type system and existing JavaScript libraries; compile to ordinary JavaScript.
 
 [Documentation](https://twill.evecalm.com/) · [Why Twill?](https://twill.evecalm.com/why-twill) · [Playground](https://twill.evecalm.com/playground) · [Getting started](https://twill.evecalm.com/getting-started) · [VS Code extension](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill) · [Compatibility](https://twill.evecalm.com/readiness)
 
@@ -59,6 +59,8 @@ Ordinary closures become arrows; guards become branches. Direct-return switch ex
 | `.twill`                     | TypeScript, including JavaScript syntax with optional types |
 | `.twillx`                    | TSX, native JSX and component closures                      |
 | `.ts`, `.tsx`, `.js`, `.jsx` | Ordinary source files, retaining their native syntax        |
+
+The current parser targets documented TypeScript 5.9 syntax; it does not claim support for every valid TypeScript program. Trailing closures also introduce [syntax ambiguity rules](https://twill.evecalm.com/syntax#ambiguities-and-semicolons). Native TS/JS files keep their usual parsing.
 
 Twill and native files can import each other through the build adapters, virtual checker and Node ESM loader. Your normal `tsconfig.json` supplies types and JSX settings. No `twill.config.json` is required. Native `tsc` cannot parse dialect source; use `twill check` and [standard declaration output](https://twill.evecalm.com/libraries).
 

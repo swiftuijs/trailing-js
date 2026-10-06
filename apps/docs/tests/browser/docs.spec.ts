@@ -79,7 +79,7 @@ test('English documentation navigation, search, highlighting and responsive layo
     'href',
     'https://twill.evecalm.com/',
   );
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Clearer flow.Same TypeScript.');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('TypeScript.Clearer flow.');
   await expect(page.locator('vite-error-overlay')).toHaveCount(0);
   await expect(page.locator('div.language-twill code span[style]')).not.toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(

@@ -2,7 +2,7 @@
 
 **Write clearer JavaScript and TypeScript, with the editor tools you already expect.**
 
-Twill is a Swift-inspired language for JavaScript and TypeScript. It brings Swift-style syntax to everyday code: readable callbacks, explicit early exits, cleanup beside resource acquisition, and checked handling of business states. You write `.twill` or `.twillx` files; the Twill compiler turns them into ordinary JavaScript, using your existing libraries and framework runtimes.
+Twill is a TypeScript-based language with Swift-inspired syntax extensions. It extends TypeScript and TSX, using TypeScript's type system and adding: readable callbacks, explicit early exits, cleanup beside resource acquisition, and checked handling of business states. You write `.twill` or `.twillx` files; the Twill compiler turns them into ordinary JavaScript, using your existing libraries and framework runtimes.
 
 This extension helps you **write, understand and debug Twill in VS Code**. It provides syntax highlighting, TypeScript completion and error checking, navigation, formatting and Node debugging. Use it for scripts, backend code, data processing, React or Vue applications.
 
