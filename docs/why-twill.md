@@ -1,6 +1,6 @@
 # Why Twill?
 
-Twill makes validation, resource lifetimes and business outcomes visible in everyday TypeScript. It adds a small set of syntax forms, compiles to ordinary JS/TS and keeps your existing types, libraries and framework APIs.
+Twill is a Swift-inspired language for JavaScript and TypeScript that makes validation, resource lifetimes and business outcomes visible. It adds a small set of syntax forms, compiles to ordinary JS/TS and keeps your existing types, libraries and framework APIs.
 
 The benefit is a clearer way to express recurring control flow. TypeScript can express the same behavior today; Twill earns its place when its syntax makes that behavior easier for your team to review and maintain.
 

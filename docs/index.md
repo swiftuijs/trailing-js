@@ -4,7 +4,7 @@ sidebar: false
 aside: false
 title: Clearer flow. Same TypeScript.
 titleTemplate: ':title | Twill'
-description: Make validation, cleanup and business states explicit. Twill compiles to ordinary JavaScript and keeps your TypeScript types, libraries and tools.
+description: A Swift-inspired language for JavaScript and TypeScript, with guards, defer, trailing closures and checked switch expressions. Compiles to ordinary JavaScript.
 ---
 
 <TwillHome>

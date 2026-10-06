@@ -61,8 +61,8 @@ function navigateTabs(event: KeyboardEvent) {
       <div class="hero-copy">
         <h1>Clearer flow.<span>Same TypeScript.</span></h1>
         <p class="hero-description">
-          Make validation, cleanup and business states explicit. Twill adds a small layer of syntax
-          that compiles to ordinary JavaScript.
+          Twill is a Swift-inspired language for JavaScript and TypeScript. Write clearer code with
+          guards, defer and trailing closures; compile to ordinary JavaScript.
         </p>
         <div class="home-actions">
           <a class="home-button primary" :href="withBase('/playground')">Try the playground</a>

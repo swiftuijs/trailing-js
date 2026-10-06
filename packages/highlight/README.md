@@ -1,6 +1,6 @@
 # <img src="https://twill.evecalm.com/logo.png" alt="Twill hummingbird" align="right" width="40" height="40" /> Twill highlighting
 
-Portable TextMate grammars and a browser-compatible Shiki entry. The package imports no compiler, TypeScript engine, VS Code APIs or UI framework. The docs site and VSIX use the same grammar files.
+TextMate grammars and browser-compatible Shiki highlighting for Twill, a Swift-inspired language for JavaScript and TypeScript. The package imports no compiler, TypeScript engine, VS Code APIs or UI framework. The docs site and VSIX use the same grammar files.
 
 ```sh
 pnpm add shiki @swiftuijs/twill-highlight

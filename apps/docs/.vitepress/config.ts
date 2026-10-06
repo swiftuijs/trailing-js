@@ -54,7 +54,7 @@ export default defineConfig({
   base,
   title: 'Twill',
   description:
-    'Clearer flow. Same TypeScript. Make validation, cleanup and business states explicit, with ordinary JavaScript output and a complete development toolchain.',
+    'A Swift-inspired language for JavaScript and TypeScript, with guards, defer, trailing closures and checked switch expressions. Compiles to ordinary JavaScript.',
   cleanUrls: true,
   lastUpdated: true,
   head: [
