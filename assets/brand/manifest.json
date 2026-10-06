@@ -1,0 +1,63 @@
+{
+  "name": "Twill hummingbird",
+  "color": "#6d5ce8",
+  "source": {
+    "filename": "exec-a4463f18-645b-41ea-8d6d-8e451e4ea95e.png",
+    "sha256": "ab0dd5f85c0003aea135f004f9873f39fe58f21d9322b212f76665d66b0cc993",
+    "approval": "Hummingbird silhouette and indigo palette approved by the user"
+  },
+  "vectorization": {
+    "tool": "potrace 1.16",
+    "alphaThreshold": "50%",
+    "turdSize": 24,
+    "alphaMax": 1,
+    "optTolerance": 0.4
+  },
+  "exports": {
+    "vector": "twill-mark.svg",
+    "raster": "twill-mark.png",
+    "rasterDimensions": [512, 512]
+  },
+  "files": [
+    {
+      "path": "assets/brand/twill-mark.svg",
+      "bytes": 1983,
+      "sha256": "cf0e47c719a6eb49dfec9d00063adfd2784e643f3d11693335cc7147af756db8"
+    },
+    {
+      "path": "assets/brand/twill-mark.png",
+      "bytes": 18519,
+      "sha256": "6a543824dfc0d014d22cd63c47b0a7ea65c186ebc564c01a64e57a0d6b6a3362"
+    },
+    {
+      "path": "apps/docs/public/logo.svg",
+      "bytes": 1983,
+      "sha256": "cf0e47c719a6eb49dfec9d00063adfd2784e643f3d11693335cc7147af756db8"
+    },
+    {
+      "path": "apps/docs/public/logo.png",
+      "bytes": 18519,
+      "sha256": "6a543824dfc0d014d22cd63c47b0a7ea65c186ebc564c01a64e57a0d6b6a3362"
+    },
+    {
+      "path": "apps/docs/public/favicon.svg",
+      "bytes": 1983,
+      "sha256": "cf0e47c719a6eb49dfec9d00063adfd2784e643f3d11693335cc7147af756db8"
+    },
+    {
+      "path": "apps/docs/public/favicon.png",
+      "bytes": 1121,
+      "sha256": "91ed9797a21467322db0f09a95751c1648271ef4981d9878eee74582521eacaf"
+    },
+    {
+      "path": "apps/docs/public/apple-touch-icon.png",
+      "bytes": 5661,
+      "sha256": "ce2583dbdc9c4f09966e89fc6a1962bd1e7daf3de49e022d7b2255eef2699018"
+    },
+    {
+      "path": "editors/vscode/assets/icon.png",
+      "bytes": 18519,
+      "sha256": "6a543824dfc0d014d22cd63c47b0a7ea65c186ebc564c01a64e57a0d6b6a3362"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
   "name": "twill",
   "displayName": "Twill",
   "description": "Twill language support: TypeScript completion, diagnostics, navigation, formatting and source debugging for .twill and .twillx.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -142,7 +142,7 @@
     "defer"
   ],
   "galleryBanner": {
-    "color": "#38654a",
+    "color": "#211b36",
     "theme": "dark"
   },
   "icon": "assets/icon.png"

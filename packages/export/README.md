@@ -1,3 +1,5 @@
+<img src="https://twill.evecalm.com/logo.png" alt="Twill hummingbird" width="80" height="80" />
+
 # Twill source export
 
 `@swiftuijs/twill-export` exports a checked source project to native TS/TSX. It supplies the optional `twill export` subcommand and a programmatic API; applications do not ship it. Node 20.19+ or 22.12+ is required.

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1
+
+- Introduce Twill's indigo hummingbird identity across the documentation site, VS Code extension and package READMEs.
+- Show the logo in the documentation navigation and homepage, with coordinated light and dark themes, favicons and Marketplace branding.
+
 ## 0.1.0
 
 Initial experimental release of Twill, a JavaScript / TypeScript syntax-sugar language and development toolchain by [forth.ink](https://forth.ink).

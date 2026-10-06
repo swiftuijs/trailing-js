@@ -57,7 +57,12 @@ export default defineConfig({
     'Clearer flow. Same TypeScript. Make validation, cleanup and business states explicit, with ordinary JavaScript output and a complete development toolchain.',
   cleanUrls: true,
   lastUpdated: true,
-  head: [['link', { rel: 'icon', href: base + 'favicon.svg' }]],
+  head: [
+    ['link', { rel: 'icon', type: 'image/svg+xml', href: base + 'favicon.svg' }],
+    ['link', { rel: 'icon', type: 'image/png', sizes: '32x32', href: base + 'favicon.png' }],
+    ['link', { rel: 'apple-touch-icon', sizes: '180x180', href: base + 'apple-touch-icon.png' }],
+    ['meta', { name: 'theme-color', content: '#6d5ce8' }],
+  ],
   sitemap: { hostname: site },
   transformHead({ pageData }) {
     const path = pageData.relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '');
@@ -65,6 +70,7 @@ export default defineConfig({
   },
   lang: 'en',
   themeConfig: {
+    logo: { src: '/logo.svg', alt: 'Twill hummingbird' },
     sidebar: pages,
     nav: [
       { text: 'Why Twill', link: '/why-twill' },

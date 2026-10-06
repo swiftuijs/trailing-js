@@ -1,3 +1,5 @@
+<img src="https://twill.evecalm.com/logo.png" alt="Twill hummingbird" width="80" height="80" />
+
 # Twill linter
 
 An ESLint 9/10 flat-config plugin for `.twill` and `.twillx`, with typescript-eslint rules, original-source diagnostics and conservative fixes.

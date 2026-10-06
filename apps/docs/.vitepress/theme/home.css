@@ -1,18 +1,18 @@
 .twill-home {
-  --home-ink: #17211b;
-  --home-muted: #606b64;
-  --home-border: #dce2de;
-  --home-band: #f3f7f4;
-  --home-code: #f8faf9;
+  --home-ink: #211d32;
+  --home-muted: #686276;
+  --home-border: #e3dfef;
+  --home-band: #f4f2fc;
+  --home-code: #f8f7fc;
   color: var(--home-ink);
   background: var(--vp-c-bg);
 }
 .dark .twill-home {
-  --home-ink: #ebf1ed;
-  --home-muted: #a9b7ae;
-  --home-border: #344039;
-  --home-band: #1a251e;
-  --home-code: #202923;
+  --home-ink: #f0edf9;
+  --home-muted: #b4adc7;
+  --home-border: #3b354d;
+  --home-band: #242031;
+  --home-code: #282332;
 }
 .home-container {
   width: calc(100% - 128px);
@@ -35,6 +35,20 @@
 .twill-home h1 span {
   display: block;
   color: var(--vp-c-brand-1);
+}
+.hero-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  color: var(--home-ink);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.hero-brand img {
+  width: 48px;
+  height: 48px;
 }
 .hero-description {
   max-width: 610px;
@@ -70,8 +84,8 @@
   color: #fff;
 }
 .home-button.primary:hover {
-  background: #2d523c;
-  border-color: #2d523c;
+  background: var(--twill-brand-hover);
+  border-color: var(--twill-brand-hover);
 }
 .home-button.secondary {
   color: var(--vp-c-brand-1);
