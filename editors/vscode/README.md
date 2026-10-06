@@ -1,84 +1,143 @@
-# Twill for Visual Studio Code
+# Twill for VS Code
 
-**Clearer flow. Same TypeScript.**
+**Write clearer JavaScript and TypeScript, with the editor tools you already expect.**
 
-Twill adds trailing closures, early-exit guards, scope-based cleanup and checked switch expressions to JavaScript and TypeScript. This extension brings the language into your normal VS Code workflow, with TypeScript assistance, formatting and source debugging.
+Twill extends JavaScript and TypeScript with a few small features for everyday code: readable callbacks, explicit early exits, cleanup beside resource acquisition, and checked handling of business states. You write `.twill` or `.twillx` files; the Twill compiler turns them into ordinary JavaScript, using your existing libraries and framework runtimes.
 
-Built by [forth.ink](https://forth.ink). Publisher ID: `forth-ink` · Extension ID: `forth-ink.twill` · Requires VS Code 1.95.3 or newer.
+This extension helps you **write, understand and debug Twill in VS Code**. It provides syntax highlighting, TypeScript completion and error checking, navigation, formatting and Node debugging. Use it for scripts, backend code, data processing, React or Vue applications.
 
-[Get started](https://swiftuijs.github.io/twill/getting-started) · [Language guide](https://swiftuijs.github.io/twill/language) · [Playground](https://swiftuijs.github.io/twill/playground) · [Report an issue](https://github.com/swiftuijs/twill/issues)
+[Try the playground](https://swiftuijs.github.io/twill/playground) · [Documentation](https://swiftuijs.github.io/twill/) · [Report an issue](https://github.com/swiftuijs/twill/issues)
 
-## Write clearer everyday code
+## What does Twill look like?
 
-Use existing callback APIs with trailing closures and contextual TypeScript types:
+An ordinary TypeScript callback chain:
 
 ```typescript
-const doubled = [1, 2, 3].map { value in value * 2 };
-const activeUsers = users.filter { .active };
+const activeNames = users.filter((user) => user.active).map((user) => user.name);
 ```
 
-Keep the failure path explicit and the narrowed value in scope:
+The same operation in `main.twill`:
 
 ```typescript
-function displayName(user: { name: string } | undefined): string {
-  guard const name = user?.name else {
-    return 'Guest';
+const activeNames = users.filter { .active }.map { .name };
+```
+
+Here, `.active` and `.name` refer to the callback's first argument. You can also name parameters explicitly: `[1, 2, 3].map { value in value * 2 }`. These callbacks compile to ordinary arrow functions, with contextual types inferred from the existing API.
+
+Twill also helps with control flow:
+
+```typescript
+function greeting(name: string | undefined): string {
+  guard const value = name else {
+    return 'Hello, guest';
   }
-  return name.toUpperCase();
+  return `Hello, ${value.toUpperCase()}`;
 }
 ```
 
-Keep cleanup beside acquisition, including awaited cleanup in async functions:
+`guard` makes the failure path exit immediately. After the guard, TypeScript knows `value` is a string. Twill's other features include block-scoped `defer` for cleanup and switch expressions checked against ordinary TypeScript unions. See [practical patterns](https://swiftuijs.github.io/twill/patterns) for examples and [language semantics](https://swiftuijs.github.io/twill/syntax) for the exact rules.
 
-```typescript
-import { open } from 'node:fs/promises';
+## What can I do with this extension?
 
-async function readText(path: string): Promise<string> {
-  const file = await open(path, 'r');
-  defer { await file.close(); }
-  return await file.readFile('utf8');
-}
-```
+| While you work                | The extension helps you                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------------------------- |
+| Write a callback or component | Get parameter, member and React prop suggestions, plus signature help                     |
+| Read unfamiliar code          | Hover for types, jump to definitions and find references                                  |
+| Catch mistakes                | See syntax and TypeScript errors at their original source locations                       |
+| Change code                   | Rename symbols across Twill and native TS/JS, organize imports and apply safe quick fixes |
+| Keep source consistent        | Format documents or enable format-on-save                                                 |
+| Understand compilation        | Open the generated TypeScript beside your source                                          |
+| Diagnose Node code            | Set breakpoints in the original Twill file and inspect stack frames                       |
 
-Twill compiles to ordinary JavaScript with no language runtime library. Existing `.ts`, `.tsx`, `.js` and `.jsx` files can import Twill modules and be imported by them. For the semantics and costs of each feature, see [syntax](https://swiftuijs.github.io/twill/syntax) and [performance](https://swiftuijs.github.io/twill/performance).
+The extension includes its editing tools. To **run or build your application**, install the compiler package, `@swiftuijs/twill`, in that application. The compiler also provides `twill check` for whole-project checking.
 
-## What the extension provides
+## Your first Twill program
 
-| Feature               | In your project                                                                   |
-| --------------------- | --------------------------------------------------------------------------------- |
-| Syntax highlighting   | TS/TSX-aware grammars, comments and bracket matching in `.twill` and `.twillx`    |
-| TypeScript assistance | Contextual completion, callback and React prop types, hover and signature help    |
-| Diagnostics           | Type and syntax errors mapped to your original source                             |
-| Navigation            | Definitions and references across Twill and native TS/JS, including unsaved edits |
-| Source editing        | Automatic imports, mixed-file rename, import organization and safe quick fixes    |
-| Formatting            | Format Document and format-on-save, with Twill syntax preserved                   |
-| Inspection            | Generated TypeScript and project diagnostic views                                 |
-| Node debugging        | Original-source breakpoints and stack frames through the Twill ESM loader         |
+This walkthrough creates a small Node application. It requires **Node 20.19+ or 22.12+** and **VS Code 1.95.3+**. You can also explore the syntax without installing anything in the [browser playground](https://swiftuijs.github.io/twill/playground).
 
-The extension bundles its compiler, formatter, TypeScript engine and native TS-server bridge. Editing does not require a global Twill installation. Your application supplies its framework types and installs `@swiftuijs/twill` for builds, source execution and whole-project checks.
+### 1. Install the extension
 
-## Get started
-
-### Install the extension
-
-Open **Extensions** in VS Code, search for **Twill** by **forth.ink**, and choose **Install**. You can also install by the exact extension ID:
+In VS Code, open **Extensions**, search for **Twill** by **forth.ink**, and click **Install**. Or use:
 
 ```sh
 code --install-extension forth-ink.twill
 ```
 
-For offline installation, download `twill.vsix` from the matching [GitHub release](https://github.com/swiftuijs/twill/releases), then choose **Extensions → … → Install from VSIX**.
+### 2. Create a project and install the compiler
 
-Open the application folder containing `tsconfig.json`. If it was already open when you installed the extension, run **TypeScript: Restart TS Server** from the command palette.
-
-### Install the compiler in your application
+Run these commands in your terminal:
 
 ```sh
-pnpm add -D @swiftuijs/twill
-# npm install --save-dev @swiftuijs/twill
+mkdir twill-demo
+cd twill-demo
+npm init -y
+npm pkg set type=module
+npm install --save-dev @swiftuijs/twill
+mkdir src
 ```
 
-The compiler requires Node 20.19+ or 22.12+. Add the adapter for your existing build tool; for Vite:
+Open the `twill-demo` folder in VS Code. If you use pnpm, the compiler installation command is `pnpm add -D @swiftuijs/twill`.
+
+### 3. Add your source and TypeScript settings
+
+Create `src/main.twill`:
+
+```typescript
+const users = [
+  { name: 'Ada', active: true },
+  { name: 'Linus', active: false },
+  { name: 'Grace', active: true },
+];
+
+const activeNames = users.filter { .active }.map { .name };
+console.log(activeNames);
+```
+
+Create `tsconfig.json` in the project root:
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
+  },
+  "include": ["src/**/*"]
+}
+```
+
+Twill uses your normal TypeScript settings. No `twill.config.json` is needed. Existing projects can keep their tsconfig and include Twill files alongside their TS/JS files.
+
+In the editor, hover over `activeNames` to see its inferred `string[]` type. Change `.active` to `.missing` to see a type error, then undo it. Open the command palette and choose **Twill: Show Generated TypeScript** to see how the callbacks compile.
+
+### 4. Check and run it
+
+From the project root:
+
+```sh
+npx twill check -p tsconfig.json
+node --enable-source-maps --import @swiftuijs/twill/register src/main.twill
+```
+
+The program prints:
+
+```text
+[ 'Ada', 'Grace' ]
+```
+
+For debugging, open `src/main.twill`, set a breakpoint on `console.log`, and choose **Twill: Debug Current File** from the command palette. The command runs the file using your project's dependencies and environment.
+
+## Use it in an existing application
+
+Install `@swiftuijs/twill` locally, add your build tool's adapter, and start with one file. Native `.ts`, `.tsx`, `.js` and `.jsx` files keep their standard syntax and can import Twill modules or be imported by them.
+
+| File      | Write                                                                |
+| --------- | -------------------------------------------------------------------- |
+| `.twill`  | TypeScript, including ordinary JavaScript syntax with optional types |
+| `.twillx` | TSX, native JSX and component closures                               |
+
+For a Vite application, add the plugin to the existing configuration:
 
 ```typescript
 import { defineConfig } from 'vite';
@@ -87,37 +146,13 @@ import twill from '@swiftuijs/twill/vite';
 export default defineConfig({ plugins: [twill()] });
 ```
 
-React applications should use [the React Vite adapter](https://swiftuijs.github.io/twill/frameworks#react-with-vite-8) for Fast Refresh. Rollup, esbuild, webpack and Rspack have their own [build adapters](https://swiftuijs.github.io/twill/build-tools).
+React applications should use the [React Vite adapter](https://swiftuijs.github.io/twill/frameworks#react-with-vite-8) for Fast Refresh. React and Vue component libraries use their normal imports, props, children and slots. Twill requires no component registry or wrapping API.
 
-### Add one Twill module
+See [React and Vue](https://swiftuijs.github.io/twill/frameworks), [other build tools](https://swiftuijs.github.io/twill/build-tools) and [mixed TS/JS projects](https://swiftuijs.github.io/twill/interoperability) for application setup. Run `twill check` before building; native `tsc` cannot parse Twill source. Libraries can emit [standard declarations](https://swiftuijs.github.io/twill/libraries).
 
-Use `.twill` for TypeScript with optional types, or `.twillx` for TSX and component closures. Include your source directory in the normal tsconfig, for example `"include": ["src/**/*"]`. Keep your existing strictness, JSX settings and library types. No `twill.config.json`, wildcard ambient module declaration or component registry is required.
+## Enable format-on-save
 
-Run the authoritative project checker before building:
-
-```sh
-pnpm exec twill check -p tsconfig.json
-```
-
-Native `tsc` cannot parse Twill syntax. The extension supplies mixed-file editor assistance; `twill check` checks the complete project. Libraries can emit [ordinary declarations](https://swiftuijs.github.io/twill/libraries) for native TypeScript consumers.
-
-## React and Vue
-
-Import components directly in `.twillx`. Uppercase component closures become ordinary JSX children, or lazy Vue slots selected through your standard JSX settings:
-
-```typescript
-import { Panel } from './Panel';
-
-export default function App() {
-  return Panel { <p>Hello from Twill</p>; };
-}
-```
-
-Native JSX remains available. `.twill`, lowercase UI calls and parenthesized UI callables retain ordinary callback semantics. Component libraries use their native props and children contracts; no Twill wrapper API is needed. See [React and Vue](https://swiftuijs.github.io/twill/frameworks).
-
-## Format on save
-
-Use the bundled formatter in `.vscode/settings.json`:
+The extension includes a formatter. Add this to `.vscode/settings.json`:
 
 ```json
 {
@@ -132,54 +167,29 @@ Use the bundled formatter in `.vscode/settings.json`:
 }
 ```
 
-The bundled provider follows editor indentation and Prettier defaults. To share a project's `.prettierrc` with CLI formatting, install `@swiftuijs/twill-formatter` and use the standard Prettier extension instead. See [formatter setup](https://swiftuijs.github.io/twill/tooling#format-your-source).
+The bundled formatter uses editor indentation and Prettier defaults. For a shared `.prettierrc` and CLI formatting, use the standard Prettier extension with `@swiftuijs/twill-formatter`. Optional ESLint integration uses `@swiftuijs/twill-linter` and Microsoft's ESLint extension. Follow the [formatter and linter guide](https://swiftuijs.github.io/twill/tooling).
 
-## Add ESLint
+## Useful commands
 
-Install `@swiftuijs/twill-linter` alongside ESLint and use its recommended flat configuration. For in-editor feedback, install Microsoft's ESLint extension and add the Twill language IDs to your existing validation settings:
+Open the command palette with **Ctrl+Shift+P** on Windows/Linux or **Cmd+Shift+P** on macOS.
 
-```json
-{
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact",
-    "twill-typescript",
-    "twill-tsx"
-  ]
-}
-```
+| Command                              | Use it to                                                                  |
+| ------------------------------------ | -------------------------------------------------------------------------- |
+| **Twill: Show Generated TypeScript** | Compare your source with readable compiled TS/TSX                          |
+| **Twill: Show Project Diagnostics**  | Inspect the project settings, source counts, versions and diagnostics      |
+| **Twill: Debug Current File**        | Run the current file in the Node debugger with original-source breakpoints |
 
-Linting is optional and supplied by the independent ESLint plugin. See [recommended and type-aware setup](https://swiftuijs.github.io/twill/tooling#add-eslint).
+Browser applications use their existing browser and framework developer tools. See the [debugging guide](https://swiftuijs.github.io/twill/tooling#debug-node-code) for custom launch settings.
 
-## Inspect and debug
+## Troubleshooting and support
 
-| Command palette action               | What it does                                                                   |
-| ------------------------------------ | ------------------------------------------------------------------------------ |
-| **Twill: Show Generated TypeScript** | Opens readable compiled TS/TSX beside your source                              |
-| **Twill: Show Project Diagnostics**  | Shows configuration, source counts, versions and diagnostics                   |
-| **Twill: Debug Current File**        | Runs the file with the local compiler's ESM loader and VS Code's Node debugger |
+- **Native TypeScript cannot resolve a Twill import?** Open the application folder containing its tsconfig, then run **TypeScript: Restart TS Server**.
+- **Missing component or callback suggestions?** Check your framework types and JSX settings, repair nearby syntax errors, and inspect **Twill: Show Project Diagnostics**.
+- **A rename or quick fix is unavailable?** Some edits cross generated syntax and cannot be mapped safely; these edits are withheld. General refactoring and fix-all are outside the supported workflow.
+- **Need an offline install?** Download `twill.vsix` from the matching [GitHub release](https://github.com/swiftuijs/twill/releases) and choose **Extensions → … → Install from VSIX**.
 
-The debug command executes the selected application file. Install `@swiftuijs/twill` locally and use the application's normal dependencies and environment. For a fixed entry point or custom launch settings, see [Node debugging](https://swiftuijs.github.io/twill/tooling#debug-node-code). Browser and framework applications use their existing developer tools and source maps.
+Twill's 0.x release line is experimental. The checker and extension use TypeScript 5.9 semantics. Review the [compatibility and support guide](https://swiftuijs.github.io/twill/readiness) for tested versions and boundaries.
 
-## Troubleshooting
+For a bug report, include a small source example, your extension/compiler versions, VS Code and Node versions, and relevant project settings. Use [GitHub Issues](https://github.com/swiftuijs/twill/issues).
 
-| Symptom                                        | What to check                                                                                                                                 |
-| ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| A native TS file cannot resolve a Twill import | Open the folder with its tsconfig and run **TypeScript: Restart TS Server**                                                                   |
-| Completion stops near unfinished code          | Repair nearby syntax and check **Twill: Show Project Diagnostics**; common incomplete inputs are supported, arbitrary malformed syntax is not |
-| Framework props are missing                    | Install framework types and check standard JSX / `jsxImportSource` settings                                                                   |
-| Format Document ignores `.prettierrc`          | Select the standard Prettier extension with the project formatter plugin                                                                      |
-| ESLint skips Twill files                       | Load the Twill flat config and add both language IDs to `eslint.validate`                                                                     |
-| A rename or fix is unavailable                 | The edit may cross generated syntax; edits that cannot map safely are withheld                                                                |
-
-## Compatibility and support
-
-Twill's 0.x release line is experimental. The checker and extension use the pinned TypeScript 5.9 semantics; arbitrary workspace TypeScript versions are outside the tested contract. General refactoring and fix-all are unavailable. The Node loader supports local ESM mixed projects; it does not install a CommonJS dialect loader or transform dependencies.
-
-Review [support and limitations](https://swiftuijs.github.io/twill/readiness) before adopting Twill in a production project. [GitHub highlighting](https://swiftuijs.github.io/twill/github) is configured separately; installing the extension does not change GitHub's language detection.
-
-For a bug report, include a minimal source example, extension/compiler versions, VS Code and Node versions, and relevant tsconfig settings. Project diagnostic reports can contain filenames and source messages; review them before sharing. Use [GitHub Issues](https://github.com/swiftuijs/twill/issues) for reproducible problems.
-
-MIT licensed · [Source](https://github.com/swiftuijs/twill) · [forth.ink](https://forth.ink)
+MIT licensed · Built by [forth.ink](https://forth.ink) · [Source code](https://github.com/swiftuijs/twill)
