@@ -35,7 +35,9 @@ Provider boundary tests capture registrations from the same cached, shipped exte
 
 Playground control-flow coverage covers its scheduler and worker, including bounded input, stale responses, retries, failures and cancellation on disposal. Vue rendering, CodeMirror editing, accessibility and responsive behavior are validated by Chromium integration tests rather than included in that unit percentage. Third-party engines, Electron and VS Code's own implementation are outside Twill's source coverage.
 
-JSON summaries and HTML reports are generated under each workspace's `coverage/`. CI enforces gates and uploads reports, independent package artifacts, size checks and benchmark evidence. Stable VS Code runs coverage; the minimum supported host runs the same functional integration suite. Linux, macOS and Windows run build, checker, unit, example and package checks; public packages also run in an independent Node 20 consumer.
+JSON summaries and HTML reports are generated under each workspace's `coverage/`. The regular CI workflow runs one Linux job: build, typecheck, unit coverage, grammar tests, examples, lint/format, output budgets, five independent package installations, packaged stable VS Code coverage and browser integration tests. Coverage replaces the ordinary unit run rather than repeating it. Public package consumers run on Node 20 after building with Node 22. Reports and validated distributions are uploaded separately.
+
+`Extended validation` is manual: enable `compatibility` for Windows/macOS and Node 24 checks plus the minimum VS Code host, or enable `benchmarks` to collect timing reports. Run compatibility checks before release and after changes to paths, file resolution, CLI processes, Node APIs or editor support. A release reuses the regular verification workflow, also checks the minimum editor host, and publishes its exact tested artifacts. Deterministic size budgets and behavioral comparisons remain required on every change; noisy timing measurements are not a merge gate.
 
 ## What the tests exercise
 

@@ -3,69 +3,20 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_call:
+    inputs:
+      minimum-editor:
+        type: boolean
+        default: false
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 permissions:
   contents: read
 jobs:
-  test:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { os: ubuntu-latest, node: 22 }
-          - { os: ubuntu-latest, node: 24 }
-          - { os: windows-latest, node: 22 }
-          - { os: macos-latest, node: 22 }
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7.0.0
-        with:
-          node-version: ${{ matrix.node }}
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: pnpm deps:check
-      - run: pnpm check
-      - run: pnpm format:check
-      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: pnpm test:coverage
-      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: pnpm package:core
-      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: node packages/twill/tests/consumer.mjs --packed
-      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: pnpm package:tooling && node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs && node packages/export/tests/consumer.mjs && node packages/highlight/tests/consumer.mjs
-      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: pnpm release:manifest && pnpm --filter @swiftuijs/twill test:size --output ../../bundle-results.json
-      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: pnpm benchmark --output benchmark-results.json
-      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: pnpm benchmark:project --output project-results.json
-      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: pnpm benchmark:branching --output branching-results.json
-      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        run: pnpm benchmark:react-framework --output ../../react-framework-results.json
-      - if: matrix.os == 'ubuntu-latest' && matrix.node == 22
-        uses: actions/upload-artifact@v7.0.1
-        with:
-          name: twill-packages
-          path: |
-            *.tgz
-            dist/twill.vsix
-            packages/*/coverage/
-            apps/docs/coverage/
-            benchmark-results.json
-            project-results.json
-            release-manifest.json
-            bundle-results.json
-            branching-results.json
-            react-framework-results.json
-  node20-consumer:
-    runs-on: ubuntu-latest
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: pnpm/action-setup@v6
@@ -74,63 +25,65 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm package:core
-      - run: pnpm --filter @swiftuijs/twill-formatter --filter @swiftuijs/twill-linter run build
-      - run: pnpm package:tooling
+      - name: Check release metadata and dependencies
+        run: pnpm verify:release && pnpm deps:check
+        env:
+          RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+      - name: Build workspace
+        run: pnpm build
+      - name: Check types, lint and formatting
+        run: pnpm typecheck && pnpm lint && pnpm format:check
+      - name: Unit coverage and grammar tests
+        # Coverage runs the unit suites; do not repeat them through pnpm check.
+        run: pnpm test:coverage && pnpm --filter twill test:unit
+      - name: Validate example behavior and bundle budgets
+        run: pnpm test:examples && pnpm --filter @swiftuijs/twill test:size --output ../../bundle-results.json
+      - name: Pack the validated build
+        run: pnpm package:core && pnpm package:tooling && pnpm --filter twill package:built && pnpm release:manifest
+      - name: Packaged editor coverage
+        run: xvfb-run -a pnpm editor:coverage
+        env:
+          TWILL_TEST_VSCODE_VERSION: stable
+      - name: Minimum supported editor
+        if: inputs.minimum-editor == true
+        run: xvfb-run -a pnpm editor:test
+        env:
+          TWILL_TEST_VSCODE_VERSION: '1.95.3'
+      - name: Browser integration tests
+        run: |
+          pnpm --filter @swiftuijs/twill-docs exec playwright install --with-deps chromium
+          pnpm test:browser
+        env:
+          TWILL_BROWSER_OUTPUT: ${{ runner.temp }}/twill-browser-results
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: 20
-      # Vitest 5 and VSCE 4 require Node 22. The distributed compiler, loader,
-      # type checker and build adapters also support Node 20 consumers.
-      - run: node packages/twill/tests/consumer.mjs --packed
-      - run: node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs && node packages/export/tests/consumer.mjs && node packages/highlight/tests/consumer.mjs
-  editor:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        vscode: ['1.95.3', stable]
-    steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7.0.0
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm editor:package
-      - if: matrix.vscode == 'stable'
-        run: xvfb-run -a pnpm editor:coverage
-        env:
-          TWILL_TEST_VSCODE_VERSION: ${{ matrix.vscode }}
-      - if: matrix.vscode != 'stable'
-        run: xvfb-run -a pnpm editor:test
-        env:
-          TWILL_TEST_VSCODE_VERSION: ${{ matrix.vscode }}
-      - if: always() && matrix.vscode == 'stable'
+      - name: Independently installed packages on the minimum consumer runtime
+        # Repository tools require Node 22; the shipped packages support Node 20.
+        run: |
+          node packages/twill/tests/consumer.mjs --packed
+          node packages/formatter/tests/consumer.mjs
+          node packages/linter/tests/consumer.mjs
+          node packages/export/tests/consumer.mjs
+          node packages/highlight/tests/consumer.mjs
+      - name: Upload validated distributions
         uses: actions/upload-artifact@v7.0.1
         with:
-          name: editor-coverage
+          name: twill-packages
+          if-no-files-found: error
           path: |
+            *.tgz
+            dist/twill.vsix
+            release-manifest.json
+            bundle-results.json
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: test-reports
+          path: |
+            packages/*/coverage/
+            apps/docs/coverage/
             editors/vscode/coverage/
             !editors/vscode/coverage/tmp/**
-  browser:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7.0.0
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm docs:build
-      - run: pnpm --filter @swiftuijs/twill-docs exec playwright install --with-deps chromium
-      - run: pnpm test:browser
-        env:
-          TWILL_BROWSER_OUTPUT: ${{ runner.temp }}/twill-browser-results
-      - if: always()
-        uses: actions/upload-artifact@v7.0.1
-        with:
-          name: browser-results
-          path: ${{ runner.temp }}/twill-browser-results/
+            ${{ runner.temp }}/twill-browser-results/

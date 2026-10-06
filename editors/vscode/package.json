@@ -7,13 +7,14 @@
   "type": "module",
   "scripts": {
     "build": "vite build && node scripts/prepare-editor.mjs",
-    "package": "pnpm --filter twill... run build && pnpm verify && node scripts/package-editor.mjs && node tests/verify-vsix.mjs",
+    "package": "pnpm --filter twill... run build && pnpm package:built",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "verify": "node tests/verify-editor-plugin.mjs",
     "test": "node tests/test-editor.mjs",
     "test:unit": "vitest run",
     "test:watch": "vitest",
-    "test:coverage:host": "c8 --exclude-after-remap --check-coverage --statements=98 --lines=98 --functions=100 --branches=95 --include=\"**/extension.ts\" --extension=.ts --extension=.js --extension=.cjs --reporter=text --reporter=json --reporter=json-summary --reporter=html node tests/test-editor.mjs && node tests/verify-coverage.mjs"
+    "test:coverage:host": "c8 --exclude-after-remap --check-coverage --statements=98 --lines=98 --functions=100 --branches=95 --include=\"**/extension.ts\" --extension=.ts --extension=.js --extension=.cjs --reporter=text --reporter=json --reporter=json-summary --reporter=html node tests/test-editor.mjs && node tests/verify-coverage.mjs",
+    "package:built": "pnpm verify && node scripts/package-editor.mjs && node tests/verify-vsix.mjs"
   },
   "publisher": "swiftuijs",
   "license": "MIT",

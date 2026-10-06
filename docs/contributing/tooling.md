@@ -11,7 +11,7 @@ Use Node 22.13+ and the pnpm version pinned in the root `packageManager`. `corep
 | `packages/linter`                 | Public `@swiftuijs/twill-linter`: ESLint processor and recommended configs                           | Vite library mode and API declarations                                                                          |
 | `packages/highlight`              | Public `@swiftuijs/twill-highlight`: browser/SSR Shiki integration and shared TextMate grammars      | Vite library mode and API declarations                                                                          |
 | `packages/export`                 | Optional public `@swiftuijs/twill-export`: checked source export to native TS/TSX                    | Vite library mode, CLI and API declarations                                                                     |
-| `examples/*`                      | Seven private applications/libraries, each with its own manifest                                     | Local Vite configurations; library adds declaration emission                                                    |
+| `examples/*`                      | Eight private applications/libraries, each with its own manifest                                     | Local Vite configurations; library adds declaration emission                                                    |
 | `editors/vscode`                  | VS Code extension and TextMate grammars                                                              | Vite bundles a standalone CJS extension; preparation copies standard-library declarations, schemas and licenses |
 | `editors/twill-typescript-plugin` | Private `@swiftuijs/twill-vscode-tsserver` bridge bundled in the VSIX                                | Vite bundles a CJS TS-server plugin                                                                             |
 | `apps/docs`                       | Private VitePress site, English reference, local search and compiler worker playground               | VitePress static site; shared `docs/` references                                                                |
@@ -41,9 +41,9 @@ Coverage scopes, regression gates and edge-case contracts are described in [test
 
 ## Example and editor checks
 
-All seven [examples](../../examples/README.md) are private workspace packages with their own dependencies and tests. Run `pnpm test:examples` for execution and real component rendering. `pnpm --filter @swiftuijs/twill-example-react dev` starts the React example.
+All eight [examples](../../examples/README.md) are private workspace packages with their own dependencies and tests. Run `pnpm test:examples` for execution and real component rendering. `pnpm --filter @swiftuijs/twill-example-react dev` starts the React example.
 
-Real extension-host tests load the extracted VSIX, request providers, apply completion/import/rename/quick-fix edits to unsaved documents and inspect original-source breakpoints. Use `pnpm editor:package` followed by `pnpm editor:test`; CI runs VS Code 1.95.3 and stable. `TWILL_TEST_VSCODE_VERSION` selects a download; `TWILL_TEST_VSCODE_PATH` uses a local executable.
+Real extension-host tests load the extracted VSIX, request providers, apply completion/import/rename/quick-fix edits to unsaved documents and inspect original-source breakpoints. Use `pnpm editor:package` followed by `pnpm editor:test`; Regular CI runs stable with coverage; releases and manual compatibility validation also run VS Code 1.95.3. `TWILL_TEST_VSCODE_VERSION` selects a download; `TWILL_TEST_VSCODE_PATH` uses a local executable.
 
 Application setup belongs in the user [editor guide](../tooling.md), [CLI reference](../cli.md) and [library guide](../libraries.md).
 
@@ -84,3 +84,9 @@ pnpm test:browser # build first; Chromium must be available
 User-facing pages live directly under `docs/`. `docs/contributing/` and `docs/rfcs/` remain repository references and are excluded from the site, search and sitemap.
 
 The default site base is `/twill/`; set `TWILL_DOCS_BASE=/` for root hosting. GitHub Pages deploys the built `apps/docs/dist` artifact on main updates. Configure the repository Pages source as GitHub Actions before the first deployment. Local search stays in the browser; the Playground uses a reusable, time-limited worker with live compilation and highlighted editors and performs syntax lowering only. It does not upload source, execute input or supply project type diagnostics.
+
+## CI workflows
+
+`CI` verifies each push and pull request on Ubuntu 24.04 with Node 22, then checks independently installed packages on Node 20. It runs unit suites with coverage once and retains actual browser/editor tests and deterministic size gates. The `Extended validation` workflow is manual: select compatibility checks for Windows, macOS, Node 24 and the minimum supported editor, or benchmarks for timing reports. Use it before a release and when changing platform-sensitive behavior.
+
+The tag release workflow calls the same CI verification and publishes its tested tarballs and VSIX without another build. Documentation deployment builds independently, triggered only by site content, compiler/formatter/highlighter dependencies, shared dependency manifests or its own workflow; it can also be run manually.

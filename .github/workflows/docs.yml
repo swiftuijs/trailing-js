@@ -2,6 +2,18 @@ name: Documentation
 on:
   push:
     branches: [main]
+    paths:
+      - 'docs/**'
+      - 'apps/docs/**'
+      - 'packages/twill/**'
+      - 'packages/formatter/**'
+      - 'packages/highlight/**'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'tsconfig.base.json'
+      - '.npmrc'
+      - '.github/workflows/docs.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -10,7 +22,8 @@ concurrency:
   cancel-in-progress: true
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
     permissions:
       contents: read
       pages: read
@@ -48,10 +61,11 @@ jobs:
   deploy:
     needs: build
     if: needs.build.outputs.pages-enabled == 'true'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       pages: write
       id-token: write
+    timeout-minutes: 10
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
