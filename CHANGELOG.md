@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.9.0
+## 0.1.0
 
 Initial experimental release of Twill, a JavaScript / TypeScript syntax-sugar language and development toolchain by [forth.ink](https://forth.ink).
 

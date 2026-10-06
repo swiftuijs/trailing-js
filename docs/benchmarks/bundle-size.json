@@ -1,6 +1,6 @@
 {
   "node": "v24.19.0",
-  "packageVersion": "0.9.0",
+  "packageVersion": "0.1.0",
   "scope": "Minified application output for five representative supported paths; excludes host/framework runtime and does not cover expression IIFEs, dynamic cleanup or child collection.",
   "results": [
     {

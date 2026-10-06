@@ -1,10 +1,13 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
-const archive = resolve(import.meta.dirname, '../../../swiftuijs-twill-highlight-0.9.0.tgz');
+const version = JSON.parse(
+  readFileSync(new URL('../package.json', import.meta.url), 'utf8'),
+).version;
+const archive = resolve(import.meta.dirname, `../../../swiftuijs-twill-highlight-${version}.tgz`);
 const directory = mkdtempSync(resolve(tmpdir(), 'twill-highlight-consumer-'));
 try {
   writeFileSync(

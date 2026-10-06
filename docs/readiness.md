@@ -1,6 +1,6 @@
 # Readiness and support
 
-Twill 0.9 is an experimental JS/TS dialect with a tested development workflow. It is ready for a scoped evaluation of the documented compiler, editor and build integrations. A broad production-ready claim would go beyond the current evidence.
+Twill 0.1 is an experimental JS/TS dialect with a tested development workflow. It is ready for a scoped evaluation of the documented compiler, editor and build integrations. A broad production-ready claim would go beyond the current evidence.
 
 ## Adoption status
 

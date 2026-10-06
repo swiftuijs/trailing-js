@@ -28,7 +28,7 @@ pnpm check                # build, typecheck, tests, consumer checks, packaged V
 pnpm format:check
 pnpm test:coverage
 pnpm editor:coverage     # source coverage from the shipped VSIX in a real host
-pnpm package:core         # swiftuijs-twill-0.9.0.tgz at the root
+pnpm package:core         # swiftuijs-twill-0.1.0.tgz at the root
 pnpm editor:package       # dist/twill.vsix
 pnpm editor:test          # real VS Code extension-host tests against the VSIX
 # Headless Linux:
@@ -89,4 +89,4 @@ The default site base is `/twill/`; set `TWILL_DOCS_BASE=/` for root hosting. Gi
 
 `CI` verifies each push and pull request on Ubuntu 24.04 with Node 22, then checks independently installed packages on Node 20. It runs unit suites with coverage once and retains actual browser/editor tests and deterministic size gates. The `Extended validation` workflow is manual: select compatibility checks for Windows, macOS, Node 24 and the minimum supported editor, or benchmarks for timing reports. Use it before a release and when changing platform-sensitive behavior.
 
-The tag release workflow calls the same CI verification and publishes its tested tarballs and VSIX without another build. Documentation deployment builds independently, triggered only by site content, compiler/formatter/highlighter dependencies, shared dependency manifests or its own workflow; it can also be run manually.
+The optional release workflow is dispatched manually at a release tag, uses the same CI verification, and publishes its tested tarballs and VSIX without another build. Documentation deployment builds independently, triggered only by site content, compiler/formatter/highlighter dependencies, shared dependency manifests or its own workflow; it can also be run manually.

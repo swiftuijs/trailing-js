@@ -123,6 +123,6 @@ Native TS may be the better choice when your team needs every `tsc` workflow and
 
 ## What you can rely on today
 
-Twill 0.9 is experimental, with a tested end-to-end workflow: compilation, mixed-file checking, editor assistance, formatting, linting, source debugging and independent package installation. Its runtime is the emitted JavaScript; ordinary callbacks and guards require no Twill runtime library. Cleanup and expression switches disclose their extra allocations or functions.
+Twill 0.1 is experimental, with a tested end-to-end workflow: compilation, mixed-file checking, editor assistance, formatting, linting, source debugging and independent package installation. Its runtime is the emitted JavaScript; ordinary callbacks and guards require no Twill runtime library. Cleanup and expression switches disclose their extra allocations or functions.
 
 This supports a scoped pilot, not a broad production-readiness promise. Stable distribution, compatibility/support commitments and real project evidence remain adoption gates. Read [support and limitations](./readiness.md) and the [performance methodology](./performance.md), then [start with one module](./getting-started.md) or [try the playground](./playground.md).

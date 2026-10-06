@@ -22,7 +22,7 @@ async function readOwned(acquire: () => Promise<TextDocument>) {
 
 The successful path stays in view; release sits next to acquisition. Registration is block-scoped, cleanup is awaited explicitly, and `return await` keeps an owned resource alive until its work finishes. The output uses ordinary JS control flow.
 
-**Release line:** 0.9. Twill is an experimental language with a tested compiler, editor and build workflow. Start with one module and evaluate it against your application’s requirements. See [support and compatibility](https://swiftuijs.github.io/twill/readiness).
+**Release line:** 0.1. Twill is an experimental language with a tested compiler, editor and build workflow. Start with one module and evaluate it against your application’s requirements. See [support and compatibility](https://swiftuijs.github.io/twill/readiness).
 
 ## Why use Twill?
 
