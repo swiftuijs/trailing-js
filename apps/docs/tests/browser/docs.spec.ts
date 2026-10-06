@@ -146,6 +146,23 @@ test('live compilation, highlighted examples, located errors and recovery', asyn
   await expect(generated(page)).toContainText('=>');
   await expect(source.locator('.twill-token-keyword')).not.toHaveCount(0);
   await expect(generated(page).locator('.twill-token-keyword')).not.toHaveCount(0);
+  await expect(page.locator('.VPSidebar')).toHaveCount(0);
+  await expect(page.locator('.VPFooter')).toHaveCount(0);
+  const viewport = page.viewportSize()!;
+  const panes = await page.locator('.playground-code-editor').evaluateAll((editors) =>
+    editors.map((editor) => {
+      const { width, top, bottom } = editor.getBoundingClientRect();
+      return { width, top, bottom };
+    }),
+  );
+  for (const pane of panes) {
+    expect(pane.width).toBeGreaterThan(viewport.width * (viewport.width > 760 ? 0.45 : 0.85));
+    expect(pane.bottom).toBeLessThanOrEqual(viewport.height);
+  }
+  expect(panes[0]!.top).toBeLessThan(220);
+  await page.getByText('Help', { exact: true }).click();
+  await expect(page.locator('.playground-help-popover')).toContainText('Parentheses are optional');
+  await page.getByText('Help', { exact: true }).click();
   await screenshot(page, info, 'playground');
   await page.getByLabel('Example', { exact: true }).selectOption('members');
   await expect(generated(page)).toContainText('.active');
@@ -189,7 +206,7 @@ test('live compilation, highlighted examples, located errors and recovery', asyn
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
-  await expect(page.getByRole('link', { name: 'Read the syntax guide →' })).toHaveAttribute(
+  await expect(page.getByRole('link', { name: 'Syntax guide ↗' })).toHaveAttribute(
     'href',
     (process.env.TWILL_DOCS_BASE ?? '/') + 'syntax',
   );

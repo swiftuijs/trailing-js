@@ -211,13 +211,9 @@ onBeforeUnmount(() => {
 
 <template>
   <main class="twill-playground-page" @keydown="keyboard">
-    <header class="playground-heading">
-      <p class="playground-eyebrow">INTERACTIVE COMPILER</p>
-      <h1>Playground</h1>
-      <p>Write Twill and inspect the TypeScript it generates.</p>
-    </header>
     <section class="twill-playground" aria-label="Twill playground">
       <div class="playground-toolbar">
+        <h1>Playground</h1>
         <div class="playground-example-picker">
           <label for="twill-example">Example</label>
           <select id="twill-example" v-model="selected" @change="choose">
@@ -229,21 +225,20 @@ onBeforeUnmount(() => {
             <option value="vue">Vue lazy slot</option>
           </select>
         </div>
-        <span class="playground-live"><span aria-hidden="true" /> Live compilation</span>
         <button
           class="playground-button"
           type="button"
+          aria-label="Reset example"
           :disabled="source === example.source"
           @click="choose"
         >
-          Reset example
+          Reset
         </button>
       </div>
-      <p class="playground-example-note">{{ example.note }}</p>
       <div class="playground-editors">
         <section class="playground-pane" aria-label="Source pane">
           <div class="playground-pane-header">
-            <h2>Twill source</h2>
+            <h2>Twill</h2>
             <span class="playground-filename">{{ example.filename }}</span>
           </div>
           <CodeEditor
@@ -254,10 +249,6 @@ onBeforeUnmount(() => {
             :error="diagnostic"
             @limit="notify('Source is limited to 20,000 characters')"
           />
-          <div class="playground-pane-footer">
-            <span>{{ source.length.toLocaleString() }} / 20,000 characters</span
-            ><span>Editable</span>
-          </div>
         </section>
         <section
           class="playground-pane"
@@ -265,15 +256,17 @@ onBeforeUnmount(() => {
           :class="{ 'is-stale': !current && !!output }"
         >
           <div class="playground-pane-header">
-            <h2>Generated {{ jsx ? 'TSX' : 'TypeScript' }}</h2>
+            <h2>{{ jsx ? 'TSX' : 'TypeScript' }}</h2>
+            <span v-if="!current && output" class="playground-output-state">Last valid output</span>
             <div class="playground-output-actions">
               <button
                 class="playground-button"
                 type="button"
+                aria-label="Copy output"
                 :disabled="!current"
                 @click="copyOutput"
               >
-                Copy output
+                Copy
               </button>
               <button
                 class="playground-button"
@@ -291,10 +284,6 @@ onBeforeUnmount(() => {
             read-only
             :jsx="jsx"
           />
-          <div class="playground-pane-footer">
-            <span>{{ !current && output ? 'Last valid output' : 'Types and JSX preserved' }}</span
-            ><span>Read only</span>
-          </div>
         </section>
       </div>
       <div v-if="diagnostic" class="playground-error" role="alert">
@@ -320,18 +309,25 @@ onBeforeUnmount(() => {
         <p class="playground-status" role="status" aria-live="polite">
           <span class="playground-status-dot" aria-hidden="true" />{{ summary }}
         </p>
-        <span class="playground-notice" aria-live="polite">{{ notice }}</span>
+        <span v-if="notice" class="playground-notice" aria-live="polite">{{ notice }}</span>
+        <div class="playground-footer-actions">
+          <details class="playground-help">
+            <summary>Help</summary>
+            <div class="playground-help-popover">
+              <p>{{ example.note }}</p>
+              <p id="playground-editor-help">
+                <kbd>Tab</kbd> indents · <kbd>Esc</kbd> then <kbd>Tab</kbd> leaves the editor ·
+                <kbd>Ctrl / Cmd + Enter</kbd> compiles immediately.
+              </p>
+              <p>
+                Your draft stays in this browser. The playground transforms syntax without running
+                code or checking project imports.
+              </p>
+            </div>
+          </details>
+          <a :href="withBase('/syntax')">Syntax guide ↗</a>
+        </div>
       </div>
     </section>
-    <div class="playground-help">
-      <p id="playground-editor-help">
-        <kbd>Tab</kbd> indents · <kbd>Esc</kbd> then <kbd>Tab</kbd> leaves the editor ·
-        <kbd>Ctrl / Cmd + Enter</kbd> compiles immediately.
-      </p>
-      <p>
-        Your draft stays in this browser. The playground transforms syntax without running code or
-        checking project imports. <a :href="withBase('/syntax')">Read the syntax guide →</a>
-      </p>
-    </div>
   </main>
 </template>
