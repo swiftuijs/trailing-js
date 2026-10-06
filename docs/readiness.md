@@ -1,4 +1,4 @@
-# Readiness and support
+# Compatibility and limitations
 
 Twill 0.1 is an experimental JS/TS dialect with a tested development workflow. It is ready for a scoped evaluation of the documented compiler, editor and build integrations. A broad production-ready claim would go beyond the current evidence.
 
@@ -66,4 +66,4 @@ The 0.x release line is experimental. Language semantics and integration contrac
 
 Report reproducible compiler or tooling problems through [GitHub Issues](https://github.com/swiftuijs/twill/issues). Include the package versions, host versions, relevant configuration and a minimal source example. `twill doctor --json` can help identify the project configuration; review its filenames and diagnostic text before sharing.
 
-GitHub release artifacts include tarballs, the VSIX and a SHA-256 checksum manifest for direct installation. The VS Code Marketplace link will be added when the extension is published.
+See [GitHub Releases](https://github.com/swiftuijs/twill/releases) for version announcements. The VS Code Marketplace link will be added when the extension is published.

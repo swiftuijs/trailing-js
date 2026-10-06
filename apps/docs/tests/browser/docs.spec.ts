@@ -127,7 +127,7 @@ test('product comparisons, adoption links and readiness stay usable', async ({ p
     page.getByRole('heading', { name: /Put cleanup next to acquisition/ }),
   ).toBeVisible();
   await page.goto('readiness');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Readiness and support');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Compatibility and limitations');
   await expect(page.locator('.vp-doc')).toContainText(
     'A broad production-ready claim would go beyond the current evidence.',
   );

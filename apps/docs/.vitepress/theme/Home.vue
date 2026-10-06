@@ -205,7 +205,7 @@ function navigateTabs(event: KeyboardEvent) {
             Twill 0.1 is experimental. The supported workflow is tested, but broad production
             readiness still needs real project pilots and stable releases.
           </p>
-          <a class="home-link" :href="withBase('/readiness')">Read support &amp; limitations</a>
+          <a class="home-link" :href="withBase('/readiness')">Compatibility &amp; limitations</a>
           <a class="home-link" :href="withBase('/adoption#export-back-to-native-ts')"
             >Export to native TS</a
           >

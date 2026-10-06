@@ -4,7 +4,7 @@
 
 Twill is a small syntax-sugar language for JavaScript and TypeScript, built by [forth.ink](https://forth.ink). Make validation, cleanup and business states explicit with guards, `defer`, trailing closures and checked switch expressions. Compile to ordinary JavaScript, keep TS types and mix Twill with your existing code.
 
-[Documentation](https://twill.evecalm.com/) · [Why Twill?](https://twill.evecalm.com/why-twill) · [Playground](https://twill.evecalm.com/playground) · [Getting started](https://twill.evecalm.com/getting-started) · [Support](https://twill.evecalm.com/readiness)
+[Documentation](https://twill.evecalm.com/) · [Why Twill?](https://twill.evecalm.com/why-twill) · [Playground](https://twill.evecalm.com/playground) · [Getting started](https://twill.evecalm.com/getting-started) · [Compatibility](https://twill.evecalm.com/readiness)
 
 ```twill
 async function readOwned(acquire: () => Promise<TextDocument>) {
@@ -122,7 +122,7 @@ The VS Code extension bundles its editing tools. Your application installs the c
 
 Twill is a useful candidate for nullable workflows, owned resources, typed state handling and callback-heavy code. It is still an experimental dialect. Parser coverage follows a tested TS 5.9 contract; arbitrary workspace TS versions, general editor refactoring, native incremental `tsc --build`, a CommonJS Twill loader and every SSR framework are outside its current guarantees.
 
-Representative native/dialect bundles are compared for behavior and byte size; release artifacts have enforced size budgets. Synthetic benchmarks do not establish whole-application speed or team productivity. Profile your actual workload and exercise failure paths. See [support](https://twill.evecalm.com/readiness), [performance](https://twill.evecalm.com/performance) and [gradual adoption](https://twill.evecalm.com/adoption).
+Representative native/dialect bundles are compared for behavior and byte size; release artifacts have enforced size budgets. Synthetic benchmarks do not establish whole-application speed or team productivity. Profile your actual workload and exercise failure paths. See [compatibility](https://twill.evecalm.com/readiness), [performance](https://twill.evecalm.com/performance) and [gradual adoption](https://twill.evecalm.com/adoption).
 
 ## Contributing
 

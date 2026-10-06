@@ -43,7 +43,7 @@ const pages = [
       { text: 'Performance', link: '/performance' },
       { text: 'React source study', link: '/react-source' },
       { text: 'GitHub highlighting', link: '/github' },
-      { text: 'Readiness and support', link: '/readiness' },
+      { text: 'Compatibility and limitations', link: '/readiness' },
     ],
   },
 ];
@@ -70,11 +70,10 @@ export default defineConfig({
       { text: 'Why Twill', link: '/why-twill' },
       { text: 'Guide', link: '/getting-started' },
       { text: 'Playground', link: '/playground' },
-      { text: 'Support', link: '/readiness' },
+      { text: 'GitHub', link: repository },
     ],
     search: { provider: 'local' },
     outline: { level: [2, 3] },
-    socialLinks: [{ icon: 'github', link: repository }],
     editLink: { pattern: repository + '/edit/main/docs/:path' },
     footer: {
       message: 'MIT licensed · Experimental language',
