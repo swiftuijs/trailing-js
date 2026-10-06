@@ -46,6 +46,10 @@ const pages = [
       { text: 'Compatibility and limitations', link: '/readiness' },
     ],
   },
+  {
+    text: 'Related projects',
+    items: [{ text: 'SwiftUI.js', link: 'https://swiftuijs.evecalm.com/docs/' }],
+  },
 ];
 export default defineConfig({
   srcDir: '../../docs',
@@ -82,7 +86,8 @@ export default defineConfig({
     outline: { level: [2, 3] },
     editLink: { pattern: repository + '/edit/main/docs/:path' },
     footer: {
-      message: 'MIT licensed · Experimental language',
+      message:
+        'MIT licensed · Experimental language · <a href="https://swiftuijs.evecalm.com/">SwiftUI.js</a>',
       copyright: 'Twill · <a href="https://forth.ink">forth.ink</a>',
     },
   },

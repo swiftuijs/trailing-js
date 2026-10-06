@@ -102,7 +102,11 @@ Follow [getting started](https://twill.evecalm.com/getting-started) to complete 
 | Web highlighting     | `@swiftuijs/twill-highlight`: browser/SSR Shiki integration and portable TextMate grammars                 |
 | Source export        | `twill export`: optional checked source export to formatted native TS/TSX                                  |
 
-React children, render props, Vue slots and component libraries use native framework contracts. There are no component registries or Twill-specific wrapping APIs; `@swiftuijs/ui` is one example consumer. Independent [examples](https://github.com/swiftuijs/twill/blob/main/examples/README.md) cover ordinary workflows, mixed sources, cleanup, React, Vue and library output. The [React framework source study](https://twill.evecalm.com/react-source) also compares a pinned client-core rewrite with native JavaScript.
+React children, render props, Vue slots and component libraries use native framework contracts. There are no component registries or Twill-specific wrapping APIs.
+
+[SwiftUI.js](https://swiftuijs.evecalm.com/docs/) (`@swiftuijs/ui`) is our sibling project: a SwiftUI-inspired React component library. Its components work with Twill's native JSX output. See its [getting started guide](https://swiftuijs.evecalm.com/docs/getting-started/) and [source repository](https://github.com/swiftuijs/ui).
+
+Independent [examples](https://github.com/swiftuijs/twill/blob/main/examples/README.md) cover ordinary workflows, mixed sources, cleanup, React, Vue and library output. The [React framework source study](https://twill.evecalm.com/react-source) also compares a pinned client-core rewrite with native JavaScript.
 
 ## Packages
 
