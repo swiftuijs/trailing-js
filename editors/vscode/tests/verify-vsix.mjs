@@ -20,6 +20,9 @@ try {
     JSON.parse(readFileSync('package.json', 'utf8')).version,
     'Stale VSIX version',
   );
+  const editorManifest = JSON.parse(readFileSync('editors/vscode/package.json', 'utf8'));
+  assert.equal(manifest.publisher, editorManifest.publisher, 'Stale VSIX publisher');
+  assert.equal(manifest.name, editorManifest.name, 'Stale VSIX extension name');
   for (const grammar of manifest.contributes.grammars)
     assert(
       files.has('extension/' + grammar.path.replace(/^\.\//, '')),

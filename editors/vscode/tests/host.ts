@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import extensionManifest from '../package.json';
 import assert from 'node:assert/strict';
 import { join, isAbsolute } from 'node:path';
 import { readFileSync } from 'node:fs';
@@ -26,7 +27,9 @@ async function eventually<T>(action: () => PromiseLike<T>, accept: (value: T) =>
 
 export async function run() {
   const root = vscode.workspace.workspaceFolders![0]!.uri.fsPath;
-  const extension = vscode.extensions.getExtension('swiftuijs.twill')!;
+  const extension = vscode.extensions.getExtension(
+    `${extensionManifest.publisher}.${extensionManifest.name}`,
+  )!;
   assert(extension, 'The extracted VSIX must be installed');
   await extension.activate();
   const require = createRequire(join(root, '../tests.cjs'));

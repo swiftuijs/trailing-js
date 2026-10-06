@@ -2,7 +2,7 @@
 
 **Clearer flow. Same TypeScript.**
 
-Twill is a small syntax-sugar language for JavaScript and TypeScript. Make validation, cleanup and business states explicit with guards, `defer`, trailing closures and checked switch expressions. Compile to ordinary JavaScript, keep TS types and mix Twill with your existing code.
+Twill is a small syntax-sugar language for JavaScript and TypeScript, built by [forth.ink](https://forth.ink). Make validation, cleanup and business states explicit with guards, `defer`, trailing closures and checked switch expressions. Compile to ordinary JavaScript, keep TS types and mix Twill with your existing code.
 
 [Documentation](https://swiftuijs.github.io/twill/) · [Why Twill?](docs/why-twill.md) · [Playground](https://swiftuijs.github.io/twill/playground) · [Getting started](docs/getting-started.md) · [Support](docs/readiness.md)
 

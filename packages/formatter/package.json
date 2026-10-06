@@ -55,5 +55,10 @@
   },
   "peerDependencies": {
     "prettier": "^3.9.9"
-  }
+  },
+  "author": {
+    "name": "forth.ink",
+    "url": "https://forth.ink"
+  },
+  "homepage": "https://swiftuijs.github.io/twill/"
 }

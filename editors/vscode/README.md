@@ -1,5 +1,7 @@
 # Twill
 
+A language and toolchain by [forth.ink](https://forth.ink). The Marketplace publisher ID is `forth-ink`; the extension ID is `forth-ink.twill`.
+
 The Twill JS/TS syntax-sugar language in `.twill` and `.twillx` files: Swift-style trailing closures, early-exit guards, nullish bindings, block-scoped defer and natural component children and lazy slots in UI files. Both dialect formats accept JS syntax with optional types; native JS retains JS/JSDoc checking. Your normal `tsconfig.json` supplies project settings; no `twill.config.json` is required.
 
 ```ts

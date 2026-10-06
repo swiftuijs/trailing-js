@@ -59,5 +59,9 @@
     "benchmark:branching": "pnpm --filter @swiftuijs/twill run benchmark:branching",
     "editor:coverage": "pnpm --filter twill test:coverage:host",
     "benchmark:react-framework": "pnpm --filter @swiftuijs/twill-example-react-framework run benchmark"
+  },
+  "author": {
+    "name": "forth.ink",
+    "url": "https://forth.ink"
   }
 }

@@ -52,5 +52,10 @@
   },
   "peerDependencies": {
     "eslint": "^9.0.0 || ^10.0.0"
-  }
+  },
+  "author": {
+    "name": "forth.ink",
+    "url": "https://forth.ink"
+  },
+  "homepage": "https://swiftuijs.github.io/twill/"
 }

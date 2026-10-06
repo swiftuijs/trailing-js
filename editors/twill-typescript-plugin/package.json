@@ -14,5 +14,10 @@
     "vite": "catalog:",
     "typescript": "catalog:",
     "@types/node": "catalog:"
-  }
+  },
+  "author": {
+    "name": "forth.ink",
+    "url": "https://forth.ink"
+  },
+  "homepage": "https://swiftuijs.github.io/twill/"
 }

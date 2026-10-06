@@ -72,7 +72,10 @@ export default defineConfig({
     outline: { level: [2, 3] },
     socialLinks: [{ icon: 'github', link: repository }],
     editLink: { pattern: repository + '/edit/main/docs/:path' },
-    footer: { message: 'MIT licensed · Experimental language', copyright: 'Twill · swiftuijs' },
+    footer: {
+      message: 'MIT licensed · Experimental language',
+      copyright: 'Twill · <a href="https://forth.ink">forth.ink</a>',
+    },
   },
   markdown: {
     languages: twillLanguages,

@@ -8,7 +8,7 @@
     "type": "git",
     "url": "git+https://github.com/swiftuijs/twill.git"
   },
-  "homepage": "https://github.com/swiftuijs/twill#readme",
+  "homepage": "https://swiftuijs.github.io/twill/",
   "bugs": {
     "url": "https://github.com/swiftuijs/twill/issues"
   },
@@ -63,5 +63,9 @@
     "test:package": "node tests/consumer.mjs",
     "prepack": "pnpm run build",
     "test:browser": "playwright test"
+  },
+  "author": {
+    "name": "forth.ink",
+    "url": "https://forth.ink"
   }
 }

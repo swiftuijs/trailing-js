@@ -17,13 +17,16 @@
     "react",
     "vue"
   ],
-  "author": "Saiya",
+  "author": {
+    "name": "forth.ink",
+    "url": "https://forth.ink"
+  },
   "license": "MIT",
   "type": "module",
   "bugs": {
     "url": "https://github.com/swiftuijs/twill/issues"
   },
-  "homepage": "https://github.com/swiftuijs/twill#readme",
+  "homepage": "https://swiftuijs.github.io/twill/",
   "dependencies": {
     "@ampproject/remapping": "^2.3.0",
     "@jridgewell/trace-mapping": "^0.3.31",

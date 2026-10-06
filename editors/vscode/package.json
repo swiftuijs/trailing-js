@@ -16,7 +16,7 @@
     "test:coverage:host": "c8 --exclude-after-remap --check-coverage --statements=98 --lines=98 --functions=100 --branches=95 --include=\"**/extension.ts\" --extension=.ts --extension=.js --extension=.cjs --reporter=text --reporter=json --reporter=json-summary --reporter=html node tests/test-editor.mjs && node tests/verify-coverage.mjs",
     "package:built": "pnpm verify && node scripts/package-editor.mjs && node tests/verify-vsix.mjs"
   },
-  "publisher": "swiftuijs",
+  "publisher": "forth-ink",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -121,5 +121,10 @@
     "vscode-textmate": "catalog:",
     "yauzl": "catalog:",
     "@swiftuijs/twill-highlight": "workspace:*"
-  }
+  },
+  "author": {
+    "name": "forth.ink",
+    "url": "https://forth.ink"
+  },
+  "homepage": "https://swiftuijs.github.io/twill/"
 }

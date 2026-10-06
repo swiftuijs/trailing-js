@@ -6,7 +6,7 @@ Install the compiler, formatter/linter packages and VSIX following [getting star
 
 ## Set up VS Code
 
-Install the reviewed `twill.vsix` with **Extensions → Install from VSIX**. Open the application folder containing your tsconfig. `.twill` and `.twillx` are recognized automatically.
+The Twill extension uses the **forth.ink** brand, with extension ID `forth-ink.twill`. Marketplace publication is pending. Install the reviewed `twill.vsix` with **Extensions → Install from VSIX**. Open the application folder containing your tsconfig. `.twill` and `.twillx` are recognized automatically.
 
 The extension provides completion, callback and React prop types, hover, signatures, definitions, references, diagnostics, automatic imports, mixed-file rename, import organization and safe quick fixes. Native TS/JS files can import Twill and participate in the same project. If the project was already open during installation, run **TypeScript: Restart TS Server**.
 
@@ -21,11 +21,11 @@ The VSIX includes a formatter. Add this to `.vscode/settings.json` to select it 
 ```json
 {
   "[twill-typescript]": {
-    "editor.defaultFormatter": "swiftuijs.twill",
+    "editor.defaultFormatter": "forth-ink.twill",
     "editor.formatOnSave": true
   },
   "[twill-tsx]": {
-    "editor.defaultFormatter": "swiftuijs.twill",
+    "editor.defaultFormatter": "forth-ink.twill",
     "editor.formatOnSave": true
   }
 }
