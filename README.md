@@ -104,7 +104,7 @@ Follow [getting started](https://twill.evecalm.com/getting-started) to complete 
 
 React children, render props, Vue slots and component libraries use native framework contracts. There are no component registries or Twill-specific wrapping APIs.
 
-[SwiftUI.js](https://swiftuijs.evecalm.com/docs/) (`@swiftuijs/ui`) is our sibling project: a SwiftUI-inspired React component library. Its components work with Twill's native JSX output. See its [getting started guide](https://swiftuijs.evecalm.com/docs/getting-started/) and [source repository](https://github.com/swiftuijs/ui).
+[SwiftUI.js](https://swiftuijs.evecalm.com/) (`@swiftuijs/ui`) is our sibling project: a SwiftUI-inspired React component library. Its components work with Twill's native JSX output. Its website covers installation and styles; see its [source repository](https://github.com/swiftuijs/ui) for the components.
 
 Independent [examples](https://github.com/swiftuijs/twill/blob/main/examples/README.md) cover ordinary workflows, mixed sources, cleanup, React, Vue and library output. The [React framework source study](https://twill.evecalm.com/react-source) also compares a pinned client-core rewrite with native JavaScript.
 

@@ -37,6 +37,6 @@ The compiler does not process `.vue` SFC syntax. Add the standard Vue Vite plugi
 
 ## Third-party libraries
 
-Import components directly. [SwiftUI.js](https://swiftuijs.evecalm.com/docs/) (`@swiftuijs/ui`) is Twill's sibling project, a SwiftUI-inspired React component library. It appears in the React example and uses ordinary component imports, props, React state and shared styles. Follow its [getting started guide](https://swiftuijs.evecalm.com/docs/getting-started/) for installation and styles; its [repository](https://github.com/swiftuijs/ui) contains the component sources.
+Import components directly. [SwiftUI.js](https://swiftuijs.evecalm.com/) (`@swiftuijs/ui`) is Twill's sibling project, a SwiftUI-inspired React component library. It appears in the React example and uses ordinary component imports, props, React state and shared styles. Visit its website for installation and styles; its [repository](https://github.com/swiftuijs/ui) contains the component sources.
 
 Other libraries receive their normal JSX props/children/slot semantics. Follow each library's own SSR, styling and browser requirements.

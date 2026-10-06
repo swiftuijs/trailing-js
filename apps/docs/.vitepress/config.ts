@@ -50,7 +50,7 @@ const pages = [
   },
   {
     text: 'Related projects',
-    items: [{ text: 'SwiftUI.js', link: 'https://swiftuijs.evecalm.com/docs/' }],
+    items: [{ text: 'SwiftUI.js', link: 'https://swiftuijs.evecalm.com/' }],
   },
 ];
 export default defineConfig({
