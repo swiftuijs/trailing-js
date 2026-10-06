@@ -34,7 +34,24 @@ const highlighter = await createHighlighter({
 
 Load both native grammars along with the Twill registrations. Custom themes, token rendering and transformers use Shiki's standard APIs. Shiki 2.5, 3 and 4 are supported.
 
-For VitePress, set `markdown.languages: twillLanguages`; VitePress already loads the native TS/TSX grammars. This documentation site uses that public integration.
+## VitePress
+
+Register the native dependencies together with our package's Twill grammars:
+
+```ts
+import { defineConfig } from 'vitepress';
+import { twillLanguages } from '@swiftuijs/twill-highlight';
+import typescript from 'shiki/langs/typescript.mjs';
+import tsx from 'shiki/langs/tsx.mjs';
+
+export default defineConfig({
+  markdown: {
+    languages: [...typescript, ...tsx, ...twillLanguages],
+  },
+});
+```
+
+VitePress loads built-in languages lazily when their fences appear. Twill's TextMate includes must resolve at initialization, so loading only `twillLanguages` leaves ordinary keywords, operators and JSX uncolored even if a later block loads TypeScript. This documentation site uses the configuration above. Use `twill` fences for Twill and `twillx` fences for Twill with JSX.
 
 Raw TextMate JSON is available through `/grammars/twill` and `/grammars/twillx` package exports. These grammars also supply the VSIX, keeping dialect scopes consistent. Prism/highlight.js need their own grammar formats; this package does not register those engines.
 

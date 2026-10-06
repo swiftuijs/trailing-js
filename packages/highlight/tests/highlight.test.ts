@@ -117,3 +117,142 @@ it.each([
     ).toBe(true);
   }
 });
+
+it.each(['github-light', 'github-dark'])(
+  'preserves native TS/TSX token colors with %s',
+  (theme) => {
+    const source = [
+      'import { readFile } from "node:fs";',
+      'type Result<T> = { value?: T } | null;',
+      'export async function run<T extends number>(input: Result<T>) {',
+      '  const value = input?.value ?? 42;',
+      '  const accepted = value >= 0 && value !== 1 || !input;',
+      '  let count = accepted ? value + 1 : value ** 2;',
+      '  count += 2; count ||= 3; count &&= 4; count ??= 5;',
+      '  const text = `value: ${count}`;',
+      '  const regex = /guard|defer/g;',
+      '  /* guard true else { return; }',
+      '     defer { close(); } */',
+      '  return await Promise.resolve(text);',
+      '}',
+    ].join('\n');
+    const colors = (text: string, lang: string) =>
+      highlighter
+        .codeToTokensBase(text, { lang, theme })
+        .map((line) =>
+          line.flatMap((token) => [...token.content].map((character) => [character, token.color])),
+        );
+    for (const [dialect, native] of [
+      ['twill', 'typescript'],
+      ['twillx', 'tsx'],
+    ]) {
+      expect(colors(source, dialect!)).toEqual(colors(source, native!));
+    }
+    const jsx = 'const view = <Panel title="guard">{ready && (name ?? "Guest")}</Panel>;';
+    expect(colors(jsx, 'twillx')).toEqual(colors(jsx, 'tsx'));
+  },
+);
+
+it.each(['github-light', 'github-dark'])(
+  'highlights JSX inside parameterless trailing closures with %s',
+  (theme) => {
+    for (const source of [
+      'return Panel { <button onClick={() => count + 1}>Count</button>; };',
+      'return Panel {\n  <button onClick={() => count + 1}>Count</button>;\n};',
+      'return Panel { <>{items.map { item in <span>{item.name}</span> }}</>; };',
+    ]) {
+      const tokens = highlighter
+        .codeToTokensBase(source, { lang: 'twillx', theme, includeExplanation: true })
+        .flat();
+      const parts = tokens.flatMap((token) => token.explanation ?? []);
+      expect(
+        parts.some(
+          (part) =>
+            ['button', 'span'].includes(part.content) &&
+            part.scopes.some((scope) => scope.scopeName.startsWith('entity.name.tag.')),
+        ),
+      ).toBe(true);
+      if (source.includes('onClick'))
+        expect(
+          parts.some(
+            (part) =>
+              part.content === 'onClick' &&
+              part.scopes.some((scope) =>
+                scope.scopeName.startsWith('entity.other.attribute-name.'),
+              ),
+          ),
+        ).toBe(true);
+    }
+  },
+);
+
+it.each([
+  'const view = <Panel>guard true else; defer cleanup; in .active</Panel>;',
+  'const view = <Panel>{ready && <span>guard true else; .active</span>}</Panel>;',
+  'const view = <Panel>{"guard true else; .active"}</Panel>;',
+  'const view = <Panel>{`guard true else; .active`}</Panel>;',
+])('keeps JSX text and embedded literals literal: %s', (source) => {
+  const tokens = highlighter
+    .codeToTokensBase(source, { lang: 'twillx', theme: 'github-light', includeExplanation: true })
+    .flat();
+  expect(
+    tokens
+      .flatMap((token) => token.explanation ?? [])
+      .some((part) =>
+        part.scopes.some(
+          (scope) =>
+            scope.scopeName === 'keyword.control.twill' ||
+            scope.scopeName === 'variable.other.property.twill',
+        ),
+      ),
+  ).toBe(false);
+});
+
+it.each([
+  'const view = <Panel>{items.map { n in n + 1 }}</Panel>;',
+  'const view = <Panel>{`${items.map { n in n + 1 }}`}</Panel>;',
+])('retains dialect scopes in JSX expressions: %s', (source) => {
+  const tokens = highlighter
+    .codeToTokensBase(source, { lang: 'twillx', theme: 'github-light', includeExplanation: true })
+    .flat();
+  expect(
+    tokens
+      .flatMap((token) => token.explanation ?? [])
+      .some(
+        (part) =>
+          part.content === 'in' &&
+          part.scopes.some((scope) => scope.scopeName === 'keyword.control.twill'),
+      ),
+  ).toBe(true);
+});
+
+it.each(['twill', 'twillx'])('retains native operators after implicit members in %s', (lang) => {
+  const source =
+    "const names = users.filter {\n .active && .verified;\n}.map {\n .profile?.name ?? 'Anonymous';\n};\nconst next = 42;";
+  const parts = highlighter
+    .codeToTokensBase(source, { lang, theme: 'github-light', includeExplanation: true })
+    .flat()
+    .flatMap((token) => token.explanation ?? []);
+  for (const word of ['&&', '??'])
+    expect(
+      parts.some(
+        (part) =>
+          part.content === word &&
+          part.scopes.some((scope) => scope.scopeName.startsWith('keyword.operator.logical.')),
+      ),
+    ).toBe(true);
+  expect(
+    parts.some(
+      (part) =>
+        part.content === '?.' &&
+        part.scopes.some((scope) => scope.scopeName.startsWith('punctuation.accessor.optional.')),
+    ),
+  ).toBe(true);
+  expect(
+    parts.some(
+      (part) =>
+        part.content === 'next' &&
+        part.scopes.some((scope) => scope.scopeName.startsWith('variable.other.constant.')),
+    ),
+  ).toBe(true);
+});

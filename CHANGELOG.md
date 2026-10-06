@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Load native TypeScript/TSX dependencies before Twill grammars in VitePress, restoring ordinary keyword, operator and JSX colors in documentation examples.
+- Retain native logical/nullish operators and optional chains after implicit members such as `.active && .verified` and `.profile?.name ?? 'Anonymous'`.
+- Preserve JSX tags and attributes in parameterless TwillX trailing closures; keep JSX text literal while retaining Twill syntax in embedded expressions. Share these fixes between the highlighting package and VS Code grammar.
+
 ## 0.1.1
 
 - Introduce Twill's indigo hummingbird identity across the documentation site, VS Code extension and package READMEs.

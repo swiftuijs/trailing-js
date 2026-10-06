@@ -37,15 +37,22 @@
   ],
   "repository": {
     "implicit-member": {
-      "match": "(?<![\\w$.)}\\]])(\\.)([A-Za-z_$][\\w$]*)",
-      "captures": {
+      "begin": "(?<![\\w$.)}\\]])(\\.)([A-Za-z_$][\\w$]*)",
+      "beginCaptures": {
         "1": {
           "name": "punctuation.accessor.twill"
         },
         "2": {
           "name": "variable.other.property.twill"
         }
-      }
+      },
+      "end": "(?=;|})",
+      "name": "meta.implicit.expression.twill",
+      "patterns": [
+        {
+          "include": "source.ts#expression"
+        }
+      ]
     },
     "defer": {
       "match": "(?<![\\w$.])\\bdefer\\b(?=(?:[^\\S\\r\\n]|/\\*[^\\r\\n]*?\\*/)*\\{)",

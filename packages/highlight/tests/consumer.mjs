@@ -88,6 +88,15 @@ for (const engine of [standalone, custom]) {
   const theme = engine === standalone ? 'github-dark' : 'nord';
   const html = engine.codeToHtml('const users = values.filter { .active };', { lang: 'twill', theme });
   assert(html.includes('shiki') && html.includes('color:'));
+  const parts = engine.codeToTokensBase('return Panel { <button onClick={() => ready && (value ?? 1)}>Count</button>; };', { lang: 'twillx', theme, includeExplanation: true }).flat().flatMap(token => token.explanation ?? []);
+  for (const [text, scope] of [['button', 'entity.name.tag.'], ['onClick', 'entity.other.attribute-name.'], ['&&', 'keyword.operator.logical.'], ['??', 'keyword.operator.logical.']])
+    assert(parts.some(part => part.content === text && part.scopes.some(item => item.scopeName.startsWith(scope))), text);
+  const literal = engine.codeToTokensBase('const view = <Panel>guard true else; .active</Panel>;', { lang: 'twillx', theme, includeExplanation: true }).flat().flatMap(token => token.explanation ?? []);
+  assert(!literal.some(part => part.scopes.some(item => item.scopeName === 'keyword.control.twill' || item.scopeName === 'variable.other.property.twill')));
+  for (const lang of ['twill', 'twillx']) {
+    const implicit = engine.codeToTokensBase('const names = users.filter { .active && .verified }.map { .profile?.name ?? "Anonymous" };', { lang, theme, includeExplanation: true }).flat().flatMap(token => token.explanation ?? []);
+    for (const text of ['&&', '??']) assert(implicit.some(part => part.content === text && part.scopes.some(item => item.scopeName.startsWith('keyword.operator.logical.'))), text);
+  }
   engine.dispose();
 }
 `,

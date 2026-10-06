@@ -14,6 +14,59 @@ async function editor(page: Page) {
 const generated = (page: Page) =>
   page.getByRole('textbox', { name: 'Generated TypeScript / TSX', exact: true });
 
+test('Twill operators and TwillX JSX retain their colors in both themes', async ({
+  page,
+}, info) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  for (const dark of [false, true]) {
+    await page.goto('patterns');
+    await page.evaluate((dark) => document.documentElement.classList.toggle('dark', dark), dark);
+    const code = page.locator('.language-twill code').first();
+    for (const word of ['guard', '&&', '===', 'typeof']) {
+      const token = code
+        .locator('span[style]')
+        .filter({ hasText: new RegExp('^\\s*' + word + '$') })
+        .first();
+      await expect(token).toHaveCSS('color', dark ? 'rgb(249, 117, 131)' : 'rgb(215, 58, 73)');
+    }
+    await screenshot(page, info, 'operators-' + (dark ? 'dark' : 'light'));
+    await page.goto('syntax');
+    await page.evaluate((dark) => document.documentElement.classList.toggle('dark', dark), dark);
+    await expect(
+      page
+        .locator('.language-twill code span[style]')
+        .filter({ hasText: /^\s*\?\?$/ })
+        .first(),
+    ).toHaveCSS('color', dark ? 'rgb(249, 117, 131)' : 'rgb(215, 58, 73)');
+    await expect(
+      page
+        .locator('.language-twill code span[style]')
+        .filter({ hasText: /^\s*&&$/ })
+        .first(),
+    ).toHaveCSS('color', dark ? 'rgb(249, 117, 131)' : 'rgb(215, 58, 73)');
+    await screenshot(page, info, 'implicit-operators-' + (dark ? 'dark' : 'light'));
+    await page.goto('frameworks');
+    await page.evaluate((dark) => document.documentElement.classList.toggle('dark', dark), dark);
+    const jsx = page.locator('.language-twillx code');
+    await expect(
+      jsx
+        .locator('span[style]')
+        .filter({ hasText: /^button$/ })
+        .first(),
+    ).toHaveCSS('color', dark ? 'rgb(133, 232, 157)' : 'rgb(34, 134, 58)');
+    await expect(jsx.locator('span[style]').filter({ hasText: /^\s*onClick$/ })).toHaveCSS(
+      'color',
+      dark ? 'rgb(179, 146, 240)' : 'rgb(111, 66, 193)',
+    );
+    await screenshot(page, info, 'jsx-' + (dark ? 'dark' : 'light'));
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
+  }
+  expect(errors).toEqual([]);
+});
+
 test('English documentation navigation, search, highlighting and responsive layout', async ({
   page,
 }, info) => {

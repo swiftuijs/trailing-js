@@ -37,15 +37,22 @@
   ],
   "repository": {
     "implicit-member": {
-      "match": "(?<![\\w$.)}\\]])(\\.)([A-Za-z_$][\\w$]*)",
-      "captures": {
+      "begin": "(?<![\\w$.)}\\]])(\\.)([A-Za-z_$][\\w$]*)",
+      "beginCaptures": {
         "1": {
           "name": "punctuation.accessor.twill"
         },
         "2": {
           "name": "variable.other.property.twill"
         }
-      }
+      },
+      "end": "(?=;|})",
+      "name": "meta.implicit.expression.twill",
+      "patterns": [
+        {
+          "include": "source.tsx#expression"
+        }
+      ]
     },
     "defer": {
       "match": "(?<![\\w$.])\\bdefer\\b(?=(?:[^\\S\\r\\n]|/\\*[^\\r\\n]*?\\*/)*\\{)",
@@ -197,7 +204,7 @@
     }
   },
   "injections": {
-    "L:source.twill.tsx -comment -string, L:source.twill.tsx meta.template.expression -comment -(meta.template.expression string)": {
+    "L:source.twill.tsx -comment -string -meta.jsx.children, L:source.twill.tsx meta.template.expression -comment -(meta.template.expression string) -meta.jsx.children, L:source.twill.tsx meta.embedded.expression -comment -string -(meta.embedded.expression meta.jsx.children), L:source.twill.tsx meta.embedded.expression meta.template.expression -comment -(meta.template.expression string) -(meta.embedded.expression meta.jsx.children)": {
       "patterns": [
         {
           "include": "#implicit-member"
@@ -216,6 +223,13 @@
         },
         {
           "include": "#closure-header"
+        }
+      ]
+    },
+    "L:source.twill.tsx meta.objectliteral -comment -string -meta.type": {
+      "patterns": [
+        {
+          "include": "source.tsx#jsx"
         }
       ]
     }

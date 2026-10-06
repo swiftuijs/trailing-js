@@ -117,3 +117,64 @@ it('retains native TypeScript types and JSX expression highlighting', () => {
     ),
   ).toBe(true);
 });
+
+it.each([
+  'return Panel { <button onClick={() => count + 1}>Count</button>; };',
+  'return Panel {\n  <button onClick={() => count + 1}>Count</button>;\n};',
+])('retains JSX scopes in parameterless trailing closures: %s', (source) => {
+  const result = tokens(grammars[1]!, source);
+  expect(
+    result.some(
+      (token) =>
+        token.text === 'button' &&
+        token.scopes.some((scope) => scope.startsWith('entity.name.tag.')),
+    ),
+  ).toBe(true);
+  expect(
+    result.some(
+      (token) =>
+        token.text === 'onClick' &&
+        token.scopes.some((scope) => scope.startsWith('entity.other.attribute-name.')),
+    ),
+  ).toBe(true);
+});
+
+it('keeps JSX text literal and highlights dialect code inside JSX expressions', () => {
+  const literal = tokens(
+    grammars[1]!,
+    'const view = <Panel>{ready && <span>guard true else; .active</span>}</Panel>;',
+  );
+  expect(
+    literal.some(
+      (token) =>
+        token.scopes.includes('keyword.control.twill') ||
+        token.scopes.includes('variable.other.property.twill'),
+    ),
+  ).toBe(false);
+  const expression = tokens(
+    grammars[1]!,
+    'const view = <Panel>{items.map { n in n + 1 }}</Panel>;',
+  );
+  expect(
+    expression.some(
+      (token) => token.text === 'in' && token.scopes.includes('keyword.control.twill'),
+    ),
+  ).toBe(true);
+});
+
+it('retains native operators in implicit member closures', () => {
+  for (const grammar of grammars) {
+    const result = tokens(
+      grammar,
+      "const names = users.filter {\n .active && .verified;\n}.map {\n .profile?.name ?? 'Anonymous';\n};",
+    );
+    for (const word of ['&&', '??'])
+      expect(
+        result.some(
+          (token) =>
+            token.text === word &&
+            token.scopes.some((scope) => scope.startsWith('keyword.operator.logical.')),
+        ),
+      ).toBe(true);
+  }
+});

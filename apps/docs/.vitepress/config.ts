@@ -1,5 +1,7 @@
 import { defineConfig } from 'vitepress';
 import { twillLanguages } from '@swiftuijs/twill-highlight';
+import typescript from 'shiki/langs/typescript.mjs';
+import tsx from 'shiki/langs/tsx.mjs';
 import { dirname, resolve } from 'node:path';
 import { createRequire } from 'node:module';
 
@@ -92,7 +94,9 @@ export default defineConfig({
     },
   },
   markdown: {
-    languages: twillLanguages,
+    // Register dependencies before Twill is compiled: lazy native fence loading
+    // cannot repair an already-resolved TextMate include.
+    languages: [...typescript, ...tsx, ...twillLanguages],
     config(md) {
       const original = md.renderer.rules.link_open!;
       md.renderer.rules.link_open = (tokens, index, options, env, self) => {
