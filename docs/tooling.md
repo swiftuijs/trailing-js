@@ -2,11 +2,17 @@
 
 Use Twill in your application's normal development loop: edit source, check types, format, lint and debug. The compiler and editor use your existing `tsconfig.json`; no `twill.config.json` is required.
 
-Install the compiler, formatter/linter packages and VSIX following [getting started](./getting-started.md). The examples below run from **your application root**, with Twill installed locally.
+Install the compiler, formatter/linter packages and VS Code extension following [getting started](./getting-started.md). The examples below run from **your application root**, with Twill installed locally.
 
 ## Set up VS Code
 
-The Twill extension uses the **forth.ink** brand, with extension ID `forth-ink.twill`. Until the Marketplace listing is available, download `twill.vsix` from a successful [CI build](https://github.com/swiftuijs/twill/actions/workflows/ci.yml) and use **Extensions → Install from VSIX**. GitHub [release assets](https://github.com/swiftuijs/twill/releases) also provide the VSIX when a release is tagged. Open the application folder containing your tsconfig. `.twill` and `.twillx` are recognized automatically.
+Install [Twill from the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill), published by **forth.ink** with extension ID `forth-ink.twill`. You can also install it from the command line:
+
+```sh
+code --install-extension forth-ink.twill
+```
+
+For offline installation, download `twill.vsix` from the matching [GitHub release](https://github.com/swiftuijs/twill/releases) and use **Extensions → Install from VSIX**. Open the application folder containing your tsconfig. `.twill` and `.twillx` are recognized automatically.
 
 The extension provides completion, callback and React prop types, hover, signatures, definitions, references, diagnostics, automatic imports, mixed-file rename, import organization and safe quick fixes. Native TS/JS files can import Twill and participate in the same project. If the project was already open during installation, run **TypeScript: Restart TS Server**.
 
@@ -180,7 +186,7 @@ Use the [React Vite adapter](./frameworks.md) for state-preserving development. 
 | Symptom                                          | Check                                                                                              |
 | ------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
 | `tsc` rejects a Twill file                       | Use `twill check`; native `tsc` cannot parse the dialect                                           |
-| Native TS imports have missing Twill types       | Open the application folder with its tsconfig, install the VSIX, then restart TS Server            |
+| Native TS imports have missing Twill types       | Open the application folder with its tsconfig, install the extension, then restart TS Server       |
 | Component or callback suggestions are incomplete | Confirm framework types and JSX settings; fix nearby syntax errors and inspect project diagnostics |
 | Formatting ignores `.prettierrc`                 | Use the project Prettier plugin/extension; the bundled provider uses its own defaults              |
 | ESLint skips Twill files                         | Load the Twill flat config and add both Twill language IDs to `eslint.validate`                    |

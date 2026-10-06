@@ -66,4 +66,4 @@ The 0.x release line is experimental. Language semantics and integration contrac
 
 Report reproducible compiler or tooling problems through [GitHub Issues](https://github.com/swiftuijs/twill/issues). Include the package versions, host versions, relevant configuration and a minimal source example. `twill doctor --json` can help identify the project configuration; review its filenames and diagnostic text before sharing.
 
-See [GitHub Releases](https://github.com/swiftuijs/twill/releases) for version announcements. The VS Code Marketplace link will be added when the extension is published.
+Install the editor extension from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill). See [GitHub Releases](https://github.com/swiftuijs/twill/releases) for version announcements and offline VSIX downloads.

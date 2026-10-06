@@ -4,7 +4,7 @@
 
 Twill is a small syntax-sugar language for JavaScript and TypeScript, built by [forth.ink](https://forth.ink). Make validation, cleanup and business states explicit with guards, `defer`, trailing closures and checked switch expressions. Compile to ordinary JavaScript, keep TS types and mix Twill with your existing code.
 
-[Documentation](https://twill.evecalm.com/) · [Why Twill?](https://twill.evecalm.com/why-twill) · [Playground](https://twill.evecalm.com/playground) · [Getting started](https://twill.evecalm.com/getting-started) · [Compatibility](https://twill.evecalm.com/readiness)
+[Documentation](https://twill.evecalm.com/) · [Why Twill?](https://twill.evecalm.com/why-twill) · [Playground](https://twill.evecalm.com/playground) · [Getting started](https://twill.evecalm.com/getting-started) · [VS Code extension](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill) · [Compatibility](https://twill.evecalm.com/readiness)
 
 ```twill
 async function readOwned(acquire: () => Promise<TextDocument>) {
@@ -116,7 +116,7 @@ Install only the tools your project needs. Keep Twill packages on the same relea
 | [`@swiftuijs/twill-export`](https://www.npmjs.com/package/@swiftuijs/twill-export)       | Optional `twill export` command for native TS/TSX output       |
 | [`@swiftuijs/twill-highlight`](https://www.npmjs.com/package/@swiftuijs/twill-highlight) | Browser/SSR Shiki integration and TextMate grammars            |
 
-The VS Code extension bundles its editing tools. Your application installs the compiler for builds and whole-project checks. See the [editor guide](https://twill.evecalm.com/tooling) for installation.
+Install the [Twill VS Code extension](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill) from Marketplace, or run `code --install-extension forth-ink.twill`. The extension bundles its editing tools. Your application installs the compiler for builds and whole-project checks. See the [editor guide](https://twill.evecalm.com/tooling) for configuration.
 
 ## Choosing it responsibly
 

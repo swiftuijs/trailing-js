@@ -28,7 +28,7 @@ yarn add --dev @swiftuijs/twill
 
 Twill compiles away at build time. Your application keeps its normal JavaScript runtime and framework dependencies. No additional language runtime is required.
 
-For editor completion, diagnostics and formatting, follow the [VS Code setup](./tooling.md#set-up-vs-code). The extension bundles its editing tools; the local compiler supplies builds and whole-project checks.
+For editor completion, diagnostics and formatting, install [Twill from the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill), or run `code --install-extension forth-ink.twill`. Follow the [VS Code setup](./tooling.md#set-up-vs-code) for configuration. The extension bundles its editing tools; the local compiler supplies builds and whole-project checks.
 
 ## Write an ordinary module
 
