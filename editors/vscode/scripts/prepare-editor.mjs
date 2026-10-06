@@ -37,5 +37,6 @@ writeFileSync(
   '# Bundled dependencies\n\nVite generates the bundled dependency licenses. See `licenses/editor.txt`, `licenses/tsserver.txt` and `licenses/compiler-bridge.txt`. The shared pinned TypeScript engine includes its license and third-party notices under `node_modules/typescript`.\n',
 );
 copyFileSync('LICENSE', 'editors/vscode/LICENSE');
+copyFileSync('CHANGELOG.md', 'editors/vscode/CHANGELOG.md');
 copyFileSync('LICENSE', 'editors/twill-typescript-plugin/LICENSE');
 copyFileSync('packages/twill/schemas/twill.schema.json', 'editors/vscode/twill.schema.json');

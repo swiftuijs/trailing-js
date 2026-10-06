@@ -5,7 +5,8 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/swiftuijs/twill.git"
+    "url": "git+https://github.com/swiftuijs/twill.git",
+    "directory": "packages/formatter"
   },
   "files": [
     "dist",
@@ -60,5 +61,16 @@
     "name": "forth.ink",
     "url": "https://forth.ink"
   },
-  "homepage": "https://swiftuijs.github.io/twill/"
+  "homepage": "https://swiftuijs.github.io/twill/",
+  "bugs": {
+    "url": "https://github.com/swiftuijs/twill/issues"
+  },
+  "keywords": [
+    "twill",
+    "prettier",
+    "prettier-plugin",
+    "typescript",
+    "formatter"
+  ],
+  "description": "Prettier plugin for Twill: format trailing closures, guards, defer and TS/TSX while preserving source syntax."
 }

@@ -13,10 +13,12 @@ rmSync(stage, { recursive: true, force: true });
 mkdirSync(stage, { recursive: true });
 for (const name of [
   'dist',
+  'assets',
   'syntaxes',
   'licenses',
   'LICENSE',
   'README.md',
+  'CHANGELOG.md',
   '.vscodeignore',
   'THIRD_PARTY_NOTICES.md',
   'language-configuration.json',

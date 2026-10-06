@@ -6,7 +6,7 @@ Install the compiler, formatter/linter packages and VSIX following [getting star
 
 ## Set up VS Code
 
-The Twill extension uses the **forth.ink** brand, with extension ID `forth-ink.twill`. Marketplace publication is pending. Install the reviewed `twill.vsix` with **Extensions → Install from VSIX**. Open the application folder containing your tsconfig. `.twill` and `.twillx` are recognized automatically.
+The Twill extension uses the **forth.ink** brand, with extension ID `forth-ink.twill`. Until the Marketplace listing is available, download `twill.vsix` from a successful [CI build](https://github.com/swiftuijs/twill/actions/workflows/ci.yml) and use **Extensions → Install from VSIX**. GitHub [release assets](https://github.com/swiftuijs/twill/releases) also provide the VSIX when a release is tagged. Open the application folder containing your tsconfig. `.twill` and `.twillx` are recognized automatically.
 
 The extension provides completion, callback and React prop types, hover, signatures, definitions, references, diagnostics, automatic imports, mixed-file rename, import organization and safe quick fixes. Native TS/JS files can import Twill and participate in the same project. If the project was already open during installation, run **TypeScript: Restart TS Server**.
 
@@ -35,7 +35,13 @@ The bundled provider uses editor indentation and Prettier defaults. To apply a p
 
 ## Format your source
 
-Install the reviewed `@swiftuijs/twill-formatter` package alongside Prettier 3.9. Configure `.prettierrc.json`:
+Install `@swiftuijs/twill-formatter` alongside Prettier 3.9:
+
+```sh
+pnpm add -D @swiftuijs/twill-formatter prettier
+```
+
+Configure `.prettierrc.json`:
 
 ```json
 { "plugins": ["@swiftuijs/twill-formatter"], "singleQuote": true }
@@ -50,7 +56,13 @@ The plugin recognizes both dialect extensions and preserves their syntax. Native
 
 ## Add ESLint
 
-Install the reviewed `@swiftuijs/twill-linter` package alongside ESLint 9 or 10. Use a flat `eslint.config.mjs`:
+Install `@swiftuijs/twill-linter` alongside ESLint 9 or 10:
+
+```sh
+pnpm add -D @swiftuijs/twill-linter eslint
+```
+
+Use a flat `eslint.config.mjs`:
 
 ```js
 import twill from '@swiftuijs/twill-linter';

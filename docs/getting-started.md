@@ -6,19 +6,29 @@ Twill is TypeScript with a small layer of syntax sugar. Use `.twill` for TS (inc
 
 The [playground](./playground.md) runs the actual compiler in a browser worker. It shows generated TS/TSX without sending your source to a server. It does not execute code or type-check project imports.
 
-## Install a reviewed build
+## Install
 
-The packages have not been published to npm or the Marketplace yet. Download the `twill-packages` artifact from a successful [CI run](https://github.com/swiftuijs/twill/actions/workflows/ci.yml) and extract it outside your application's source directory. It contains reviewed package tarballs, `twill.vsix` and a checksum manifest.
+From **your application root**, install the compiler as a development dependency. Node 20.19+ or 22.12+ is required.
 
-The compiler supports Node 20.19+ or 22.12+. From **your application root**, install the compiler and optional formatting/linting packages using the extracted tarball paths:
+::: code-group
 
-```sh
-pnpm add -D /path/to/swiftuijs-twill-0.9.0.tgz
-pnpm add -D /path/to/swiftuijs-twill-formatter-0.9.0.tgz prettier
-pnpm add -D /path/to/swiftuijs-twill-linter-0.9.0.tgz eslint
+```sh [pnpm]
+pnpm add -D @swiftuijs/twill
 ```
 
-Install the extracted `twill.vsix` with VS Code's **Extensions → Install from VSIX** command. The extension includes TypeScript checking and formatting; your application supplies framework types and dependencies.
+```sh [npm]
+npm install --save-dev @swiftuijs/twill
+```
+
+```sh [Yarn]
+yarn add --dev @swiftuijs/twill
+```
+
+:::
+
+Twill compiles away at build time. Your application keeps its normal JavaScript runtime and framework dependencies. No additional language runtime is required.
+
+For editor completion, diagnostics and formatting, follow the [VS Code setup](./tooling.md#set-up-vs-code). The extension bundles its editing tools; the local compiler supplies builds and whole-project checks.
 
 ## Write an ordinary module
 
@@ -70,6 +80,12 @@ For React state-preserving development, use the [React Vite integration](./frame
 
 ## Format and lint
 
+Install the optional plugins alongside Prettier and ESLint. Keep Twill packages on the same version; formatter and linter dependencies include the matching compiler.
+
+```sh
+pnpm add -D @swiftuijs/twill-formatter prettier @swiftuijs/twill-linter eslint
+```
+
 `.prettierrc.json`:
 
 ```json
@@ -84,12 +100,29 @@ export default [{ ignores: ['**/dist/**'] }, ...twill.configs.recommended];
 ```
 
 ```sh
-pnpm prettier --write src
-pnpm eslint src
+pnpm exec prettier --write src
+pnpm exec eslint src
 pnpm exec twill check -p tsconfig.json
 ```
 
 Use `recommendedTypeChecked` for type-aware linting; it requires a tsconfig and detects missing union cases in switches, even with a `default` branch. Add normal browser/Node globals for your application. VS Code's ESLint extension can validate `twill-typescript` and `twill-tsx`. See [practical patterns](./patterns.md) for validation, owned resources and explicit outcomes, and [tooling](./tooling.md) for safe fixes, debugging and diagnostics.
+
+## Check before shipping
+
+A build adapter emits JavaScript; it does not replace type checking. Add these scripts to your application's `package.json` alongside its existing build and test commands:
+
+```json
+{
+  "scripts": {
+    "typecheck": "twill check -p tsconfig.json",
+    "lint": "eslint src",
+    "format:check": "prettier --check src",
+    "check": "twill check -p tsconfig.json && eslint src && prettier --check src"
+  }
+}
+```
+
+Run `pnpm run check` and your application tests before building in CI. Source diagnostics point back to the original Twill files.
 
 ## Run Node code
 
@@ -101,7 +134,7 @@ The loader handles local mixed TS/JS/Twill imports. It does not transform depend
 
 ## Adopt one module or export native sources
 
-Keep native TS/JS files alongside Twill and start with a validation or resource-management task. The optional export package can export a checked source graph to a new native TS/TSX directory without modifying originals. See [adoption and migration](./adoption.md) for the commands, dependency setup and export boundaries.
+Keep native TS/JS files alongside Twill and start with a validation or resource-management task. The optional export package can export a checked source graph to a new native TS/TSX directory without modifying originals. See [gradual adoption and source export](./adoption.md) for the commands, dependency setup and export boundaries.
 
 ## Building Twill itself
 

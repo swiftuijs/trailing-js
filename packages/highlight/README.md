@@ -3,7 +3,7 @@
 Portable TextMate grammars and a browser-compatible Shiki entry. The package imports no compiler, TypeScript engine, VS Code APIs or UI framework. The docs site and VSIX use the same grammar files.
 
 ```sh
-pnpm add shiki /path/to/swiftuijs-twill-highlight-0.9.0.tgz
+pnpm add shiki @swiftuijs/twill-highlight
 ```
 
 Create one highlighter, reuse it for code blocks and dispose it when its owner is destroyed:
@@ -38,3 +38,5 @@ Both native base grammars are required. For VitePress, use `markdown.languages: 
 For other TextMate-compatible engines, use the JSON exports `@swiftuijs/twill-highlight/grammars/twill` and `/grammars/twillx`; load `source.ts` and `source.tsx` too. Prism and highlight.js use different grammar formats and cannot consume TextMate registrations directly.
 
 Shiki escapes code text in generated HTML. This does not sanitize arbitrary custom transformers, themes or surrounding markup. Highlighting is lexical; it supplies neither compiler diagnostics nor semantic completion. The editable playground continues to use CodeMirror for its incremental editing model.
+
+[Documentation](https://swiftuijs.github.io/twill/highlighting) · [Playground](https://swiftuijs.github.io/twill/playground) · [Issues](https://github.com/swiftuijs/twill/issues) · MIT licensed · Built by [forth.ink](https://forth.ink).

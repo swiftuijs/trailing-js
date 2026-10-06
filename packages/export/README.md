@@ -2,9 +2,10 @@
 
 `@swiftuijs/twill-export` exports a checked source project to native TS/TSX. It supplies the optional `twill export` subcommand and a programmatic API; applications do not ship it. Node 20.19+ or 22.12+ is required.
 
-Packages are not yet published. Install the compiler, formatter and export tarballs from a reviewed build into your application, then run:
+Install the compiler and optional export package into your application, then run:
 
 ```sh
+pnpm add -D @swiftuijs/twill @swiftuijs/twill-export
 pnpm exec twill export -p tsconfig.json -o ../native-project --dry-run --json
 pnpm exec twill export -p tsconfig.json -o ../native-project
 pnpm exec tsc -p ../native-project/tsconfig.json
@@ -40,3 +41,5 @@ console.log(result.diagnostics, result.files, result.written);
 ```
 
 Source errors return diagnostics and `written: false`. Invalid destinations and unsupported export constructs throw. `--json` provides the same structured result; failures return a nonzero CLI status.
+
+[Guide](https://swiftuijs.github.io/twill/adoption) · [CLI reference](https://swiftuijs.github.io/twill/cli) · [Issues](https://github.com/swiftuijs/twill/issues) · MIT licensed · Built by [forth.ink](https://forth.ink).

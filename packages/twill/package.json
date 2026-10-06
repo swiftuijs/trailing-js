@@ -5,7 +5,8 @@
   "main": "./dist/typescript-plugin.cjs",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/swiftuijs/twill.git"
+    "url": "git+https://github.com/swiftuijs/twill.git",
+    "directory": "packages/twill"
   },
   "keywords": [
     "javascript",
@@ -15,7 +16,10 @@
     "vite",
     "unplugin",
     "react",
-    "vue"
+    "vue",
+    "twill",
+    "guard",
+    "defer"
   ],
   "author": {
     "name": "forth.ink",

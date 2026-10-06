@@ -10,7 +10,7 @@ For stateful business logic, native TS discriminated unions and switch expressio
 
 ## Keep the development loop complete
 
-1. Install a reviewed compiler tarball and VSIX following [getting started](./getting-started.md).
+1. Install the compiler and VS Code extension following [getting started](./getting-started.md).
 2. Add the Twill plugin to the application's ordinary build tool. Rename one module to `.twill` or `.twillx` and update explicit imports.
 3. Include the files in the normal tsconfig. Run `twill check`, ESLint and Prettier in CI. Keep native framework types and runtime behavior.
 4. Verify the task's success, failure, cancellation and cleanup paths. Use source breakpoints and the generated-source view when diagnosing lowering.
@@ -20,10 +20,10 @@ The packaged editor supports original-source definitions, references, completion
 
 ## Export back to native TS
 
-Install the optional `@swiftuijs/twill-export` tarball from the same reviewed build as the compiler. It supplies `twill export`, which exports a checked source graph into a new directory:
+Install the optional `@swiftuijs/twill-export` package at the same version as the compiler. It supplies `twill export`, which exports a checked source graph into a new directory:
 
 ```sh
-pnpm add -D /path/to/swiftuijs-twill-export-0.9.0.tgz
+pnpm add -D @swiftuijs/twill-export
 pnpm exec twill export -p tsconfig.json -o ../native-project --dry-run --json
 pnpm exec twill export -p tsconfig.json -o ../native-project
 ```

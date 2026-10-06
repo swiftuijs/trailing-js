@@ -5,7 +5,8 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/swiftuijs/twill.git"
+    "url": "git+https://github.com/swiftuijs/twill.git",
+    "directory": "packages/linter"
   },
   "files": [
     "dist",
@@ -57,5 +58,16 @@
     "name": "forth.ink",
     "url": "https://forth.ink"
   },
-  "homepage": "https://swiftuijs.github.io/twill/"
+  "homepage": "https://swiftuijs.github.io/twill/",
+  "bugs": {
+    "url": "https://github.com/swiftuijs/twill/issues"
+  },
+  "keywords": [
+    "twill",
+    "eslint",
+    "eslint-plugin",
+    "typescript",
+    "linter"
+  ],
+  "description": "ESLint flat configurations for Twill with TypeScript rules, original-source diagnostics and safe fixes."
 }

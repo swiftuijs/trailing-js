@@ -22,3 +22,5 @@ bundle-results.json
 **/.vitepress/cache/
 
 react-framework-results.json
+
+editors/vscode/CHANGELOG.md

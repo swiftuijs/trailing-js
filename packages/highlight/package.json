@@ -6,7 +6,8 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/swiftuijs/twill.git"
+    "url": "git+https://github.com/swiftuijs/twill.git",
+    "directory": "packages/highlight"
   },
   "homepage": "https://swiftuijs.github.io/twill/",
   "bugs": {
@@ -67,5 +68,12 @@
   "author": {
     "name": "forth.ink",
     "url": "https://forth.ink"
-  }
+  },
+  "keywords": [
+    "twill",
+    "shiki",
+    "syntax-highlighting",
+    "textmate",
+    "typescript"
+  ]
 }

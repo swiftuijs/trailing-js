@@ -8,7 +8,7 @@ Twill 0.9 is an experimental JS/TS dialect with a tested development workflow. I
 | ------------------------ | --------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | End-to-end workflow      | Executable compiler checks, mixed TS/JS, real packaged VS Code hosts, formatter/linter and independently installed packages | Validate your application syntax, libraries and failure paths                       |
 | Runtime and bundle costs | Native/dialect behavior comparisons, deterministic output budgets and reproducible synthetic benchmarks                     | Dependency-heavy applications, renderer workloads and target engines                |
-| Distribution             | Reviewed tarballs and VSIX build artifacts, version/checksum validation and a tag-release workflow                          | Public registry releases and a documented compatibility/support commitment          |
+| Distribution             | Versioned npm package metadata, independently tested tarballs, VSIX artifacts and checksum validation                       | Application validation and a production support track record                        |
 | Adoption                 | One-file opt-in, native declarations and checked source export                                                              | Real team pilots demonstrating maintained editor responsiveness and review benefits |
 
 Tests make supported behavior reviewable; they do not establish a production track record. Before a production commitment, choose a reviewed version, verify the host workflow, measure your project and agree how updates and regressions will be handled. See [why Twill](why-twill.md) for benefits and tradeoffs and [gradual adoption](adoption.md) for a pilot path.
@@ -43,7 +43,7 @@ Representative native/dialect application bundles are checked for behavior parit
 
 Use one module at a time with the existing project. The optional export package exports a checked single-project source graph to formatted native TS/TSX in a new directory, rewriting relative dialect imports in both native and dialect files. Source errors, collisions and unsupported paths stop the export; originals remain intact.
 
-This is source export rather than a complete application installer. Dependencies, host build configuration, public assets, project references and computed dynamic module paths have separate boundaries. See [adoption and migration](adoption.md) for the exact workflow. Real project pilots are needed to establish team productivity and dependency-heavy project performance.
+This is source export rather than a complete application installer. Dependencies, host build configuration, public assets, project references and computed dynamic module paths have separate boundaries. See [gradual adoption and source export](adoption.md) for the exact workflow. Real project pilots are needed to establish team productivity and dependency-heavy project performance.
 
 ## Tested tool versions
 
@@ -60,4 +60,10 @@ Validation covers execution, type checking, source mappings, actual bundler buil
 
 ## Distribution
 
-Install reviewed compiler/tooling tarballs into your application and the VSIX into VS Code. Public npm and Marketplace publication is pending. Downloaded build artifacts include a release manifest with SHA-256 checksums; verify them before installing. See [getting started](getting-started.md) for the current installation path.
+Install compiler and optional tooling packages by name using your normal package manager; keep Twill packages on the same version and commit your lockfile. See [getting started](getting-started.md) and the [editor setup](tooling.md#set-up-vs-code).
+
+The 0.x release line is experimental. Language semantics and integration contracts may change between minor versions; patch versions are intended for compatible fixes. Read the [changelog](https://github.com/swiftuijs/twill/blob/main/CHANGELOG.md) and rerun your checks before upgrading. There is no LTS or commercial support commitment.
+
+Report reproducible compiler or tooling problems through [GitHub Issues](https://github.com/swiftuijs/twill/issues). Include the package versions, host versions, relevant configuration and a minimal source example. `twill doctor --json` can help identify the project configuration; review its filenames and diagnostic text before sharing.
+
+GitHub release artifacts include tarballs, the VSIX and a SHA-256 checksum manifest for direct installation. The VS Code Marketplace link will be added when the extension is published.

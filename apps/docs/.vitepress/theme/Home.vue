@@ -68,7 +68,7 @@ function navigateTabs(event: KeyboardEvent) {
           <a class="home-button primary" :href="withBase('/playground')">Try the playground</a>
           <a class="home-button secondary" :href="withBase('/getting-started')">Get started</a>
         </div>
-        <p class="hero-status">Experimental 0.9 · Available as tarballs and a VSIX</p>
+        <p class="hero-status">JS / TS compatible · No language runtime · Experimental 0.9</p>
       </div>
       <figure class="hero-example">
         <div class="home-code-frame">

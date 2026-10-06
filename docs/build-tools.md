@@ -1,6 +1,6 @@
 # Build tools
 
-Install the reviewed `@swiftuijs/twill` compiler as a development dependency in your application. Select the adapter for your existing bundler. Native TS/JS and Twill can share the graph; no component lists, wrapping APIs or Twill config file are needed.
+Install `@swiftuijs/twill` as a development dependency in your application. Select the adapter for your existing bundler. Native TS/JS and Twill can share the graph; no component lists, wrapping APIs or Twill config file are needed.
 
 Run `twill check` separately before production builds. Adapters emit code and source maps; they do not perform project type checking.
 

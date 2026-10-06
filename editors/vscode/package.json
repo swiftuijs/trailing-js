@@ -1,7 +1,7 @@
 {
   "name": "twill",
   "displayName": "Twill",
-  "description": "Syntax highlighting and TypeScript language support for the Twill JS/TS syntax-sugar language.",
+  "description": "Twill language support: TypeScript completion, diagnostics, navigation, formatting and source debugging for .twill and .twillx.",
   "version": "0.9.0",
   "private": true,
   "type": "module",
@@ -20,7 +20,8 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/swiftuijs/twill"
+    "url": "https://github.com/swiftuijs/twill",
+    "directory": "editors/vscode"
   },
   "engines": {
     "vscode": "^1.95.3"
@@ -126,5 +127,23 @@
     "name": "forth.ink",
     "url": "https://forth.ink"
   },
-  "homepage": "https://swiftuijs.github.io/twill/"
+  "homepage": "https://swiftuijs.github.io/twill/",
+  "bugs": {
+    "url": "https://github.com/swiftuijs/twill/issues"
+  },
+  "keywords": [
+    "twill",
+    "typescript",
+    "javascript",
+    "react",
+    "vue",
+    "trailing closures",
+    "guard",
+    "defer"
+  ],
+  "galleryBanner": {
+    "color": "#38654a",
+    "theme": "dark"
+  },
+  "icon": "assets/icon.png"
 }

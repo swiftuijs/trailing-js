@@ -2,10 +2,10 @@
 
 Use `@swiftuijs/twill-highlight` to display Twill in documentation, blogs, code previews or web applications. It works with Shiki in browsers and server rendering, and exports TextMate grammars for other compatible engines. No VS Code extension or compiler is required.
 
-Install Shiki and the reviewed highlight tarball from the same build as the other Twill tools:
+Install the highlighting package and Shiki in the application or documentation project:
 
 ```sh
-pnpm add shiki /path/to/swiftuijs-twill-highlight-0.9.0.tgz
+pnpm add shiki @swiftuijs/twill-highlight
 ```
 
 ```ts
