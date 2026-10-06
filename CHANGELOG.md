@@ -25,4 +25,4 @@ Initial experimental release of Twill, a JavaScript / TypeScript syntax-sugar la
 
 ### Compatibility
 
-Compiler consumers require Node 20.19+ or 22.12+. The checker/editor use TypeScript 5.9; the VS Code extension requires 1.95.3 or newer. See the [support matrix](https://swiftuijs.github.io/twill/readiness) for integration versions and boundaries. The 0.x language remains experimental; minor releases may change semantics or integration contracts.
+Compiler consumers require Node 20.19+ or 22.12+. The checker/editor use TypeScript 5.9; the VS Code extension requires 1.95.3 or newer. See the [support matrix](https://twill.evecalm.com/readiness) for integration versions and boundaries. The 0.x language remains experimental; minor releases may change semantics or integration contracts.

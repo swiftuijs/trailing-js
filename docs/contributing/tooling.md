@@ -83,7 +83,7 @@ pnpm test:browser # build first; Chromium must be available
 
 User-facing pages live directly under `docs/`. `docs/contributing/` and `docs/rfcs/` remain repository references and are excluded from the site, search and sitemap.
 
-The default site base is `/twill/`; set `TWILL_DOCS_BASE=/` for root hosting. GitHub Pages deploys the built `apps/docs/dist` artifact on main updates. Configure the repository Pages source as GitHub Actions before the first deployment. Local search stays in the browser; the Playground uses a reusable, time-limited worker with live compilation and highlighted editors and performs syntax lowering only. It does not upload source, execute input or supply project type diagnostics.
+The canonical site is `https://twill.evecalm.com` with a default base of `/`; set `TWILL_DOCS_BASE` for another deployment path. GitHub Pages deploys the built `apps/docs/dist` artifact on main updates. Configure the repository Pages source as GitHub Actions and its custom domain as `twill.evecalm.com`; see [domain configuration](./releasing.md#documentation-domain). Local search stays in the browser; the Playground uses a reusable, time-limited worker with live compilation and highlighted editors and performs syntax lowering only. It does not upload source, execute input or supply project type diagnostics.
 
 ## CI workflows
 

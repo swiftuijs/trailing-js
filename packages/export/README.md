@@ -42,4 +42,4 @@ console.log(result.diagnostics, result.files, result.written);
 
 Source errors return diagnostics and `written: false`. Invalid destinations and unsupported export constructs throw. `--json` provides the same structured result; failures return a nonzero CLI status.
 
-[Guide](https://swiftuijs.github.io/twill/adoption) · [CLI reference](https://swiftuijs.github.io/twill/cli) · [Issues](https://github.com/swiftuijs/twill/issues) · MIT licensed · Built by [forth.ink](https://forth.ink).
+[Guide](https://twill.evecalm.com/adoption) · [CLI reference](https://twill.evecalm.com/cli) · [Issues](https://github.com/swiftuijs/twill/issues) · MIT licensed · Built by [forth.ink](https://forth.ink).

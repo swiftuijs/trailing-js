@@ -22,6 +22,10 @@ test('English documentation navigation, search, highlighting and responsive layo
   await page.goto('./');
   await expect(page).toHaveTitle(/Twill/);
   await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    'href',
+    'https://twill.evecalm.com/',
+  );
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Clearer flow.Same TypeScript.');
   await expect(page.locator('vite-error-overlay')).toHaveCount(0);
   await expect(page.locator('div.language-twill code span[style]')).not.toHaveCount(0);
@@ -40,7 +44,10 @@ test('English documentation navigation, search, highlighting and responsive layo
   await page.keyboard.press('Escape');
   const sitemap = await page.request.get('sitemap.xml');
   expect(sitemap.ok()).toBe(true);
-  expect(await sitemap.text()).not.toContain('/zh/');
+  const sitemapText = await sitemap.text();
+  expect(sitemapText).not.toContain('/zh/');
+  expect(sitemapText).toContain('https://twill.evecalm.com/');
+  expect(sitemapText).not.toContain('swiftuijs.github.io');
   expect(errors).toEqual([]);
 });
 
@@ -184,7 +191,7 @@ test('live compilation, highlighted examples, located errors and recovery', asyn
   );
   await expect(page.getByRole('link', { name: 'Read the syntax guide →' })).toHaveAttribute(
     'href',
-    '/twill/syntax',
+    (process.env.TWILL_DOCS_BASE ?? '/') + 'syntax',
   );
   expect(errors).toEqual([]);
 });

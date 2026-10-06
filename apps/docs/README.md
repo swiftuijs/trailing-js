@@ -8,7 +8,7 @@ pnpm --filter @swiftuijs/twill-docs dev
 pnpm docs:preview
 ```
 
-The default base is `/twill/` for GitHub Pages. Override with `TWILL_DOCS_BASE=/` for root hosting. Static output is `apps/docs/dist`. The CI browser job checks the built site, playground, search and responsive navigation. The Pages workflow is a separate deployment step.
+The canonical site is `https://twill.evecalm.com`, hosted on GitHub Pages at the root path `/`. Set `TWILL_DOCS_BASE` when hosting under another path. Static output is `apps/docs/dist`. The CI browser job checks the built site, playground, search and responsive navigation. The Pages workflow is a separate deployment step. See the [domain configuration](../../docs/contributing/releasing.md#documentation-domain) for DNS and repository settings.
 
 The playground only lowers syntax into TS/TSX. It never executes user code or sends it to a server. A reusable worker, size limit and per-compilation timeout isolate malformed/slow input. CodeMirror supplies TS/JSX highlighting, contextual Twill keywords, keyboard editing and inline errors. Input compiles automatically after a short debounce; drafts stay in local storage. It does not replace project type checking or host emission.
 

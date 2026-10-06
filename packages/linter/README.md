@@ -26,7 +26,7 @@ pnpm exec eslint src --fix
 
 `recommended` supplies standard JS and typescript-eslint recommended rules. `recommendedTypeChecked` additionally supplies typed rules; Twill files need a nearby tsconfig and are checked against Twill's virtual TypeScript program. Native TS files use typescript-eslint's project service normally. Add ordinary framework/environment globals as with any ESLint project.
 
-`recommendedTypeChecked` also enables `@typescript-eslint/switch-exhaustiveness-check`. A switch over a discriminated union must explicitly cover each variant, even when it has a `default` branch. Adding a variant then exposes missing handlers in both Twill and native TS files. This check is opt-in linting, not a new compiler guarantee; run ESLint in CI to enforce it. Ordinary `recommended` does not require type information. See [practical patterns](https://swiftuijs.github.io/twill/patterns) for an example.
+`recommendedTypeChecked` also enables `@typescript-eslint/switch-exhaustiveness-check`. A switch over a discriminated union must explicitly cover each variant, even when it has a `default` branch. Adding a variant then exposes missing handlers in both Twill and native TS files. This check is opt-in linting, not a new compiler guarantee; run ESLint in CI to enforce it. Ordinary `recommended` does not require type information. See [practical patterns](https://twill.evecalm.com/patterns) for an example.
 
 The processor honors the project Twill/JSX settings. Generated-only diagnostics are suppressed. Fixes and suggestions are offered only when their ranges and replaced text map exactly to original source; fixes requiring compiler-generated syntax are withheld. `disposeProjects()` releases the cached typed projects when embedding the plugin in a long-lived process. The typed cache checks existing project/configuration file mtimes; restart linting after adding/deleting files to refresh discovered roots.
 
@@ -40,4 +40,4 @@ Custom rule overrides should also match the virtual TS/TSX files, as with other 
 
 Framework ESLint plugins can attach their ordinary TS/TSX rules to these virtual files. Keep ESLint formatting rules disabled and let Prettier handle layout; rewrites spanning generated syntax cannot always be mapped back safely.
 
-[Documentation](https://swiftuijs.github.io/twill/tooling) · [Issues](https://github.com/swiftuijs/twill/issues) · MIT licensed · Built by [forth.ink](https://forth.ink).
+[Documentation](https://twill.evecalm.com/tooling) · [Issues](https://github.com/swiftuijs/twill/issues) · MIT licensed · Built by [forth.ink](https://forth.ink).

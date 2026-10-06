@@ -30,7 +30,7 @@
   "bugs": {
     "url": "https://github.com/swiftuijs/twill/issues"
   },
-  "homepage": "https://swiftuijs.github.io/twill/",
+  "homepage": "https://twill.evecalm.com/",
   "dependencies": {
     "@ampproject/remapping": "^2.3.0",
     "@jridgewell/trace-mapping": "^0.3.31",

@@ -5,6 +5,8 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const repository = 'https://github.com/swiftuijs/twill';
+const site = 'https://twill.evecalm.com';
+const base = process.env.TWILL_DOCS_BASE ?? '/';
 const pages = [
   {
     text: 'Start here',
@@ -49,16 +51,18 @@ export default defineConfig({
   srcDir: '../../docs',
   srcExclude: ['contributing/**', 'rfcs/**'],
   outDir: './dist',
-  base: process.env.TWILL_DOCS_BASE ?? '/twill/',
+  base,
   title: 'Twill',
   description:
     'Clearer flow. Same TypeScript. Make validation, cleanup and business states explicit, with ordinary JavaScript output and a complete development toolchain.',
   cleanUrls: true,
   lastUpdated: true,
-  head: [
-    ['link', { rel: 'icon', href: (process.env.TWILL_DOCS_BASE ?? '/twill/') + 'favicon.svg' }],
-  ],
-  sitemap: { hostname: 'https://swiftuijs.github.io/twill/' },
+  head: [['link', { rel: 'icon', href: base + 'favicon.svg' }]],
+  sitemap: { hostname: site },
+  transformHead({ pageData }) {
+    const path = pageData.relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '');
+    return [['link', { rel: 'canonical', href: new URL(path, site + '/').href }]];
+  },
   lang: 'en',
   themeConfig: {
     sidebar: pages,

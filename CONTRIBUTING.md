@@ -1,6 +1,6 @@
 # Contributing
 
-These guides describe development of Twill itself. Application users should start with the [user documentation](https://swiftuijs.github.io/twill/). Repository references: [development and workspace commands](docs/contributing/tooling.md), [compiler architecture](docs/contributing/architecture.md), [release process](docs/contributing/releasing.md), [GitHub language registration](docs/contributing/github.md) and [language proposals](docs/rfcs/0001-practical-language.md).
+These guides describe development of Twill itself. Application users should start with the [user documentation](https://twill.evecalm.com/). Repository references: [development and workspace commands](docs/contributing/tooling.md), [compiler architecture](docs/contributing/architecture.md), [release process](docs/contributing/releasing.md), [GitHub language registration](docs/contributing/github.md) and [language proposals](docs/rfcs/0001-practical-language.md).
 
 Use Node 22.13+ or Node 24+ and the pnpm version pinned in `packageManager`. Install with `pnpm install --frozen-lockfile`. Run `pnpm check` before submitting changes; it includes formatting checks. `pnpm test:watch` supports compiler development; `pnpm dev:react` and `pnpm dev:vue` run the examples after a build.
 

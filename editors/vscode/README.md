@@ -6,7 +6,7 @@ Twill extends JavaScript and TypeScript with a few small features for everyday c
 
 This extension helps you **write, understand and debug Twill in VS Code**. It provides syntax highlighting, TypeScript completion and error checking, navigation, formatting and Node debugging. Use it for scripts, backend code, data processing, React or Vue applications.
 
-[Try the playground](https://swiftuijs.github.io/twill/playground) · [Documentation](https://swiftuijs.github.io/twill/) · [Report an issue](https://github.com/swiftuijs/twill/issues)
+[Try the playground](https://twill.evecalm.com/playground) · [Documentation](https://twill.evecalm.com/) · [Report an issue](https://github.com/swiftuijs/twill/issues)
 
 ## What does Twill look like?
 
@@ -35,7 +35,7 @@ function greeting(name: string | undefined): string {
 }
 ```
 
-`guard` makes the failure path exit immediately. After the guard, TypeScript knows `value` is a string. Twill's other features include block-scoped `defer` for cleanup and switch expressions checked against ordinary TypeScript unions. See [practical patterns](https://swiftuijs.github.io/twill/patterns) for examples and [language semantics](https://swiftuijs.github.io/twill/syntax) for the exact rules.
+`guard` makes the failure path exit immediately. After the guard, TypeScript knows `value` is a string. Twill's other features include block-scoped `defer` for cleanup and switch expressions checked against ordinary TypeScript unions. See [practical patterns](https://twill.evecalm.com/patterns) for examples and [language semantics](https://twill.evecalm.com/syntax) for the exact rules.
 
 ## What can I do with this extension?
 
@@ -53,7 +53,7 @@ The extension includes its editing tools. To **run or build your application**, 
 
 ## Your first Twill program
 
-This walkthrough creates a small Node application. It requires **Node 20.19+ or 22.12+** and **VS Code 1.95.3+**. You can also explore the syntax without installing anything in the [browser playground](https://swiftuijs.github.io/twill/playground).
+This walkthrough creates a small Node application. It requires **Node 20.19+ or 22.12+** and **VS Code 1.95.3+**. You can also explore the syntax without installing anything in the [browser playground](https://twill.evecalm.com/playground).
 
 ### 1. Install the extension
 
@@ -146,9 +146,9 @@ import twill from '@swiftuijs/twill/vite';
 export default defineConfig({ plugins: [twill()] });
 ```
 
-React applications should use the [React Vite adapter](https://swiftuijs.github.io/twill/frameworks#react-with-vite-8) for Fast Refresh. React and Vue component libraries use their normal imports, props, children and slots. Twill requires no component registry or wrapping API.
+React applications should use the [React Vite adapter](https://twill.evecalm.com/frameworks#react-with-vite-8) for Fast Refresh. React and Vue component libraries use their normal imports, props, children and slots. Twill requires no component registry or wrapping API.
 
-See [React and Vue](https://swiftuijs.github.io/twill/frameworks), [other build tools](https://swiftuijs.github.io/twill/build-tools) and [mixed TS/JS projects](https://swiftuijs.github.io/twill/interoperability) for application setup. Run `twill check` before building; native `tsc` cannot parse Twill source. Libraries can emit [standard declarations](https://swiftuijs.github.io/twill/libraries).
+See [React and Vue](https://twill.evecalm.com/frameworks), [other build tools](https://twill.evecalm.com/build-tools) and [mixed TS/JS projects](https://twill.evecalm.com/interoperability) for application setup. Run `twill check` before building; native `tsc` cannot parse Twill source. Libraries can emit [standard declarations](https://twill.evecalm.com/libraries).
 
 ## Enable format-on-save
 
@@ -167,7 +167,7 @@ The extension includes a formatter. Add this to `.vscode/settings.json`:
 }
 ```
 
-The bundled formatter uses editor indentation and Prettier defaults. For a shared `.prettierrc` and CLI formatting, use the standard Prettier extension with `@swiftuijs/twill-formatter`. Optional ESLint integration uses `@swiftuijs/twill-linter` and Microsoft's ESLint extension. Follow the [formatter and linter guide](https://swiftuijs.github.io/twill/tooling).
+The bundled formatter uses editor indentation and Prettier defaults. For a shared `.prettierrc` and CLI formatting, use the standard Prettier extension with `@swiftuijs/twill-formatter`. Optional ESLint integration uses `@swiftuijs/twill-linter` and Microsoft's ESLint extension. Follow the [formatter and linter guide](https://twill.evecalm.com/tooling).
 
 ## Useful commands
 
@@ -179,7 +179,7 @@ Open the command palette with **Ctrl+Shift+P** on Windows/Linux or **Cmd+Shift+P
 | **Twill: Show Project Diagnostics**  | Inspect the project settings, source counts, versions and diagnostics      |
 | **Twill: Debug Current File**        | Run the current file in the Node debugger with original-source breakpoints |
 
-Browser applications use their existing browser and framework developer tools. See the [debugging guide](https://swiftuijs.github.io/twill/tooling#debug-node-code) for custom launch settings.
+Browser applications use their existing browser and framework developer tools. See the [debugging guide](https://twill.evecalm.com/tooling#debug-node-code) for custom launch settings.
 
 ## Troubleshooting and support
 
@@ -188,7 +188,7 @@ Browser applications use their existing browser and framework developer tools. S
 - **A rename or quick fix is unavailable?** Some edits cross generated syntax and cannot be mapped safely; these edits are withheld. General refactoring and fix-all are outside the supported workflow.
 - **Need an offline install?** Download `twill.vsix` from the matching [GitHub release](https://github.com/swiftuijs/twill/releases) and choose **Extensions → … → Install from VSIX**.
 
-Twill's 0.x release line is experimental. The checker and extension use TypeScript 5.9 semantics. Review the [compatibility and support guide](https://swiftuijs.github.io/twill/readiness) for tested versions and boundaries.
+Twill's 0.x release line is experimental. The checker and extension use TypeScript 5.9 semantics. Review the [compatibility and support guide](https://twill.evecalm.com/readiness) for tested versions and boundaries.
 
 For a bug report, include a small source example, your extension/compiler versions, VS Code and Node versions, and relevant project settings. Use [GitHub Issues](https://github.com/swiftuijs/twill/issues).
 

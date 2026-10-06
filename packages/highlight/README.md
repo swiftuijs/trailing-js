@@ -39,4 +39,4 @@ For other TextMate-compatible engines, use the JSON exports `@swiftuijs/twill-hi
 
 Shiki escapes code text in generated HTML. This does not sanitize arbitrary custom transformers, themes or surrounding markup. Highlighting is lexical; it supplies neither compiler diagnostics nor semantic completion. The editable playground continues to use CodeMirror for its incremental editing model.
 
-[Documentation](https://swiftuijs.github.io/twill/highlighting) · [Playground](https://swiftuijs.github.io/twill/playground) · [Issues](https://github.com/swiftuijs/twill/issues) · MIT licensed · Built by [forth.ink](https://forth.ink).
+[Documentation](https://twill.evecalm.com/highlighting) · [Playground](https://twill.evecalm.com/playground) · [Issues](https://github.com/swiftuijs/twill/issues) · MIT licensed · Built by [forth.ink](https://forth.ink).

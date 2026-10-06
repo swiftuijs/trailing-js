@@ -27,4 +27,4 @@ For generated-source viewers, `formatGenerated(code, { filepath: 'output.ts' })`
 
 Browser workers and the VSIX use `@swiftuijs/twill-formatter/standalone`. It exposes the same formatting helpers and loads only Prettier's core, the TS/ESTree support and the Twill plugin. Additional plugins must be loaded objects; this entry does not resolve plugin filenames or load configuration from disk. The main entry retains ordinary Node Prettier integration. Both entries are tested for matching formatting and idempotence.
 
-[Documentation](https://swiftuijs.github.io/twill/tooling) · [Issues](https://github.com/swiftuijs/twill/issues) · MIT licensed · Built by [forth.ink](https://forth.ink).
+[Documentation](https://twill.evecalm.com/tooling) · [Issues](https://github.com/swiftuijs/twill/issues) · MIT licensed · Built by [forth.ink](https://forth.ink).

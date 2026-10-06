@@ -14,6 +14,16 @@ Install the downloaded VSIX through VS Code's **Install from VSIX** command. The
 
 Documentation deploys independently through `.github/workflows/docs.yml`. It builds the canonical references and compiler worker, uploads a Pages artifact, then deploys it. Pages must be enabled with **GitHub Actions** as the source. The site is static and can also be hosted from `apps/docs/dist` elsewhere; adjust `TWILL_DOCS_BASE` for another path.
 
+## Documentation domain
+
+The canonical website is `https://twill.evecalm.com`. Builds use `/` as the default base, with canonical page links, a sitemap and `robots.txt` for this domain.
+
+1. In the DNS zone for `evecalm.com`, add a **CNAME** record named `twill` targeting `swiftuijs.github.io`. Use the DNS provider's default TTL. The target is a hostname, without a scheme or `/twill` path. Remove conflicting records for the same `twill` name. If using Cloudflare, select **DNS only** while GitHub validates the domain and provisions HTTPS.
+2. In [repository Pages settings](https://github.com/swiftuijs/twill/settings/pages), keep the deployment source as **GitHub Actions** and set **Custom domain** to `twill.evecalm.com`. The `public/CNAME` file is copied into the build, but Actions-based Pages deployments require this repository setting; the file does not configure it automatically.
+3. Run the **Documentation** workflow after saving the custom domain. It reads the Pages configuration and builds at `/` for a custom domain; before the setting is enabled it preserves `/twill/` for the default repository URL. Wait for the DNS check and certificate provisioning to finish, then enable **Enforce HTTPS**. Check the homepage, a guide such as `/getting-started`, `/playground`, and `/sitemap.xml` on the new domain. GitHub Pages redirects the default repository URL after the custom domain is configured.
+
+Repository owners can additionally verify `evecalm.com` in the `swiftuijs` organization's Pages settings. GitHub supplies a TXT challenge; publish that exact value instead of guessing it. Verification protects the domain against use by other GitHub accounts.
+
 Syntax remains experimental in the 0.x line. Parsing, implicit-return, label-lowering or component-collection changes need explicit changelog entries and compatibility tests. The support matrix and remaining limits are in [readiness](../readiness.md).
 
 ## Brand and publisher

@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+const baseURL = 'http://127.0.0.1:4173' + (process.env.TWILL_DOCS_BASE ?? '/');
 export default defineConfig({
   testDir: 'tests/browser',
   timeout: 30000,
@@ -24,7 +25,7 @@ export default defineConfig({
       use: {
         ...devices['Desktop Chrome'],
         viewport: { width: 1440, height: 960 },
-        baseURL: 'http://127.0.0.1:4173/twill/',
+        baseURL,
       },
     },
     {
@@ -32,13 +33,13 @@ export default defineConfig({
       use: {
         ...devices['iPhone 13'],
         defaultBrowserType: 'chromium',
-        baseURL: 'http://127.0.0.1:4173/twill/',
+        baseURL,
       },
     },
   ],
   webServer: {
     command: 'pnpm preview --host 127.0.0.1 --port 4173',
-    url: 'http://127.0.0.1:4173/twill/',
+    url: baseURL,
     reuseExistingServer: !process.env.CI,
   },
 });

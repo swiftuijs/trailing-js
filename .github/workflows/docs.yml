@@ -37,7 +37,30 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Check Pages configuration
+        id: pages
+        shell: bash
+        run: |
+          pages_config=$(gh api "repos/$GITHUB_REPOSITORY/pages" 2>/dev/null || true)
+          if [ -z "$pages_config" ]; then pages_config='{}'; fi
+          pages_mode=$(jq -r '.build_type // empty' <<< "$pages_config")
+          pages_domain=$(jq -r '.cname // empty' <<< "$pages_config")
+          if [ "$pages_mode" = workflow ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo 'The built documentation is available as an artifact. Enable Pages with GitHub Actions as its source, then rerun this workflow.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -n "$pages_domain" ]; then
+            echo "base-path=/" >> "$GITHUB_OUTPUT"
+          else
+            echo "base-path=/twill/" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
       - run: pnpm docs:build
+        env:
+          TWILL_DOCS_BASE: ${{ steps.pages.outputs.base-path }}
       - uses: actions/upload-artifact@v7.0.1
         with:
           name: documentation-site
@@ -45,19 +68,6 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/docs/dist
-      - name: Check Pages availability
-        id: pages
-        shell: bash
-        run: |
-          pages_mode=$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.build_type' 2>/dev/null || true)
-          if [ "$pages_mode" = workflow ]; then
-            echo "enabled=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo 'The built documentation is available as an artifact. Enable Pages with GitHub Actions as its source, then rerun this workflow.' >> "$GITHUB_STEP_SUMMARY"
-          fi
-        env:
-          GH_TOKEN: ${{ github.token }}
   deploy:
     needs: build
     if: needs.build.outputs.pages-enabled == 'true'
