@@ -1,6 +1,4 @@
-<img src="https://twill.evecalm.com/logo.png" alt="Twill hummingbird" width="80" height="80" />
-
-# Twill
+# <img src="https://twill.evecalm.com/logo.png" alt="Twill hummingbird" align="right" width="40" height="40" /> Twill
 
 **Clearer flow. Same TypeScript.**
 

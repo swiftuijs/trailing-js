@@ -3,7 +3,7 @@
 ## 0.1.1
 
 - Introduce Twill's indigo hummingbird identity across the documentation site, VS Code extension and package READMEs.
-- Show the logo in the documentation navigation and homepage, with coordinated light and dark themes, favicons and Marketplace branding.
+- Show the logo in the documentation navigation and right-align it within README titles, with coordinated light and dark themes, favicons and Marketplace branding.
 
 ## 0.1.0
 

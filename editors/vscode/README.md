@@ -1,6 +1,4 @@
-<img src="https://twill.evecalm.com/logo.png" alt="Twill hummingbird" width="80" height="80" />
-
-# Twill for VS Code
+# <img src="https://twill.evecalm.com/logo.png" alt="Twill hummingbird" align="right" width="40" height="40" /> Twill for VS Code
 
 **Write clearer JavaScript and TypeScript, with the editor tools you already expect.**
 

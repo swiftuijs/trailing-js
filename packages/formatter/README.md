@@ -1,6 +1,4 @@
-<img src="https://twill.evecalm.com/logo.png" alt="Twill hummingbird" width="80" height="80" />
-
-# Twill formatter
+# <img src="https://twill.evecalm.com/logo.png" alt="Twill hummingbird" align="right" width="40" height="40" /> Twill formatter
 
 Prettier 3.9 plugin for `.twill` and `.twillx`. Formats native TS/TSX and preserves trailing closures, guards and defer. It uses Prettier's own TypeScript parser/printer; compilation helpers never enter formatted source.
 

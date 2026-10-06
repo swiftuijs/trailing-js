@@ -36,20 +36,6 @@
   display: block;
   color: var(--vp-c-brand-1);
 }
-.hero-brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-  color: var(--home-ink);
-  font-size: 20px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-.hero-brand img {
-  width: 48px;
-  height: 48px;
-}
 .hero-description {
   max-width: 610px;
   margin-top: 30px;

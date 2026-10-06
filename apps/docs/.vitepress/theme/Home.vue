@@ -59,10 +59,6 @@ function navigateTabs(event: KeyboardEvent) {
   <div class="twill-home">
     <header class="home-hero home-container">
       <div class="hero-copy">
-        <div class="hero-brand">
-          <img :src="withBase('/logo.svg')" alt="Twill hummingbird" width="48" height="48" />
-          <span>Twill</span>
-        </div>
         <h1>Clearer flow.<span>Same TypeScript.</span></h1>
         <p class="hero-description">
           Make validation, cleanup and business states explicit. Twill adds a small layer of syntax
