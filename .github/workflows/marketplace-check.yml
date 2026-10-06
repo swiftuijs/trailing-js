@@ -11,8 +11,13 @@ jobs:
       - name: Check credential availability
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
+          VSCE_PAT_VARIABLE_PRESENT: ${{ vars.VSCE_PAT != '' }}
         run: |
           if [ -z "$VSCE_PAT" ]; then
+            if [ "$VSCE_PAT_VARIABLE_PRESENT" = true ]; then
+              echo '::error::VSCE_PAT is configured as an Actions variable. Move it to a repository Actions secret.'
+              exit 1
+            fi
             echo '::error::VSCE_PAT is missing. Configure it as a repository Actions secret.'
             exit 1
           fi
