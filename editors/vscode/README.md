@@ -61,7 +61,13 @@ The extension bundles its compiler, formatter, TypeScript engine and native TS-s
 
 ### Install the extension
 
-Until the Marketplace listing is available, download `twill.vsix` from a successful [CI build](https://github.com/swiftuijs/twill/actions/workflows/ci.yml). Tagged [GitHub releases](https://github.com/swiftuijs/twill/releases) also include the VSIX. In VS Code, choose **Extensions → … → Install from VSIX** and select that file.
+Open **Extensions** in VS Code, search for **Twill** by **forth.ink**, and choose **Install**. You can also install by the exact extension ID:
+
+```sh
+code --install-extension forth-ink.twill
+```
+
+For offline installation, download `twill.vsix` from the matching [GitHub release](https://github.com/swiftuijs/twill/releases), then choose **Extensions → … → Install from VSIX**.
 
 Open the application folder containing `tsconfig.json`. If it was already open when you installed the extension, run **TypeScript: Restart TS Server** from the command palette.
 
