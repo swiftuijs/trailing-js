@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 const [mode, ...args] = process.argv.slice(2);
 switch (mode) {
@@ -41,11 +41,40 @@ switch (mode) {
     break;
   }
   case 'descendant': {
-    const child = spawn(process.execPath, ['-e', 'setInterval(()=>{},1000)'], {
-      stdio: ['ignore', 1, 2],
-    });
-    writeFileSync(args[0], String(child.pid));
+    // Detached processes escape Windows' native kill-on-parent-exit job.
+    // Wait for actual child startup before letting the parent exit.
+    const child = spawn(
+      process.execPath,
+      [
+        '-e',
+        `
+      const {writeFileSync}=require('node:fs');
+      void process.stdout;void process.stderr;
+      setInterval(()=>{},1000);
+      writeFileSync(process.argv[1],String(process.pid));
+    `,
+        '--',
+        args[0],
+      ],
+      { detached: true, stdio: ['ignore', 1, 2] },
+    );
     child.unref();
+    await new Promise((resolve, reject) => {
+      const interval = setInterval(() => {
+        if (existsSync(args[0])) {
+          clearInterval(interval);
+          resolve();
+        }
+      }, 5);
+      child.once('error', (error) => {
+        clearInterval(interval);
+        reject(error);
+      });
+      child.once('exit', () => {
+        clearInterval(interval);
+        reject(Error('Descendant exited before parent'));
+      });
+    });
     break;
   }
   case 'early-input':

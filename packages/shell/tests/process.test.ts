@@ -540,7 +540,7 @@ it('matches native descriptor ownership when an unowned descendant outlives the 
   const nativeDescendant = await ready(nativeMarker);
   expect(await exited).toBe(0);
   await new Promise<void>((resolve) => setTimeout(resolve, 50));
-  // POSIX pipe writers survive the parent; Windows native pipe EOF follows its exit.
+  // Observe same-platform native pipe ownership rather than assuming POSIX descriptor behavior.
   const retainedNativePipe = !nativeClosed;
   process.kill(nativeDescendant, 'SIGKILL');
   await closed;
