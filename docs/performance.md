@@ -67,6 +67,8 @@ Unchanged editor snapshots, transforms and mapping decoders are cached. The nati
 
 ## Application output and distribution budgets
 
+The unreleased RFC 0018 branch binding uses a hygienic initializer snapshot and native success-scope binding. It introduces no runtime allocation, function, promise or helper import; native rest destructuring still allocates its own rest value. The checked object-binding application fixture allows at most 10 extra minified bytes for that snapshot compared with a handwritten branch over an already evaluated parameter. This budget is separate from runtime timing. `benchmark:if-bindings` records isolated native comparisons, all samples and generated/source/build checksums; `--verify-performance` checks the 1.10× controlled-host target.
+
 Equivalent native and dialect application fixtures are built with real esbuild bundling and minification. An implicit-member filter/map pipeline emits 76 bytes in both forms; a guarded numeric pipeline emits 88 bytes in both forms; a React single-child component emits 121 bytes in both forms. The checks compare byte counts and executed behavior, and reject compiler/runtime dependencies in the application graph. Identifier mangling can choose different short names. React's normal JSX runtime is external in this comparison. These small fixtures do not cover every application, dynamic cleanup or general child collection.
 
 The VSIX ships one pinned TypeScript engine shared on disk by its two editor hosts, standard-library declarations, the checker and the lightweight formatter. The engine still runs in each host process; sharing its distribution does not imply shared process memory. The standalone formatter loads TS/ESTree support rather than Node's automatic parser discovery.

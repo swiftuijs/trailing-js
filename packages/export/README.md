@@ -46,6 +46,8 @@ Source errors return diagnostics and `written: false`. Invalid destinations and 
 
 ## Unreleased language work
 
+The RFC 0018 source prototype adds `if const value = lookup() { use(value); }` with branch-local nullish bindings and native destructuring. Group trailing calls in initializers, following Swift’s condition boundary. It emits native branches without a helper, closure or optional wrapper. This is unreleased; see [syntax](https://twill.evecalm.com/syntax#branch-nullish-bindings-unreleased) and [RFC 0018](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0018-optional-branch-bindings.md).
+
 Unreleased source work includes associated-value enums and accepted `match` expressions: `match (state) { case State.loaded({ value }): value; default: 0; }`. Named payload bindings and erased factory descriptors compile to native switches without calling factories. Native switch statements retain JS fallthrough; match and switch expressions return one result without fallthrough. These additions are not included in npm/Marketplace 0.1.2. Compiler, formatter, linter, highlighter, export and editor changes are validated together. See [syntax and compatibility](https://twill.evecalm.com/syntax#match-expressions-unreleased) and [RFC 0016](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0016-pattern-matching.md).
 
 The unreleased optional `runtime: "external"` compiler mode is preserved during export. Its native sources retain the versioned `@swiftuijs/twill-runtime` helper import; install that production dependency in the destination. Default inline export stays self-contained. Export does not copy dependencies or rewrite package manifests. See [runtime modes](https://twill.evecalm.com/runtime).

@@ -39,6 +39,22 @@ function accountLabel(find: () => { name?: string } | undefined): string {
 
 Only the whole result is checked. Defaults and getters keep native behavior; the pattern names are unavailable in the failure branch. Use ordinary validation libraries for complex schemas. Twill does not synthesize validators from TypeScript annotations.
 
+## Optional success branches (unreleased)
+
+For an optional success branch that should not introduce a binding into the rest of the function, the unreleased [RFC 0018 prototype](syntax.md#branch-nullish-bindings-unreleased) provides:
+
+```twill
+function displayAmount(input: unknown): string {
+  if const amount = decodeAmount(input) {
+    return `${amount} cents`;
+  } else {
+    return 'Invalid amount';
+  }
+}
+```
+
+Zero remains valid, and `amount` exists only in the success branch. This source feature is not in npm/Marketplace 0.1.2; it does not replace native conditionals.
+
 ## Separate expected outcomes from exceptions
 
 Use a normal TS discriminated union when callers are expected to handle several business outcomes:

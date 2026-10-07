@@ -35,6 +35,15 @@ async function compile(source: string, filename = 'example.twill', jsxImportSour
   expect(worker.postMessage).toHaveBeenCalledOnce();
   return worker.postMessage.mock.calls[0]![0] as CompileResponse;
 }
+test('compiles nullish branch bindings without wrappers or a runtime', async () => {
+  const response = await compile(
+    'export function f(input:number|null){if const value=input{return value;}return 0;}',
+  );
+  expect(response.error).toBeUndefined();
+  expect(response.result?.ifBindings).toBe(1);
+  expect(response.result?.code).toContain('!== null');
+  expect(response.result?.code).not.toMatch(/=>|Promise|import /);
+});
 test('compiles and formats combined dialect features, retaining the request ID and feature counts', async () => {
   const response = await compile(
     'export const result=[{active:true}].map { guard .active else { return false; } defer {} return switch (.active) {case true: 1;default: 0;}; };',

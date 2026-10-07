@@ -63,6 +63,7 @@ function exits(node) {
     case 'BlockStatement':
       return node.body.some(exits);
     case 'IfStatement':
+    case 'TwillIfBinding':
       return !!node.alternate && exits(node.consequent) && exits(node.alternate);
     default:
       return false;
@@ -183,6 +184,7 @@ function parserFor(language) {
     lineStarts = null;
     classSuperDepth = null;
     subscriptDepth = 0;
+    conditionDepth = null;
     derivedClassElement = false;
     implicitClosure = null;
 
@@ -329,6 +331,46 @@ function parserFor(language) {
           'Every guard else path must exit with return, throw, break or continue.',
         );
       return this.finishNode(node, 'GuardStatement');
+    }
+
+    parseIfStatement(node) {
+      // Native parenthesized if statements keep the host parser's contract.
+      // Look only for the new binding introducer; lexical errors belong to
+      // the main parser so their offsets remain absolute.
+      if (/^\s*\(/.test(this.input.slice(this.end))) return super.parseIfStatement(node);
+      let binding;
+      try {
+        binding = Parser.tokenizer(this.input.slice(this.end), options).getToken().type;
+      } catch {}
+      if (binding !== tt._const) return super.parseIfStatement(node);
+      this.next();
+      const declaration = this.startNode();
+      this.next();
+      this.enterScope(0);
+      const previous = this.conditionDepth;
+      this.conditionDepth = this.subscriptDepth;
+      try {
+        this.parseVar(declaration, false, 'const');
+      } finally {
+        this.conditionDepth = previous;
+      }
+      node.binding = this.finishNode(declaration, 'VariableDeclaration');
+      if (node.binding.declarations.length !== 1)
+        this.raise(node.start, 'if const requires one binding declaration.');
+      if (this.type !== tt.braceL)
+        this.raise(this.start, 'if const requires a braced success branch.');
+      // The binding and success body share a scope; else belongs to the outer
+      // scope. The initializer's references are checked in the lowered outer
+      // scope, before the successful const declaration exists.
+      node.consequent = this.parseBlock(false);
+      this.exitScope();
+      node.alternate = null;
+      if (this.eat(tt._else)) {
+        if (this.type !== tt.braceL && this.type !== tt._if)
+          this.raise(this.start, 'if const else requires a block or another if.');
+        node.alternate = this.parseStatement('if');
+      }
+      return this.finishNode(node, 'TwillIfBinding');
     }
 
     tsParseTypeParameter(...args) {
@@ -678,6 +720,12 @@ function parserFor(language) {
         'MemberExpression',
         'TSInstantiationExpression',
       ].includes(base.type);
+      // Swift separates statement conditions from ordinary expressions. At
+      // condition depth, the brace starts the statement body. Parentheses and
+      // arguments enter deeper expression contexts and retain trailing calls.
+      const conditionBody =
+        this.conditionDepth !== null && this.subscriptDepth === this.conditionDepth + 1;
+      if (conditionBody && this.type === tt.braceL) return base;
       // Only the outer heritage expression owns the class body brace. Nested
       // calls, parenthesized expressions and computed lookups allow callbacks.
       if (!noCalls && supported && this.type === tt.braceL && !classBody) {
@@ -749,6 +797,7 @@ export function parse(source, language = 'ts', sourceType = 'module') {
   const live = new Set();
   const calls = [];
   const guards = [];
+  const ifBindings = [];
   const defers = [];
   const switches = [];
   const enums = [];
@@ -761,6 +810,7 @@ export function parse(source, language = 'ts', sourceType = 'module') {
       live.add(node);
     if (node.trailing) calls.push(node);
     if (node.type === 'GuardStatement') guards.push(node);
+    if (node.type === 'TwillIfBinding') ifBindings.push(node);
     if (node.type === 'DeferStatement') defers.push(node);
     if (node.type === 'TwillSwitchExpression') switches.push(node);
     if (node.type === 'TwillEnumDeclaration') enums.push(node);
@@ -775,6 +825,7 @@ export function parse(source, language = 'ts', sourceType = 'module') {
     ast,
     calls,
     guards,
+    ifBindings,
     defers,
     switches,
     enums,

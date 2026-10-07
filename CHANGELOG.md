@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Prototype RFC 0018 `if const` nullish branch bindings with one evaluation, native object/array destructuring and success-only immutable scope. Follow Swift's condition boundary, retaining grouped/nested trailing closures and unchanged native `if (...)` behavior.
+- Lower branch bindings to native scoped const/if code without a wrapper, closure, promise or runtime import. Synchronize mapped checking/editing, formatter/standalone, ESLint, TS/TSX grammars, declarations/export, build/loader/browser consumers, packaged editor, playground and documentation.
+
 - Add accepted, unreleased `match` expressions with qualified enum-case descriptors and named payload bindings. Keep ordinary switch calls, native statement fallthrough and the earlier explicit-marker spelling compatible; match and switch expressions never fall through.
 
 - Prototype RFC 0032 optional versioned runtime helpers: default inline emission and explicit external sharing for dynamic synchronous defer. Generate the inline algorithm from the canonical zero-dependency runtime source; preserve async scheduling and native fast paths.

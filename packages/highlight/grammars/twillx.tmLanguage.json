@@ -3,6 +3,9 @@
   "scopeName": "source.twill.tsx",
   "patterns": [
     {
+      "include": "#if-binding"
+    },
+    {
       "include": "#implicit-member"
     },
     {
@@ -334,11 +337,45 @@
           "name": "entity.name.function.twill"
         }
       ]
+    },
+    "if-binding": {
+      "name": "meta.if.binding.twill",
+      "begin": "(?<![\\w$.])\\b(if)\\b((?:\\s|/\\*[\\s\\S]*?\\*/|//[^\\r\\n]*(?:\\r?\\n|$))+)(const)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.twill"
+        },
+        "2": {
+          "patterns": [
+            {
+              "include": "source.tsx#comment"
+            }
+          ]
+        },
+        "3": {
+          "name": "storage.type.tsx"
+        }
+      },
+      "end": "(?==)",
+      "patterns": [
+        {
+          "include": "source.tsx#object-binding-pattern-const"
+        },
+        {
+          "include": "source.tsx#array-binding-pattern-const"
+        },
+        {
+          "include": "source.tsx"
+        }
+      ]
     }
   },
   "injections": {
     "L:source.twill.tsx -comment -string -meta.jsx.children, L:source.twill.tsx meta.template.expression -comment -(meta.template.expression string) -meta.jsx.children, L:source.twill.tsx meta.embedded.expression -comment -string -(meta.embedded.expression meta.jsx.children), L:source.twill.tsx meta.embedded.expression meta.template.expression -comment -(meta.template.expression string) -(meta.embedded.expression meta.jsx.children)": {
       "patterns": [
+        {
+          "include": "#if-binding"
+        },
         {
           "include": "#implicit-member"
         },
@@ -365,12 +402,18 @@
     "L:source.twill.tsx meta.objectliteral -comment -string -meta.type": {
       "patterns": [
         {
+          "include": "#if-binding"
+        },
+        {
           "include": "source.tsx#jsx"
         }
       ]
     },
     "L:source.twill.tsx meta.enum.declaration.tsx -comment -string": {
       "patterns": [
+        {
+          "include": "#if-binding"
+        },
         {
           "include": "source.tsx#type-parameters"
         },

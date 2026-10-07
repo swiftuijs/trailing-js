@@ -181,6 +181,22 @@ import { createRequire } from 'node:module';
     join(root, 'enums.twill'),
     'export enum State<T>{case idle;case loaded(value:T);} export const state:State<number>=State.loaded(42);export function read(state:State<number>){return match(state){case State.idle(): 0;case State.loaded({value}): value;};}',
   );
+  writeFileSync(
+    join(root, 'if-bindings.twill'),
+    'export function read(input:{value:number}|null){const value=7;if const {value}=input{return value.toFixed();}else{return value.toFixed();}}',
+  );
+  const optional = execFileSync(
+    process.execPath,
+    [
+      '--import',
+      '@swiftuijs/twill/register',
+      '--input-type=module',
+      '-e',
+      'import {read} from "./if-bindings.twill";console.log(read({value:0}),read(null));',
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.equal(optional.trim(), '0 7');
   execFileSync(
     process.execPath,
     [resolve(base, '..', installed.bin.twill), 'check', '-p', 'tsconfig.json'],

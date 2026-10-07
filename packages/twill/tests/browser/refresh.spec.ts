@@ -1,6 +1,30 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+test('branch bindings execute with native scope and falsy behavior through Vite', async ({
+  page,
+}) => {
+  const source = resolve('.twill/browser-fixture/if-bindings.twill');
+  writeFileSync(
+    source,
+    'export function read(input:{value:number}|null){const value=7;if const {value}=input{return value;}else{return value;}}export function present(input:unknown){if const value=input{return value===input;}return false;}',
+  );
+  try {
+    await page.goto('/');
+    const result = await page.evaluate(async () => {
+      const path = '/if-bindings.twill';
+      const { read, present } = await import(/* @vite-ignore */ path);
+      return [read({ value: 0 }), read({ value: 3 }), read(null), present(document.all)];
+    });
+    expect(result).toEqual([0, 3, 7, true]);
+    const output = await (await page.request.get('/if-bindings.twill?import')).text();
+    expect(output).not.toContain('if const');
+    expect(output).not.toContain('twill-runtime');
+  } finally {
+    const { rmSync } = await import('node:fs');
+    rmSync(source, { force: true });
+  }
+});
 
 test('React retains hook state across Twill and native TS edits without optional config files', async ({
   page,

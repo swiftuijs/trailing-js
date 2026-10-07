@@ -20,6 +20,21 @@ const options = {
   types: [],
 };
 describe('native declaration builds', () => {
+  it('emits narrowed branch result types without local bindings or runtime types', () => {
+    const root = fixture();
+    writeFileSync(
+      join(root, 'tsconfig.json'),
+      JSON.stringify({ compilerOptions: options, include: ['*.twill'], exclude: ['dist'] }),
+    );
+    writeFileSync(
+      join(root, 'index.twill'),
+      'export function read(input:{value:number}|null){if const {value}=input{return value;}return undefined;}',
+    );
+    expect(emitDeclarations(join(root, 'tsconfig.json')).diagnostics).toEqual([]);
+    const declaration = readFileSync(join(root, 'dist/index.d.ts'), 'utf8');
+    expect(declaration).toContain('number | undefined');
+    expect(declaration).not.toMatch(/__twill|if const|twill-runtime/);
+  });
   it('exports inferred member callback results as ordinary declarations', () => {
     const root = fixture();
     writeFileSync(

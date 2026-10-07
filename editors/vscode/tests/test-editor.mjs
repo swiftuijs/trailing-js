@@ -72,6 +72,8 @@ const fixture = {
     'export const users = [{ active: true, name: "Ada" }];\nexport const selected = users.filter { .active };\nexport const partial = users.map { .act };\n',
   'branching.twill':
     'type Result={kind:"ok";value:number}|{kind:"bad";error:string};\nexport function describe(input:{result:Result}|null){guard const {result: item}=input else{return "empty";}return switch(item){case {kind:"ok",value: amount}: amount.toFixed();case {kind:"bad",error}: error;};}\n',
+  'if-bindings.twill':
+    'export function describe(input:{value:number}|null){const value=7;if const {value}=input{return value.toFixed();}else{return value.toFixed();}}\n',
   'pattern-factory.ts':
     'export const Factory={loaded(value:number){return{kind:"loaded",value} as const;}};\n',
   'native-patterns.twill':

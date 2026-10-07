@@ -50,6 +50,8 @@ The language may introduce its own semantics. Changes to existing JS/TS spelling
 
 Associated-value enums are accepted and merged, but unreleased. RFC 0016 accepts dedicated match expressions with named enum-case bindings; predicates and broader matching remain deferred. Error propagation follows after those foundations; structured concurrency needs its own runtime design.
 
+RFC 0018 is the next source prototype: branch-local nullish bindings reuse the guard/destructuring foundation and Swift's condition-expression boundary, with native branch lowering. Implementation review and release remain pending. RFC 0019 still needs its error representation and effect metadata contracts before implementation.
+
 | RFC                                      | Feature                               | Status   | Dependencies                                |
 | ---------------------------------------- | ------------------------------------- | -------- | ------------------------------------------- |
 | [0015](0015-associated-value-enums.md)   | Associated-value enums                | Accepted | 0010, 0011                                  |

@@ -29,7 +29,7 @@ try {
   );
   writeFileSync(
     join(root, 'main.twill'),
-    'export enum State{case loaded(value:number);}export function read(input:State){return switch(input){case enum State.loaded({value}):value;};}export const doubled=[1,2,3].map { n in n*2 };\n',
+    'export enum State{case loaded(value:number);}export function read(input:State){return switch(input){case enum State.loaded({value}):value;};}export const doubled=[1,2,3].map { n in n*2 };export function optional(input:number|null){if const value=input{return value;}return 0;}\n',
   );
   writeFileSync(
     join(root, '.prettierrc.json'),
@@ -39,6 +39,7 @@ try {
   const formatted = readFileSync(join(root, 'main.twill'), 'utf8');
   assert(formatted.includes('map { n in'));
   assert(formatted.includes('case enum State.loaded({ value })'));
+  assert(formatted.includes('if const value = input'));
   run(['node_modules/prettier/bin/prettier.cjs', '--check', 'main.twill']);
   const generated = run([
     '--input-type=module',

@@ -3,6 +3,9 @@
   "scopeName": "source.twill.ts",
   "patterns": [
     {
+      "include": "#if-binding"
+    },
+    {
       "include": "#implicit-member"
     },
     {
@@ -328,11 +331,45 @@
           "name": "entity.name.function.twill"
         }
       ]
+    },
+    "if-binding": {
+      "name": "meta.if.binding.twill",
+      "begin": "(?<![\\w$.])\\b(if)\\b((?:\\s|/\\*[\\s\\S]*?\\*/|//[^\\r\\n]*(?:\\r?\\n|$))+)(const)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.twill"
+        },
+        "2": {
+          "patterns": [
+            {
+              "include": "source.ts#comment"
+            }
+          ]
+        },
+        "3": {
+          "name": "storage.type.ts"
+        }
+      },
+      "end": "(?==)",
+      "patterns": [
+        {
+          "include": "source.ts#object-binding-pattern-const"
+        },
+        {
+          "include": "source.ts#array-binding-pattern-const"
+        },
+        {
+          "include": "source.ts"
+        }
+      ]
     }
   },
   "injections": {
     "L:source.twill.ts -comment -string, L:source.twill.ts meta.template.expression -comment -(meta.template.expression string)": {
       "patterns": [
+        {
+          "include": "#if-binding"
+        },
         {
           "include": "#implicit-member"
         },
@@ -358,6 +395,9 @@
     },
     "L:source.twill.ts meta.enum.declaration.ts -comment -string": {
       "patterns": [
+        {
+          "include": "#if-binding"
+        },
         {
           "include": "source.ts#type-parameters"
         },

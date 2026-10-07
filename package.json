@@ -60,7 +60,8 @@
     "benchmark:enum-patterns": "pnpm --filter @swiftuijs/twill run benchmark:enum-patterns",
     "editor:coverage": "pnpm --filter twill test:coverage:host",
     "benchmark:react-framework": "pnpm --filter @swiftuijs/twill-example-react-framework run benchmark",
-    "benchmark:runtime": "pnpm --filter @swiftuijs/twill run benchmark:runtime"
+    "benchmark:runtime": "pnpm --filter @swiftuijs/twill run benchmark:runtime",
+    "benchmark:if-bindings": "pnpm --filter @swiftuijs/twill run benchmark:if-bindings"
   },
   "author": {
     "name": "forth.ink",

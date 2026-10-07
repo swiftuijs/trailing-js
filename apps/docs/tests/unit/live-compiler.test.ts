@@ -19,7 +19,15 @@ class TestWorker {
         ? { id: request.id, error: { message: 'Invalid source', offset: 2 } }
         : {
             id: request.id,
-            result: { code: request.source, duration: 1, closures: 0, guards: 0, defers: 0 },
+            result: {
+              code: request.source,
+              duration: 1,
+              closures: 0,
+              guards: 0,
+              ifBindings: 0,
+              defers: 0,
+              switches: 0,
+            },
           },
     } as MessageEvent<CompileResponse>);
   }

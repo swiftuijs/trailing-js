@@ -74,6 +74,26 @@ The failure block must provably exit: a direct `return`, `throw`, `break`, or `c
 
 `guard` is contextual at a statement boundary when its condition/binding is followed by a top-level `else`. Existing `guard()`, `guard = value`, `object.guard` and `guard:` labels retain their meaning. Like other JS statements, use semicolons where adjacent expressions could otherwise join across lines. Parameter and expression tokens retain their original source positions, so TS narrowing and diagnostics operate on the lowered code.
 
+## Branch nullish bindings (unreleased)
+
+The [RFC 0018](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0018-optional-branch-bindings.md) source prototype adds immutable success-branch bindings; npm and Marketplace 0.1.2 do not include them.
+
+```twill
+export function label(input: { name?: string } | null) {
+  if const { name = 'Anonymous' } = input {
+    return name;
+  } else {
+    return 'Missing';
+  }
+}
+```
+
+The initializer runs once. Strict native null/undefined checks select success, preserving zero, false, empty strings and NaN. The binding exists only in the success block. Initializer, else and following references resolve in the outer scope, even when an outer binding has the same name. Unlike `guard const`, a successful binding does not continue after the statement. Object/array patterns, defaults, rest and an optional whole-initializer TS annotation retain their native behavior; destructuring runs only after the nullish check. This does not validate nested fields or catch exceptions/rejections.
+
+As in Swift's condition parsing, a brace after the outer initializer expression begins the branch. Group a trailing-call initializer: `if const user = (find(id) { candidate in candidate.active }) { use(user); }`. Calls and grouped expressions inside arguments retain trailing closures. Formatting keeps the required grouping. Native `if (...)` remains unchanged.
+
+One binding and a braced success body are required. Else is optional and may be a block or another native/binding if. Multiple bindings, while bindings and if expressions are not implemented. Await/yield remain in their enclosing scope; return, break/continue, finally and branch-local defer retain their ownership. Lowering adds a hygienic temporary and a scoped native const/nullish branch, with no closure, optional wrapper or runtime import in either runtime mode. Type inference, source mappings and native declarations/export use ordinary TS.
+
 ## Associated-value enums (unreleased)
 
 This implements [accepted RFC 0015](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0015-associated-value-enums.md) from source; npm and Marketplace 0.1.2 do not include it. [Implementation PR #13](https://github.com/swiftuijs/twill/pull/13) records its review and validation.

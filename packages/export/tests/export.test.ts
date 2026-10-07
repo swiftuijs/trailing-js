@@ -23,6 +23,28 @@ const compilerOptions = {
   moduleResolution: 'Bundler',
   types: [],
 };
+it('exports branch bindings with native scopes, narrowing and declarations', async () => {
+  const { tsconfig, outDir } = fixture({
+    'index.twill':
+      'export function read(input:{value:number}|null){const value=7;if const {value}=input{return value.toFixed();}else{return value.toFixed();}}',
+    'consumer.ts': 'import {read} from "./index.twill"; export const value:string=read(null);',
+  });
+  const result = await exportProject(tsconfig, { outDir });
+  expect(result.diagnostics).toEqual([]);
+  expect(nativeDiagnostics(result.tsconfig)).toEqual([]);
+  const native = readFileSync(join(outDir, 'index.ts'), 'utf8');
+  expect(native).not.toContain('if const');
+  expect(native).toContain('!== null');
+  const module: Record<string, any> = {};
+  Function(
+    'exports',
+    ts.transpileModule(native, {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+    }).outputText,
+  )(module);
+  expect(module.read({ value: 0 })).toBe('0');
+  expect(module.read(null)).toBe('7');
+});
 
 it('exports imported enum patterns as checked native switches and declarations', async () => {
   const { tsconfig, outDir } = fixture({
