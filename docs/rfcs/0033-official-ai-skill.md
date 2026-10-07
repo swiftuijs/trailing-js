@@ -2,7 +2,7 @@
 
 **Status:** Proposed.
 **Kind:** Tooling.
-**Release:** Not released; no language or npm release change.
+**Release:** Skills and documentation only; no language or npm release change.
 **Dependencies:** RFCs 0025, 0026 and 0029.
 **Review:** Maintainer-requested direction; [implementation PR #18](https://github.com/swiftuijs/twill/pull/18).
 
