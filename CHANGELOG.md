@@ -2,8 +2,11 @@
 
 ## Unreleased
 
-- Prototype RFC 0018 `if const` nullish branch bindings with one evaluation, native object/array destructuring and success-only immutable scope. Follow Swift's condition boundary, retaining grouped/nested trailing closures and unchanged native `if (...)` behavior.
-- Lower branch bindings to native scoped const/if code without a wrapper, closure, promise or runtime import. Synchronize mapped checking/editing, formatter/standalone, ESLint, TS/TSX grammars, declarations/export, build/loader/browser consumers, packaged editor, playground and documentation.
+- Prototype accepted RFC 0018 `if const` nullish branch bindings with one evaluation, native object/array destructuring and success-only immutable scope. Follow Swift's condition boundary, retaining grouped/nested trailing closures and unchanged native `if (...)` behavior.
+- Lower branch bindings to native scoped const/if code without a wrapper, closure, promise or runtime import. Synchronize mapped checking/editing, formatter/standalone, ESLint, TS/TSX grammars, declarations/export, build/loader/browser consumers, packaged editor, playground, documentation and the official AI skill.
+
+- Add the official portable Twill AI skill, published-feature guidance and executable examples; generate website downloads and discovery metadata from one canonical source.
+- Add repository `AGENTS.md` conventions and skill synchronization requirements, with release/example checks in CI and website installation/use documentation. No language output or npm/Marketplace version changes.
 
 - Add accepted, unreleased `match` expressions with qualified enum-case descriptors and named payload bindings. Keep ordinary switch calls, native statement fallthrough and the earlier explicit-marker spelling compatible; match and switch expressions never fall through.
 

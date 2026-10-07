@@ -4,7 +4,7 @@
 
 Twill is a **TypeScript-based language with Swift-inspired syntax extensions**, built by [forth.ink](https://forth.ink). It extends TypeScript and TSX with guards, `defer`, trailing closures and checked switch expressions. Use TypeScript's type system and existing JavaScript libraries; compile to ordinary JavaScript.
 
-[Documentation](https://twill.evecalm.com/) · [Why Twill?](https://twill.evecalm.com/why-twill) · [Playground](https://twill.evecalm.com/playground) · [Getting started](https://twill.evecalm.com/getting-started) · [VS Code extension](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill) · [Compatibility](https://twill.evecalm.com/readiness)
+[Documentation](https://twill.evecalm.com/) · [Why Twill?](https://twill.evecalm.com/why-twill) · [Playground](https://twill.evecalm.com/playground) · [Getting started](https://twill.evecalm.com/getting-started) · [AI skill](https://twill.evecalm.com/ai) · [VS Code extension](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill) · [Compatibility](https://twill.evecalm.com/readiness)
 
 ```twill
 async function readOwned(acquire: () => Promise<TextDocument>) {
@@ -130,6 +130,10 @@ Install the [Twill VS Code extension](https://marketplace.visualstudio.com/items
 Twill is a useful candidate for nullable workflows, owned resources, typed state handling and callback-heavy code. It is still an experimental dialect. Parser coverage follows a tested TS 5.9 contract; arbitrary workspace TS versions, general editor refactoring, native incremental `tsc --build`, a CommonJS Twill loader and every SSR framework are outside its current guarantees.
 
 Representative native/dialect bundles are compared for behavior and byte size; release artifacts have enforced size budgets. Synthetic benchmarks do not establish whole-application speed or team productivity. Profile your actual workload and exercise failure paths. See [compatibility](https://twill.evecalm.com/readiness), [performance](https://twill.evecalm.com/performance) and [gradual adoption](https://twill.evecalm.com/adoption).
+
+## AI assistance
+
+Install the [official Twill AI skill](https://twill.evecalm.com/ai) with `npx skills add swiftuijs/twill --skill twill`. It guides Codex, Claude Code and other Agent Skills clients through application syntax, resource ownership, integrations and verification while distinguishing released features from source prototypes. The skill does not install the compiler or other project tools.
 
 ## Contributing
 

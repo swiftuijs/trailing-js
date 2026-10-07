@@ -50,14 +50,14 @@ The language may introduce its own semantics. Changes to existing JS/TS spelling
 
 Associated-value enums are accepted and merged, but unreleased. RFC 0016 accepts dedicated match expressions with named enum-case bindings; predicates and broader matching remain deferred. Error propagation follows after those foundations; structured concurrency needs its own runtime design.
 
-RFC 0018 is the next source prototype: branch-local nullish bindings reuse the guard/destructuring foundation and Swift's condition-expression boundary, with native branch lowering. Implementation review and release remain pending. RFC 0019 still needs its error representation and effect metadata contracts before implementation.
+RFC 0018 accepts branch-local nullish bindings that reuse the guard/destructuring foundation and Swift's condition-expression boundary, with native branch lowering. [PR #17](https://github.com/swiftuijs/twill/pull/17) provides the source implementation; release remains pending. RFC 0019 still needs its error representation and effect metadata contracts before implementation.
 
 | RFC                                      | Feature                               | Status   | Dependencies                                |
 | ---------------------------------------- | ------------------------------------- | -------- | ------------------------------------------- |
 | [0015](0015-associated-value-enums.md)   | Associated-value enums                | Accepted | 0010, 0011                                  |
 | [0016](0016-pattern-matching.md)         | Match expressions and enum patterns   | Accepted | 0010, 0011, 0015                            |
 | [0017](0017-if-expressions.md)           | If expressions                        | Proposed | None                                        |
-| [0018](0018-optional-branch-bindings.md) | Nullish bindings in if branches       | Proposed | 0007, 0008                                  |
+| [0018](0018-optional-branch-bindings.md) | Nullish bindings in if branches       | Accepted | 0007, 0008                                  |
 | [0019](0019-typed-error-propagation.md)  | Explicit typed error propagation      | Proposed | 0015 for the optional result representation |
 | [0020](0020-structured-concurrency.md)   | Structured concurrency                | Proposed | Error/cleanup contracts; runtime prototype  |
 | [0021](0021-immutable-values.md)         | Immutable records and value semantics | Proposed | None                                        |
@@ -79,9 +79,10 @@ RFC 0018 is the next source prototype: branch-local nullish bindings reuse the g
 
 ## Proposed runtime/tooling capabilities
 
-| RFC                                      | Capability                         | Status   | Dependencies           |
-| ---------------------------------------- | ---------------------------------- | -------- | ---------------------- |
-| [0032](0032-optional-runtime-helpers.md) | Optional versioned runtime helpers | Proposed | 0009, 0026, 0027, 0028 |
+| RFC                                      | Capability                                       | Status   | Dependencies           |
+| ---------------------------------------- | ------------------------------------------------ | -------- | ---------------------- |
+| [0032](0032-optional-runtime-helpers.md) | Optional versioned runtime helpers               | Proposed | 0009, 0026, 0027, 0028 |
+| [0033](0033-official-ai-skill.md)        | Official portable AI skill and website discovery | Proposed | 0025, 0026, 0029       |
 
 ## Implementation checklist
 

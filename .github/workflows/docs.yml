@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'docs/**'
+      - 'skills/**'
       - 'apps/docs/**'
       - 'packages/twill/**'
       - 'packages/runtime/**'
@@ -67,9 +68,11 @@ jobs:
         with:
           name: documentation-site
           path: apps/docs/dist
+          include-hidden-files: true
       - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/docs/dist
+          include-hidden-files: true
   deploy:
     needs: build
     if: needs.build.outputs.pages-enabled == 'true'

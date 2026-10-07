@@ -76,7 +76,7 @@ The failure block must provably exit: a direct `return`, `throw`, `break`, or `c
 
 ## Branch nullish bindings (unreleased)
 
-The [RFC 0018](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0018-optional-branch-bindings.md) source prototype adds immutable success-branch bindings; npm and Marketplace 0.1.2 do not include them.
+The [accepted RFC 0018](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0018-optional-branch-bindings.md) source prototype adds immutable success-branch bindings; npm and Marketplace 0.1.2 do not include them.
 
 ```twill
 export function label(input: { name?: string } | null) {

@@ -1,5 +1,47 @@
 import { test, expect, type Page, type TestInfo } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+
+test('official AI guide serves the canonical skill and verifiable discovery under the site base', async ({
+  page,
+}) => {
+  await page.goto('ai');
+  await expect(page.locator('h1')).toHaveText('AI assistance');
+  await expect(page.locator('.vp-doc')).toContainText(
+    'npx skills add swiftuijs/twill --skill twill',
+  );
+  await expect(page.locator('.vp-doc')).toContainText('--agent codex');
+  await expect(page.locator('.vp-doc')).toContainText('--agent claude-code');
+  const base = process.env.TWILL_DOCS_BASE ?? '/';
+  const link = page.getByRole('link', { name: 'Download the official SKILL.md', exact: true });
+  await expect(link).toHaveAttribute('href', base + 'skills/twill/SKILL.md');
+  const canonical = await readFile(
+    new URL('../../../../skills/twill/SKILL.md', import.meta.url),
+    'utf8',
+  );
+  const response = await page.request.get(base + 'skills/twill/SKILL.md');
+  expect(response.ok()).toBe(true);
+  expect(await response.text()).toBe(canonical);
+  const discovery = await page.request.get(base + '.well-known/agent-skills/index.json');
+  expect(discovery.ok()).toBe(true);
+  const index = await discovery.json();
+  expect(index.$schema).toBe('https://schemas.agentskills.io/discovery/0.2.0/schema.json');
+  expect(index.skills).toHaveLength(1);
+  expect(index.skills[0]).toMatchObject({
+    name: 'twill',
+    type: 'skill-md',
+    digest: 'sha256:' + createHash('sha256').update(canonical).digest('hex'),
+  });
+  expect(new URL(index.skills[0].url, discovery.url()).href).toBe(response.url());
+  const download = page.waitForEvent('download');
+  await link.click();
+  const file = await download;
+  expect(file.suggestedFilename()).toBe('SKILL.md');
+  expect(await readFile((await file.path())!, 'utf8')).toBe(canonical);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+});
 
 async function screenshot(page: Page, info: TestInfo, name: string) {
   const path = info.outputPath(name + '.png');

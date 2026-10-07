@@ -1,10 +1,10 @@
 # RFC 0018: Nullish bindings in if branches
 
-**Status:** Proposed. **Kind:** Language. **Release:** Not released. **Dependencies:** 0007, 0008.
+**Status:** Accepted. **Kind:** Language. **Release:** Not released. **Dependencies:** 0007, 0008.
 
 ## Problem and native baseline
 
-The Twill addition under review is an `if const` declaration that binds a non-nullish value only inside the success branch. Native TS/JS uses a temporary plus a nullish test for this task. `if const user = find(id) { use(user); } else { missing(); }` removes the source-level temporary and limits the binding's lifetime without changing JS let's meaning. Optional chaining (`?.`) and nullish coalescing (`??`) remain native operators.
+The Twill addition is an `if const` declaration that binds a non-nullish value only inside the success branch. Native TS/JS uses a temporary plus a nullish test for this task. `if const user = find(id) { use(user); } else { missing(); }` removes the source-level temporary and limits the binding's lifetime without changing JS let's meaning. Optional chaining (`?.`) and nullish coalescing (`??`) remain native operators.
 
 ## Design
 
@@ -68,4 +68,4 @@ Test falsy/nullish values, identity and one evaluation, getter/default/iterator 
 
 ## Open questions and decision history
 
-The maintainer selected `if const` and directed the implementation to follow Swift's condition parsing boundary on 2026-10-07. [Implementation PR #17](https://github.com/swiftuijs/twill/pull/17) provides the source prototype and coordinated tooling. This fixes the syntax direction; the full implementation remains proposed pending review and release. Initial scope is statement-only. RFC 0017 composition, multiple bindings and Swift-style recovery warnings remain deferred. Nullish/destructuring behavior reuses RFCs 0007/0008; branch scope deliberately differs from guard's enclosing-scope binding.
+The maintainer selected `if const` and directed the implementation to follow Swift's condition parsing boundary on 2026-10-07. After implementation review, the maintainer authorized merging [PR #17](https://github.com/swiftuijs/twill/pull/17) on the same date, accepting the statement-form contract. The source prototype and coordinated tooling remain unreleased. RFC 0017 composition, multiple bindings and Swift-style recovery warnings remain deferred. Nullish/destructuring behavior reuses RFCs 0007/0008; branch scope deliberately differs from guard's enclosing-scope binding.

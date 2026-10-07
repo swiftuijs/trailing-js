@@ -32,6 +32,8 @@ For editor completion, diagnostics and formatting, install [Twill from the VS Co
 
 ## Write an ordinary module
 
+Using a coding agent? Install the [official Twill skill](./ai.md) with `npx skills add swiftuijs/twill --skill twill` so it follows the supported syntax and project verification workflow.
+
 `numbers.twill`:
 
 ```twill

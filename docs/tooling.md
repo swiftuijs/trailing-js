@@ -1,5 +1,7 @@
 # Editor and tooling
 
+For AI-assisted application development, install the [official Twill skill](./ai.md). It covers syntax choices, integrations, performance boundaries and checks for the project's installed toolchain.
+
 Use Twill in your application's normal development loop: edit source, check types, format, lint and debug. The compiler and editor use your existing `tsconfig.json`; no `twill.config.json` is required.
 
 Install the compiler, formatter/linter packages and VS Code extension following [getting started](./getting-started.md). The examples below run from **your application root**, with Twill installed locally.

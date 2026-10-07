@@ -1,5 +1,7 @@
 # Twill documentation
 
+The AI assistance guide explains installation and use of the official portable skill. Build/dev runs `scripts/prepare-skills.mjs`, copying the canonical `skills/twill/SKILL.md` and generating a v0.2.0 Agent Skills discovery index with its SHA-256 digest. These assets are generated and ignored; keep hidden `.well-known` files in site/deployment artifacts. Relative artifact URLs and `withBase` download links support subpath hosting.
+
 Private `@swiftuijs/twill-docs` workspace package. VitePress builds the canonical Markdown under `/docs`; guides are not copied into another content tree. Published navigation is for language users. `docs/contributing/**` and `docs/rfcs/**` remain repository documentation and are excluded from site pages, local search and the sitemap. Includes local search, Twill/TSX highlighting, English guides and a browser-worker playground using the real compiler. VitePress supplies search, navigation and reference-page layout. The custom home page explains product value through build-time highlighted TS/Twill comparisons and a keyboard-accessible tab interface. Home and playground components load only on their respective routes; the compiler worker and CodeMirror load only in the playground.
 
 ```sh

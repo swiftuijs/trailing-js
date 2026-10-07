@@ -32,7 +32,7 @@ jobs:
       - name: Build workspace
         run: pnpm build
       - name: Check types, lint and formatting
-        run: pnpm typecheck && pnpm lint && pnpm format:check
+        run: pnpm typecheck && pnpm lint && pnpm format:check && pnpm verify:skills
       - name: Unit coverage and grammar tests
         # Coverage runs the unit suites; do not repeat them through pnpm check.
         run: pnpm test:coverage && pnpm --filter twill test:unit
