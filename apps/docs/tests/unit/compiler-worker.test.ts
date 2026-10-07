@@ -54,11 +54,11 @@ test('compiles UI files using the selected native JSX runtime', async () => {
 
 test('compiles enum-case patterns in the browser worker without a matching runtime', async () => {
   const response = await compile(
-    'enum State{case idle;case loaded(value:number);}function read(state:State){return switch(state){case enum State.idle():0;case enum State.loaded({value}):value;};}',
+    'enum State{case idle;case loaded(value:number);}function read(state:State){return match(state){case State.idle():0;case State.loaded({value}):value;};}',
   );
   expect(response.error).toBeUndefined();
   expect(response.result?.code).toContain('typeof State.loaded');
-  expect(response.result?.code).not.toContain('case enum');
+  expect(response.result?.code).not.toContain('match(');
   expect(response.result?.code).not.toContain('State.loaded(');
 });
 test('reports original-source error positions and can compile the next request', async () => {

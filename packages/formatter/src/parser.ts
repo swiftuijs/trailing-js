@@ -49,15 +49,36 @@ export async function parse(source: string, options: ParserOptions<any>) {
     let temporary = `__TwillSwitch${switchesByEnd.size}`;
     while (source.includes(temporary)) temporary += '_';
     switchesByEnd.set(expression.end, expression);
-    layout.overwrite(expression.start, expression.start + 6, `(() => { const ${temporary} = `);
+    layout.overwrite(
+      expression.start,
+      expression.start + expression.keyword.length,
+      `(() => { const ${temporary} = `,
+    );
     layout.remove(expression.parenStart, expression.parenStart + 1);
+    if (expression.keyword === 'match') {
+      const tokens = Parser.tokenizer(
+        source.slice(expression.discriminant.end, expression.parenEnd),
+        {
+          ecmaVersion: 'latest',
+        },
+      );
+      for (;;) {
+        const token = tokens.getToken();
+        if (token.type === tokTypes.eof) break;
+        if (token.type === tokTypes.comma)
+          layout.remove(
+            expression.discriminant.end + token.start,
+            expression.discriminant.end + token.end,
+          );
+      }
+    }
     layout.overwrite(expression.parenEnd, expression.parenEnd + 1, `; switch (${temporary})`);
     layout.overwrite(expression.end - 1, expression.end, '}})()', { contentOnly: true });
     for (const branch of expression.cases) {
       casesByStart.set(branch.start, branch);
       if (branch.enumPattern) {
         const { binding, parenStart, parenEnd, start } = branch.enumPattern;
-        layout.remove(start, start + 4);
+        if (branch.enumPattern.explicitKeyword) layout.remove(start, start + 4);
         layout.remove(parenStart, parenStart + 1);
         layout.remove(parenEnd, parenEnd + 1);
         if (binding) {
@@ -255,6 +276,7 @@ export async function parse(source: string, options: ParserOptions<any>) {
         if (branch.enumPattern) {
           node.enumPattern = {
             type: 'TwillEnumPattern',
+            explicitKeyword: branch.enumPattern.explicitKeyword,
             start: branch.enumPattern.start,
             end: branch.enumPattern.end,
             range: [branch.enumPattern.start, branch.enumPattern.end],
@@ -283,6 +305,7 @@ export async function parse(source: string, options: ParserOptions<any>) {
       const expression = switchesByEnd.get(node.end);
       if (expression && node.callee.body.body[1]?.type === 'SwitchStatement') {
         node.type = 'TwillSwitchExpression';
+        node.keyword = expression.keyword;
         node.discriminant = node.callee.body.body[0].declarations[0].init;
         node.cases = node.callee.body.body[1].cases;
         delete node.callee;

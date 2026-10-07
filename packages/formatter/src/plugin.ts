@@ -63,7 +63,7 @@ const printer: Printer<any> = {
       }
       case 'TwillSwitchExpression':
         return group([
-          'switch (',
+          `${node.keyword} (`,
           path.call(print, 'discriminant'),
           ') {',
           indent([hardline, join(hardline, path.map(print, 'cases'))]),
@@ -88,7 +88,7 @@ const printer: Printer<any> = {
         ];
       case 'TwillEnumPattern':
         return group([
-          'enum ',
+          node.explicitKeyword ? 'enum ' : '',
           path.call(print, 'reference'),
           '(',
           node.binding ? path.call(print, 'binding') : '',

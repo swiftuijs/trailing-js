@@ -130,11 +130,11 @@ enum FetchState<T> {
 }
 
 function length(state: FetchState<string>) {
-  return switch (state) {
-    case enum FetchState.idle(): 0;
-    case enum FetchState.loaded({ value: text }): text.length;
+  return match (state) {
+    case FetchState.idle(): 0;
+    case FetchState.loaded({ value: text }): text.length;
   };
 }
 ```
 
-This replaces repeated tag literals with checked factory references. Run `twill check` to catch omitted variants and invalid fields. Selection adds no factory call or matching runtime; direct-return output uses a native switch and destructuring. Structural records still need normal boundary validation. This prototype is not in npm/Marketplace 0.1.2; [the syntax guide](syntax.md#explicit-enum-case-patterns-unreleased) describes review status, compatibility and allocation costs.
+This replaces repeated tag literals with checked factory references. Run `twill check` to catch omitted variants and invalid fields. Selection adds no factory call or matching runtime; direct-return output uses a native switch and destructuring. Structural records still need normal boundary validation. Match expressions are not in npm/Marketplace 0.1.2; [the syntax guide](syntax.md#match-expressions-unreleased) describes review status, compatibility and allocation costs.

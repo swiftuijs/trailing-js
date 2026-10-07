@@ -63,7 +63,7 @@ function verifyExhaustive() {
   run(['node_modules/eslint/bin/eslint.js', 'states.twill']);
   writeFileSync(
     join(root, 'states.twill'),
-    'export enum State{case loaded(value:number);}export function read(input:State){return switch(input){case enum State.loaded({value}):value;};}',
+    'export enum State{case loaded(value:number);}export function read(input:State){return match(input){case State.loaded({value}):value;};}',
   );
   run(['node_modules/eslint/bin/eslint.js', 'states.twill']);
   writeFileSync(join(root, 'eslint.config.mjs'), basicConfig);

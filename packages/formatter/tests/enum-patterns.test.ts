@@ -17,12 +17,18 @@ const sources = [
   'function read(state){return switch(state){case enum State.idle(/*empty*/):0;default:0;};}',
   'const result=switch(state){case enum State.loaded({value}):switch(value){case 1:2;default:0;};case {kind:"idle"}:0;};',
 ];
-it.each(sources)(
+const preferred = sources.map((source) =>
+  source.replaceAll('switch(state)', 'match(state)').replaceAll('case enum', 'case'),
+);
+preferred.push(
+  'function read(state){return match /*subject*/ ((state), /*comma*/){ /*arms*/ case State.loaded({value}):value;default:0;};}',
+);
+it.each([...sources, ...preferred])(
   'formats enum patterns without lowering and preserves behavior: %s',
   async (source) => {
     for (const semi of [true, false]) {
       const formatted = await format(source, { semi });
-      expect(formatted).toContain('case enum');
+      expect(formatted).toContain(source.includes('case enum') ? 'case enum' : 'match');
       expect(await format(formatted, { semi })).toBe(formatted);
       expect(await standalone(source, { semi })).toBe(formatted);
       expect(await nativeFormat(native(transform(formatted).code), { parser: 'typescript' })).toBe(

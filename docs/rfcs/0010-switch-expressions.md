@@ -9,7 +9,7 @@ A native switch assigning/returning a value repeats assignments or returns and n
 
 ## Design
 
-Switch is an expression only in expression positions. Each arm has one expression or throw expression, with normal semicolons/ASI. The subject evaluates once. Value cases keep native strict comparison and case-evaluation order; duplicate labels select the first match. Only the selected value runs. There is no fallthrough or arm-level break. Native switch statements retain native grammar and semantics.
+Switch is an expression only in expression positions. Each arm has one expression or throw expression, with normal semicolons/ASI. The subject evaluates once. Value cases keep native strict comparison and case-evaluation order; duplicate labels select the first match. Only the selected value runs. There is no fallthrough or arm-level break. Native switch statements retain native grammar and semantics, including implicit fallthrough. The unreleased match expression in RFC 0016 also returns one result without fallthrough; no new fallthrough control keyword is introduced.
 
 Without default, TS output includes a post-arm `subject satisfies never`. Twill check and editor checking must prove this; finite unions can be exhaustive and unbounded values need a default. Default accepts a catch-all, so checking alone does not require explicit coverage of every variant. RFC 0030's optional typed lint policy additionally requires that coverage. Transpile-only builds/playground do not prove types. Unchecked unmatched values throw TypeError rather than returning undefined.
 
@@ -19,7 +19,7 @@ A direct return lowers to a scoped native switch. In the unreleased prototype, a
 
 ## Compatibility and alternatives
 
-Native switches with explicit never checks remain supported. Multi-statement arms and arbitrary predicates are not this feature; RFC 0016 proposes broader patterns. An untrusted external value still needs runtime validation.
+Native switches with explicit never checks remain supported. Multi-statement arms and arbitrary predicates are not this feature; RFC 0016 adds accepted, unreleased match expressions and enum-case patterns. An untrusted external value still needs runtime validation.
 
 ## Validation and completion
 

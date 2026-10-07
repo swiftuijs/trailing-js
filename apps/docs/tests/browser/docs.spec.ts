@@ -47,15 +47,15 @@ test('Twill operators and TwillX JSX retain their colors in both themes', async 
     ).toHaveCSS('color', dark ? 'rgb(249, 117, 131)' : 'rgb(215, 58, 73)');
     const pattern = page
       .locator('.language-twill code')
-      .filter({ hasText: 'case enum LoadState.loaded' });
-    for (const word of ['enum', 'loaded']) {
+      .filter({ hasText: 'case LoadState.loaded' });
+    for (const word of ['match', 'loaded']) {
       const token = pattern
         .locator('span[style]')
         .filter({ hasText: new RegExp('^\\s*' + word + '$') })
         .first();
       await expect(token).toHaveCSS(
         'color',
-        word === 'enum'
+        word === 'match'
           ? dark
             ? 'rgb(249, 117, 131)'
             : 'rgb(215, 58, 73)'
@@ -252,17 +252,17 @@ test('live compilation, highlighted examples, located errors and recovery', asyn
   await expect(generated(page)).toContainText('satisfies never');
   await expect(generated(page)).toContainText('case \"ok\"');
   await page.getByLabel('Example', { exact: true }).selectOption('enum-patterns');
-  await expect(source).toContainText('case enum LoadState.loaded');
+  await expect(source).toContainText('case LoadState.loaded');
   await expect(
     source
       .locator('.cm-line')
-      .filter({ hasText: 'case enum LoadState.loaded' })
+      .filter({ hasText: 'match (state)' })
       .locator('.twill-token-keyword')
-      .filter({ hasText: /^enum$/ }),
+      .filter({ hasText: /^match$/ }),
   ).toHaveCount(1);
   await expect(generated(page)).toContainText('typeof LoadState.loaded');
   await expect(generated(page)).toContainText('satisfies never');
-  await expect(generated(page)).not.toContainText('case enum');
+  await expect(generated(page)).not.toContainText('match (');
   await page.getByLabel('Example', { exact: true }).selectOption('react');
   await expect(generated(page)).toContainText('<Panel>');
   await expect(page.getByRole('status')).toContainText('Compiled in');

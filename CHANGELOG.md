@@ -2,13 +2,15 @@
 
 ## Unreleased
 
+- Add accepted, unreleased `match` expressions with qualified enum-case descriptors and named payload bindings. Keep ordinary switch calls, native statement fallthrough and the earlier explicit-marker spelling compatible; match and switch expressions never fall through.
+
 - Prototype RFC 0032 optional versioned runtime helpers: default inline emission and explicit external sharing for dynamic synchronous defer. Generate the inline algorithm from the canonical zero-dependency runtime source; preserve async scheduling and native fast paths.
 - Keep external helper imports before complete adjacent declaration documentation and suppression blocks, preserving file pragmas and native checkJs annotations.
 - Synchronize compiler/config schemas, CLI, build/loader/editor projects, native export/declarations, documentation and package/release verification. Fix compact final-defer insertion order and preserve headers/directives when inserting helper imports.
 
 - Lower standalone switch-expression identifier initializers to native branches without an IIFE, retaining binding semantics, result inference and mapped editor operations. Add semantic regression tests and an 8-byte checked application budget.
 
-- Prototype RFC 0016 explicit enum-case patterns: `case enum State.loaded({ value })`. Check qualified local/imported/native descriptors and narrowed bindings; retain native call-value cases and exhaustiveness. Design acceptance and release remain pending.
+- Prototype RFC 0016 explicit enum-case patterns: `case enum State.loaded({ value })`. Check qualified local/imported/native descriptors and narrowed bindings; retain native call-value cases and exhaustiveness. The preferred syntax is now an accepted `match` expression; the explicit marker stays compatible and release remains pending.
 - Select enum patterns with one subject/tag read, native scoped destructuring and no factory lookup or matching runtime. Preserve native defaults/rest, throw, await/defer and nested switch behavior; enforce a 2-byte direct bundle budget against handwritten JS.
 - Synchronize formatter, typed linting, shared TS/TSX highlighting, source maps, native export/declarations, builds/loader, playground and packaged editor. Withhold unsafe descriptor method rename and native statement-case lint suggestions in switch expressions.
 
