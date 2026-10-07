@@ -157,6 +157,18 @@ function moveNodes(node, delta, locate) {
 }
 
 const parsers = new Map();
+function associatedEnumAt(input, offset) {
+  try {
+    const tokens = Parser.tokenizer(input.slice(offset), { ecmaVersion: 'latest' });
+    tokens.getToken(); // Declaration name; the TS parser validates it.
+    const next = tokens.getToken();
+    return next.value === '<' || (next.type === tt.braceL && tokens.getToken().type === tt._case);
+  } catch {
+    // Let the original parser diagnose malformed native syntax at its real offset.
+    return false;
+  }
+}
+
 function parserFor(language) {
   if (parsers.has(language)) return parsers.get(language);
   const Base = bases[language];
@@ -168,6 +180,60 @@ function parserFor(language) {
     subscriptDepth = 0;
     derivedClassElement = false;
     implicitClosure = null;
+
+    tsParseEnumDeclaration(node, modifiers = {}) {
+      if (!associatedEnumAt(this.input, this.end))
+        return super.tsParseEnumDeclaration(node, modifiers);
+      if (modifiers.const || modifiers.declare || this.isAmbientContext)
+        this.raise(node.start, 'Associated-value enums cannot be const or ambient declarations.');
+      this.expectContextual('enum');
+      node.id = this.parseIdent();
+      this.checkLValSimple(node.id, 2);
+      node.typeParameters = this.tsTryParseTypeParameters();
+      node.braceStart = this.start;
+      this.expect(tt.braceL);
+      node.cases = [];
+      const names = new Set();
+      while (this.type !== tt.braceR) {
+        const branch = this.startNode();
+        this.expect(tt._case);
+        branch.id = this.parseIdent();
+        if (names.has(branch.id.name)) this.raise(branch.id.start, 'Duplicate enum case.');
+        names.add(branch.id.name);
+        branch.params = [];
+        branch.hasParens = this.eat(tt.parenL);
+        if (branch.hasParens) {
+          const fields = new Set();
+          while (this.type !== tt.parenR) {
+            const field = this.parseIdent();
+            this.checkLValSimple(field);
+            if (field.name === 'kind')
+              this.raise(
+                field.start,
+                'Enum payload fields cannot use the discriminator name kind.',
+              );
+            if (fields.has(field.name)) this.raise(field.start, 'Duplicate enum payload field.');
+            fields.add(field.name);
+            if (this.type !== tt.colon)
+              this.raise(
+                this.start,
+                'Enum payload fields require a name and type; optional/default/rest fields are unsupported.',
+              );
+            field.typeAnnotation = this.tsParseTypeAnnotation();
+            branch.params.push(field);
+            if (!this.eat(tt.comma)) break;
+          }
+          this.expect(tt.parenR);
+        }
+        branch.valueEnd = this.lastTokEnd;
+        this.semicolon();
+        node.cases.push(this.finishNode(branch, 'TwillEnumCase'));
+      }
+      if (!node.cases.length)
+        this.raise(node.start, 'An associated-value enum needs at least one case.');
+      this.next();
+      return this.finishNode(node, 'TwillEnumDeclaration');
+    }
 
     locate(offset) {
       if (!this.lineStarts) {
@@ -590,6 +656,7 @@ export function parse(source, language = 'ts', sourceType = 'module') {
   const guards = [];
   const defers = [];
   const switches = [];
+  const enums = [];
   const visit = (node) => {
     if (!node || typeof node !== 'object') return;
     if (
@@ -601,6 +668,7 @@ export function parse(source, language = 'ts', sourceType = 'module') {
     if (node.type === 'GuardStatement') guards.push(node);
     if (node.type === 'DeferStatement') defers.push(node);
     if (node.type === 'TwillSwitchExpression') switches.push(node);
+    if (node.type === 'TwillEnumDeclaration') enums.push(node);
     for (const [key, value] of Object.entries(node)) {
       if (key === 'trailing' || key === 'loc') continue;
       if (Array.isArray(value)) value.forEach(visit);
@@ -614,6 +682,7 @@ export function parse(source, language = 'ts', sourceType = 'module') {
     guards,
     defers,
     switches,
+    enums,
     comments,
     closures: parser.closures
       .filter((closure) => live.has(closure.node))

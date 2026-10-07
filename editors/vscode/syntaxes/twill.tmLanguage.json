@@ -195,6 +195,17 @@
           "include": "source.ts#statements"
         }
       ]
+    },
+    "enum-case": {
+      "match": "\\b(case)\\s+([A-Za-z_$][\\w$]*)",
+      "captures": {
+        "1": {
+          "name": "keyword.control.twill"
+        },
+        "2": {
+          "name": "entity.name.function.twill"
+        }
+      }
     }
   },
   "injections": {
@@ -217,6 +228,19 @@
         },
         {
           "include": "#closure-header"
+        }
+      ]
+    },
+    "L:source.twill.ts meta.enum.declaration.ts -comment -string": {
+      "patterns": [
+        {
+          "include": "source.ts#type-parameters"
+        },
+        {
+          "include": "#enum-case"
+        },
+        {
+          "include": "source.ts#function-parameters"
         }
       ]
     }

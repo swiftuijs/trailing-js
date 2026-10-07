@@ -16,6 +16,8 @@ const keys: Record<string, string[]> = {
   DeferStatement: ['cleanup'],
   TwillSwitchExpression: ['discriminant', 'cases'],
   TwillSwitchCase: ['test', 'pattern', 'value'],
+  TwillEnumDeclaration: ['id', 'typeParameters', 'cases'],
+  TwillEnumCase: ['id', 'params'],
 };
 
 const printer: Printer<any> = {
@@ -26,6 +28,23 @@ const printer: Printer<any> = {
   print(path, options, print, args) {
     const node = path.node;
     switch (node.type) {
+      case 'TwillEnumDeclaration':
+        return group([
+          'enum ',
+          path.call(print, 'id'),
+          node.typeParameters ? path.call(print, 'typeParameters') : '',
+          ' {',
+          indent([hardline, join(hardline, path.map(print, 'cases'))]),
+          hardline,
+          '}',
+        ]);
+      case 'TwillEnumCase':
+        return group([
+          'case ',
+          path.call(print, 'id'),
+          node.hasParens ? ['(', join(', ', path.map(print, 'params')), ')'] : '',
+          options.semi ? ';' : '',
+        ]);
       case 'ExpressionStatement': {
         const printed = standard.print(path, options, print, args);
         let left = node.expression;

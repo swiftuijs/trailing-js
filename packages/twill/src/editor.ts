@@ -205,11 +205,33 @@ export class TwillEditor {
   }
 
   renameInfo(filename: string, position: number): ts.RenameInfo {
-    const info = this.project.service.getRenameInfo(
+    const offset = this.project.toGeneratedOffset(filename, position);
+    const definitions = this.project.service.getDefinitionAtPosition(
       virtualFilename(filename),
-      this.project.toGeneratedOffset(filename, position),
-      { allowRenameOfImportPath: false },
+      offset,
     );
+    for (const definition of definitions ?? []) {
+      const file = sourceFilename(definition.fileName);
+      const span = this.mapSpan(file, definition.textSpan);
+      if (!span) continue;
+      const declarations = this.project.transformed(file)?.associatedEnums;
+      if (
+        declarations?.some((declaration) =>
+          [
+            declaration.id,
+            ...declaration.cases.flatMap((branch: any) => [branch.id, ...branch.params]),
+          ].some((node: any) => node.start === span.start),
+        )
+      )
+        return {
+          canRename: false,
+          localizedErrorMessage:
+            'Renaming associated-value enum declarations, cases and payload fields is not supported yet.',
+        };
+    }
+    const info = this.project.service.getRenameInfo(virtualFilename(filename), offset, {
+      allowRenameOfImportPath: false,
+    });
     if (!info.canRename) return info;
     const span = this.mapSpan(filename, info.triggerSpan);
     return span

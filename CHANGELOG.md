@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Implement proposed associated-value enums with named typed payloads, generic factory inference and native readonly tagged-union types. Preserve ordinary TypeScript enums and reuse existing checked object-pattern switches.
+- Preserve copied enum type annotations in source/declaration maps; support original-source formatting, mapped linting, shared TS/TSX highlighting, constructor completion, native declarations, Node/build integration and checked source export.
+- Withhold enum declaration/case/payload rename until edits to generated types and discriminator tags can be proven complete. Broader enum pattern syntax remains a separate RFC.
+
 ## 0.1.2
 
 - Clarify Twill's TypeScript/TSX foundation, Swift-inspired syntax extensions and current parser/ambiguity compatibility boundaries.

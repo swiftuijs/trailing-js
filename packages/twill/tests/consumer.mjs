@@ -177,6 +177,10 @@ import { createRequire } from 'node:module';
     join(root, 'branching.twill'),
     'type Result={kind:"ok";value:number}|{kind:"bad";error:string};export function describe(input:{result:Result}|null){guard const {result}=input else{return "empty";}return switch(result){case {kind:"ok",value}: value.toFixed();case {kind:"bad",error}: error;};}',
   );
+  writeFileSync(
+    join(root, 'enums.twill'),
+    'export enum State<T>{case idle;case loaded(value:T);} export const state:State<number>=State.loaded(42);export function read(state:State<number>){return switch(state){case {kind:"idle"}: 0;case {kind:"loaded",value}: value;};}',
+  );
   execFileSync(
     process.execPath,
     [resolve(base, '..', installed.bin.twill), 'check', '-p', 'tsconfig.json'],
@@ -185,6 +189,18 @@ import { createRequire } from 'node:module';
       stdio: 'pipe',
     },
   );
+  const enumResult = execFileSync(
+    process.execPath,
+    [
+      '--import',
+      '@swiftuijs/twill/register',
+      '--input-type=module',
+      '-e',
+      'import {State,state,read} from "./enums.twill";console.log(read(state),read(State.idle()))',
+    ],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.equal(enumResult.trim(), '42 0');
   const report = JSON.parse(
     execFileSync(
       process.execPath,

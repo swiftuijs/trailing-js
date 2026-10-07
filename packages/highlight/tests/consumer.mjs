@@ -94,6 +94,8 @@ for (const engine of [standalone, custom]) {
   const literal = engine.codeToTokensBase('const view = <Panel>guard true else; .active</Panel>;', { lang: 'twillx', theme, includeExplanation: true }).flat().flatMap(token => token.explanation ?? []);
   assert(!literal.some(part => part.scopes.some(item => item.scopeName === 'keyword.control.twill' || item.scopeName === 'variable.other.property.twill')));
   for (const lang of ['twill', 'twillx']) {
+    const enumeration=engine.codeToTokensBase('enum State<T> {\\ncase idle;\\ncase loaded(value:T, count:number);\\n}',{lang,theme,includeExplanation:true}).flat().flatMap(token=>token.explanation??[]);
+    for(const [text,scope] of [['case','keyword.control.twill'],['loaded','entity.name.function.twill'],['number','support.type.primitive.']]) assert(enumeration.some(part=>part.content===text&&part.scopes.some(item=>item.scopeName.startsWith(scope))),text);
     const implicit = engine.codeToTokensBase('const names = users.filter { .active && .verified }.map { .profile?.name ?? "Anonymous" };', { lang, theme, includeExplanation: true }).flat().flatMap(token => token.explanation ?? []);
     for (const text of ['&&', '??']) assert(implicit.some(part => part.content === text && part.scopes.some(item => item.scopeName.startsWith('keyword.operator.logical.'))), text);
   }

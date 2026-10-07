@@ -58,6 +58,13 @@ describe('ESLint Twill processor', () => {
     });
     expect(valid!.messages).toEqual([]);
   });
+  it('lints associated enum payloads without leaking generated factories or lowering fixes', async () => {
+    const source =
+      'export enum State<T>{case idle;case loaded(value:T);} export const result=State.loaded(3);';
+    const [result] = await engine({}, true).lintText(source, { filePath: 'enums.twill' });
+    expect(result!.messages).toEqual([]);
+    expect(result!.output).toBeUndefined();
+  });
   it('reports moved pattern bindings without reporting generated switch helpers', async () => {
     const source =
       'export function run(input: {kind:"ok";value:number}|null){guard const {kind}=input else{return 0;} return switch(input!){case {kind:"ok",value}: value;};}';

@@ -17,6 +17,8 @@ Tests make supported behavior reviewable; they do not establish a production tra
 
 Trailing callbacks, destructured `guard`, `defer` and value/pattern switch expressions work in ordinary code. `.twillx` also supports native JSX component children, render props and lazy Vue slots. Component libraries use their normal framework APIs; the compiler does not require component registration or wrappers.
 
+The development branch additionally implements proposed associated-value enums as native tagged records and precise factories. This is unreleased and is not part of npm/Marketplace 0.1.2. See [its syntax and boundaries](syntax.md#associated-value-enums-unreleased). Enum declaration/case/payload rename is withheld; broader enum patterns and contextual case shorthand remain proposals.
+
 Native TS/JS and Twill can import each other through the build adapters, virtual project checker and Node ESM loader. Source maps support original-source diagnostics and debugging. Libraries can emit standard declarations with `twill declarations`; native `tsc` cannot parse Twill source directly.
 
 The [syntax reference](syntax.md) defines supported syntax and ambiguity rules. Twill extends TypeScript/TSX and uses TypeScript's type system, but the current release is not a complete TypeScript superset: parser coverage is not identical to every TypeScript release, and trailing closures can change how a call followed by a block is parsed. Unsupported constructs report diagnostics. A CommonJS Twill loader, Vue SFC compilation and arbitrary SSR framework integration are outside the supported host workflows.

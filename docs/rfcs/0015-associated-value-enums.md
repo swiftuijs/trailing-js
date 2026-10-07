@@ -30,6 +30,8 @@ The declaration creates a same-named native union type and constructor value. Ea
 
 Generic parameters, constraints and defaults use native TS syntax. Constructor generics include type parameters needed by that case's payload types and their constraints/defaults; preserve their original order and transitive dependencies. A case that does not use a parameter must not force a meaningless inferred argument. Each factory returns its precise variant type. The overall enum alias contains all variants and preserves its declared generic parameters. The implementation must demonstrate inference and noUnusedParameters behavior before acceptance; it must not use any/casts to conceal generated errors.
 
+The initial prototype uses const assertions on fresh result literals to infer readonly fields and literal tags. These assertions do not change runtime behavior or mask payload/constraint errors. Copied annotations/constraints retain mappings to their original tokens. Enum declaration, case and payload rename is deliberately withheld, including at references, until linked type/tag edits can be shown complete; constructor completion, hover and diagnostics remain available. This bounded editor scope requires review before acceptance.
+
 Matching initially uses released syntax:
 
 ```text

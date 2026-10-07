@@ -66,6 +66,10 @@ const fixture = {
     'export const users = [{ active: true, name: "Ada" }];\nexport const selected = users.filter { .active };\nexport const partial = users.map { .act };\n',
   'branching.twill':
     'type Result={kind:"ok";value:number}|{kind:"bad";error:string};\nexport function describe(input:{result:Result}|null){guard const {result: item}=input else{return "empty";}return switch(item){case {kind:"ok",value: amount}: amount.toFixed();case {kind:"bad",error}: error;};}\n',
+  'enums.twill':
+    'export enum State<T>{case idle;case loaded(value:T);}\nexport const result=State.loaded(42);\nexport function read(state:State<number>){return switch(state){case {kind:"idle"}: 0;case {kind:"loaded",value}: value.toFixed();};}\n',
+  'enums-consumer.ts':
+    'import {State,result} from "./enums.twill";export const value:State<number>=result;export const idle:"idle"=State.idle().kind;\n',
   'view.twillx': `import type { ReactNode } from 'react';\ndeclare function Card(props: { title: string; onClick?: (event: { x: number }) => void; children?: ReactNode }): ReactNode;\nexport const view = Card({ tit }) { 'Hello' };\n`,
   'debug.twill':
     'const run = (body: () => void) => body();\nrun {\n  const value = 21;\n  debugger;\n  console.log(value * 2);\n};\n',
