@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Add the official portable Twill AI skill, published-feature guidance and executable examples; generate website downloads and discovery metadata from one canonical source.
+- Add repository `AGENTS.md` conventions and skill synchronization requirements, with release/example checks in CI and website installation/use documentation. No language output or npm/Marketplace version changes.
+
 - Add accepted, unreleased `match` expressions with qualified enum-case descriptors and named payload bindings. Keep ordinary switch calls, native statement fallthrough and the earlier explicit-marker spelling compatible; match and switch expressions never fall through.
 
 - Prototype RFC 0032 optional versioned runtime helpers: default inline emission and explicit external sharing for dynamic synchronous defer. Generate the inline algorithm from the canonical zero-dependency runtime source; preserve async scheduling and native fast paths.

@@ -77,9 +77,10 @@ Associated-value enums are accepted and merged, but unreleased. RFC 0016 accepts
 
 ## Proposed runtime/tooling capabilities
 
-| RFC                                      | Capability                         | Status   | Dependencies           |
-| ---------------------------------------- | ---------------------------------- | -------- | ---------------------- |
-| [0032](0032-optional-runtime-helpers.md) | Optional versioned runtime helpers | Proposed | 0009, 0026, 0027, 0028 |
+| RFC                                      | Capability                                       | Status   | Dependencies           |
+| ---------------------------------------- | ------------------------------------------------ | -------- | ---------------------- |
+| [0032](0032-optional-runtime-helpers.md) | Optional versioned runtime helpers               | Proposed | 0009, 0026, 0027, 0028 |
+| [0033](0033-official-ai-skill.md)        | Official portable AI skill and website discovery | Proposed | 0025, 0026, 0029       |
 
 ## Implementation checklist
 

@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vitepress dev",
-    "build": "vitepress build",
+    "dev": "node scripts/prepare-skills.mjs && vitepress dev",
+    "build": "node scripts/prepare-skills.mjs && vitepress build",
     "preview": "vitepress preview",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
     "test:browser": "playwright test",

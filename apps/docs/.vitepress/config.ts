@@ -30,6 +30,7 @@ const pages = [
     text: 'Development workflow',
     items: [
       { text: 'Editor and tooling', link: '/tooling' },
+      { text: 'AI assistance', link: '/ai' },
       { text: 'Web highlighting', link: '/highlighting' },
       { text: 'Build tools', link: '/build-tools' },
       { text: 'Optional runtime', link: '/runtime' },

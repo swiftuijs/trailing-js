@@ -24,3 +24,7 @@ bundle-results.json
 react-framework-results.json
 
 editors/vscode/CHANGELOG.md
+
+# Generated from the canonical official skill during docs build/dev.
+apps/docs/public/skills/
+apps/docs/public/.well-known/agent-skills/
