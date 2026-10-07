@@ -18,8 +18,8 @@ function suspension(node: Node): Node | undefined {
   }
 }
 
-/** Native switches with per-arm scopes; expression contexts use a synchronous
- * lexical IIFE. Direct returns need no extra function or scheduling. */
+/** Native switches with per-arm scopes. Direct returns and standalone variable
+ * initializers need no extra function; other expressions keep a lexical IIFE. */
 export function lowerSwitchExpressions(
   source: string,
   ast: Node,
@@ -27,10 +27,82 @@ export function lowerSwitchExpressions(
   code: MagicString,
   language: Language,
   usedNames: Set<string>,
+  comments: { start: number; end: number }[],
   fail: (node: Node, message: string) => never,
 ) {
   const returns = new Set<Node>();
-  const visit = (node: Node) => {
+  const initializers = new Map<Node, { declaration: Node; statement: Node; prefixStart: number }>();
+  const leadingDoc = (start: number) => {
+    let low = 0,
+      high = comments.length;
+    while (low < high) {
+      const middle = (low + high) >>> 1;
+      if (comments[middle]!.end <= start) low = middle + 1;
+      else high = middle;
+    }
+    const comment = comments[low - 1];
+    return comment && /^\s*$/.test(source.slice(comment.end, start)) ? comment : undefined;
+  };
+  const directEval = (node: Node): boolean => {
+    if (
+      ['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression'].includes(node.type)
+    )
+      return false;
+    if (
+      node.type === 'CallExpression' &&
+      node.callee.type === 'Identifier' &&
+      node.callee.name === 'eval' &&
+      !node.optional
+    )
+      return true;
+    return Object.entries(node).some(
+      ([key, value]) =>
+        !['loc', 'trailing', 'tag'].includes(key) &&
+        (Array.isArray(value) ? value : [value]).some((child) => child?.type && directEval(child)),
+    );
+  };
+  const grouping = (start: number, end: number, initializer = false) => {
+    const parentheses: { start: number; end: number }[] = [];
+    const tokens = Parser.tokenizer(source.slice(start, end), { ecmaVersion: 'latest' });
+    for (;;) {
+      const token = tokens.getToken();
+      if (token.type === tokTypes.eof) break;
+      if (initializer && token.type === tokTypes.eq) parentheses.length = 0;
+      if (token.type === tokTypes.parenL || token.type === tokTypes.parenR) parentheses.push(token);
+    }
+    for (const token of parentheses) {
+      code.remove(start + token.start, start + token.end);
+    }
+  };
+  const visit = (node: Node, parent?: Node) => {
+    if (node.type === 'VariableDeclaration' && node.declarations.length === 1) {
+      const declaration = node.declarations[0];
+      if (
+        declaration.id.type === 'Identifier' &&
+        declaration.init?.type === 'TwillSwitchExpression' &&
+        ['Program', 'BlockStatement', 'SwitchCase', 'ExportNamedDeclaration'].includes(
+          parent?.type ?? '',
+        )
+      ) {
+        const statement = parent?.type === 'ExportNamedDeclaration' ? parent : node;
+        const comment = leadingDoc(statement.start);
+        const prefixStart =
+          comment && source.startsWith('/**', comment.start) ? comment.start : statement.start;
+        const pragma =
+          comment &&
+          /@ts-(?:ignore|expect-error|nocheck|check)\b/.test(
+            source.slice(comment.start, comment.end),
+          );
+        // A direct eval can observe the old wrapper's function scope. JS JSDoc
+        // contextual typing also stays on the existing expression path.
+        if (
+          !pragma &&
+          !directEval(declaration.init) &&
+          (language.startsWith('ts') || prefixStart === statement.start)
+        )
+          initializers.set(declaration.init, { declaration, statement, prefixStart });
+      }
+    }
     if (node.type === 'ReturnStatement' && node.argument?.type === 'TwillSwitchExpression') {
       returns.add(node.argument);
       code.remove(node.start, node.start + 6);
@@ -40,18 +112,13 @@ export function lowerSwitchExpressions(
         [node.start + 6, node.argument.start],
         [node.argument.end, node.end],
       ]) {
-        const tokens = Parser.tokenizer(source.slice(start, end), { ecmaVersion: 'latest' });
-        for (;;) {
-          const token = tokens.getToken();
-          if (token.type === tokTypes.eof) break;
-          if (token.type === tokTypes.parenL || token.type === tokTypes.parenR)
-            code.remove(start + token.start, start + token.end);
-        }
+        grouping(start, end);
       }
     }
     for (const [key, value] of Object.entries(node)) {
       if (['loc', 'trailing', 'tag'].includes(key)) continue;
-      for (const child of Array.isArray(value) ? value : [value]) if (child?.type) visit(child);
+      for (const child of Array.isArray(value) ? value : [value])
+        if (child?.type) visit(child, node);
     }
   };
   visit(ast);
@@ -71,9 +138,31 @@ export function lowerSwitchExpressions(
         suspended,
         'await/yield inside a switch expression requires a direct return. Bind the subject first, or await the whole result explicitly.',
       );
+    const initializer = initializers.get(node);
+    const result = initializer ? fresh('Result') : undefined;
+    const exit = initializer ? fresh('Exit') : undefined;
     const subject = fresh('Subject');
+    if (initializer) {
+      const { declaration, statement, prefixStart } = initializer;
+      // Keep the user's const/let/var declaration and its TDZ unchanged. Native
+      // control-flow inference computes the temporary's union across the arms.
+      // An explicit annotation supplies contextual typing without copying tokens.
+      const annotation =
+        language.startsWith('ts') && declaration.id.typeAnnotation
+          ? `: typeof ${declaration.id.name}`
+          : '';
+      grouping(declaration.id.end, node.start, true);
+      grouping(node.end, statement.end);
+      code.appendLeft(prefixStart, `let ${result}${annotation}; ${exit}: {const ${subject} = `);
+      if (prefixStart < statement.start) code.prependRight(prefixStart, '\n');
+      code.move(prefixStart, node.start, node.end);
+      code.appendRight(node.end, ` ${result}`);
+    }
+    const valuePrefix = result ? `${result} = (` : 'return ';
+    const valueSuffix = result ? `); break ${exit};` : ';';
     const kind = node.cases.some((branch: Node) => branch.enumPattern) ? fresh('Kind') : undefined;
-    code.appendLeft(node.start, `${direct ? '{' : '(() => {'}const ${subject} = `);
+    if (!initializer)
+      code.appendLeft(node.start, `${direct ? '{' : '(() => {'}const ${subject} = `);
     code.remove(node.parenStart, node.parenStart + 1);
     // Retain a real source-backed switch token for typed lint diagnostics.
     code.move(node.start, node.start + 6, node.parenEnd);
@@ -106,11 +195,17 @@ export function lowerSwitchExpressions(
           code.overwrite(
             branch.colonStart,
             branch.colonStart + 1,
-            ` = ${subject}; ${branch.throw ? '' : 'return '}`,
+            ` = ${subject}; ${branch.throw ? '' : valuePrefix}`,
           );
-          code.appendLeft(branch.valueEnd, '; }');
+          code.appendLeft(branch.valueEnd, `${branch.throw ? ';' : valueSuffix} }`);
           if (source[branch.end - 1] === ';') code.remove(branch.end - 1, branch.end);
-        } else if (!branch.throw) code.appendLeft(branch.colonStart + 1, ' return ');
+        } else if (!branch.throw) {
+          code.appendLeft(branch.colonStart + 1, ` ${valuePrefix}`);
+          if (result) {
+            code.appendLeft(branch.valueEnd, valueSuffix);
+            if (source[branch.end - 1] === ';') code.remove(branch.end - 1, branch.end);
+          }
+        }
       } else if (branch.pattern) {
         const { pattern, tag } = branch;
         // A discarded discriminator binding preserves native rest exclusion.
@@ -121,11 +216,17 @@ export function lowerSwitchExpressions(
         code.overwrite(
           branch.colonStart,
           branch.colonStart + 1,
-          ` = ${subject}; ${branch.throw ? '' : 'return '}`,
+          ` = ${subject}; ${branch.throw ? '' : valuePrefix}`,
         );
-        code.appendLeft(branch.valueEnd, '; }');
+        code.appendLeft(branch.valueEnd, `${branch.throw ? ';' : valueSuffix} }`);
         if (source[branch.end - 1] === ';') code.remove(branch.end - 1, branch.end);
-      } else if (!branch.throw) code.appendLeft(branch.colonStart + 1, ' return ');
+      } else if (!branch.throw) {
+        code.appendLeft(branch.colonStart + 1, ` ${valuePrefix}`);
+        if (result) {
+          code.appendLeft(branch.valueEnd, valueSuffix);
+          if (source[branch.end - 1] === ';') code.remove(branch.end - 1, branch.end);
+        }
+      }
     }
     const hasDefault = node.cases.some(
       (branch: Node) => !branch.pattern && !branch.enumPattern && branch.test === null,
@@ -139,7 +240,7 @@ export function lowerSwitchExpressions(
     const failure = hasDefault
       ? ''
       : `${check} throw new TypeError('Non-exhaustive switch expression');`;
-    code.overwrite(node.end - 1, node.end, `}${failure}${direct ? '}' : '})()'}`, {
+    code.overwrite(node.end - 1, node.end, `}${failure}${direct || initializer ? '}' : '})()'}`, {
       contentOnly: true,
     });
   }

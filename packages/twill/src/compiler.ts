@@ -531,6 +531,7 @@ export function transform(source: string, options: TransformOptions = {}) {
       code,
       options.language ?? inferLanguage(filename),
       usedNames,
+      parsed.comments,
       (node, message) => {
         throw new TwillSyntaxError(source, filename, {
           message,

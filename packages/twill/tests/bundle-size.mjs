@@ -70,6 +70,17 @@ const fixtures = [
       'export function run(input:{kind:"idle"}|{kind:"loaded";value?:number;extra?:boolean}){const subject=input;const kind=subject.kind;switch(kind){case "idle":return 0;case "loaded":{const {value=4,...rest}=subject;return [value,rest];}}throw new TypeError("Non-exhaustive switch expression");}',
   },
   {
+    name: 'initializer-enum-pattern',
+    maxExtraBytes: 8,
+    extension: 'twill',
+    nativeExtension: 'ts',
+    inputs: [{ kind: 'idle' }, { kind: 'loaded', value: 3 }, { kind: 'loaded', value: 7 }],
+    sugar:
+      'declare const State:{idle():{kind:"idle"};loaded(value:number):{kind:"loaded";value:number}};export function run(input:{kind:"idle"}|{kind:"loaded";value:number}){const result=switch(input){case enum State.idle():0;case enum State.loaded({value}):value;};return result*2;}',
+    native:
+      'export function run(input:{kind:"idle"}|{kind:"loaded";value:number}){let result;switch(input.kind){case "idle":result=0;break;case "loaded":{const {value}=input;result=value;break;}default:throw new TypeError("Non-exhaustive switch expression");}return result*2;}',
+  },
+  {
     name: 'react-single-child',
     extension: 'twillx',
     nativeExtension: 'tsx',
@@ -100,6 +111,8 @@ try {
     };
     const native = await buildSource(fixture.native, fixture.nativeExtension, []);
     const dialect = await buildSource(fixture.sugar, fixture.extension, [twill({ root })]);
+    if (fixture.name === 'initializer-enum-pattern')
+      assert(!dialect.code.includes('=>'), 'Standalone switch initializers must not add an IIFE');
     // Identifier mangling depends on input character frequencies. Compare bytes
     // and execution rather than requiring the same arbitrary short names.
     assert(
@@ -145,7 +158,7 @@ try {
     node: process.version,
     packageVersion: JSON.parse(readFileSync(new URL('../package.json', import.meta.url))).version,
     scope:
-      'Minified application output for six representative supported paths; excludes host/framework runtime and does not cover expression IIFEs, dynamic cleanup or child collection.',
+      'Minified application output for seven representative supported paths; excludes host/framework runtime and does not cover expression IIFEs, dynamic cleanup or child collection.',
     results,
   };
   const output = process.argv.indexOf('--output');

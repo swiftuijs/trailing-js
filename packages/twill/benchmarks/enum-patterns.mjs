@@ -52,7 +52,7 @@ function measure(task) {
     times.push(performance.now() - start);
   }
   times.sort((a, b) => a - b);
-  return { medianMs: times[7], p95Ms: times[14], checksum };
+  return { medianMs: times[7], p95Ms: times[14], checksum, samplesMs: times };
 }
 function runtime(code, inputs) {
   const fn = Function(code + ';return run;')();
@@ -65,14 +65,10 @@ function runtime(code, inputs) {
 const worker = process.argv.indexOf('--worker');
 if (worker >= 0) {
   const item = cases[Number(process.argv[worker + 1])];
+  const generated = transform(item.sugar, { language: 'js' }).code;
   console.log(
     JSON.stringify(
-      runtime(
-        process.argv[worker + 2] === 'dialect'
-          ? transform(item.sugar, { language: 'js' }).code
-          : item.native,
-        item.input,
-      ),
+      runtime(process.argv[worker + 2] === 'dialect' ? generated : item.native, item.input),
     ),
   );
   process.exit(0);
@@ -93,8 +89,22 @@ for (const [index, item] of cases.entries()) {
         { encoding: 'utf8' },
       ),
     );
-  const dialect = isolated('dialect'),
-    native = isolated('native');
+  const trials = { dialect: [], native: [] };
+  for (let trial = 0; trial < 3; trial++)
+    for (const variant of trial % 2 ? ['native', 'dialect'] : ['dialect', 'native'])
+      trials[variant].push(isolated(variant));
+  const aggregate = (runs) => {
+    const times = runs.flatMap((run) => run.samplesMs).sort((a, b) => a - b);
+    assert(runs.every((run) => run.checksum === runs[0].checksum));
+    return {
+      medianMs: times[Math.floor(times.length / 2)],
+      p95Ms: times[Math.ceil(times.length * 0.95) - 1],
+      checksum: runs[0].checksum,
+      trials: runs,
+    };
+  };
+  const dialect = aggregate(trials.dialect),
+    native = aggregate(trials.native);
   assert.equal(dialect.checksum, native.checksum);
   results.push({
     name: item.name,
@@ -105,7 +115,7 @@ for (const [index, item] of cases.entries()) {
     dialect,
     native,
     medianRatio: dialect.medianMs / native.medianMs,
-    extraIIFE: item.name.startsWith('expression'),
+    extraIIFE: generated.includes('(() => {'),
     restAllocation: item.name === 'native-object-rest',
   });
 }
@@ -205,12 +215,13 @@ const report = {
     iterations,
     samples,
     warmups,
+    runtimeTrials: 3,
     runtime:
-      'Isolated warmed V8 processes; native direct switch or local assignment, equivalent inputs/checksums. Unchecked JS transformation for runtime; erased descriptors are verified separately by checked TS bundle tests.',
+      'Three isolated warmed V8 processes per variant with alternating launch order; aggregate 45 measured samples. Native direct switch or local assignment, equivalent inputs/checksums. Both workers compile the dialect once before sampling to balance compiler setup. Unchecked JS transformation for runtime; erased descriptors are verified separately by checked TS bundle tests.',
     checking:
       'One cold project/check and warmed unchanged diagnostics, standard libs included, filesystem fixture creation excluded. Synthetic functions share two native union variants.',
     scope:
-      'No application, editor latency or cross-engine guarantees. IIFE and native rest allocation are reported explicitly. Timing ratios are observations, not CI gates.',
+      'No application, editor latency or cross-engine guarantees. Standalone initializers use native assignments; remaining IIFE and native rest allocation costs are reported explicitly. Timing ratios are observations, not CI gates.',
   },
   results,
   compilation,

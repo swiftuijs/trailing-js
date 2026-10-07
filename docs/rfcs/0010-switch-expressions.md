@@ -15,7 +15,7 @@ Without default, TS output includes a post-arm `subject satisfies never`. Twill 
 
 ## Lowering and interoperability
 
-A direct return lowers to a scoped native switch. Other expression positions use a synchronous lexical arrow IIFE. Await/yield in the switch requires direct return, retaining the enclosing async/generator scope; other positions reject suspension. This avoids hidden promise conversion. IIFEs can allocate; direct returns need no extra function. Native types and imported unions determine narrowing and result inference.
+A direct return lowers to a scoped native switch. In the unreleased prototype, a standalone single-declarator identifier initializer also lowers to native control flow: a hygienic result temporary and labelled block precede the original const/let/var declaration. This preserves its TDZ, mutability, contextual annotations and inferred result type. Exported declarations are supported; for headers, multiple declarators, destructuring and larger/conditional expressions retain the synchronous lexical arrow IIFE to preserve evaluation order. Direct eval, JS JSDoc contextual typing and TS suppression pragmas also keep the established wrapper. The native initializer optimization is checked against an equivalent local-assignment switch; an avoidable IIFE slowdown is a regression, not an accepted language cost. Await/yield in the switch requires direct return, retaining the enclosing async/generator scope; other positions reject suspension. This avoids hidden promise conversion. IIFEs can allocate; direct returns need no extra function. Native types and imported unions determine narrowing and result inference.
 
 ## Compatibility and alternatives
 
