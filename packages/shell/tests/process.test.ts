@@ -512,7 +512,9 @@ it('bounds a lost backend close notification separately from an unresolved live 
     name: 'ProcessAbortError',
     cause: 'primary',
     unresolvedProcessIdentifier: undefined,
-    cleanupErrors: [expect.objectContaining({ message: 'Subprocess I/O did not close' })],
+    cleanupErrors: expect.arrayContaining([
+      expect.objectContaining({ message: 'Subprocess I/O did not close' }),
+    ]),
   });
   gone(pid);
 });

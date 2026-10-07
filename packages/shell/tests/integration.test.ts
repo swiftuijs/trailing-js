@@ -96,6 +96,18 @@ it('checks, formats, declares and executes the real Twill script with source-map
     expect(result.items).toEqual(['x', '中文;$(echo nope)']);
     expect(result.tag).toBe('isolated');
     expect(existsSync(result.cwd)).toBe(false);
+    writeFileSync(
+      join(root, 'mixed.mjs'),
+      `import {run} from './source/client.ts';console.log(JSON.stringify(await run()));`,
+    );
+    const mixed = JSON.parse(
+      execFileSync(process.execPath, ['--import', '@swiftuijs/twill/register', 'mixed.mjs'], {
+        cwd: root,
+        encoding: 'utf8',
+      }),
+    );
+    expect(mixed.items).toEqual(['a', 'b']);
+    expect(existsSync(mixed.cwd)).toBe(false);
     const runner = join(root, 'failure.mjs');
     writeFileSync(
       runner,
