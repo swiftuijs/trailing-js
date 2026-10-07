@@ -1,0 +1,2 @@
+import { build } from './build.twill';
+console.log(JSON.stringify(await build(process.argv[2], process.argv[3])));

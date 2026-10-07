@@ -74,3 +74,5 @@ Report reproducible compiler or tooling problems through [GitHub Issues](https:/
 Install the editor extension from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill). See [GitHub Releases](https://github.com/swiftuijs/twill/releases) for version announcements and offline VSIX downloads.
 
 The unreleased [optional runtime](./runtime.md) prototype shares dynamic synchronous cleanup through a versioned, zero-dependency package. Inline remains the default; async/single cleanup and native syntax fast paths retain their existing output. External mode uses module imports and needs a production dependency in applications/libraries.
+
+The unreleased [shell SDK](scripting.md) source prototype uses native Node process APIs independently of the compiler, with explicit argv, bounded collection, stdin, child-local cwd/environment and owned abort/timeout teardown. It does not implement scoped streaming, pipelines, shell templates or a runner. npm 0.1.2 does not supply this package.

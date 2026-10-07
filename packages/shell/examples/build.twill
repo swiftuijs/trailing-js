@@ -1,0 +1,46 @@
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { Command, Environment, Output, Subprocess } from '@swiftuijs/twill-shell';
+
+export interface BuildReport {
+  items: string[];
+  cwd: string;
+  tag: string;
+}
+
+export async function build(raw: string | undefined, mode = 'ok'): Promise<BuildReport> {
+  guard const input = raw else {
+    throw new TypeError('Provide a comma-separated list');
+  }
+  const cwd = await mkdtemp(join(tmpdir(), 'twill-build-'));
+  defer {
+    await rm(cwd, { recursive: true, force: true });
+  }
+  const items = input.split(',').map {
+    .trim();
+  };
+  // The child receives JSON on stdin and a literal mode argument, never shell text.
+  const program = `
+    const chunks = [];
+    process.stdin.on('data', chunk => chunks.push(chunk)).on('end', () => {
+      process.stdout.write(JSON.stringify({
+        items: JSON.parse(Buffer.concat(chunks).toString('utf8')),
+        cwd: process.cwd(), tag: process.env.TWILL_BUILD_TAG,
+      }));
+      if (process.argv[1] === 'fail') {
+        process.stderr.write('Build failed');
+        process.exitCode = 7;
+      }
+    });
+  `;
+  const result = await Subprocess.run(Command.path(process.execPath, ['-e', program, '--', mode]), {
+    cwd,
+    environment: Environment.inherit({ TWILL_BUILD_TAG: 'isolated' }),
+    input: JSON.stringify(items),
+    output: Output.text({ limit: 64 * 1024 }),
+    error: Output.text({ limit: 16 * 1024 }),
+    timeoutMs: 5000,
+  });
+  return JSON.parse(result.standardOutput) as BuildReport;
+}

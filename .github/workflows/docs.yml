@@ -8,6 +8,7 @@ on:
       - 'apps/docs/**'
       - 'packages/twill/**'
       - 'packages/runtime/**'
+      - 'packages/shell/**'
       - 'scripts/generate-runtime-helper.mjs'
       - 'packages/formatter/**'
       - 'packages/highlight/**'

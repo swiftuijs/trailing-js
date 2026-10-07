@@ -43,6 +43,31 @@ test('official AI guide serves the canonical skill and verifiable discovery unde
   );
 });
 
+test('shell scripting guide exposes source-only boundaries and preserves site navigation', async ({
+  page,
+}) => {
+  await page.goto('build-tools');
+  await page.locator('.vp-doc').getByRole('link', { name: 'shell scripting', exact: true }).click();
+  await expect(page.locator('h1')).toHaveText('Shell scripting');
+  await expect(page.locator('.vp-doc')).toContainText('source prototype, not an npm release');
+  await expect(page.locator('.language-twill code')).toContainText('Subprocess.run');
+  await expect(page.locator('.language-twill code')).toContainText('guard const');
+  await expect(page.locator('.vp-doc')).toContainText('shell: false');
+  await expect(page.locator('.vp-doc')).toContainText('not implemented');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+    'href',
+    'https://twill.evecalm.com/scripting',
+  );
+  const example = page.getByRole('link', { name: 'complete example', exact: true });
+  await expect(example).toHaveAttribute(
+    'href',
+    'https://github.com/swiftuijs/twill/blob/main/packages/shell/examples/build.twill',
+  );
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+});
+
 async function screenshot(page: Page, info: TestInfo, name: string) {
   const path = info.outputPath(name + '.png');
   await page.screenshot({ path, fullPage: true });

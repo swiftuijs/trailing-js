@@ -1,6 +1,6 @@
 # RFC 0034: Swift-inspired shell scripting toolkit
 
-**Status:** Proposed; no implementation or published package.
+**Status:** Accepted for the argv-backed first stage; implementation source prototype in PR #20. Later milestones remain proposed.
 **Kind:** Tooling / optional Node SDK.
 **Release:** Not released.
 **Dependencies:** RFC 0026 for executing Twill sources; RFCs 0002, 0007 and 0009 supply optional application syntax. No dependency on proposed typed throws, argument labels or structured-concurrency syntax.
@@ -47,7 +47,7 @@ Use the official [Swift Subprocess package](https://github.com/swiftlang/swift-s
 
 Recommend a separate, optional **`@swiftuijs/twill-shell`** package with native TypeScript declarations, ordinary ESM JavaScript and Node's child-process/stream facilities. The compiler never inserts this dependency. It is separate from `@swiftuijs/twill-runtime`, which owns compiler-generated language helpers and must remain usable in browser bundles.
 
-## Design (proposed APIs)
+## First-stage SDK contract
 
 ### Command values and scoped options
 
@@ -65,7 +65,7 @@ const result = await Subprocess.run(status, {
 console.log(result.standardOutput);
 ```
 
-All SDK examples in this RFC are proposals. Command construction does not spawn, execute callbacks or schedule work. `Command.name` uses the platform's normal executable search; `Command.path` requires an explicit executable path. Arguments are strings, in order, and are passed to `spawn` with `shell: false`. Reject invalid argument/options values and NUL characters before launch; do not coerce arbitrary objects into command text.
+The first-stage API below is implemented in the unreleased source prototype. Later scoped/pipeline/shell examples remain proposals. Command construction does not spawn, execute callbacks or schedule work. `Command.name` uses the platform's normal executable search; `Command.path` requires an absolute executable path. Arguments are strings, in order, and are passed to `spawn` with `shell: false`. Reject invalid argument/options values and NUL characters before launch; do not coerce arbitrary objects into command text.
 
 Treat a command as a reusable, readonly SDK value: snapshot the argv array once on construction, without claiming deep value semantics for JS objects. Each run creates a distinct child. `cwd` belongs to that child. Never call global `process.chdir`, modify `process.env`, patch prototypes or inject global `$` names.
 
@@ -73,7 +73,7 @@ Treat a command as a reusable, readonly SDK value: snapshot the argv array once 
 
 ### Output, status and errors
 
-MVP input defaults to no input. Output and error default to inherited terminal streams, avoiding buffering/copies. Explicit input can inherit stdin or supply a string/byte buffer; write respecting backpressure, finish stdin, and account for write errors. Capture is opt-in: `Output.text({ limit })` decodes UTF-8 once after successful close; `Output.bytes({ limit })` returns bytes; `Output.discard()` drains without retaining output. A finite positive byte limit is required for capture. Exceeding it rejects with an output-limit error after child cleanup, without silently truncating output. Text decoding follows Node's normal replacement of invalid UTF-8. Streaming belongs to a later scoped API.
+MVP input defaults to no input. Output and error default to inherited terminal streams, avoiding buffering/copies. Explicit input uses `Input.inherit()` or supplies a string/Uint8Array; `Input.none()` explicitly selects EOF. Byte views share their underlying storage, which the caller must preserve until settlement; write respecting backpressure, finish stdin, and account for write errors. Capture is opt-in: `Output.text({ limit })` decodes UTF-8 once after successful close; `Output.bytes({ limit })` returns bytes; `Output.discard()` selects the native null descriptor without retaining output. A finite positive byte limit is required for capture. Exceeding it rejects with an output-limit error after child cleanup, without silently truncating output. Retained stream bytes are bounded; concatenation and decoded strings can require additional memory, so this is not a total RSS cap. Text decoding follows Node's normal replacement of invalid UTF-8. Streaming belongs to a later scoped API.
 
 Return a typed result with `processIdentifier`, `terminationStatus`, `standardOutput` and `standardError`. Capture policy determines the corresponding output type (`string`, bytes or `undefined`). Status uses an ordinary TypeScript discriminated union:
 
@@ -84,7 +84,7 @@ type TerminationStatus =
 
 `check` defaults to true for build-script ergonomics: a nonzero exit or signal rejects with a `ProcessExitError` carrying the status and bounded captured output. `check: false` returns that status as data. This differs deliberately from Swift's status-first default. A launch/I/O failure, abort, timeout or output-limit failure always rejects regardless of `check`; it is not a fabricated numeric exit status. Use native try/catch and TypeScript error guards, not an unimplemented Swift `throws` contract. Logs must not automatically include command arguments, environment values or captured output; callers can choose what to print.
 
-Promise completion occurs after the child closes and owned I/O finishes. A single completion coordinator settles exactly once when error/exit/close/abort events race, removes listeners/timers, and retains the primary cause; cleanup failures are attached as structured secondary errors rather than replacing it. Validate timeout/grace durations. On an already-aborted signal, launch nothing. Running abort/timeout initiates graceful termination followed by forced termination after the configured grace period, then waits for close. Use Node-supported behavior per platform and test it.
+Promise completion occurs after the child closes and owned I/O finishes. A single completion coordinator settles exactly once when error/exit/close/abort events race, removes listeners/timers, and retains the primary cause; cleanup failures are attached as structured secondary errors rather than replacing it. Validate positive integer `timeoutMs`, nonnegative `gracePeriodMs` (default 250 ms) and positive `killTimeoutMs` (default 1000 ms), within Node timer bounds. Cancellation registration uses native `addAbortListener`, so another listener cannot suppress teardown with `stopImmediatePropagation`. On an already-aborted signal, launch nothing. Running abort/timeout initiates graceful termination followed by forced termination after the configured grace period, then waits for close within the forced join bound. Native termination/stream failures retain the primary cause and structured cleanup errors; unresolved live PIDs are explicit. Use Node-supported behavior per platform and test it.
 
 MVP ownership covers the directly launched child, not arbitrary detached grandchildren or a cross-platform process tree. An explicit shell can create descendants; do not promise that killing its parent kills them. If the child cannot be terminated, report teardown failure with the unresolved process identifier; never report successful cancellation. Process groups/job objects require a separate reviewed extension.
 
@@ -113,13 +113,13 @@ An explicit `Shell.run(commandText, { executable, arguments, ... })` may provide
 
 ## Script execution and delivery
 
-The first implementation should provide the SDK's argv-backed `run`, bounded capture, status/error types, environment/cwd isolation and cancellation. Validate an actual `.twill` script through the existing loader, plus native JS/TS consumers. Document Node versions based on the tested SDK manifest; the compiler's Node support does not automatically validate this SDK.
+The first-stage source implementation provides the SDK's argv-backed `run`, bounded capture, status/error types, environment/cwd isolation and cancellation. Validate an actual `.twill` script through the existing loader, plus native JS/TS consumers. Document Node versions based on the tested SDK manifest; the compiler's Node support does not automatically validate this SDK.
 
 Keep the existing Node invocation as the initial entry point. A future `twill run`/dedicated runner needs its own tooling amendment specifying argv forwarding, cwd, nearest project/package resolution, config selection, source maps, error/exit codes and Node/Windows behavior. Do not introduce a second compiler or transpile once per command. Shebangs are optional POSIX packaging conveniences, not a Windows support contract. No watch/server daemon or global installation is required.
 
 The SDK is a production dependency when distributed JS imports it. Source-only scripts also need the Twill compiler/loader available when invoked. Native-source export retains the ordinary SDK import and produces normal JS/types; do not bundle SDK internals or pretend this is a compiler-generated runtime dependency.
 
-After implementation, update the package README, public scripting/build guide, official application skill, changelog, examples, package/export validation and site navigation where useful. Until then, do not advertise the proposed imports as installable. A source prototype and a published version must be distinguished.
+Implementation synchronizes the package README, public scripting/build guide, official application skill, changelog, examples, package/export validation and site navigation where useful. Do not advertise the source package as npm-installable. A source prototype and a published version must be distinguished.
 
 ## Lowering, costs and performance acceptance
 
@@ -147,4 +147,4 @@ A standalone library maintains browser/compiler isolation and reusable types. Re
 
 ## Open questions and decision history
 
-Proposed in response to shell scripting/toolkit use cases. Recommend accepting the argv-backed MVP first; interactive execution, pipelines, explicit shells and a runner remain separately reviewable milestones. Confirm the final public naming and the default checked-exit policy at acceptance. No new language syntax or SDK implementation is approved or shipped by this RFC alone.
+The argv-backed first stage and checked-exit default were accepted for implementation in PR #20. The execution core is a native OS-process coordinator rather than a compiler lowering: no command-to-TS conversion, per-command compilation or compiler production dependency. JS/TS declarations describe its API. A different native backend requires measured benefits that justify its maintenance/portability cost. Interactive execution, pipelines, explicit shells and a runner remain separately reviewable milestones. Implementation, merge and publication stay distinct; the package is unreleased.

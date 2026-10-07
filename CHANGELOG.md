@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Implement RFC 0034 first-stage `@swiftuijs/twill-shell` source prototype: direct native argv execution, explicit bounded text/bytes, stdin, isolated cwd/environment, typed status/errors and joined abort/timeout teardown. No compiler runtime dependency or new language syntax.
+- Add real subprocess and Twill/export tests, independent Node 20 consumers, Windows/macOS CI, native performance comparisons, scripting documentation and official skill guidance. Scoped streaming, pipelines, shell templates and a runner remain deferred; no npm publication. Keep documentation canonical URLs current during client navigation.
+
 - Refresh build-adapter configuration at build boundaries and track project/inherited JSX config dependencies for real Rollup, Webpack, Rspack and esbuild watch/incremental workflows. Preserve host-native emission and adapter-option precedence; verify failed builds recover with original-source maps.
 - Document the five published adapter imports, tested host versions and development-mode boundaries in READMEs, the website and the official AI skill. The configuration-refresh fix is not published in 0.1.2.
 

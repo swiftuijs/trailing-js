@@ -166,3 +166,9 @@ Reproduce after `pnpm build` with `pnpm benchmark:runtime --output runtime-resul
 Measure build time, edited-file feedback and representative runtime paths before and after adopting a module. Use the same dependencies, hardware and production build settings. Inspect emitted code and bundle size, and exercise cleanup and error paths; warmed microbenchmarks can hide allocation costs that matter elsewhere.
 
 The reports above include their inputs, sampling methods, environment and build identity. Instructions for reproducing repository benchmarks are in the [contributor development guide](https://github.com/swiftuijs/twill/blob/main/docs/contributing/tooling.md#benchmark-changes). Correctness and output budgets are enforced; wall-clock thresholds are not enforced across different runners.
+
+## Optional shell SDK (unreleased)
+
+The [shell prototype](scripting.md) executes through native Node `spawn` / libuv, without command translation or a runtime compiler dependency. Inherited/discarded descriptors bypass capture. Explicit capture retains bounded chunks and concatenates/decodes once at settlement; the byte limit is not a total heap/RSS cap.
+
+`pnpm benchmark:shell --output ../../shell-results.json --verify-performance` compares equivalent successful direct-child work with handwritten `spawn`: native/Node inherited output, dual binary capture and text stdin/capture. Nine paired samples alternate order, retain parent CPU and wall time separately, and include source/build hashes. The local gate requires a median wall ratio at most 1.10 and a paired bootstrap interval within tolerance; inconclusive samples do not pass. Separate reports cover parent memory observations at 1 MiB/8 MiB per stream, native/SDK/Twill cold startup and an `execFile` capture reference. Memory sampling is not a hard peak bound. No universal speedup, cancellation, concurrency or process-tree claim follows from these workloads.

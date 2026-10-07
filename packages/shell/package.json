@@ -1,0 +1,74 @@
+{
+  "name": "@swiftuijs/twill-shell",
+  "version": "0.1.2",
+  "description": "Swift-inspired subprocess toolkit for Twill and native Node scripts: explicit arguments, bounded output and owned teardown.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/swiftuijs/twill.git",
+    "directory": "packages/shell"
+  },
+  "homepage": "https://twill.evecalm.com/",
+  "bugs": {
+    "url": "https://github.com/swiftuijs/twill/issues"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "@types/node": "catalog:",
+    "vitest": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "@swiftuijs/twill": "workspace:*",
+    "@swiftuijs/twill-formatter": "workspace:*",
+    "@swiftuijs/twill-export": "workspace:*",
+    "prettier": "catalog:"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:package": "node tests/consumer.mjs",
+    "prepack": "pnpm run build",
+    "benchmark": "node benchmarks/run.mjs"
+  },
+  "author": {
+    "name": "forth.ink",
+    "url": "https://forth.ink"
+  },
+  "keywords": [
+    "twill",
+    "shell",
+    "subprocess",
+    "scripting",
+    "swift",
+    "typescript",
+    "node"
+  ],
+  "peerDependencies": {
+    "@types/node": "^20.0.0 || ^22.0.0 || ^24.0.0 || ^26.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@types/node": {
+      "optional": true
+    }
+  }
+}
