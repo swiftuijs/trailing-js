@@ -197,7 +197,7 @@
       ]
     },
     "enum-case": {
-      "match": "\\b(case)\\s+([A-Za-z_$][\\w$]*)",
+      "match": "\\b(case)\\s+([[:alpha:]_$][\\w$]*)",
       "captures": {
         "1": {
           "name": "keyword.control.twill"

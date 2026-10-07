@@ -12,7 +12,7 @@ it.each(['twill', 'twillx'])(
   'highlights associated enums and native payload types in %s',
   (lang) => {
     const source =
-      'export enum State<T extends {value:number}> {\n case idle;\n case loaded(value:T, callback:<U>(value:U)=>number);\n}\nconst result=State.loaded({value:42},value=>1);';
+      'export enum State<T extends {value:number}> {\n case idle;\n case loaded(value:T, callback:<U>(value:U)=>number);\n case 加载(value:T);\n}\nconst result=State.loaded({value:42},value=>1);';
     const tokens = highlighter
       .codeToTokensBase(source, { lang, theme: 'github-dark', includeExplanation: true })
       .flat();
@@ -24,6 +24,7 @@ it.each(['twill', 'twillx'])(
       );
     expect(scoped('case', 'keyword.control.twill')).toBe(true);
     expect(scoped('loaded', 'entity.name.function.twill')).toBe(true);
+    expect(scoped('加载', 'entity.name.function.twill')).toBe(true);
     expect(scoped('number', 'support.type.primitive.')).toBe(true);
     const literal = highlighter
       .codeToTokensBase(

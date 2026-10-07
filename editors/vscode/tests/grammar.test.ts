@@ -51,6 +51,7 @@ it('highlights associated enum cases while preserving native payload types', () 
   const source = 'enum State<T> {\ncase idle;\ncase loaded(value:T, count:number);\n}';
   has(source, 'case', 'keyword.control.twill');
   has(source, 'loaded', 'entity.name.function.twill');
+  has('enum State{case 加载(value:number);}', '加载', 'entity.name.function.twill');
   for (const grammar of grammars)
     expect(
       tokens(grammar, source).some(
