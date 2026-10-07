@@ -311,7 +311,7 @@ it('preserves own prototype-named payloads, contextual identifiers and falsy val
     const payload={value:3};const state=State.__proto__(payload);
     return [Object.hasOwn(State,'__proto__'),Object.hasOwn(state,'__proto__'),Object.getPrototypeOf(state)===Object.prototype,state.__proto__===payload,
       State.constructor(0),State.async(false),State.get(null),State.蜂鸟(undefined)];`);
-  expect(result).toEqual([
+  const expected: unknown[] = [
     true,
     true,
     true,
@@ -320,7 +320,8 @@ it('preserves own prototype-named payloads, contextual identifiers and falsy val
     { kind: 'async', async: false },
     { kind: 'get', get: null },
     { kind: '蜂鸟', 数据: undefined },
-  ]);
+  ];
+  expect(result).toEqual(expected);
 });
 
 it('retains native argument short-circuiting when a factory argument throws', () => {
