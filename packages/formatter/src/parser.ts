@@ -52,10 +52,25 @@ export async function parse(source: string, options: ParserOptions<any>) {
     layout.overwrite(expression.start, expression.start + 6, `(() => { const ${temporary} = `);
     layout.remove(expression.parenStart, expression.parenStart + 1);
     layout.overwrite(expression.parenEnd, expression.parenEnd + 1, `; switch (${temporary})`);
-    layout.overwrite(expression.end - 1, expression.end, '}})()');
+    layout.overwrite(expression.end - 1, expression.end, '}})()', { contentOnly: true });
     for (const branch of expression.cases) {
       casesByStart.set(branch.start, branch);
-      if (branch.pattern) {
+      if (branch.enumPattern) {
+        const { binding, parenStart, parenEnd, start } = branch.enumPattern;
+        layout.remove(start, start + 4);
+        layout.remove(parenStart, parenStart + 1);
+        layout.remove(parenEnd, parenEnd + 1);
+        if (binding) {
+          layout.appendLeft(binding.start, ': { const ');
+          layout.overwrite(
+            branch.colonStart,
+            branch.colonStart + 1,
+            ` = undefined; ${branch.throw ? '' : 'return '}`,
+          );
+          layout.appendLeft(branch.valueEnd, '; }');
+          if (source[branch.end - 1] === ';') layout.remove(branch.end - 1, branch.end);
+        } else if (!branch.throw) layout.appendLeft(branch.colonStart + 1, ' return ');
+      } else if (branch.pattern) {
         layout.overwrite(branch.start, branch.pattern.start, 'case 0: { const ');
         tagNames.set(branch.start, temporary + 'Tag');
         layout.overwrite(branch.tag.value.start, branch.tag.value.end, temporary + 'Tag');
@@ -233,9 +248,21 @@ export async function parse(source: string, options: ParserOptions<any>) {
       const branch = casesByStart.get(node.start);
       if (branch) {
         node.type = 'TwillSwitchCase';
-        const statements = branch.pattern ? node.consequent[0].body : node.consequent;
+        const statements =
+          branch.pattern || branch.enumPattern?.binding ? node.consequent[0].body : node.consequent;
         node.value = statements.at(-1).argument;
         node.throw = branch.throw;
+        if (branch.enumPattern) {
+          node.enumPattern = {
+            type: 'TwillEnumPattern',
+            start: branch.enumPattern.start,
+            end: branch.enumPattern.end,
+            range: [branch.enumPattern.start, branch.enumPattern.end],
+            reference: node.test,
+            binding: branch.enumPattern.binding ? statements[0].declarations[0].id : null,
+          };
+          delete node.test;
+        }
         if (branch.pattern) {
           node.pattern = statements[0].declarations[0].id;
           const tag = node.pattern.properties.find(

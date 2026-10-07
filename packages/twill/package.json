@@ -157,7 +157,8 @@
     "test:browser": "playwright test",
     "benchmark": "node benchmarks/compiler.mjs",
     "test": "pnpm run test:unit",
-    "benchmark:branching": "node benchmarks/branching.mjs"
+    "benchmark:branching": "node benchmarks/branching.mjs",
+    "benchmark:enum-patterns": "node benchmarks/enum-patterns.mjs"
   },
   "devDependencies": {
     "vite": "catalog:",

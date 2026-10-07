@@ -51,6 +51,16 @@ test('compiles UI files using the selected native JSX runtime', async () => {
   expect(response.result!.code).toContain('@jsxImportSource vue');
   expect(response.result!.code).toContain('<Panel>');
 });
+
+test('compiles enum-case patterns in the browser worker without a matching runtime', async () => {
+  const response = await compile(
+    'enum State{case idle;case loaded(value:number);}function read(state:State){return switch(state){case enum State.idle():0;case enum State.loaded({value}):value;};}',
+  );
+  expect(response.error).toBeUndefined();
+  expect(response.result?.code).toContain('typeof State.loaded');
+  expect(response.result?.code).not.toContain('case enum');
+  expect(response.result?.code).not.toContain('State.loaded(');
+});
 test('reports original-source error positions and can compile the next request', async () => {
   expect(await compile('const value = 1;\nusers.map { . };')).toMatchObject({
     id: 42,

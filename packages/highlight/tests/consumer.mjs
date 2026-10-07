@@ -96,6 +96,8 @@ for (const engine of [standalone, custom]) {
   for (const lang of ['twill', 'twillx']) {
     const enumeration=engine.codeToTokensBase('enum State<T> {\\ncase idle;\\ncase loaded(value:T, count:number);\\ncase 加载(value:T);\\n}',{lang,theme,includeExplanation:true}).flat().flatMap(token=>token.explanation??[]);
     for(const [text,scope] of [['case','keyword.control.twill'],['loaded','entity.name.function.twill'],['加载','entity.name.function.twill'],['number','support.type.primitive.']]) assert(enumeration.some(part=>part.content===text&&part.scopes.some(item=>item.scopeName.startsWith(scope))),text);
+    const pattern = engine.codeToTokensBase('return switch(state){case enum State.loaded({value}):value;default:0;};', {lang,theme,includeExplanation:true}).flat().flatMap(token=>token.explanation??[]);
+    for(const [text,scope] of [['enum','keyword.control.twill'],['State','entity.name.type.twill'],['loaded','entity.name.function.twill']]) assert(pattern.some(part=>part.content===text&&part.scopes.some(item=>item.scopeName===scope)),text);
     const implicit = engine.codeToTokensBase('const names = users.filter { .active && .verified }.map { .profile?.name ?? "Anonymous" };', { lang, theme, includeExplanation: true }).flat().flatMap(token => token.explanation ?? []);
     for (const text of ['&&', '??']) assert(implicit.some(part => part.content === text && part.scopes.some(item => item.scopeName.startsWith('keyword.operator.logical.'))), text);
   }

@@ -66,6 +66,46 @@ it('registers both dialects and their native dependencies', () => {
 });
 
 it.each(['twill', 'twillx'])(
+  'highlights explicit enum patterns and retains native call cases in %s',
+  (lang) => {
+    const source =
+      'return switch(state){case enum /*descriptor*/ NS.State.loaded({value:amount}):amount;default:0;}';
+    const parts = highlighter
+      .codeToTokensBase(source, { lang, theme: 'github-dark', includeExplanation: true })
+      .flat()
+      .flatMap((token) => token.explanation ?? []);
+    for (const [word, scope] of [
+      ['enum', 'keyword.control.twill'],
+      ['State', 'entity.name.type.twill'],
+      ['loaded', 'entity.name.function.twill'],
+    ])
+      expect(
+        parts.some(
+          (part) => part.content === word && part.scopes.some((s) => s.scopeName === scope),
+        ),
+      ).toBe(true);
+    expect(
+      parts.some(
+        (part) =>
+          part.content.includes('descriptor') &&
+          part.scopes.some((s) => s.scopeName.startsWith('comment.')),
+      ),
+    ).toBe(true);
+    const native = highlighter
+      .codeToTokensBase('switch(value){case Factory.loaded(3):break;}', {
+        lang,
+        theme: 'github-dark',
+        includeExplanation: true,
+      })
+      .flat()
+      .flatMap((token) => token.explanation ?? []);
+    expect(
+      native.some((part) => part.scopes.some((s) => s.scopeName === 'entity.name.function.twill')),
+    ).toBe(false);
+  },
+);
+
+it.each(['twill', 'twillx'])(
   'retains comment scopes between associated case keywords and names in %s',
   (lang) => {
     const tokens = highlighter

@@ -15,7 +15,8 @@ const keys: Record<string, string[]> = {
   TwillGuardBinding: ['declarations'],
   DeferStatement: ['cleanup'],
   TwillSwitchExpression: ['discriminant', 'cases'],
-  TwillSwitchCase: ['test', 'pattern', 'value'],
+  TwillSwitchCase: ['test', 'pattern', 'enumPattern', 'value'],
+  TwillEnumPattern: ['reference', 'binding'],
   TwillEnumDeclaration: ['id', 'typeParameters', 'cases'],
   TwillEnumCase: ['id', 'params'],
 };
@@ -73,12 +74,26 @@ const printer: Printer<any> = {
         return [
           'test' in node && node.test === null && !node.pattern
             ? 'default'
-            : ['case ', path.call(print, node.pattern ? 'pattern' : 'test')],
+            : [
+                'case ',
+                path.call(
+                  print,
+                  node.enumPattern ? 'enumPattern' : node.pattern ? 'pattern' : 'test',
+                ),
+              ],
           ': ',
           node.throw ? 'throw ' : '',
           path.call(print, 'value'),
           options.semi ? ';' : '',
         ];
+      case 'TwillEnumPattern':
+        return group([
+          'enum ',
+          path.call(print, 'reference'),
+          '(',
+          node.binding ? path.call(print, 'binding') : '',
+          ')',
+        ]);
       case 'TwillParenthesized':
         return ['(', path.call(print, 'expression'), ')'];
       case 'TwillBareCall':

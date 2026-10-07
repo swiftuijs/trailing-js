@@ -27,7 +27,10 @@ try {
     ],
     { cwd: root, stdio: 'pipe' },
   );
-  writeFileSync(join(root, 'main.twill'), 'export const doubled=[1,2,3].map { n in n*2 };\n');
+  writeFileSync(
+    join(root, 'main.twill'),
+    'export enum State{case loaded(value:number);}export function read(input:State){return switch(input){case enum State.loaded({value}):value;};}export const doubled=[1,2,3].map { n in n*2 };\n',
+  );
   writeFileSync(
     join(root, '.prettierrc.json'),
     JSON.stringify({ plugins: ['@swiftuijs/twill-formatter'] }),
@@ -35,6 +38,7 @@ try {
   run(['node_modules/prettier/bin/prettier.cjs', '--write', 'main.twill']);
   const formatted = readFileSync(join(root, 'main.twill'), 'utf8');
   assert(formatted.includes('map { n in'));
+  assert(formatted.includes('case enum State.loaded({ value })'));
   run(['node_modules/prettier/bin/prettier.cjs', '--check', 'main.twill']);
   const generated = run([
     '--input-type=module',

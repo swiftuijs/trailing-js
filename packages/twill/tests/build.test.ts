@@ -28,7 +28,7 @@ function fixture() {
   writeFileSync(join(root, 'types.ts'), 'export interface Value { amount: number }');
   writeFileSync(
     join(root, 'double.twill'),
-    'import {offset} from "./offset.js"; export enum Amount{case value(amount:number);} export function double(x: number) { guard x > 0 else { return 0; } let result = Amount.value(x * 2 + offset).amount; defer { result = 0; } return result; }',
+    'import {offset} from "./offset.js"; export enum Amount{case value(amount:number);} export function double(x: number) { guard x > 0 else { return 0; } let result = switch(Amount.value(x * 2 + offset)){case enum Amount.value({amount}):amount;}; defer { result = 0; } return result; }',
   );
   writeFileSync(
     join(root, 'main.twill'),

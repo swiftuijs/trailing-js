@@ -43,7 +43,7 @@ return switch (state) {
 };
 ```
 
-Adding a case exposes missing expression arms through normal TS narrowing/never checking. A default retains RFC 0010's catch-all behavior; explicit coverage with default remains an optional lint policy. Case shorthand, contextual `.loaded`, arbitrary enum patterns and runtime shape validation are separate work in RFC 0016.
+Adding a case exposes missing expression arms through normal TS narrowing/never checking. A default retains RFC 0010's catch-all behavior; explicit coverage with default remains an optional lint policy. Case shorthand, contextual `.loaded`, explicit enum-case patterns are separate proposed work in RFC 0016. Its prototype uses qualified type-only case descriptors and named native bindings; design acceptance remains pending. Contextual shorthand and broader predicates remain deferred; runtime shape validation is not added.
 
 ## Lowering and interoperability
 

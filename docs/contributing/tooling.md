@@ -65,6 +65,7 @@ The five tarballs and `dist/twill.vsix` can be installed into an independent app
 pnpm benchmark --output compiler-results.json
 pnpm benchmark:project --output project-results.json
 pnpm benchmark:branching --output branching-results.json
+pnpm benchmark:enum-patterns --output enum-patterns-results.json
 pnpm --filter @swiftuijs/twill test:size --output ../../bundle-results.json
 ```
 

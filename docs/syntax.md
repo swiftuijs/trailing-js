@@ -93,7 +93,7 @@ The declaration creates a normal TS union type and a same-named object of factor
 
 Payload fields require names and native TS types. Generic factories infer the parameters used by their payloads, including constraint/default dependencies, and return precise variant types. Match them using the existing `case { kind: 'loaded', value }` syntax below; new variants expose missing arms through `twill check`. Defaults keep their existing catch-all semantics. Native TS numeric/string enums retain their original behavior.
 
-Duplicate cases/fields, a payload named `kind`, optional/default/rest payload fields, const/ambient associated enums, const/variance type parameter modifiers and mixed native members are rejected. Like native lexical declarations, associated enums require braces in control-flow bodies. Custom tags, case shorthand and broader pattern matching are separate proposals. Constructor completion, diagnostics, formatting, shared highlighting, declarations and source export are supported in this implementation; enum declaration/case/payload/type-parameter rename is conservatively withheld until its linked type/tag edits can be proven complete.
+Duplicate cases/fields, a payload named `kind`, optional/default/rest payload fields, const/ambient associated enums, const/variance type parameter modifiers and mixed native members are rejected. Like native lexical declarations, associated enums require braces in control-flow bodies. Custom tags and contextual case shorthand are separate proposals; the explicit enum-case pattern prototype is described below. Constructor completion, diagnostics, formatting, shared highlighting, declarations and source export are supported in this implementation; enum declaration/case/payload/type-parameter rename is conservatively withheld until its linked type/tag edits can be proven complete.
 
 ## Switch expressions and union patterns
 
@@ -120,6 +120,34 @@ An object case has exactly one noncomputed literal discriminator, with the same 
 Without `default`, generated TS checks `subject satisfies never` after the returning arms. Run **`twill check`** or the editor checker to prove exhaustiveness, including unions imported from ordinary TS. Adding a variant exposes omitted cases. Transpile-only Vite/bundler builds and the playground do not prove types. Unknown/unbounded subjects need a default. Unexpected unchecked JS values throw `TypeError('Non-exhaustive switch expression')`, rather than returning undefined. The optional typed linter also checks native switches and can require every known union case even with a default.
 
 A direct `return switch (...)` lowers to a scoped native switch without an additional function. Other expression positions use a synchronous lexical arrow IIFE, retaining `this`, `arguments`, `super` and `new.target`. This can allocate a closure; there is no runtime library, promise conversion or implicit async scheduling. `await` and `yield` inside the switch require a direct return, where they remain in the enclosing function. Elsewhere, bind an awaited subject before switching or write `await switch (...) { ... }` with promise-producing arms. Nested functions can use their own await/yield normally. See [performance](performance.md) for scoped measurements.
+
+## Explicit enum-case patterns (unreleased)
+
+**RFC 0016 prototype; design review pending.** This syntax is available in the implementation branch and its playground build. It is not in npm/Marketplace 0.1.2. See [the proposal](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0016-pattern-matching.md).
+
+```twill
+enum LoadState<T> {
+  case idle;
+  case loaded(value: T);
+  case failed(error: Error);
+}
+
+export function describe(state: LoadState<number>) {
+  return switch (state) {
+    case enum LoadState.idle(): 'Idle';
+    case enum LoadState.loaded({ value: result }): result.toFixed(2);
+    case enum LoadState.failed({ error }): throw error;
+  };
+}
+```
+
+`case enum` explicitly selects a variant by its `kind`. The qualified factory reference is checked as a callable descriptor returning the named literal tag; it is never read or called at runtime. Imported aliases, namespaces and native TS/declaration factories work, including type-only imports. Matching uses structural tagged records. A factory descriptor does not add nominal identity or runtime input validation.
+
+Parentheses contain no binding or one native object binding. An empty pattern ignores payload fields. Bindings are `const`, scoped to one arm, and checked against the narrowed subject. Aliases, defaults, nested destructuring and rest retain native behavior and exceptions. Rest includes `kind` unless explicitly bound; it retains native copying/allocation cost. The subject and its selection tag are read once; explicit tag bindings/rest perform their normal extra reads.
+
+Enum patterns may mix with existing object arms using `kind` and a default. Existing object arms retain their discriminator re-read and rest exclusion. Value cases cannot mix with pattern arms. Ordinary `case Factory.loaded(value)` remains a native call-valued case with strict identity matching. Native switch statements keep their existing syntax.
+
+Without a default, `twill check` verifies tag exhaustiveness, including single-variant records. Direct returns add no function; general expression positions retain the existing synchronous IIFE and await/yield restrictions. Descriptor case-method rename is withheld until linked tag edits can be proven complete; native owner/import aliases and local binding renames work. Positional patterns, `.loaded`, `where`, alternatives and deep predicates are deferred. All tools consume this syntax together; keep compiler and tooling versions aligned when it is released.
 
 ## Defer
 

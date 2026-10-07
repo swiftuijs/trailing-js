@@ -45,6 +45,25 @@ test('Twill operators and TwillX JSX retain their colors in both themes', async 
         .filter({ hasText: /^\s*&&$/ })
         .first(),
     ).toHaveCSS('color', dark ? 'rgb(249, 117, 131)' : 'rgb(215, 58, 73)');
+    const pattern = page
+      .locator('.language-twill code')
+      .filter({ hasText: 'case enum LoadState.loaded' });
+    for (const word of ['enum', 'loaded']) {
+      const token = pattern
+        .locator('span[style]')
+        .filter({ hasText: new RegExp('^\\s*' + word + '$') })
+        .first();
+      await expect(token).toHaveCSS(
+        'color',
+        word === 'enum'
+          ? dark
+            ? 'rgb(249, 117, 131)'
+            : 'rgb(215, 58, 73)'
+          : dark
+            ? 'rgb(179, 146, 240)'
+            : 'rgb(111, 66, 193)',
+      );
+    }
     await screenshot(page, info, 'implicit-operators-' + (dark ? 'dark' : 'light'));
     await page.goto('frameworks');
     await page.evaluate((dark) => document.documentElement.classList.toggle('dark', dark), dark);
@@ -232,6 +251,18 @@ test('live compilation, highlighted examples, located errors and recovery', asyn
   await expect(page.getByRole('status')).toContainText('1 guard · 1 switch expression');
   await expect(generated(page)).toContainText('satisfies never');
   await expect(generated(page)).toContainText('case \"ok\"');
+  await page.getByLabel('Example', { exact: true }).selectOption('enum-patterns');
+  await expect(source).toContainText('case enum LoadState.loaded');
+  await expect(
+    source
+      .locator('.cm-line')
+      .filter({ hasText: 'case enum LoadState.loaded' })
+      .locator('.twill-token-keyword')
+      .filter({ hasText: /^enum$/ }),
+  ).toHaveCount(1);
+  await expect(generated(page)).toContainText('typeof LoadState.loaded');
+  await expect(generated(page)).toContainText('satisfies never');
+  await expect(generated(page)).not.toContainText('case enum');
   await page.getByLabel('Example', { exact: true }).selectOption('react');
   await expect(generated(page)).toContainText('<Panel>');
   await expect(page.getByRole('status')).toContainText('Compiled in');

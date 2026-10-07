@@ -19,7 +19,7 @@ Evaluate the subject once, switch on its discriminator and perform the original 
 
 ## Compatibility and alternatives
 
-Handwritten discriminator switches are equivalent. RFC 0015 proposes constructors/types for associated-value enums while retaining this matching form. RFC 0016 must preserve these existing getter/default timings or explicitly version any change.
+Handwritten discriminator switches are equivalent. Accepted RFC 0015 implements unreleased constructors/types for associated-value enums while retaining this matching form. RFC 0016 must preserve these existing getter/default timings or explicitly version any change.
 
 ## Validation and completion
 

@@ -197,3 +197,10 @@ it('retains native operators in implicit member closures', () => {
       ).toBe(true);
   }
 });
+
+it('highlights explicit enum patterns in the packaged TS/TSX grammar', () => {
+  const source = 'return switch(state){case enum State.loaded({value}):value;default:0;};';
+  has(source, 'enum', 'keyword.control.twill');
+  has(source, 'State', 'entity.name.type.twill');
+  has(source, 'loaded', 'entity.name.function.twill');
+});

@@ -132,6 +132,9 @@
               "end": "(?=:)",
               "patterns": [
                 {
+                  "include": "#enum-pattern"
+                },
+                {
                   "include": "source.tsx#expression"
                 }
               ]
@@ -218,6 +221,35 @@
       "patterns": [
         {
           "include": "source.ts#comment"
+        }
+      ]
+    },
+    "enum-pattern": {
+      "begin": "\\b(enum)\\b",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.twill"
+        }
+      },
+      "end": "(?=\\()",
+      "patterns": [
+        {
+          "include": "source.ts#comment"
+        },
+        {
+          "match": "([[:alpha:]_$][\\w$]*)(\\s*)(\\.)",
+          "captures": {
+            "1": {
+              "name": "entity.name.type.twill"
+            },
+            "3": {
+              "name": "punctuation.accessor.twill"
+            }
+          }
+        },
+        {
+          "match": "[[:alpha:]_$][\\w$]*",
+          "name": "entity.name.function.twill"
         }
       ]
     }

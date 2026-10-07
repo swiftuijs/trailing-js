@@ -37,7 +37,7 @@ The single-direct output matches a minimal handwritten callback/finally implemen
 
 ## Guards and switch expressions
 
-Destructured guards add a temporary and a nullish branch, followed by native destructuring. They add no wrapper object, callback or library. Direct-return switch expressions add a scoped native switch without a function. Other expression positions use one synchronous lexical arrow IIFE; `this`, `arguments` and scheduling retain native semantics. Selected object cases destructure the discriminator too, so a discriminator getter is read twice. Rest/default costs remain native destructuring costs.
+Destructured guards add a temporary and a nullish branch, followed by native destructuring. They add no wrapper object, callback or library. Direct-return switch expressions add a scoped native switch without a function. The unreleased standalone identifier-initializer path uses a result temporary and native labelled branches without a function. Other expression positions use one synchronous lexical arrow IIFE; `this`, `arguments` and scheduling retain native semantics. Selected object cases destructure the discriminator too, so a discriminator getter is read twice. Rest/default costs remain native destructuring costs.
 
 The [branching report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/branching.json) measures 1,000,000 calls per sample, 15 samples after warmup, with each native/dialect case in a separate process on Node 24.19 / AMD EPYC 9V74. Isolated processes avoid shared call-site feedback favoring whichever function runs first.
 
@@ -47,7 +47,7 @@ The [branching report](https://github.com/swiftuijs/twill/blob/main/docs/benchma
 | Direct-return value switch    | 2.76 ms      | 2.89 ms       | 77 / 77                                |
 | Switch in a local initializer | 2.75 ms      | 2.72 ms       | 95 / 90                                |
 
-The initializer comparison uses a natural native switch assigning a local. V8 can inline the IIFE and optimize these small hot functions differently; timing differences are not a general speedup claim or evidence that closures never allocate. Other engines, cold execution, larger branches and captured values need application measurements. Await/yield inside a switch requires a direct return, avoiding hidden promise conversion or additional async scheduling.
+The initializer comparison uses a natural native switch assigning a local. The unreleased standalone identifier-initializer optimization removes the IIFE and preserves the original declaration, TDZ and mutability. Larger expressions, for headers, multiple declarators, destructuring, direct eval, JS JSDoc context and TS suppression pragmas retain the established expression path. Timing differences are not a general speedup claim or evidence that remaining closures never allocate. Other engines, cold execution, larger branches and captured values need application measurements. Await/yield inside a switch requires a direct return, avoiding hidden promise conversion or additional async scheduling.
 
 The [application bundle report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/bundle-size.json) covers five supported paths. Guards, callbacks and a single React child match the native minified byte size. The direct object-pattern switch is 205 bytes versus 203 bytes: its explicit lexical block adds two braces. Tests enforce those exact output budgets and runtime parity. There is no Twill runtime imported into these application fixtures. Dynamic cleanup, general child collection and arbitrary expression switches have separate costs and are outside this parity claim.
 
@@ -87,6 +87,32 @@ Tarball budgets cover the package's own files, not installed npm dependencies. D
 ## React framework source study
 
 The [React source study](./react-source.md) compares the real React 19.3.0 client-core entry graph after identical Flow erasure. It adds an independently reproducible framework workload to the small synthetic fixtures above. The [report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/react-framework.json) includes production bytes, gzip size, interleaved build samples and isolated core-runtime samples. ReactDOM/reconciler are not rewritten; this is not a full rendering-throughput or typed framework-port benchmark.
+
+## Explicit enum patterns (unreleased prototype)
+
+RFC 0016's explicit case descriptors are erased by native TS. Direct-return patterns and standalone identifier initializers use native switches and per-arm const destructuring without an IIFE. Other expression positions keep the existing synchronous IIFE. Native rest bindings allocate/copy normally. The checked TS application bundle fixture with defaults/rest is 182 bytes versus 180 bytes for handwritten JS: two outer scope braces, with no matching runtime, factory access/call or additional result record. CI enforces that 2-byte budget and verifies runtime behavior and dependency absence.
+
+On 2026-10-07, Node v24.19.0, Linux x64, INTEL(R) XEON(R) PLATINUM 8573C, three separate warmed processes per variant ran 1,000,000 calls per sample, five warmups and 15 samples each. Launch order alternated, and the table aggregates all 45 measured samples. Both variants compiled the dialect once before sampling to balance compiler setup. Inputs cycle through idle and two loaded records; observable checksums agree. These are medians for one batch:
+
+| Workload                 | Generated pattern | Native baseline | Ratio |
+| ------------------------ | ----------------- | --------------- | ----- |
+| direct-named-payload     | 6.22 ms           | 6.37 ms         | 0.98× |
+| expression-named-payload | 8.03 ms           | 8.06 ms         | 1.00× |
+| native-object-rest       | 34.67 ms          | 34.41 ms        | 1.01× |
+
+The first prototype used an expression IIFE and measured 3.05× slower than native local assignment. That avoidable function is removed for standalone identifier initializers: the new measured path is comparable to native, rather than accepting the earlier slowdown. The checked application fixture adds 8 bytes and CI rejects an added arrow/IIFE. The direct and rest paths are also comparable in this run; none establishes a general speedup. Remaining expression-wrapper contexts need independent measurement/optimization. Rest costs reflect native allocation in both implementations; no application or cross-engine guarantee follows.
+
+Synthetic typed files contain 10 / 100 / 1,000 functions sharing two variants. Transform timings include high-resolution maps; the native transform parses an unchanged TS file. Cold checks include creating a project and reading standard libraries; they are single observations, not sampled medians:
+
+| Functions | Pattern → TS median | Unchanged TS transform median | Pattern cold check | Native cold check |
+| --------- | ------------------- | ----------------------------- | ------------------ | ----------------- |
+| 10        | 5.14 ms             | 3.70 ms                       | 629.86 ms          | 340.74 ms         |
+| 100       | 23.50 ms            | 23.70 ms                      | 417.12 ms          | 264.11 ms         |
+| 1000      | 298.48 ms           | 245.43 ms                     | 1427.92 ms         | 430.94 ms         |
+
+Unchanged pattern diagnostics have cached medians of 0.02–0.07 ms. The descriptor rename guard indexes each file once and caches symbols by Program. Its first request on the 1,000-function fixture takes 217.91 ms, including mapping/symbol work; cached requests take 0.43 ms median. Edits invalidate the Program cache. These costs concern synthetic compiler/checker requests, not visible editor latency.
+
+The [report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/enum-patterns.json) records inputs, p95, checksums, environment, base commit/tree, dirty-working-tree status and build/script digests. The source was an unreleased implementation checkout. Reproduce with `pnpm build` then `pnpm benchmark:enum-patterns --output enum-patterns-results.json`. Runtime tests use unchecked JS lowering; erased TS descriptors and native imports are additionally covered by checked bundle and package tests. Timing ratios are observations; correctness, absence of runtime dependencies and bytes are deterministic CI gates.
 
 ## Evaluate your application
 

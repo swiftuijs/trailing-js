@@ -17,7 +17,7 @@ Tests make supported behavior reviewable; they do not establish a production tra
 
 Trailing callbacks, destructured `guard`, `defer` and value/pattern switch expressions work in ordinary code. `.twillx` also supports native JSX component children, render props and lazy Vue slots. Component libraries use their normal framework APIs; the compiler does not require component registration or wrappers.
 
-The development branch additionally implements proposed associated-value enums as native tagged records and precise factories. This is unreleased and is not part of npm/Marketplace 0.1.2. See [its syntax and boundaries](syntax.md#associated-value-enums-unreleased). Enum declaration/case/payload rename is withheld; broader enum patterns and contextual case shorthand remain proposals.
+Main additionally implements accepted associated-value enums as native tagged records and precise factories. This is unreleased and is not part of npm/Marketplace 0.1.2. See [its syntax and boundaries](syntax.md#associated-value-enums-unreleased). Enum declaration/case/payload rename is withheld. RFC 0016 prototypes [explicit enum-case patterns](syntax.md#explicit-enum-case-patterns-unreleased) with type-only descriptors and native named bindings; its design remains proposed pending review. Descriptor case-method rename is withheld, while native owner/alias and local binding edits work. Contextual case shorthand and broader matching remain deferred.
 
 Native TS/JS and Twill can import each other through the build adapters, virtual project checker and Node ESM loader. Source maps support original-source diagnostics and debugging. Libraries can emit standard declarations with `twill declarations`; native `tsc` cannot parse Twill source directly.
 
@@ -33,7 +33,7 @@ The virtual checker uses TypeScript 5.9. Compatibility with arbitrary workspace 
 
 ## Runtime and tooling performance
 
-Ordinary trailing closures and guards lower to arrows and branches without a runtime library. Direct-return switch expressions lower to scoped native switches; other expression positions use a synchronous IIFE. Await/yield inside a switch requires a direct return. Expression exhaustiveness requires the checker, not transpile-only builds. `defer` and general child collection allocate local closures or arrays. Use native `try/finally` when those allocations matter in a hot path.
+Ordinary trailing closures and guards lower to arrows and branches without a runtime library. Direct-return switch expressions lower to scoped native switches. The unreleased prototype also lowers standalone identifier initializers to native branches without an IIFE; other expression positions retain a synchronous IIFE. Await/yield inside a switch requires a direct return. Expression exhaustiveness requires the checker, not transpile-only builds. `defer` and general child collection allocate local closures or arrays. Use native `try/finally` when those allocations matter in a hot path.
 
 The checker caches unchanged snapshots and transforms. Disk edits refresh affected files; configuration changes rebuild affected projects. [Performance measurements](performance.md) describe synthetic compiler, checker and formatter workloads, including their limits. They do not establish whole-application latency or a universal performance guarantee.
 

@@ -190,11 +190,15 @@ const processor: Linter.Processor = {
           column: position.character + 1,
           endLine: end && end.line + 1,
           endColumn: end && end.character + 1,
-          fix: fix(state, message.fix),
-          suggestions: message.suggestions?.flatMap((suggestion) => {
-            const mapped = fix(state, suggestion.fix);
-            return mapped ? [{ ...suggestion, fix: mapped }] : [];
-          }),
+          fix: expressionSwitch ? undefined : fix(state, message.fix),
+          // Native statement-case suggestions introduce blocks/value labels that
+          // are invalid in a Twill switch expression. Keep the diagnostic.
+          suggestions: expressionSwitch
+            ? []
+            : message.suggestions?.flatMap((suggestion) => {
+                const mapped = fix(state, suggestion.fix);
+                return mapped ? [{ ...suggestion, fix: mapped }] : [];
+              }),
         },
       ];
     });

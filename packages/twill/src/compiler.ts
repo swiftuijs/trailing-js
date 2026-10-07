@@ -531,6 +531,7 @@ export function transform(source: string, options: TransformOptions = {}) {
       code,
       options.language ?? inferLanguage(filename),
       usedNames,
+      parsed.comments,
       (node, message) => {
         throw new TwillSyntaxError(source, filename, {
           message,
@@ -580,6 +581,9 @@ export function transform(source: string, options: TransformOptions = {}) {
     defers: parsed.defers.length,
     switches: parsed.switches.length,
     associatedEnums: parsed.enums,
+    enumPatterns: parsed.switches.flatMap((node) =>
+      node.cases.flatMap((branch: Node) => (branch.enumPattern ? [branch.enumPattern] : [])),
+    ),
     enumCopies,
     componentProps,
   };

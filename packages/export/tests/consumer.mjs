@@ -39,7 +39,8 @@ try {
       include: ['**/*'],
     }),
   );
-  const source = 'export const doubled=[1,2,3].map { n in n*2 };';
+  const source =
+    'export const doubled=[1,2,3].map { n in n*2 };export enum State{case loaded(value:number);}export function read(input:State){return switch(input){case enum State.loaded({value}):value;};}';
   writeFileSync(join(root, 'source/values.twill'), source);
   writeFileSync(
     join(root, 'source/main.ts'),
@@ -81,7 +82,7 @@ try {
   const values = run([
     '--input-type=module',
     '-e',
-    'import {doubled} from "./native-js/values.js";console.log(JSON.stringify(doubled));',
+    'import {doubled,State,read} from "./native-js/values.js";if(read(State.loaded(42))!==42)throw new Error("pattern export");console.log(JSON.stringify(doubled));',
   ]);
   assert.deepEqual(JSON.parse(values), [2, 4, 6]);
   assert.equal(readFileSync(join(root, 'source/values.twill'), 'utf8'), source);
