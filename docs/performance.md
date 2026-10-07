@@ -93,13 +93,13 @@ The [React source study](./react-source.md) compares the real React 19.3.0 clien
 
 RFC 0016's explicit case descriptors are erased by native TS. Direct-return patterns and standalone identifier initializers use native switches and per-arm const destructuring without an IIFE. Other expression positions keep the existing synchronous IIFE. Native rest bindings allocate/copy normally. The checked TS application bundle fixture with defaults/rest is 182 bytes versus 180 bytes for handwritten JS: two outer scope braces, with no matching runtime, factory access/call or additional result record. CI enforces that 2-byte budget and verifies runtime behavior and dependency absence.
 
-On 2026-10-07, Node v24.19.0, Linux x64, INTEL(R) XEON(R) PLATINUM 8573C, three separate warmed processes per variant ran 1,000,000 calls per sample, five warmups and 15 samples each. Launch order alternated, and the table aggregates all 45 measured samples. Both variants compiled the dialect once before sampling to balance compiler setup. Inputs cycle through idle and two loaded records; observable checksums agree. These are medians for one batch:
+On 2026-10-07, Node v24.19.0, Linux x64, INTEL(R) XEON(R) PLATINUM 8573C, three separate warmed processes per variant, pinned to CPU 0, ran 1,000,000 calls per sample, five warmups and 15 samples each. Launch order alternated, and the table aggregates all 45 measured samples. Both variants compiled the dialect once before sampling to balance compiler setup. Inputs cycle through idle and two loaded records; observable checksums agree. These are medians for one batch:
 
 | Workload                 | Generated pattern | Native baseline | Ratio |
 | ------------------------ | ----------------- | --------------- | ----- |
-| direct-named-payload     | 6.22 ms           | 6.37 ms         | 0.98× |
-| expression-named-payload | 8.03 ms           | 8.06 ms         | 1.00× |
-| native-object-rest       | 34.67 ms          | 34.41 ms        | 1.01× |
+| direct-named-payload     | 6.40 ms           | 6.21 ms         | 1.03× |
+| expression-named-payload | 6.74 ms           | 6.64 ms         | 1.02× |
+| native-object-rest       | 34.62 ms          | 33.15 ms        | 1.04× |
 
 The first prototype used an expression IIFE and measured 3.05× slower than native local assignment. That avoidable function is removed for standalone identifier initializers: the new measured path is comparable to native, rather than accepting the earlier slowdown. The checked application fixture adds 8 bytes and CI rejects an added arrow/IIFE. The direct and rest paths are also comparable in this run; none establishes a general speedup. Remaining expression-wrapper contexts need independent measurement/optimization. Rest costs reflect native allocation in both implementations; no application or cross-engine guarantee follows.
 
@@ -107,11 +107,11 @@ Synthetic typed files contain 10 / 100 / 1,000 functions sharing two variants. T
 
 | Functions | Pattern → TS median | Unchanged TS transform median | Pattern cold check | Native cold check |
 | --------- | ------------------- | ----------------------------- | ------------------ | ----------------- |
-| 10        | 5.14 ms             | 3.70 ms                       | 629.86 ms          | 340.74 ms         |
-| 100       | 23.50 ms            | 23.70 ms                      | 417.12 ms          | 264.11 ms         |
-| 1000      | 298.48 ms           | 245.43 ms                     | 1427.92 ms         | 430.94 ms         |
+| 10        | 8.44 ms             | 5.55 ms                       | 1064.14 ms         | 903.29 ms         |
+| 100       | 29.50 ms            | 25.95 ms                      | 678.42 ms          | 407.08 ms         |
+| 1000      | 357.09 ms           | 327.84 ms                     | 2273.75 ms         | 613.77 ms         |
 
-Unchanged pattern diagnostics have cached medians of 0.02–0.07 ms. The descriptor rename guard indexes each file once and caches symbols by Program. Its first request on the 1,000-function fixture takes 217.91 ms, including mapping/symbol work; cached requests take 0.43 ms median. Edits invalidate the Program cache. These costs concern synthetic compiler/checker requests, not visible editor latency.
+Unchanged pattern diagnostics have cached medians of 0.02–0.07 ms. The descriptor rename guard indexes each file once and caches symbols by Program. Its first request on the 1,000-function fixture takes 397.29 ms, including mapping/symbol work; cached requests take 0.37 ms median. Edits invalidate the Program cache. These costs concern synthetic compiler/checker requests, not visible editor latency.
 
 The [report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/enum-patterns.json) records inputs, p95, checksums, environment, base commit/tree, dirty-working-tree status and build/script digests. The source was an unreleased implementation checkout. Reproduce with `pnpm build` then `pnpm benchmark:enum-patterns --output enum-patterns-results.json`. Runtime tests use unchecked JS lowering; erased TS descriptors and native imports are additionally covered by checked bundle and package tests. Timing ratios are observations; correctness, absence of runtime dependencies and bytes are deterministic CI gates.
 
@@ -119,14 +119,16 @@ The [report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/enum-p
 
 [RFC 0032](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0032-optional-runtime-helpers.md) adds opt-in external helpers; inline remains the default. Dynamic synchronous cleanup shares a small `runDefers` function. Single direct cleanup, explicit async and mixed cleanup retain identical output, including scheduling. The helper centralizes draining; registrations still allocate callbacks and a lazy array. It does not remove the allocation costs shown in the minimal-finally comparison above.
 
-The [runtime report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/runtime-helpers.json) compares generated inline/external output with handwritten native code having the **same dynamic registrations and failure contract**. Each sample executes 100,000 function calls. Three separate processes per variant, alternating launch order, contribute all 45 samples after five warmups. All workers perform the same compiler setup before timing; checksums and cleanup order agree. First-call and bundle-build timings are unsampled observations, not startup guarantees.
+The [runtime report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/runtime-helpers.json) compares generated inline/external output with handwritten native code having the **same dynamic registrations and failure contract**. Each sample executes 500,000 function calls. The recorded Linux run pins every worker to CPU 0. Three separate processes per variant, alternating launch order, contribute all 45 samples after 20 warmup batches. Each sample records wall and process CPU time; the gate compares wall medians. All workers perform the same compiler setup before timing; checksums and cleanup order agree. First-call and bundle-build timings are unsampled observations, not startup guarantees.
 
 | Registrations per call | Native median | Inline / native | External / native |
 | ---------------------- | ------------- | --------------- | ----------------- |
-| 0                      | 0.32 ms       | 1.07×           | 1.00×             |
-| 1                      | 3.93 ms       | 1.04×           | 1.02×             |
-| 5                      | 10.21 ms      | 1.05×           | 1.04×             |
-| 25                     | 53.44 ms      | 1.00×           | 0.98×             |
+| 0                      | 1.71 ms       | 1.07×           | 1.01×             |
+| 1                      | 21.93 ms      | 0.99×           | 0.99×             |
+| 5                      | 56.81 ms      | 1.04×           | 1.02×             |
+| 25                     | 259.77 ms     | 1.03×           | 0.97×             |
+
+The [first review report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/runtime-helpers-first-review.json) is retained: its 100,000-call batches, five warmups and unpinned workers failed the same 1.10× target (1.28× inline and 1.17× external at one registration). Trial medians differed substantially, including within the native baseline. The revised run increases batch size/preheating and fixes CPU affinity; it changes no generated algorithm and keeps every trial/sample. Both inline and external pass the wall-median target in the revised run. Individual trials and p95 still vary; these medians do not establish a universal speed guarantee.
 
 Separate synthetic modules are bundled as minified ES2022 ESM, including every byte of the actual helper. Gzip uses level 9:
 
@@ -138,7 +140,7 @@ Separate synthetic modules are bundled as minified ES2022 ESM, including every b
 
 At 100 modules the external helper removes 35% of uncompressed output; gzip is approximately equal. A single module can grow. Split chunks and multiple installed versions can change sharing. CI enforces a 256-byte minified helper budget, one dependency-free helper in the application graph, no runtime import for inline output, and representative bundle/behavior budgets.
 
-Reproduce after `pnpm build` with `pnpm benchmark:runtime --output runtime-results.json --verify-performance`. The optional flag rejects a median over 1.10× native for either mode and retains the full report before failing. The same flag is available for `benchmark:enum-patterns`. This is a performance review target on a controlled host; investigate repeatable failures rather than accepting material regressions or treating noisy CI clocks as a portable gate. These synthetic results establish comparable performance for the measured paths, not a general speedup over optimized native code.
+Reproduce after `pnpm build` with `pnpm benchmark:runtime --output runtime-results.json --verify-performance`. The optional flag rejects a median over 1.10× native for either mode and retains the full report before failing. The same flag is available for `benchmark:enum-patterns`. On Linux, prefix the command with `taskset -c 0` (or another allowed CPU) to reproduce the recorded affinity; the report records it. This is a performance review target on a controlled host; investigate repeatable failures rather than accepting material regressions or treating noisy CI clocks as a portable gate. These synthetic results establish comparable performance for the measured paths, not a general speedup over optimized native code.
 
 ## Evaluate your application
 

@@ -446,7 +446,7 @@ import { createRequire } from 'node:module';
     code: 'MODULE_NOT_FOUND',
   });
   let runtimeArchive = resolve(`swiftuijs-twill-runtime-${metadata.version}.tgz`);
-  if (!existsSync(runtimeArchive)) {
+  if (!process.argv.includes('--packed')) {
     const packed = JSON.parse(
       execFileSync(
         'pnpm',

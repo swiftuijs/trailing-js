@@ -3,6 +3,8 @@
 **Status:** Proposed; implementation prototype pending review and release.
 **Kind:** Tooling and runtime. **Dependencies:** 0009, 0026, 0027, 0028.
 
+Implementation prototype: [PR #15](https://github.com/swiftuijs/twill/pull/15), stacked on the native switch-initializer optimization in [PR #14](https://github.com/swiftuijs/twill/pull/14).
+
 ## Problem and native baseline
 
 Dynamic synchronous `defer` scopes repeat reverse-order stack draining and cleanup-failure replacement. A shared native function can centralize that algorithm across application modules, improve emitted readability and reduce uncompressed code. Single cleanup, guards, native enum factories/matching and component children already have useful native fast paths. Sharing must not add wrappers to those paths or imply that source brevity makes execution faster.
@@ -41,6 +43,8 @@ Compare synchronous external output against inline output and equivalent handwri
 Measure minified bytes, gzip, helper inclusion/tree shaking, repeated modules, isolated warmed execution, cold first call and build/check costs. Include helper bytes in totals. Multiple split chunks, host/runtime versions and actual applications can differ. Record inputs, checksums, source/build identity and all trials; do not cherry-pick favorable timing samples. Native control flow is the default performance baseline. Fix structural overhead such as avoidable switch IIFEs independently of runtime packaging; sharing callbacks does not fix it.
 
 Deterministic CI gates require semantic parity, zero imports for unused/fast paths, one helper import per needed module, no compiler/framework dependencies in application graphs, unchanged async scheduling and small package/application budgets. Timing comparisons must be reproducible and reviewed; noisy machine timing is not a portable language speed guarantee. A material repeatable slowdown blocks expanding or making external mode the default.
+
+Representative optimized paths target a wall-clock median within 10% of an equivalent native implementation on a controlled host. `benchmark:runtime --verify-performance` rejects a ratio above 1.10× and writes the complete report before failing. Preserve failures and investigate sampling, preheating, process/CPU variation and generated code; do not discard unfavorable trials. The prototype records both wall and process CPU samples. Acceptance of a measured path does not imply that dynamic registration beats minimal allocation-free finally.
 
 ## Tooling, compatibility and validation
 

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
 import { cpus, tmpdir, platform, arch } from 'node:os';
-import { readFileSync, writeFileSync, readdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, mkdtempSync, rmSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -210,7 +210,15 @@ const report = {
   benchmarkDigest: createHash('sha256')
     .update(readFileSync(fileURLToPath(import.meta.url)))
     .digest('hex'),
-  environment: { node: process.version, platform: platform(), arch: arch(), cpu: cpus()[0]?.model },
+  environment: {
+    node: process.version,
+    platform: platform(),
+    arch: arch(),
+    cpu: cpus()[0]?.model,
+    cpuAffinity: existsSync('/proc/self/status')
+      ? readFileSync('/proc/self/status', 'utf8').match(/^Cpus_allowed_list:\s*(.+)$/m)?.[1]
+      : undefined,
+  },
   methodology: {
     iterations,
     samples,
