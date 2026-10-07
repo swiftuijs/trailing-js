@@ -146,7 +146,7 @@
   },
   "module": "./dist/index.js",
   "scripts": {
-    "build": "vite build && vite build --config vite.plugin.config.ts && node scripts/prepare-core.mjs",
+    "build": "node ../../scripts/generate-runtime-helper.mjs && vite build && vite build --config vite.plugin.config.ts && node scripts/prepare-core.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "prepack": "pnpm run build",
     "test:unit": "vitest run",
@@ -158,7 +158,8 @@
     "benchmark": "node benchmarks/compiler.mjs",
     "test": "pnpm run test:unit",
     "benchmark:branching": "node benchmarks/branching.mjs",
-    "benchmark:enum-patterns": "node benchmarks/enum-patterns.mjs"
+    "benchmark:enum-patterns": "node benchmarks/enum-patterns.mjs",
+    "benchmark:runtime": "node benchmarks/runtime-helpers.mjs"
   },
   "devDependencies": {
     "vite": "catalog:",
@@ -177,6 +178,7 @@
     "rollup": "catalog:",
     "vue": "catalog:",
     "webpack": "catalog:",
-    "@playwright/test": "catalog:"
+    "@playwright/test": "catalog:",
+    "@swiftuijs/twill-runtime": "workspace:*"
   }
 }

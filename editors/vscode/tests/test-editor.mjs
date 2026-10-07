@@ -2,7 +2,7 @@ import { build } from 'vite';
 import { nodeViteConfig } from '../../../packages/twill/scripts/node-vite-config.mjs';
 import { readVsix } from './read-vsix.mjs';
 import { runTests } from '@vscode/test-electron';
-import { mkdirSync, writeFileSync, rmSync, readFileSync, mkdtempSync } from 'node:fs';
+import { mkdirSync, writeFileSync, rmSync, readFileSync, mkdtempSync, cpSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import assert from 'node:assert/strict';
 import { join, dirname, resolve } from 'node:path';
@@ -37,6 +37,10 @@ const inferredRoot = mkdtempSync(join(tmpdir(), 'twill-editor-inferred-'));
 const inferredFile = join(inferredRoot, 'main.twill');
 writeFileSync(inferredFile, 'export const values = [1].map { n in n * 2 };\n');
 writeFileSync(join(workspace, 'host-fixtures.json'), JSON.stringify({ inferredFile }));
+const runtimePackage = join(workspace, 'node_modules/@swiftuijs/twill-runtime');
+mkdirSync(runtimePackage, { recursive: true });
+cpSync('packages/runtime/dist', join(runtimePackage, 'dist'), { recursive: true });
+cpSync('packages/runtime/package.json', join(runtimePackage, 'package.json'));
 const fixture = {
   'tsconfig.json': JSON.stringify({
     compilerOptions: {
@@ -57,6 +61,8 @@ const fixture = {
   'auto.twill': 'export const answer = twice(21);\n',
   'consumer.ts': 'import { twice } from "./api.twill"; export const result: number = twice(21);\n',
   'settings.twill': 'export const values = [1].map { n in n + 1 };\n',
+  'runtime.twill':
+    'export function run(input:number,events:number[]){\nlet value=input;\ndefer {events.push(value);}\ndefer {events.push(value+1);}\nreturn value;}\n',
   'settings-consumer.ts':
     'import { values } from "./settings.twill"; export const checked: number[] = values;\n',
   'imports.twill':

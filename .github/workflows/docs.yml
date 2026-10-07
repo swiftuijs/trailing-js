@@ -6,6 +6,8 @@ on:
       - 'docs/**'
       - 'apps/docs/**'
       - 'packages/twill/**'
+      - 'packages/runtime/**'
+      - 'scripts/generate-runtime-helper.mjs'
       - 'packages/formatter/**'
       - 'packages/highlight/**'
       - 'package.json'

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
 import { cpus, tmpdir, platform, arch } from 'node:os';
-import { readFileSync, writeFileSync, readdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, mkdtempSync, rmSync, existsSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
@@ -210,7 +210,15 @@ const report = {
   benchmarkDigest: createHash('sha256')
     .update(readFileSync(fileURLToPath(import.meta.url)))
     .digest('hex'),
-  environment: { node: process.version, platform: platform(), arch: arch(), cpu: cpus()[0]?.model },
+  environment: {
+    node: process.version,
+    platform: platform(),
+    arch: arch(),
+    cpu: cpus()[0]?.model,
+    cpuAffinity: existsSync('/proc/self/status')
+      ? readFileSync('/proc/self/status', 'utf8').match(/^Cpus_allowed_list:\s*(.+)$/m)?.[1]
+      : undefined,
+  },
   methodology: {
     iterations,
     samples,
@@ -229,3 +237,10 @@ const report = {
 const output = process.argv.indexOf('--output');
 if (output >= 0) writeFileSync(process.argv[output + 1], JSON.stringify(report, null, 2) + '\n');
 console.log(JSON.stringify(report, null, 2));
+
+if (process.argv.includes('--verify-performance'))
+  for (const result of results)
+    assert(
+      result.medianRatio <= 1.1,
+      `${result.name}: exceeds the native-comparable 1.10 ratio target; retain all observations and investigate`,
+    );

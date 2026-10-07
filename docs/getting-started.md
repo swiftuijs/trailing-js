@@ -76,7 +76,7 @@ export default defineConfig({ plugins: [twill()] });
 
 For React state-preserving development, use the [React Vite integration](./frameworks.md). Component libraries use their ordinary APIs; no component registry or Twill wrapper is needed.
 
-`twill.config.json` is optional. The default settings enable trailing closures, single-expression returns, `guard` and `defer`. JSX settings come from the project's normal `tsconfig.json` or a file-level `@jsxImportSource` pragma. Only create a Twill configuration when changing a language option, such as disabling implicit returns with `{ "implicitReturn": false }`.
+`twill.config.json` is optional. The default settings enable trailing closures, single-expression returns, `guard` and `defer`. JSX settings come from the project's normal `tsconfig.json` or a file-level `@jsxImportSource` pragma. Only create a Twill configuration when changing a language option, such as disabling implicit returns with `{ "implicitReturn": false }`. The unreleased [optional runtime](./runtime.md) prototype also accepts `runtime: "inline" | "external"`; inline remains the default.
 
 ## Format and lint
 

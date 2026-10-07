@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import ts from 'typescript';
 import type { TransformOptions } from './compiler.js';
 
-type Config = Pick<TransformOptions, 'implicitReturn' | 'jsxImportSource'>;
+type Config = Pick<TransformOptions, 'implicitReturn' | 'jsxImportSource' | 'runtime'>;
 const jsxConfigs = new Map<string, { files: Map<string, number>; source?: string }>();
 
 /** Use the project's standard JSX setting, including extended tsconfigs. */
@@ -48,10 +48,16 @@ export function loadConfig(root = process.cwd(), configFile?: string): Config {
     throw new Error(`${filename}: expected an object`);
   if (value.implicitReturn !== undefined && typeof value.implicitReturn !== 'boolean')
     throw new Error(`${filename}: implicitReturn must be a boolean`);
+  if (value.runtime !== undefined && !['inline', 'external'].includes(value.runtime))
+    throw new Error(`${filename}: runtime must be inline or external`);
   for (const key of Object.keys(value))
-    if (!['implicitReturn', '$schema'].includes(key))
+    if (!['implicitReturn', 'runtime', '$schema'].includes(key))
       throw new Error(`${filename}: unknown option ${key}`);
-  return { implicitReturn: value.implicitReturn, jsxImportSource };
+  return {
+    implicitReturn: value.implicitReturn,
+    jsxImportSource,
+    ...(value.runtime === undefined ? {} : { runtime: value.runtime }),
+  };
 }
 
 /** Config dependencies, including inherited tsconfigs and optional new files. */

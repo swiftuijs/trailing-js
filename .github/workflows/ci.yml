@@ -66,6 +66,7 @@ jobs:
           node packages/linter/tests/consumer.mjs
           node packages/export/tests/consumer.mjs
           node packages/highlight/tests/consumer.mjs
+          node packages/runtime/tests/consumer.mjs
       - name: Upload validated distributions
         uses: actions/upload-artifact@v7.0.1
         with:

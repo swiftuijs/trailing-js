@@ -69,3 +69,5 @@ The 0.x release line is experimental. Language semantics and integration contrac
 Report reproducible compiler or tooling problems through [GitHub Issues](https://github.com/swiftuijs/twill/issues). Include the package versions, host versions, relevant configuration and a minimal source example. `twill doctor --json` can help identify the project configuration; review its filenames and diagnostic text before sharing.
 
 Install the editor extension from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill). See [GitHub Releases](https://github.com/swiftuijs/twill/releases) for version announcements and offline VSIX downloads.
+
+The unreleased [optional runtime](./runtime.md) prototype shares dynamic synchronous cleanup through a versioned, zero-dependency package. Inline remains the default; async/single cleanup and native syntax fast paths retain their existing output. External mode uses module imports and needs a production dependency in applications/libraries.

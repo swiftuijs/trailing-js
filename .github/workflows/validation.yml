@@ -7,7 +7,7 @@ on:
         type: boolean
         default: true
       benchmarks:
-        description: Collect compiler, project, branching and React source timings
+        description: Collect compiler, project, branching, enum, runtime and React source timings
         type: boolean
         default: false
 permissions:
@@ -68,6 +68,8 @@ jobs:
       - run: pnpm benchmark --output benchmark-results.json
       - run: pnpm benchmark:project --output project-results.json
       - run: pnpm benchmark:branching --output branching-results.json
+      - run: pnpm benchmark:enum-patterns --output enum-patterns-results.json
+      - run: pnpm benchmark:runtime --output runtime-results.json
       - run: pnpm benchmark:react-framework --output ../../react-framework-results.json
       - uses: actions/upload-artifact@v7.0.1
         with:
@@ -77,4 +79,6 @@ jobs:
             benchmark-results.json
             project-results.json
             branching-results.json
+            enum-patterns-results.json
+            runtime-results.json
             react-framework-results.json

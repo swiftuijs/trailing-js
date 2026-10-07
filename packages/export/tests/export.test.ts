@@ -323,3 +323,26 @@ it.skipIf(process.platform === 'win32')(
     ).rejects.toThrow(/outside the source/);
   },
 );
+it('exports configured external cleanup with native types and an explicit runtime dependency', async () => {
+  const { directory, root, tsconfig, outDir } = fixture({
+    'main.twill':
+      'export function run(events:number[]){defer {events.push(1);}defer {events.push(2);}return 3;}',
+    'twill.config.json': '{"runtime":"external"}',
+  });
+  const runtime = join(import.meta.dirname, '../../runtime');
+  mkdirSync(join(directory, 'node_modules', '@swiftuijs'), { recursive: true });
+  symlinkSync(
+    runtime,
+    join(directory, 'node_modules', '@swiftuijs', 'twill-runtime'),
+    process.platform === 'win32' ? 'junction' : 'dir',
+  );
+  const result = await exportProject(tsconfig, { outDir });
+  expect(result.diagnostics).toEqual([]);
+  expect(result.written).toBe(true);
+  expect(readFileSync(join(outDir, 'main.ts'), 'utf8')).toContain(
+    '@swiftuijs/twill-runtime/helpers/v1',
+  );
+  expect(nativeDiagnostics(result.tsconfig)).toEqual([]);
+  expect(readFileSync(join(root, 'twill.config.json'), 'utf8')).toContain('external');
+  expect(existsSync(join(outDir, 'node_modules'))).toBe(false);
+});

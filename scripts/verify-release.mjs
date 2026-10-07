@@ -11,6 +11,7 @@ for (const path of [
   'packages/linter/package.json',
   'packages/export/package.json',
   'packages/highlight/package.json',
+  'packages/runtime/package.json',
   'editors/vscode/package.json',
   'editors/twill-typescript-plugin/package.json',
 ])
@@ -35,8 +36,9 @@ const budgets = {
   linter: 24 * 1024,
   export: 28 * 1024,
   highlight: 24 * 1024,
+  runtime: 8 * 1024,
 };
-for (const name of ['twill', 'formatter', 'linter', 'export', 'highlight']) {
+for (const name of ['twill', 'formatter', 'linter', 'export', 'highlight', 'runtime']) {
   const pkg = manifest(`packages/${name}/package.json`);
   assert(!pkg.private && pkg.publishConfig.access === 'public', `Publication metadata: ${name}`);
   assert(pkg.repository.url.includes('swiftuijs/twill'), `Repository metadata: ${name}`);

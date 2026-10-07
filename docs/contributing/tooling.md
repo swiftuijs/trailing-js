@@ -57,7 +57,7 @@ pnpm test:packed
 pnpm release:manifest
 ```
 
-The five tarballs and `dist/twill.vsix` can be installed into an independent application. Public package consumer tests must pass without workspace symlinks or hoisted development dependencies. See [releasing](./releasing.md) for review and publication.
+The six tarballs, including the optional runtime prototype, and `dist/twill.vsix` can be installed into an independent application. Public package consumer tests must pass without workspace symlinks or hoisted development dependencies. See [releasing](./releasing.md) for review and publication.
 
 ## Benchmark changes
 
@@ -65,7 +65,8 @@ The five tarballs and `dist/twill.vsix` can be installed into an independent app
 pnpm benchmark --output compiler-results.json
 pnpm benchmark:project --output project-results.json
 pnpm benchmark:branching --output branching-results.json
-pnpm benchmark:enum-patterns --output enum-patterns-results.json
+pnpm benchmark:enum-patterns --output enum-patterns-results.json --verify-performance
+pnpm benchmark:runtime --output runtime-results.json --verify-performance
 pnpm --filter @swiftuijs/twill test:size --output ../../bundle-results.json
 ```
 

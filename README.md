@@ -52,7 +52,7 @@ function describe(outcome: Outcome): string {
 }
 ```
 
-Ordinary closures become arrows; guards become branches. Direct-return switch expressions become native switches; other expression positions use an IIFE. No language runtime library is introduced. `defer` allocates callbacks and dynamic registrations use a local stack; general component child collection uses arrays. These costs are [documented and measured](https://twill.evecalm.com/performance).
+Ordinary closures become arrows; guards become branches. Direct-return switch expressions become native switches. The unreleased prototype also removes the IIFE from standalone identifier initializers; other expression contexts retain it. Inline emission introduces no runtime library. `defer` allocates callbacks and dynamic registrations use a local stack; general component child collection uses arrays. These costs are [documented and measured](https://twill.evecalm.com/performance).
 
 | File                         | Use                                                         |
 | ---------------------------- | ----------------------------------------------------------- |
@@ -68,7 +68,7 @@ Twill and native files can import each other through the build adapters, virtual
 
 The [playground](https://twill.evecalm.com/playground) runs the actual compiler locally, with live highlighting and generated-source inspection. It does not execute your code or type-check project imports.
 
-Install the compiler as a development dependency in your application. It supports Node 20.19+ or 22.12+ and introduces no language runtime dependency into your application bundle.
+Install the compiler as a development dependency in your application. It supports Node 20.19+ or 22.12+. Default inline emission introduces no language runtime dependency into your application bundle. The unreleased [optional runtime](https://twill.evecalm.com/runtime) prototype shares dynamic synchronous cleanup when explicitly selected.
 
 ```sh
 pnpm add -D @swiftuijs/twill
@@ -121,6 +121,7 @@ Install only the tools your project needs. Keep Twill packages on the same relea
 | [`@swiftuijs/twill-linter`](https://www.npmjs.com/package/@swiftuijs/twill-linter)       | ESLint flat configurations and source-mapped fixes             |
 | [`@swiftuijs/twill-export`](https://www.npmjs.com/package/@swiftuijs/twill-export)       | Optional `twill export` command for native TS/TSX output       |
 | [`@swiftuijs/twill-highlight`](https://www.npmjs.com/package/@swiftuijs/twill-highlight) | Browser/SSR Shiki integration and TextMate grammars            |
+| `@swiftuijs/twill-runtime` (unreleased prototype)                                        | Optional, versioned synchronous cleanup helpers                |
 
 Install the [Twill VS Code extension](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill) from Marketplace, or run `code --install-extension forth-ink.twill`. The extension bundles its editing tools. Your application installs the compiler for builds and whole-project checks. See the [editor guide](https://twill.evecalm.com/tooling) for configuration.
 
@@ -132,7 +133,7 @@ Representative native/dialect bundles are compared for behavior and byte size; r
 
 ## Contributing
 
-The repository is a pnpm workspace with Vite builds. See the [development guide](https://github.com/swiftuijs/twill/blob/main/docs/contributing/tooling.md) for checkout, dependency and build commands. Compiler, formatter, linter, export and highlight packages, editor packages, examples and the English documentation site own their code and tests.
+The repository is a pnpm workspace with Vite builds. See the [development guide](https://github.com/swiftuijs/twill/blob/main/docs/contributing/tooling.md) for checkout, dependency and build commands. Compiler, formatter, linter, export, highlight and optional runtime packages, editor packages, examples and the English documentation site own their code and tests.
 
 ```sh
 pnpm check

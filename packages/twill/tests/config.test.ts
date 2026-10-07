@@ -65,3 +65,22 @@ it('loads defaults without configuration, accepts schema metadata and diagnoses 
   writeFileSync(join(root, 'twill.config.json'), '{');
   expect(() => loadConfig(root)).toThrow();
 });
+it.each(['inline', 'external'])(
+  'loads the %s runtime option and tracks its config file',
+  (runtime) => {
+    const root = mkdtempSync(join(tmpdir(), 'twill-runtime-config-'));
+    roots.push(root);
+    writeFileSync(join(root, 'twill.config.json'), JSON.stringify({ runtime }));
+    expect(loadConfig(root).runtime).toBe(runtime);
+    expect(configurationFiles(root)).toContain(join(root, 'twill.config.json'));
+  },
+);
+it.each(['null', '"auto"', 'true', '1', '[]', '{}'])(
+  'rejects an invalid runtime configuration %s',
+  (source) => {
+    const root = mkdtempSync(join(tmpdir(), 'twill-runtime-config-'));
+    roots.push(root);
+    writeFileSync(join(root, 'twill.config.json'), `{"runtime":${source}}`);
+    expect(() => loadConfig(root)).toThrow('runtime must be inline or external');
+  },
+);

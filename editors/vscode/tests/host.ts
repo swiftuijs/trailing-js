@@ -659,6 +659,43 @@ export async function run() {
     'PASS: configuration saves refresh native TS hover and diagnostics with unsaved overlays',
   );
 
+  const runtimeDocument = await open('runtime.twill');
+  try {
+    await vscode.workspace.fs.writeFile(settingsUri, Buffer.from('{"runtime":"external"}'));
+    await eventually(
+      async () => {
+        await vscode.window.showTextDocument(runtimeDocument);
+        await vscode.commands.executeCommand('twill.showGenerated');
+        return vscode.window.activeTextEditor?.document.getText() ?? '';
+      },
+      (text) => text.includes('@swiftuijs/twill-runtime/helpers/v1'),
+    );
+    await eventually(
+      async () => vscode.languages.getDiagnostics(runtimeDocument.uri),
+      (items) => !items.some((item) => item.severity === vscode.DiagnosticSeverity.Error),
+    );
+    const edits = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
+      'vscode.executeDocumentRenameProvider',
+      runtimeDocument.uri,
+      position(runtimeDocument, 'value=input', 1),
+      'amount',
+    );
+    assert(edits && (await vscode.workspace.applyEdit(edits)));
+    assert(runtimeDocument.getText().includes('events.push(amount+1)'));
+    assert(!runtimeDocument.getText().includes('__twill'));
+  } finally {
+    await vscode.workspace.fs.delete(settingsUri);
+  }
+  await eventually(
+    async () => {
+      await vscode.window.showTextDocument(runtimeDocument);
+      await vscode.commands.executeCommand('twill.showGenerated');
+      return vscode.window.activeTextEditor?.document.getText() ?? '';
+    },
+    (text) => !text.includes('twill-runtime'),
+  );
+  console.log('PASS: external runtime config reload, generated preview, types and mapped rename');
+
   await vscode.window.showTextDocument(api);
   const originalSource = api.getText();
   await vscode.commands.executeCommand('twill.showGenerated');
