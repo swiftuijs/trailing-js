@@ -79,10 +79,13 @@ RFC 0018 accepts branch-local nullish bindings that reuse the guard/destructurin
 
 ## Proposed runtime/tooling capabilities
 
-| RFC                                      | Capability                                       | Status   | Dependencies           |
-| ---------------------------------------- | ------------------------------------------------ | -------- | ---------------------- |
-| [0032](0032-optional-runtime-helpers.md) | Optional versioned runtime helpers               | Proposed | 0009, 0026, 0027, 0028 |
-| [0033](0033-official-ai-skill.md)        | Official portable AI skill and website discovery | Proposed | 0025, 0026, 0029       |
+| RFC                                      | Capability                                       | Status   | Dependencies                           |
+| ---------------------------------------- | ------------------------------------------------ | -------- | -------------------------------------- |
+| [0032](0032-optional-runtime-helpers.md) | Optional versioned runtime helpers               | Proposed | 0009, 0026, 0027, 0028                 |
+| [0033](0033-official-ai-skill.md)        | Official portable AI skill and website discovery | Proposed | 0025, 0026, 0029                       |
+| [0034](0034-shell-scripting-toolkit.md)  | Swift-inspired shell scripting toolkit           | Proposed | 0026; optional 0002, 0007, 0009 syntax |
+
+[RFC 0034](0034-shell-scripting-toolkit.md) proposes an optional Node shell toolkit based on Swift Subprocess: argv-backed execution, explicit output policies, typed status/errors and owned process teardown. Existing Node loader execution is already available; the proposed SDK imports are not. Scoped streaming, pipelines, explicit shells and a runner are later milestones, without new language syntax.
 
 ## Implementation checklist
 
