@@ -21,7 +21,7 @@ const workloads = [
           name: 'native-executable-inherit',
           command: Command.path('/usr/bin/true'),
           options: {},
-          count: 128,
+          count: 512,
           expected: undefined,
         },
       ]
@@ -111,14 +111,19 @@ for (const workload of workloads) {
   }
   const pairs = [];
   for (let i = 0; i < samples; i++) {
-    const order = i % 2 ? ['sdk', 'native'] : ['native', 'sdk'],
-      pair = { order };
-    for (const label of order)
-      pair[label] = await batch(
-        label === 'sdk' ? Subprocess.run : nativeRun,
-        workload,
-        workload.count,
-      );
+    const pair = {
+      order: i % 2 ? ['sdk', 'native'] : ['native', 'sdk'],
+      native: { wallMs: 0, cpuUserMs: 0, cpuSystemMs: 0, operations: workload.count },
+      sdk: { wallMs: 0, cpuUserMs: 0, cpuSystemMs: 0, operations: workload.count },
+    };
+    // Interleave individual operations so OS load/CPU scaling affects both contemporaneously.
+    for (let operation = 0; operation < workload.count; operation++) {
+      const order = (i + operation) % 2 ? ['sdk', 'native'] : ['native', 'sdk'];
+      for (const label of order) {
+        const sample = await batch(label === 'sdk' ? Subprocess.run : nativeRun, workload, 1);
+        for (const key of ['wallMs', 'cpuUserMs', 'cpuSystemMs']) pair[label][key] += sample[key];
+      }
+    }
     pair.wallRatio = pair.sdk.wallMs / pair.native.wallMs;
     pairs.push(pair);
   }
@@ -229,7 +234,7 @@ const report = {
   }).trim(),
   sourceAndBuildSHA256: identities,
   scope:
-    'Successful direct-child execution. Paired sequential warm runs; CPU is parent-only. Cold startup and isolated memory observations are separate. Cancellation, concurrency and process trees are not inferred.',
+    'Successful direct-child execution. Paired warm samples alternate order for each individual operation; CPU is parent-only. Cold startup and isolated memory observations are separate. Cancellation, concurrency and process trees are not inferred.',
   samples,
   tolerance,
   results,

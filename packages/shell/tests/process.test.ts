@@ -1,7 +1,15 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { getEventListeners } from 'node:events';
 import childProcess, { ChildProcess } from 'node:child_process';
-import { mkdtempSync, readFileSync, writeFileSync, rmSync, existsSync, chmodSync } from 'node:fs';
+import {
+  mkdtempSync,
+  readFileSync,
+  writeFileSync,
+  rmSync,
+  existsSync,
+  chmodSync,
+  realpathSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -96,7 +104,7 @@ it('isolates cwd and snapshots environment updates while inheriting at launch', 
       }),
     ]);
     expect(JSON.parse(a.standardOutput)).toMatchObject({
-      cwd,
+      cwd: realpathSync(cwd),
       env: { TWILL_SHELL_TEST_UPDATE: 'snapshot' },
     });
     expect(JSON.parse(a.standardOutput).env[key]).toBeUndefined();
@@ -519,7 +527,16 @@ it('closes owned pipes held by an unowned descendant after the direct child exit
   pending.catch(() => {});
   const descendant = await ready(marker);
   const error = await pending.catch((error) => error);
-  expect(error).toBeInstanceOf(ProcessTimeoutError);
+  expect(
+    error,
+    JSON.stringify({
+      name: error.name,
+      cause: error.cause?.message,
+      status: error.terminationStatus,
+      output: error.standardOutput,
+      error: error.standardError,
+    }),
+  ).toBeInstanceOf(ProcessTimeoutError);
   expect(error.terminationStatus).toEqual({ kind: 'exited', code: 0 });
   gone(error.processIdentifier);
   // Direct-child ownership never implies process-tree termination.
