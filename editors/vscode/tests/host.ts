@@ -322,17 +322,18 @@ export async function run() {
     [enumeration, 'value:T', 0],
     [enumConsumer, 'result.value', 7],
   ] as const) {
+    let edits: vscode.WorkspaceEdit | undefined;
     try {
-      const edits = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
+      edits = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
         'vscode.executeDocumentRenameProvider',
         document.uri,
         position(document, token, offset),
         'renamedPayload',
       );
-      assert(!edits || edits.size === 0, 'Unsafe enum payload rename must be withheld');
     } catch (error) {
       assert.match(String(error), /renam/i);
     }
+    assert(!edits || edits.size === 0, 'Unsafe enum payload rename must be withheld');
   }
   const enumFormats = await vscode.commands.executeCommand<vscode.TextEdit[]>(
     'vscode.executeFormatDocumentProvider',
