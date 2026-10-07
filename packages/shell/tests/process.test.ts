@@ -517,33 +517,56 @@ it('bounds a lost backend close notification separately from an unresolved live 
   gone(pid);
 });
 
-it('closes owned pipes held by an unowned descendant after the direct child exits', async () => {
-  const marker = join(root(), 'descendant');
+it('matches native descriptor ownership when an unowned descendant outlives the parent', async () => {
+  const nativeMarker = join(root(), 'native-descendant');
+  const native = childProcess.spawn(process.execPath, [fixture, 'descendant', nativeMarker], {
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  children.push(native.pid!);
+  native.stdout!.resume();
+  native.stderr!.resume();
+  let nativeClosed = false;
+  const closed = new Promise<void>((resolve, reject) => {
+    native
+      .once('close', () => {
+        nativeClosed = true;
+        resolve();
+      })
+      .once('error', reject);
+  });
+  const exited = new Promise<number | null>((resolve) =>
+    native.once('exit', (code) => resolve(code)),
+  );
+  const nativeDescendant = await ready(nativeMarker);
+  expect(await exited).toBe(0);
+  await new Promise<void>((resolve) => setTimeout(resolve, 50));
+  // POSIX pipe writers survive the parent; Windows native pipe EOF follows its exit.
+  const retainedNativePipe = !nativeClosed;
+  process.kill(nativeDescendant, 'SIGKILL');
+  await closed;
+  gone(native.pid!);
+
+  const marker = join(root(), 'sdk-descendant');
   const pending = Subprocess.run(command('descendant', marker), {
     output: text(),
     error: text(),
     timeoutMs: 1000,
   });
   pending.catch(() => {});
-  const descendant = await ready(marker);
-  const error = await pending.catch((error) => error);
-  expect(
-    error,
-    JSON.stringify({
-      name: error.name,
-      cause: error.cause?.message,
-      status: error.terminationStatus,
-      output: error.standardOutput,
-      error: error.standardError,
-    }),
-  ).toBeInstanceOf(ProcessTimeoutError);
-  expect(error.terminationStatus).toEqual({ kind: 'exited', code: 0 });
-  gone(error.processIdentifier);
-  // Direct-child ownership never implies process-tree termination.
+  const descendant = await ready(marker),
+    outcome = await pending.catch((error) => error);
+  expect(outcome.terminationStatus).toEqual({ kind: 'exited', code: 0 });
+  if (retainedNativePipe) expect(outcome).toBeInstanceOf(ProcessTimeoutError);
+  else {
+    expect(outcome).not.toBeInstanceOf(ProcessError);
+    expect(outcome.standardOutput).toBe('');
+    expect(outcome.standardError).toBe('');
+  }
+  gone(outcome.processIdentifier);
+  // Direct-child ownership never implies process-tree termination on either platform.
   expect(() => process.kill(descendant, 0)).not.toThrow();
   process.kill(descendant, 'SIGKILL');
 });
-
 it('rejects a final UTF-8 decoding failure after joining the child', async () => {
   const original = Buffer.prototype.toString,
     cause = Error('decode allocation failed');
