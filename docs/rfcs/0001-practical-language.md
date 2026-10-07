@@ -1,6 +1,8 @@
 # RFC 0001: Practical language direction
 
-**Status: Active design guidance.** This document defines product priorities and acceptance criteria. Unimplemented candidates are identified explicitly; this is not a language specification. The public [language guide](../language.md) and [syntax contract](../syntax.md) describe shipped behavior.
+**Status: Active design guidance.** This document defines product priorities and acceptance criteria. The [RFC index](README.md) assigns an independent RFC to every language feature and public tooling capability, with separate released and proposed statuses. This is not a language specification. The public [language guide](../language.md) and [syntax contract](../syntax.md) describe shipped behavior.
+
+The roadmap may define new Twill semantics, including explicit runtime-backed features. Released behavior is the compatibility baseline, not a permanent restriction on language design. Proposals that change existing spelling, identity, coercion or scheduling must specify native JS/TS boundaries, costs and a versioned migration. Acceptance is recorded through RFC review; implementation PRs link their feature RFCs.
 
 ## Problem and product promise
 
@@ -21,14 +23,14 @@ The [ledger workflow](https://github.com/swiftuijs/twill/blob/main/examples/gene
 | Swift idea                                            | Twill direction                                                                                                         | Priority / status                                                      |
 | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
 | Early exit and optional binding                       | `guard` / `guard const` with destructured optional bindings and explicit nullish semantics                              | Implemented foundation                                                 |
-| Enums with associated values                          | Ordinary TS discriminated unions, native narrowing and existing result libraries                                        | Usable now; no new enum runtime or parallel type system                |
+| Enums with associated values                          | Ordinary unions are usable now; RFC 0015 proposes native record constructors and union declarations                     | Proposed first implementation milestone                                |
 | Exhaustive branching                                  | Checker-proven expressions over native TS unions; typed ESLint also checks native switches, including explicit defaults | Implemented; broader matching remains a candidate                      |
 | Branch-scoped optional binding (`if let`)             | Consider an explicit immutable branch binding, without changing JS `let`                                                | Lower-priority candidate; spelling undecided                           |
 | Immutable data discipline                             | Native `const`, `readonly`, readonly collections and application-specific validation                                    | Usable now; no hidden freezing or copying                              |
 | Typed failures                                        | Local TS unions or normal libraries for expected failures; exceptions retain JS propagation                             | Usable now; no blanket exception-to-null conversion                    |
 | Structured concurrency                                | Explicit `AbortSignal`, ownership and normal library APIs                                                               | Patterns now; task groups require separate evidence and runtime design |
 | Property wrappers, observation, macros and decorators | Prefer explicit calls and framework APIs; hidden effects must justify their own semantics and tooling                   | No automatic port; high scrutiny                                       |
-| Struct copying, actors and ownership enforcement      | Would change identity, scheduling or the semantic system                                                                | Outside the baseline                                                   |
+| Struct copying, actors and ownership enforcement      | Require explicit identity, scheduling, lifetime and native-boundary contracts                                           | Immutable values and task scopes are proposed; actors remain unscoped  |
 
 This is a prioritization proposal, not a commitment to implement every row. New syntax should beat equivalent native TS in a specific task. Reducing punctuation alone does not justify weakening inference, source positions or interoperability.
 
@@ -69,7 +71,7 @@ The optional `@swiftuijs/twill-export` package supplies `twill export`, exportin
 Each new language feature needs:
 
 - A recurring real task, before/after examples and a native TS or library alternative. Explain which error or maintenance burden it removes.
-- A complete lowering and scope/error/evaluation-order contract. Standard JS keywords and valid existing syntax keep their meaning.
+- A complete lowering and scope/error/evaluation-order contract. Define existing-syntax boundaries. Any proposed reinterpretation needs an explicit version and migration; native .ts/.js modules keep their own parser semantics.
 - Compiler execution and negative tests, nesting and adjacent native syntax tests; a failure must be a diagnostic rather than silent guessing.
 - Type inference, diagnostic mapping, formatter idempotence, lint positions/fix safety, highlighting and packaged editor behavior, including incomplete input and mixed native files.
 - Actual build/Node/framework validation as relevant, with no application-library special cases.
@@ -82,7 +84,7 @@ No feature is complete when only the parser accepts it. There is no target numbe
 
 1. Establish practical patterns, an executable non-UI workflow and opt-in exhaustive linting using current types and syntax.
 2. Apply the full acceptance gate to every extension of guards or expression matching.
-3. Address adoption costs, incomplete-input assistance and refactoring gaps before expanding expression matching.
+3. Implement associated-value enums against existing union patterns, then evaluate broader patterns and error propagation through their independent RFCs. Address adoption, incomplete-input assistance and refactoring gaps alongside each feature.
 4. Pilot in a few real backend and component projects. Compare equivalent TS/Twill tasks: understanding control flow, extending a state union, diagnosing failures and managing resources. Track setup effort, editor failures, build/editor latency and generated runtime behavior on the same hardware and project.
 
 Fewer lines are insufficient evidence. Look for clearer reviews, omissions discovered before execution, correct failure/cleanup behavior and an easy route back to native TS. Small pilots supply feedback rather than proof of universal productivity. A stable production claim also needs the existing release and support criteria, not just a successful demo.

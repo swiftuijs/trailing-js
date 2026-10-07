@@ -1,12 +1,14 @@
 # Contributing
 
-These guides describe development of Twill itself. Application users should start with the [user documentation](https://twill.evecalm.com/). Repository references: [development and workspace commands](docs/contributing/tooling.md), [compiler architecture](docs/contributing/architecture.md), [release process](docs/contributing/releasing.md), [GitHub language registration](docs/contributing/github.md) and [language proposals](docs/rfcs/0001-practical-language.md).
+These guides describe development of Twill itself. Application users should start with the [user documentation](https://twill.evecalm.com/). Repository references: [development and workspace commands](docs/contributing/tooling.md), [compiler architecture](docs/contributing/architecture.md), [release process](docs/contributing/releasing.md), [GitHub language registration](docs/contributing/github.md) and [language proposals and RFC process](docs/rfcs/README.md).
 
 Use Node 22.13+ or Node 24+ and the pnpm version pinned in `packageManager`. Install with `pnpm install --frozen-lockfile`. Run `pnpm check` before submitting changes; it includes formatting checks. `pnpm test:watch` supports compiler development; `pnpm dev:react` and `pnpm dev:vue` run the examples after a build.
 
 For a syntax change, add execution or negative-diagnostic tests covering the new behavior, nearby ordinary JS/TS syntax, and nesting. For mapping changes, check real diagnostic/editor positions. Build integrations must be exercised with their actual tool. Avoid replacing parser behavior with broad string rewrites.
 
-Language proposals start with a concrete JS/TS problem and an equivalent handwritten baseline. [RFC 0001](docs/rfcs/0001-practical-language.md) is a draft direction and feature acceptance process, not a list of shipped syntax. A proposal needs explicit semantics, costs, ecosystem boundaries and a plan for compiler, checker, formatter, linter and editor support. Existing JS/TS or an ordinary library is preferable when it solves the problem equally well.
+Every language feature and public tooling capability has an independent [RFC](docs/rfcs/README.md). Write or amend it before the implementation PR, using [the template](docs/rfcs/TEMPLATE.md). Link the RFC from the PR and record dependencies, supported scope and validation. New proposals stay proposed until a maintainer records acceptance; implementation and release are separate statuses. Retrospective RFCs document shipped behavior without inventing earlier approval.
+
+Start with a concrete JS/TS problem and an equivalent handwritten baseline. A proposal needs explicit semantics, costs, ecosystem boundaries and compiler, checker, formatter, linter, highlighting and editor support. Twill can define new semantics; changes to existing spelling or runtime behavior need an explicit native boundary and versioned migration. [RFC 0001](docs/rfcs/0001-practical-language.md) provides direction; the individual feature RFCs specify the contracts.
 
 Keep the compiler independent of frameworks and libraries. Put runtime adaptation in an optional entry point, and use example applications for library-specific usage. Update the syntax contract when behavior or compatibility changes.
 
