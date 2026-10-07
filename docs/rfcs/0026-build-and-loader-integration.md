@@ -21,6 +21,16 @@ Host adapters pass module/runtime options into the same compiler and TS lowering
 
 Precompile to native sources or use RFC 0028's export when a host lacks an adapter. Vue SFC and arbitrary SSR-framework integration are outside the compiler contract. Standard native files must retain their parser meaning.
 
+## Development-mode amendment (unreleased)
+
+The adapters already exist in 0.1.2. This amendment specifies configuration freshness and real-host development validation; it does not add another language feature or claim the fixes are published.
+
+Rollup watch, Webpack/Rspack watch and esbuild contexts must rebuild changed dialect and native dependencies, report a failed compilation, and recover after correction without recreating the plugin. Each build reads the current project configuration once, before module transforms. Explicit adapter options retain precedence. Configuration dependencies include inherited tsconfigs and optional project configs; creating, editing or deleting them must invalidate affected transforms. Track dependencies before compilation so failed source edits can recover.
+
+Vite development retains its server watcher and full reload for language/JSX configuration changes. The React adapter separately verifies Fast Refresh with retained hook state. Incremental output from other adapters does not imply React/Vue state preservation or replace their framework HMR integrations. Source maps must continue to name the original mixed-project sources after rebuilds.
+
+Configuration refresh belongs to a build boundary, not each module or generated application code. The change adds no emitted helper, closure, copy or scheduling. Native compilation, dependency caches, filesystem watching and framework reload policies remain owned by the host. Real watch tests must close all watchers/compilers, including on failure. Rollup's Linux native watcher can lose repeated atomic replacements even with a plain native transform; validate ordinary default-watcher saves and atomic saves with host-configured polling rather than imposing polling on every user.
+
 ## Validation and completion
 
 [Real build tests](../../packages/twill/tests/build.test.ts), [interop](../../packages/twill/tests/interop.test.ts), [runtime hooks](../../packages/twill/tests/runtime-hooks.test.ts), independent Node consumers and React/Vue examples exercise actual hosts. Verify sourcemaps, JSX runtime settings, errors, disposal, dependency delegation and Fast Refresh behavior.

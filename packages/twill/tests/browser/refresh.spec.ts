@@ -102,6 +102,8 @@ test('external synchronous cleanup runs in the browser and config reload returns
   try {
     writeFileSync(config, '{"runtime":"external"}');
     await page.goto('/');
+    // Configuration changes can trigger a full reload after initial navigation.
+    await page.waitForLoadState('networkidle');
     await expect(page.locator('output')).toHaveText('Value: 42');
     const result = await page.evaluate(async () => {
       const modulePath = '/cleanup.twill';
@@ -144,6 +146,8 @@ test('match expressions execute through Vite while native switch fallthrough rem
   );
   try {
     await page.goto('/');
+    // Let the preceding test's config cleanup reload finish before import.
+    await page.waitForLoadState('networkidle');
     const result = await page.evaluate(async () => {
       const path = '/match.twill';
       const module = await import(/* @vite-ignore */ path);
