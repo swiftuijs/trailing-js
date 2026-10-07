@@ -11,7 +11,7 @@ Each RFC must identify the Twill addition: its new syntax, semantics, checking g
 ## Status and review process
 
 - **Implemented** records behavior already shipped in 0.1.2. These are retrospective specifications, not claims that an earlier RFC review happened.
-- **Proposed** describes unimplemented behavior. Syntax examples in a proposed RFC are design examples and are not accepted by released compilers.
+- **Proposed** describes behavior awaiting design acceptance, which may have an implementation prototype. Syntax examples in a proposed RFC are design examples and are not accepted by released compilers.
 - **Accepted** records a maintainer's design decision and links the review. Acceptance does not mean the feature is available.
 - **Implementing** links an implementation PR and its remaining acceptance work.
 - **Implemented** for a new feature requires a merged implementation and a release/version reference. Rejected and withdrawn proposals retain their numbers and decision history.
@@ -48,12 +48,12 @@ The language may introduce its own semantics. Changes to existing JS/TS spelling
 
 ## Accepted and proposed language features
 
-The first implementation milestone is associated-value enums using existing object-pattern switches. Broader pattern matching is a separate proposal. Error propagation follows after those foundations; structured concurrency needs its own runtime design.
+Associated-value enums are accepted and merged, but unreleased. RFC 0016 next prototypes explicit enum-case patterns using named native bindings; predicates and broader matching remain deferred. Error propagation follows after those foundations; structured concurrency needs its own runtime design.
 
 | RFC                                      | Feature                               | Status   | Dependencies                                |
 | ---------------------------------------- | ------------------------------------- | -------- | ------------------------------------------- |
 | [0015](0015-associated-value-enums.md)   | Associated-value enums                | Accepted | 0010, 0011                                  |
-| [0016](0016-pattern-matching.md)         | Broader pattern matching              | Proposed | 0010, 0011; enum patterns depend on 0015    |
+| [0016](0016-pattern-matching.md)         | Explicit enum-case patterns           | Proposed | 0010, 0011, 0015                            |
 | [0017](0017-if-expressions.md)           | If expressions                        | Proposed | None                                        |
 | [0018](0018-optional-branch-bindings.md) | Nullish bindings in if branches       | Proposed | 0007, 0008                                  |
 | [0019](0019-typed-error-propagation.md)  | Explicit typed error propagation      | Proposed | 0015 for the optional result representation |

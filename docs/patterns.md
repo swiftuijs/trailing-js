@@ -118,3 +118,23 @@ These checks observe cancellation at explicit boundaries. They do not interrupt 
 Use the [ledger workflow](https://github.com/swiftuijs/twill/tree/main/examples/general) as a reference for your own application. It combines boundary validation, an owned resource and expected outcomes using ordinary TS interfaces.
 
 The example verifies empty and valid ledgers, malformed input, invalid rows, integer overflow, acquisition/read/cleanup failures and cancellation before and after acquisition. It also reads a real temporary file and verifies that its owned handle is closed before the result resolves. The Vite build includes the workflow in the normal SSR bundle.
+
+## Match associated values (unreleased prototype)
+
+Accepted associated-value enums describe tagged records once. RFC 0016 additionally prototypes explicit case descriptors with named payload bindings:
+
+```twill
+enum FetchState<T> {
+  case idle;
+  case loaded(value: T);
+}
+
+function length(state: FetchState<string>) {
+  return switch (state) {
+    case enum FetchState.idle(): 0;
+    case enum FetchState.loaded({ value: text }): text.length;
+  };
+}
+```
+
+This replaces repeated tag literals with checked factory references. Run `twill check` to catch omitted variants and invalid fields. Selection adds no factory call or matching runtime; direct-return output uses a native switch and destructuring. Structural records still need normal boundary validation. This prototype is not in npm/Marketplace 0.1.2; [the syntax guide](syntax.md#explicit-enum-case-patterns-unreleased) describes review status, compatibility and allocation costs.

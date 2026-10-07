@@ -197,3 +197,7 @@ See [support and limitations](./readiness.md) for tested versions and [libraries
 ## Highlight code on the web
 
 Use the [web highlighting package](./highlighting.md) for static or browser-rendered code blocks. It integrates with Shiki and VitePress independently of the VS Code extension.
+
+## Unreleased enum-pattern tooling
+
+The RFC 0016 prototype supports formatting and highlighting `case enum State.loaded({ value })`, checked descriptors and bindings, mapped navigation/completion, native export and declarations. Descriptor method rename is withheld because its name determines the literal tag; owner/import aliases and local bindings can be edited safely. Typed ESLint still reports omitted variants but withholds native statement-case suggestions inside switch expressions. Safe source edits remain available. See [syntax and status](syntax.md#explicit-enum-case-patterns-unreleased); npm/Marketplace 0.1.2 does not include this prototype.

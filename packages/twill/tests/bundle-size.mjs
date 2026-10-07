@@ -59,6 +59,17 @@ const fixtures = [
       'export function run(input: {kind:"ok";value:number;extra?:boolean}|{kind:"bad";error:string}) { const subject=input; switch(subject.kind){case "ok": {const {kind,value,...rest}=subject; return [value,rest];}case "bad": {const {kind,error}=subject;return error;}} throw new TypeError("Non-exhaustive switch expression"); }',
   },
   {
+    name: 'direct-enum-pattern',
+    maxExtraBytes: 2,
+    extension: 'twill',
+    nativeExtension: 'ts',
+    inputs: [{ kind: 'idle' }, { kind: 'loaded', value: 3 }, { kind: 'loaded', extra: true }],
+    sugar:
+      'declare const State:{idle():{kind:"idle"};loaded(value:number):{kind:"loaded";value:number}};export function run(input:{kind:"idle"}|{kind:"loaded";value?:number;extra?:boolean}){return switch(input){case enum State.idle():0;case enum State.loaded({value=4,...rest}):[value,rest];};}',
+    native:
+      'export function run(input:{kind:"idle"}|{kind:"loaded";value?:number;extra?:boolean}){const subject=input;const kind=subject.kind;switch(kind){case "idle":return 0;case "loaded":{const {value=4,...rest}=subject;return [value,rest];}}throw new TypeError("Non-exhaustive switch expression");}',
+  },
+  {
     name: 'react-single-child',
     extension: 'twillx',
     nativeExtension: 'tsx',
@@ -94,7 +105,7 @@ try {
     assert(
       Buffer.byteLength(dialect.code) <=
         Buffer.byteLength(native.code) + (fixture.maxExtraBytes ?? 0),
-      `${fixture.name}: application output exceeded its native comparison budget`,
+      `${fixture.name}: application output exceeded its native comparison budget (${Buffer.byteLength(dialect.code)} vs ${Buffer.byteLength(native.code)} bytes)\n${dialect.code}\n${native.code}`,
     );
     assert(
       !dialect.inputs.some((input) => /node_modules/.test(input)),
@@ -134,7 +145,7 @@ try {
     node: process.version,
     packageVersion: JSON.parse(readFileSync(new URL('../package.json', import.meta.url))).version,
     scope:
-      'Minified application output for five representative supported paths; excludes host/framework runtime and does not cover expression IIFEs, dynamic cleanup or child collection.',
+      'Minified application output for six representative supported paths; excludes host/framework runtime and does not cover expression IIFEs, dynamic cleanup or child collection.',
     results,
   };
   const output = process.argv.indexOf('--output');

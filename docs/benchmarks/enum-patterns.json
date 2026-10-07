@@ -1,0 +1,203 @@
+{
+  "timestamp": "2026-10-07T10:03:50.066Z",
+  "commit": "3d73325843272d596cbbfc0451d5c2ff3fc369e6",
+  "tree": "2097ece2df828f9f9ce8e7820a3041baeb0c228d",
+  "workingTreeDirty": true,
+  "buildDigest": "75642f250e996d0e40cae734e722944a5657c0a7797e9a87c65d0dc82dca3e6d",
+  "benchmarkDigest": "4c927beecd4b1c489365ea45803fa44ae434a257cf3c675520bb2a5811aa37a2",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "arch": "x64",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C"
+  },
+  "methodology": {
+    "iterations": 1000000,
+    "samples": 15,
+    "warmups": 5,
+    "runtime": "Isolated warmed V8 processes; native direct switch or local assignment, equivalent inputs/checksums. Unchecked JS transformation for runtime; erased descriptors are verified separately by checked TS bundle tests.",
+    "checking": "One cold project/check and warmed unchanged diagnostics, standard libs included, filesystem fixture creation excluded. Synthetic functions share two native union variants.",
+    "scope": "No application, editor latency or cross-engine guarantees. IIFE and native rest allocation are reported explicitly. Timing ratios are observations, not CI gates."
+  },
+  "results": [
+    {
+      "name": "direct-named-payload",
+      "bytes": 161,
+      "gzipBytes": 148,
+      "nativeBytes": 159,
+      "nativeGzipBytes": 147,
+      "dialect": {
+        "medianMs": 7.010319999999979,
+        "p95Ms": 9.55946199999994,
+        "checksum": 3333330
+      },
+      "native": {
+        "medianMs": 6.29716099999996,
+        "p95Ms": 11.732559999999921,
+        "checksum": 3333330
+      },
+      "medianRatio": 1.1132508760693944,
+      "extraIIFE": false,
+      "restAllocation": false
+    },
+    {
+      "name": "expression-named-payload",
+      "bytes": 177,
+      "gzipBytes": 158,
+      "nativeBytes": 175,
+      "nativeGzipBytes": 161,
+      "dialect": {
+        "medianMs": 21.157960000000003,
+        "p95Ms": 157.47557100000006,
+        "checksum": 6666660
+      },
+      "native": {
+        "medianMs": 6.92752200000001,
+        "p95Ms": 12.534827000000007,
+        "checksum": 6666660
+      },
+      "medianRatio": 3.0541887849652403,
+      "extraIIFE": true,
+      "restAllocation": false
+    },
+    {
+      "name": "native-object-rest",
+      "bytes": 180,
+      "gzipBytes": 161,
+      "nativeBytes": 178,
+      "nativeGzipBytes": 160,
+      "dialect": {
+        "medianMs": 37.877709000000095,
+        "p95Ms": 69.80498399999999,
+        "checksum": 7333326
+      },
+      "native": {
+        "medianMs": 36.189362000000074,
+        "p95Ms": 43.708826000000045,
+        "checksum": 7333326
+      },
+      "medianRatio": 1.0466531297235917,
+      "extraIIFE": false,
+      "restAllocation": true
+    }
+  ],
+  "compilation": [
+    {
+      "functions": 10,
+      "sourceBytes": 1399,
+      "generatedBytes": 5779,
+      "transform": {
+        "medianMs": 4.489977000000181,
+        "p95Ms": 19.786966000000575,
+        "checksum": 5779
+      },
+      "nativeUnchangedTransform": {
+        "medianMs": 3.3292300000002797,
+        "p95Ms": 6.932284999999865,
+        "checksum": 2239
+      },
+      "checking": {
+        "dialect": {
+          "coldProjectAndCheckMs": 675.4929579999998,
+          "warmCheck": {
+            "medianMs": 0.045785000000250875,
+            "p95Ms": 0.16801800000030198,
+            "checksum": 0
+          },
+          "coldDescriptorRenameMs": 14.22787199999948,
+          "cachedDescriptorRename": {
+            "medianMs": 0.24593199999981152,
+            "p95Ms": 0.6872290000001158,
+            "checksum": 0
+          }
+        },
+        "native": {
+          "coldProjectAndCheckMs": 299.1721689999995,
+          "warmCheck": {
+            "medianMs": 0.020967999999811582,
+            "p95Ms": 0.5403759999999238,
+            "checksum": 0
+          }
+        }
+      }
+    },
+    {
+      "functions": 100,
+      "sourceBytes": 12739,
+      "generatedBytes": 57109,
+      "transform": {
+        "medianMs": 24.26334599999973,
+        "p95Ms": 34.60529400000087,
+        "checksum": 57109
+      },
+      "nativeUnchangedTransform": {
+        "medianMs": 24.47364700000071,
+        "p95Ms": 40.01555600000029,
+        "checksum": 21139
+      },
+      "checking": {
+        "dialect": {
+          "coldProjectAndCheckMs": 406.9102499999999,
+          "warmCheck": {
+            "medianMs": 0.021128999999746156,
+            "p95Ms": 0.025604000000384985,
+            "checksum": 0
+          },
+          "coldDescriptorRenameMs": 17.173523999999816,
+          "cachedDescriptorRename": {
+            "medianMs": 0.1309930000006716,
+            "p95Ms": 0.5643519999994169,
+            "checksum": 0
+          }
+        },
+        "native": {
+          "coldProjectAndCheckMs": 281.0813989999997,
+          "warmCheck": {
+            "medianMs": 0.01945400000022346,
+            "p95Ms": 0.02979499999946711,
+            "checksum": 0
+          }
+        }
+      }
+    },
+    {
+      "functions": 1000,
+      "sourceBytes": 127039,
+      "generatedBytes": 576709,
+      "transform": {
+        "medianMs": 245.2027079999989,
+        "p95Ms": 301.10080000000016,
+        "checksum": 576709
+      },
+      "nativeUnchangedTransform": {
+        "medianMs": 243.96130099999937,
+        "p95Ms": 434.3274710000005,
+        "checksum": 211039
+      },
+      "checking": {
+        "dialect": {
+          "coldProjectAndCheckMs": 1088.820471000001,
+          "warmCheck": {
+            "medianMs": 0.08015599999998813,
+            "p95Ms": 0.37890499999957683,
+            "checksum": 0
+          },
+          "coldDescriptorRenameMs": 271.534427999999,
+          "cachedDescriptorRename": {
+            "medianMs": 0.28348299999925075,
+            "p95Ms": 0.3924360000000888,
+            "checksum": 0
+          }
+        },
+        "native": {
+          "coldProjectAndCheckMs": 396.239818,
+          "warmCheck": {
+            "medianMs": 0.17003099999965343,
+            "p95Ms": 0.25651400000060676,
+            "checksum": 0
+          }
+        }
+      }
+    }
+  ]
+}

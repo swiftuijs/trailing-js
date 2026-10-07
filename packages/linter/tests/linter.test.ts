@@ -225,3 +225,55 @@ describe('ESLint Twill processor', () => {
     },
   );
 });
+
+it('checks typed enum patterns and maps exhaustiveness without lowering source fixes', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'twill-enum-lint-'));
+  try {
+    writeFileSync(
+      join(root, 'tsconfig.json'),
+      JSON.stringify({
+        compilerOptions: {
+          strict: true,
+          target: 'ES2022',
+          module: 'ESNext',
+          moduleResolution: 'Bundler',
+          types: [],
+        },
+        include: ['**/*'],
+      }),
+    );
+    const filename = join(root, 'main.twill');
+    const source =
+      'export enum State{case idle;case loaded(value:number);}\nexport function run(input:State){return switch(input){case enum State.loaded({value}):(()=>{let result=value;return result;})();default:0;};}';
+    const eslint = new ESLint({
+      cwd: root,
+      overrideConfigFile: true,
+      overrideConfig: [
+        ...twill.configs.recommendedTypeChecked!,
+        { files: ['**/*.ts'], rules: { 'prefer-const': 'error' } },
+      ],
+      fix: true,
+    });
+    writeFileSync(filename, source);
+    const [result] = await eslint.lintText(source, { filePath: filename });
+    expect(result!.messages).toEqual([
+      expect.objectContaining({
+        ruleId: '@typescript-eslint/switch-exhaustiveness-check',
+        line: 2,
+        column: source.split('\n')[1]!.indexOf('switch') + 1,
+        suggestions: [],
+        message: expect.stringContaining('"idle"'),
+      }),
+    ]);
+    expect(result!.output).toContain('case enum State.loaded({value})');
+    expect(result!.output).toContain('const result=value');
+    expect(result!.output).not.toContain('__twill');
+    const complete = source.replace('default:0;', 'case enum State.idle():0;');
+    writeFileSync(filename, complete);
+    const [valid] = await eslint.lintText(complete, { filePath: filename });
+    expect(valid!.messages).toEqual([]);
+  } finally {
+    disposeProjects();
+    rmSync(root, { recursive: true, force: true });
+  }
+});

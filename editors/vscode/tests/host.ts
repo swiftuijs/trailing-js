@@ -303,6 +303,70 @@ export async function run() {
     'PASS: destructured guard and pattern switch completion, rename, formatting and exhaustive diagnostics',
   );
 
+  const nativePattern = await open('native-patterns.twill');
+  const nativeFactory = await open('pattern-factory.ts');
+  await eventually(
+    async () => vscode.languages.getDiagnostics(nativePattern.uri),
+    (items) => items.length === 0,
+  );
+  const patternMembers = await eventually(
+    () => completions(nativePattern, position(nativePattern, 'Cases.loaded', 6)),
+    (list) => !!list?.items.some((item) => label(item) === 'loaded'),
+  );
+  assert(patternMembers!.items.some((item) => label(item) === 'loaded'));
+  const patternDefinitions = await vscode.commands.executeCommand<
+    (vscode.Location | vscode.LocationLink)[]
+  >(
+    'vscode.executeDefinitionProvider',
+    nativePattern.uri,
+    position(nativePattern, 'Cases.loaded', 6),
+  );
+  assert(
+    patternDefinitions?.some(
+      (item) => ('uri' in item ? item.uri : item.targetUri).fsPath === nativeFactory.uri.fsPath,
+    ),
+  );
+  await eventually(
+    () =>
+      vscode.commands.executeCommand<vscode.Location[]>(
+        'vscode.executeReferenceProvider',
+        nativeFactory.uri,
+        position(nativeFactory, 'loaded', 0),
+      ),
+    (items) => !!items?.some((item) => item.uri.fsPath === nativePattern.uri.fsPath),
+  );
+  for (const document of [nativePattern, nativeFactory]) {
+    let edits: vscode.WorkspaceEdit | undefined;
+    try {
+      edits = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
+        'vscode.executeDocumentRenameProvider',
+        document.uri,
+        position(document, 'loaded', 0),
+        'renamedCase',
+      );
+    } catch (error) {
+      assert.match(String(error), /renam/i);
+    }
+    assert(
+      !edits || edits.size === 0,
+      'Descriptor rename must keep its linked tag intact: ' + document.uri.fsPath,
+    );
+  }
+  const nativeOwnerRename = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
+    'vscode.executeDocumentRenameProvider',
+    nativeFactory.uri,
+    position(nativeFactory, 'Factory', 0),
+    'LibraryFactory',
+  );
+  assert(nativeOwnerRename && nativeOwnerRename.size > 0);
+  assert(await vscode.workspace.applyEdit(nativeOwnerRename));
+  assert(nativePattern.getText().includes('LibraryFactory as Cases'));
+  assert(nativePattern.getText().includes('case enum Cases.loaded'));
+  await eventually(
+    async () => vscode.languages.getDiagnostics(nativePattern.uri),
+    (items) => items.length === 0,
+  );
+
   const enumeration = await open('enums.twill');
   await eventually(
     async () => vscode.languages.getDiagnostics(enumeration.uri),
@@ -345,6 +409,17 @@ export async function run() {
   enumFormatEdit.set(enumeration.uri, enumFormats!);
   assert(await vscode.workspace.applyEdit(enumFormatEdit));
   assert(enumeration.getText().includes('case loaded(value: T)'));
+  assert(enumeration.getText().includes('case enum State.loaded({ value: amount })'));
+  const patternRename = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
+    'vscode.executeDocumentRenameProvider',
+    enumeration.uri,
+    position(enumeration, 'amount }', 0),
+    'payloadAmount',
+  );
+  assert(patternRename && patternRename.size > 0);
+  assert(await vscode.workspace.applyEdit(patternRename));
+  assert(enumeration.getText().includes('value: payloadAmount'));
+  assert(enumeration.getText().includes('payloadAmount.toFixed()'));
   const omitEnumCase = new vscode.WorkspaceEdit();
   omitEnumCase.replace(
     enumeration.uri,
@@ -352,7 +427,7 @@ export async function run() {
       new vscode.Position(0, 0),
       enumeration.positionAt(enumeration.getText().length),
     ),
-    enumeration.getText().replace(/\s*case \{ kind: ["']idle["'] \}: 0;/, ''),
+    enumeration.getText().replace(/\s*case enum State\.idle\(\): 0;/, ''),
   );
   assert(await vscode.workspace.applyEdit(omitEnumCase));
   await eventually(

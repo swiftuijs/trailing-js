@@ -72,18 +72,46 @@ export function lowerSwitchExpressions(
         'await/yield inside a switch expression requires a direct return. Bind the subject first, or await the whole result explicitly.',
       );
     const subject = fresh('Subject');
+    const kind = node.cases.some((branch: Node) => branch.enumPattern) ? fresh('Kind') : undefined;
     code.appendLeft(node.start, `${direct ? '{' : '(() => {'}const ${subject} = `);
     code.remove(node.parenStart, node.parenStart + 1);
     // Retain a real source-backed switch token for typed lint diagnostics.
     code.move(node.start, node.start + 6, node.parenEnd);
-    code.appendLeft(node.parenEnd, '; ');
+    code.appendLeft(node.parenEnd, `; ${kind ? `const ${kind} = ${subject}["kind"]; ` : ''}`);
     code.overwrite(
       node.parenEnd,
       node.parenEnd + 1,
-      ` (${subject}${node.discriminator === undefined ? '' : `[${JSON.stringify(node.discriminator)}]`})`,
+      ` (${kind ?? subject}${kind || node.discriminator === undefined ? '' : `[${JSON.stringify(node.discriminator)}]`})`,
     );
     for (const branch of node.cases) {
-      if (branch.pattern) {
+      if (branch.enumPattern) {
+        const { reference, binding, start, parenStart, parenEnd } = branch.enumPattern;
+        const tag = JSON.stringify(reference.property.name);
+        if (language.startsWith('ts')) {
+          // A type-only factory witness checks the reference and literal tag.
+          // Native TS erases it; matching performs no factory/property lookup.
+          code.overwrite(start, start + 4, `(${tag} satisfies (typeof `);
+          code.appendLeft(
+            reference.end,
+            ` extends (...args: never[]) => { readonly kind: ${tag} } ? ${tag} : never))`,
+          );
+        } else {
+          code.overwrite(start, start + 4, tag);
+          code.remove(reference.start, reference.end);
+        }
+        code.remove(parenStart, parenStart + 1);
+        code.remove(parenEnd, parenEnd + 1);
+        if (binding) {
+          code.appendLeft(binding.start, ': { const ');
+          code.overwrite(
+            branch.colonStart,
+            branch.colonStart + 1,
+            ` = ${subject}; ${branch.throw ? '' : 'return '}`,
+          );
+          code.appendLeft(branch.valueEnd, '; }');
+          if (source[branch.end - 1] === ';') code.remove(branch.end - 1, branch.end);
+        } else if (!branch.throw) code.appendLeft(branch.colonStart + 1, ' return ');
+      } else if (branch.pattern) {
         const { pattern, tag } = branch;
         // A discarded discriminator binding preserves native rest exclusion.
         // Its key remains source-backed; the literal moves to the case label.
@@ -99,13 +127,20 @@ export function lowerSwitchExpressions(
         if (source[branch.end - 1] === ';') code.remove(branch.end - 1, branch.end);
       } else if (!branch.throw) code.appendLeft(branch.colonStart + 1, ' return ');
     }
-    const hasDefault = node.cases.some((branch: Node) => !branch.pattern && branch.test === null);
-    const check = !hasDefault && language.startsWith('ts') ? ` ${subject} satisfies never;` : '';
+    const hasDefault = node.cases.some(
+      (branch: Node) => !branch.pattern && !branch.enumPattern && branch.test === null,
+    );
+    const check =
+      !hasDefault && language.startsWith('ts')
+        ? ` ${kind ? `(0 as unknown as typeof ${kind})` : subject} satisfies never;`
+        : '';
     // Transpile-only JS hosts cannot prove unions. Unexpected values fail
     // visibly rather than returning an accidental undefined.
     const failure = hasDefault
       ? ''
       : `${check} throw new TypeError('Non-exhaustive switch expression');`;
-    code.overwrite(node.end - 1, node.end, `}${failure}${direct ? '}' : '})()'}`);
+    code.overwrite(node.end - 1, node.end, `}${failure}${direct ? '}' : '})()'}`, {
+      contentOnly: true,
+    });
   }
 }

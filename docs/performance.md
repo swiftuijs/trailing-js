@@ -88,6 +88,32 @@ Tarball budgets cover the package's own files, not installed npm dependencies. D
 
 The [React source study](./react-source.md) compares the real React 19.3.0 client-core entry graph after identical Flow erasure. It adds an independently reproducible framework workload to the small synthetic fixtures above. The [report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/react-framework.json) includes production bytes, gzip size, interleaved build samples and isolated core-runtime samples. ReactDOM/reconciler are not rewritten; this is not a full rendering-throughput or typed framework-port benchmark.
 
+## Explicit enum patterns (unreleased prototype)
+
+RFC 0016's explicit case descriptors are erased by native TS. Direct-return patterns use a native switch and per-arm const destructuring. General expression positions keep the existing synchronous IIFE. Native rest bindings allocate/copy normally. The checked TS application bundle fixture with defaults/rest is 182 bytes versus 180 bytes for handwritten JS: two outer scope braces, with no matching runtime, factory access/call or additional result record. CI enforces that 2-byte budget and verifies runtime behavior and dependency absence.
+
+On 2026-10-07, Node v24.19.0, Linux x64, INTEL(R) XEON(R) PLATINUM 8573C, separate warmed processes ran 1,000,000 calls per sample, five warmups and 15 samples. Inputs cycle through idle and two loaded records; observable checksums agree. These are medians for one batch:
+
+| Workload                 | Generated pattern | Native baseline | Ratio |
+| ------------------------ | ----------------- | --------------- | ----- |
+| direct-named-payload     | 7.01 ms           | 6.30 ms         | 1.11× |
+| expression-named-payload | 21.16 ms          | 6.93 ms         | 3.05× |
+| native-object-rest       | 37.88 ms          | 36.19 ms        | 1.05× |
+
+The direct path is comparable in this run; it does not establish a speedup. The expression wrapper is about 3.05× slower than a native local-assignment switch in this small workload. Prefer direct returns in hot paths or use a native statement switch when local assignment cost matters. Rest costs reflect native allocation in both implementations; no general application or cross-engine guarantee follows.
+
+Synthetic typed files contain 10 / 100 / 1,000 functions sharing two variants. Transform timings include high-resolution maps; the native transform parses an unchanged TS file. Cold checks include creating a project and reading standard libraries; they are single observations, not sampled medians:
+
+| Functions | Pattern → TS median | Unchanged TS transform median | Pattern cold check | Native cold check |
+| --------- | ------------------- | ----------------------------- | ------------------ | ----------------- |
+| 10        | 4.49 ms             | 3.33 ms                       | 675.49 ms          | 299.17 ms         |
+| 100       | 24.26 ms            | 24.47 ms                      | 406.91 ms          | 281.08 ms         |
+| 1000      | 245.20 ms           | 243.96 ms                     | 1088.82 ms         | 396.24 ms         |
+
+Unchanged pattern diagnostics have cached medians of 0.02–0.08 ms. The descriptor rename guard indexes each file once and caches symbols by Program. Its first request on the 1,000-function fixture takes 271.53 ms, including mapping/symbol work; cached requests take 0.28 ms median. Edits invalidate the Program cache. These costs concern synthetic compiler/checker requests, not visible editor latency.
+
+The [report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/enum-patterns.json) records inputs, p95, checksums, environment, base commit/tree, dirty-working-tree status and build/script digests. The source was an unreleased implementation checkout. Reproduce with `pnpm build` then `pnpm benchmark:enum-patterns --output enum-patterns-results.json`. Runtime tests use unchecked JS lowering; erased TS descriptors and native imports are additionally covered by checked bundle and package tests. Timing ratios are observations; correctness, absence of runtime dependencies and bytes are deterministic CI gates.
+
 ## Evaluate your application
 
 Measure build time, edited-file feedback and representative runtime paths before and after adopting a module. Use the same dependencies, hardware and production build settings. Inspect emitted code and bundle size, and exercise cleanup and error paths; warmed microbenchmarks can hide allocation costs that matter elsewhere.

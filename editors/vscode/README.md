@@ -193,3 +193,7 @@ Twill's 0.x release line is experimental. The checker and extension use TypeScri
 For a bug report, include a small source example, your extension/compiler versions, VS Code and Node versions, and relevant project settings. Use [GitHub Issues](https://github.com/swiftuijs/twill/issues).
 
 MIT licensed · Built by [forth.ink](https://forth.ink) · [Source code](https://github.com/swiftuijs/twill)
+
+## Unreleased language work
+
+Main includes accepted associated-value enums. The RFC 0016 implementation branch additionally prototypes `case enum State.loaded({ value })` patterns with named native bindings and erased factory descriptors. Its design remains proposed; neither addition is included in npm/Marketplace 0.1.2. Compiler, formatter, linter, highlighter, export and editor changes are validated together. See [syntax and compatibility](https://twill.evecalm.com/syntax#explicit-enum-case-patterns-unreleased) and [RFC 0016](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0016-pattern-matching.md).

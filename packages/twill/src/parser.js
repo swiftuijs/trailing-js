@@ -448,6 +448,36 @@ function parserFor(language) {
           if (sawDefault) this.raise(branch.start, 'Multiple default clauses.');
           sawDefault = true;
           branch.test = null;
+        } else if (this.type.label === 'name' && this.value === 'enum' && !this.containsEsc) {
+          if (mode === 'value')
+            this.raise(branch.start, 'Cannot mix enum patterns and value cases.');
+          if (discriminator !== undefined && discriminator !== 'kind')
+            this.raise(branch.start, 'Enum patterns require the kind discriminator.');
+          mode = 'pattern';
+          discriminator = 'kind';
+          const pattern = this.startNode();
+          this.next();
+          let reference = this.parseIdent();
+          while (this.eat(tt.dot)) {
+            const member = this.startNodeAt(reference.start, reference.loc.start);
+            member.object = reference;
+            member.property = this.parseIdent(true);
+            member.computed = false;
+            member.optional = false;
+            reference = this.finishNode(member, 'MemberExpression');
+          }
+          if (reference.type !== 'MemberExpression')
+            this.raise(reference.start, 'An enum pattern requires a qualified case reference.');
+          pattern.reference = reference;
+          pattern.parenStart = this.start;
+          this.expect(tt.parenL);
+          if (this.type === tt.braceL) {
+            pattern.binding = this.parseObj(true);
+            this.checkLValPattern(pattern.binding, 2, false);
+          }
+          pattern.parenEnd = this.start;
+          this.expect(tt.parenR);
+          branch.enumPattern = this.finishNode(pattern, 'TwillEnumPattern');
         } else if (this.type === tt.braceL) {
           if (mode === 'value')
             this.raise(branch.start, 'Cannot mix object patterns and value cases.');

@@ -43,3 +43,7 @@ console.log(result.diagnostics, result.files, result.written);
 Source errors return diagnostics and `written: false`. Invalid destinations and unsupported export constructs throw. `--json` provides the same structured result; failures return a nonzero CLI status.
 
 [Guide](https://twill.evecalm.com/adoption) · [CLI reference](https://twill.evecalm.com/cli) · [Issues](https://github.com/swiftuijs/twill/issues) · MIT licensed · Built by [forth.ink](https://forth.ink).
+
+## Unreleased language work
+
+Main includes accepted associated-value enums. The RFC 0016 implementation branch additionally prototypes `case enum State.loaded({ value })` patterns with named native bindings and erased factory descriptors. Its design remains proposed; neither addition is included in npm/Marketplace 0.1.2. Compiler, formatter, linter, highlighter, export and editor changes are validated together. See [syntax and compatibility](https://twill.evecalm.com/syntax#explicit-enum-case-patterns-unreleased) and [RFC 0016](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0016-pattern-matching.md).

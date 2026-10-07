@@ -1,6 +1,6 @@
 import ts from 'typescript';
 import { TwillProject, sourceFilename, virtualFilename } from './project.js';
-import { isTwillFile } from './compiler.js';
+import { isTwillFile, type TransformResult } from './compiler.js';
 
 export interface SourceEdit {
   filename: string;
@@ -17,6 +17,7 @@ export interface CompletionRequest {
 /** Shared semantic requests and conservative source edits for both editor hosts. */
 export class TwillEditor {
   private attributeCache = new WeakMap<ts.SourceFile, ts.JsxAttribute[]>();
+  private descriptorCache = new WeakMap<ts.Program, Set<ts.Symbol>>();
   constructor(readonly project: TwillProject) {}
 
   private sourceFile(filename: string) {
@@ -215,14 +216,75 @@ export class TwillEditor {
     return this.referenceGroups(filename, position)?.flatMap((group) => group.references);
   }
 
+  private descriptorSymbols(program: ts.Program) {
+    const cached = this.descriptorCache.get(program);
+    if (cached) return cached;
+    const symbols = new Set<ts.Symbol>();
+    const checker = program.getTypeChecker();
+    for (const file of program.getSourceFiles()) {
+      const original = sourceFilename(file.fileName);
+      if (!isTwillFile(original)) continue;
+      let patterns: TransformResult['enumPatterns'] | undefined;
+      try {
+        patterns = this.project.transformed(original)?.enumPatterns;
+      } catch {
+        // One malformed document must not disable safe edits in other files.
+        // Strict diagnostics and mapChanges still reject its unmappable edits.
+        continue;
+      }
+      if (!patterns?.length) continue;
+      const offsets = new Set(
+        patterns.map((pattern) =>
+          this.project.toGeneratedOffset(original, pattern.reference.property.start),
+        ),
+      );
+      // Index each source once, rather than traversing it for every arm.
+      // Program identity invalidates the cached symbols on any source edit.
+      const visit = (node: ts.Node) => {
+        if (ts.isIdentifier(node) && offsets.has(node.getStart())) {
+          const symbol = checker.getSymbolAtLocation(node);
+          if (symbol) for (const root of checker.getRootSymbols(symbol)) symbols.add(root);
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(file);
+    }
+    this.descriptorCache.set(program, symbols);
+    return symbols;
+  }
+
   renameInfo(filename: string, position: number): ts.RenameInfo {
     const offset = this.project.toGeneratedOffset(filename, position);
     const definitions = this.project.service.getDefinitionAtPosition(
       virtualFilename(filename),
       offset,
     );
+    const program = this.project.service.getProgram()!;
+    const descriptors = this.descriptorSymbols(program);
     for (const definition of definitions ?? []) {
       const file = sourceFilename(definition.fileName);
+      const definitionFile = this.sourceFile(file);
+      let descriptor = false;
+      const visitDefinition = (node: ts.Node) => {
+        if (definition.textSpan.start < node.getStart() || definition.textSpan.start >= node.end)
+          return;
+        if (ts.isIdentifier(node) || ts.isStringLiteral(node)) {
+          const symbol = program.getTypeChecker().getSymbolAtLocation(node);
+          descriptor =
+            !!symbol &&
+            program
+              .getTypeChecker()
+              .getRootSymbols(symbol)
+              .some((root) => descriptors.has(root));
+        } else ts.forEachChild(node, visitDefinition);
+      };
+      if (descriptors.size && definitionFile) visitDefinition(definitionFile);
+      if (descriptor)
+        return {
+          canRename: false,
+          localizedErrorMessage:
+            'Renaming an enum-pattern case descriptor requires linked discriminator edits and is not supported yet.',
+        };
       const declarations = this.project.transformed(file)?.associatedEnums;
       if (!declarations?.length) continue;
       const sourceFile = this.sourceFile(file);

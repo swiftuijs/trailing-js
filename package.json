@@ -57,6 +57,7 @@
     "test:examples": "pnpm --filter './examples/*' --workspace-concurrency=1 --if-present run test:example",
     "deps:check": "pnpm audit --audit-level moderate && pnpm peers check",
     "benchmark:branching": "pnpm --filter @swiftuijs/twill run benchmark:branching",
+    "benchmark:enum-patterns": "pnpm --filter @swiftuijs/twill run benchmark:enum-patterns",
     "editor:coverage": "pnpm --filter twill test:coverage:host",
     "benchmark:react-framework": "pnpm --filter @swiftuijs/twill-example-react-framework run benchmark"
   },

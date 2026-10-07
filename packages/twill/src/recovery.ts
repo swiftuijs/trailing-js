@@ -23,11 +23,33 @@ export function recoverTransform(source: string, options: TransformOptions): Tra
         includeContent: true,
         hires: true,
       });
+      // Descriptor offsets belong to repaired parser input. Restore their
+      // source positions before the editor composes generated mappings;
+      // otherwise an earlier inserted token can bypass linked-tag rename checks.
+      const repairedResult = { ...result, map: repairMap };
+      const starts = [0];
+      for (const match of source.matchAll(/\n/g)) starts.push(match.index! + 1);
+      const sourceOffset = (offset: number) => {
+        const prefix = text.slice(0, offset).split('\n');
+        const point = originalPosition(repairedResult, prefix.length, prefix.at(-1)!.length);
+        return starts[point.line! - 1]! + point.column!;
+      };
+      const enumPatterns = result.enumPatterns.map((pattern) => ({
+        ...pattern,
+        reference: {
+          ...pattern.reference,
+          property: {
+            ...pattern.reference.property,
+            start: sourceOffset(pattern.reference.property.start),
+            end: sourceOffset(pattern.reference.property.end),
+          },
+        },
+      }));
       const map = remapping(
         [JSON.parse(result.map.toString()), JSON.parse(repairMap.toString())],
         () => null,
       );
-      return { ...result, map: map as unknown as TransformResult['map'] };
+      return { ...result, enumPatterns, map: map as unknown as TransformResult['map'] };
     } catch (error) {
       if (!(error instanceof TwillSyntaxError)) throw error;
       const before = text.slice(0, error.offset);

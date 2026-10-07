@@ -23,6 +23,20 @@ const compilerOptions = {
   moduleResolution: 'Bundler',
   types: [],
 };
+
+it('exports imported enum patterns as checked native switches and declarations', async () => {
+  const { tsconfig, outDir } = fixture({
+    'state.twill': 'export enum State<T>{case idle;case loaded(value:T);}',
+    'index.twill':
+      'import {State as Factory} from "./state.twill";export function read(state:Factory<number>){return switch(state){case enum Factory.idle():0;case enum Factory.loaded({value}):value;};}',
+  });
+  const result = await exportProject(tsconfig, { outDir });
+  expect(result.diagnostics).toEqual([]);
+  expect(nativeDiagnostics(result.tsconfig)).toEqual([]);
+  const output = readFileSync(join(outDir, 'index.ts'), 'utf8');
+  expect(output).not.toContain('case enum');
+  expect(output).toContain('typeof Factory.loaded');
+});
 function fixture(
   files: Record<string, string>,
   config: unknown = { compilerOptions, include: ['**/*'] },
