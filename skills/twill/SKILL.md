@@ -19,7 +19,7 @@ Twill extends TypeScript/TSX with Swift-inspired syntax and emits ordinary JavaS
 
 1. Read the application's instructions, manifest, lockfile, tsconfig and existing build/test setup. Check the installed `@swiftuijs/twill` version and keep Twill tooling packages on the same version. Metadata records this skill's released-language baseline, not a compiler installation.
 2. Write dialect syntax in `.twill` (TS including JS) or `.twillx` (TSX). Native `.ts`, `.tsx`, `.js`, `.jsx` files retain native syntax. Change imports when renaming a module. Adopt an appropriate module, respecting the user's requested scope.
-3. Use the published features below by default. Associated-value enums, `match` and external runtime helpers are documented source prototypes; `if const` and other RFC work also require checking actual implementation and availability. A proposal, PR, playground example or same-version local build does not prove npm support. Use a prototype only when the project deliberately uses a source build that implements it.
+3. Use the published features below by default. Associated-value enums, `match`, branch-local `if const` and external runtime helpers are documented source prototypes. A proposal, PR, playground example or same-version local build does not prove npm support. Use a prototype only when the project deliberately uses a source build that implements it; verify actual implementation before using other RFC work.
 4. Use [syntax](https://twill.evecalm.com/syntax) and [compatibility](https://twill.evecalm.com/readiness) for detailed contracts. The parser targets documented TS 5.9 syntax; avoid claiming every TS program is compatible inside dialect files.
 
 ## Choose syntax that clarifies the task
@@ -63,6 +63,10 @@ export function label(input: { name?: string } | null): string {
 The whole initializer is checked before native object/array destructuring. Defaults, getters, iterator closing, rest and nested pattern errors retain native behavior; this is not JSON or nested-shape validation. Pattern bindings have a temporal dead zone in the initializer/failure block. An identifier guard initializes its identifier before the failure block. Use one binding and brace the enclosing conditional/loop body.
 
 The failure block must provably exit with `return`, `throw`, `break` or `continue`, or a supported block/if whose paths exit. A call typed `never`, a loop, switch or try does not establish this syntactic proof. Prefer ordinary `if (...)` when the branch should continue. Do not invent `if let` from Swift.
+
+**Source-only branch bindings (unreleased):** For a deliberate source build implementing RFC 0018, `if const value = expression { ... } else { ... }` evaluates once and binds a non-nullish immutable value only in the success block. Initializer, else and following references resolve in the outer scope, including an outer variable with the same name. Object/array destructuring runs only after the whole value passes the strict null/undefined check; defaults, getters, iterators, rest and nested errors keep native behavior. One binding and a braced success body are required; else is optional. Multiple bindings, while bindings and if expressions are not implemented. npm/Marketplace 0.1.2 do not include this feature.
+
+The outer initializer's next brace starts the branch. Group a trailing-call initializer: `if const user = (find(id) { candidate in candidate.active }) { use(user); }`. Await/yield, rejection, return, loop exits and branch-local defer keep their enclosing ownership. Ordinary initializers emit a hygienic temporary and native scoped const/if without adding a helper, closure, promise or runtime import. An initializer using `match` retains that expression's existing lowering costs and suspension restrictions. Use `guard const` when the successful binding must remain after the statement.
 
 ### Owned resources
 

@@ -94,6 +94,8 @@ for (const engine of [standalone, custom]) {
   const literal = engine.codeToTokensBase('const view = <Panel>guard true else; .active</Panel>;', { lang: 'twillx', theme, includeExplanation: true }).flat().flatMap(token => token.explanation ?? []);
   assert(!literal.some(part => part.scopes.some(item => item.scopeName === 'keyword.control.twill' || item.scopeName === 'variable.other.property.twill')));
   for (const lang of ['twill', 'twillx']) {
+    const binding=engine.codeToTokensBase('if const {value}=input{use(value ?? 0);}',{lang,theme,includeExplanation:true}).flat().flatMap(token=>token.explanation??[]);
+    assert(binding.some(part=>part.content==='if'&&part.scopes.some(item=>item.scopeName==='keyword.control.twill')));
     const enumeration=engine.codeToTokensBase('enum State<T> {\\ncase idle;\\ncase loaded(value:T, count:number);\\ncase 加载(value:T);\\n}',{lang,theme,includeExplanation:true}).flat().flatMap(token=>token.explanation??[]);
     for(const [text,scope] of [['case','keyword.control.twill'],['loaded','entity.name.function.twill'],['加载','entity.name.function.twill'],['number','support.type.primitive.']]) assert(enumeration.some(part=>part.content===text&&part.scopes.some(item=>item.scopeName.startsWith(scope))),text);
     const pattern = engine.codeToTokensBase('return match(state){case State.loaded({value}):value;default:0;};', {lang,theme,includeExplanation:true}).flat().flatMap(token=>token.explanation??[]);

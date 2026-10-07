@@ -45,6 +45,8 @@ See [practical patterns](./patterns.md) for boundary validation, explicit result
 
 ## Ecosystem boundaries
 
+The unreleased [RFC 0018 branch-binding prototype](syntax.md#branch-nullish-bindings-unreleased) complements `guard const`: `if const value = lookup() { use(value); }` limits the narrowed binding to the success branch. Swift's condition boundary resolves the branch brace; group initializer trailing calls. Native lowering introduces no wrapper, closure or runtime dependency. Implementation review and release remain pending.
+
 Node and browser execution use normal emitted JavaScript. npm libraries do not need recompilation or awareness of Twill. Callbacks can be used for data pipelines, event handlers, tasks, HTTP libraries or any function accepting an arrow callback. A trailing closure does not turn a non-callback API into a callback API. Arrow lexical `this` means APIs requiring a dynamically bound `this` still need ordinary `function` callbacks.
 
 React component closures compile to normal JSX elements and children; Vue closures become lazy slots, including named slots. The standard JSX runtime setting selects React, Vue or another automatic JSX runtime. Vue SFC and React Fast Refresh still need their host integrations; support for component libraries does not imply support for every source format or development transform.

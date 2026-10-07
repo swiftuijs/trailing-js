@@ -259,6 +259,40 @@ export async function run() {
   console.log('PASS: implicit member completion, hover, formatting and property rename');
 
   const branching = await open('branching.twill');
+  const optional = await open('if-bindings.twill');
+  await eventually(
+    () => completions(optional, position(optional, 'value.toFixed', 6)),
+    (list) => !!list?.items.some((item) => label(item) === 'toPrecision'),
+  );
+  const optionalRename = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
+    'vscode.executeDocumentRenameProvider',
+    optional.uri,
+    position(optional, '{value}', 1),
+    'amount',
+  );
+  assert(optionalRename && (await vscode.workspace.applyEdit(optionalRename)));
+  assert(optional.getText().includes('{value: amount}'));
+  assert(optional.getText().includes('return amount.toFixed();'));
+  assert(optional.getText().includes('const value=7;'));
+  assert(optional.getText().includes('else{return value.toFixed();}'));
+  const optionalFormats = await vscode.commands.executeCommand<vscode.TextEdit[]>(
+    'vscode.executeFormatDocumentProvider',
+    optional.uri,
+    { tabSize: 2, insertSpaces: true },
+  );
+  assert(optionalFormats?.length);
+  const optionalFormatEdit = new vscode.WorkspaceEdit();
+  optionalFormatEdit.set(optional.uri, optionalFormats!);
+  assert(await vscode.workspace.applyEdit(optionalFormatEdit));
+  assert(optional.getText().includes('if const { value: amount } = input'));
+  assert(!optional.getText().includes('__twill'));
+  await eventually(
+    async () => vscode.languages.getDiagnostics(optional.uri),
+    (items) => items.length === 0,
+  );
+  console.log(
+    'PASS: branch binding narrowing, completion, local rename, outer scope and formatting',
+  );
   const branchMembers = await eventually(
     () => completions(branching, position(branching, 'amount.toFixed', 7)),
     (list) => !!list?.items.some((item) => label(item) === 'toFixed'),

@@ -3,6 +3,54 @@ import { twillLanguages } from '../src/index';
 import { createTwillHighlighter } from '../src/shiki';
 
 let highlighter: Awaited<ReturnType<typeof createTwillHighlighter>>;
+it.each(['twill', 'twillx'])(
+  'highlights branch bindings and retains native expression colors in %s',
+  (lang) => {
+    for (const theme of ['github-light', 'github-dark']) {
+      const source =
+        'if /* boundary */ const {value:amount=0}=lookup<number>() ?? null {use(amount && 3);}\nif const [first,...rest]=items{use(first);}\nif(ready){use(1);}';
+      const tokens = highlighter
+        .codeToTokensBase(source, { lang, theme, includeExplanation: true })
+        .flat();
+      const parts = tokens.flatMap((t) => t.explanation ?? []);
+      expect(
+        parts.some(
+          (p) =>
+            p.content === 'if' && p.scopes.some((s) => s.scopeName === 'keyword.control.twill'),
+        ),
+      ).toBe(true);
+      expect(
+        parts.some(
+          (p) =>
+            p.content === 'const' && p.scopes.some((s) => s.scopeName.startsWith('storage.type.')),
+        ),
+      ).toBe(true);
+      for (const operator of ['??', '&&'])
+        expect(tokens.find((t) => t.content === operator)?.color).not.toBe(
+          tokens.find((t) => t.content === 'amount')?.color,
+        );
+      expect(
+        parts.some(
+          (p) =>
+            p.content.includes('boundary') &&
+            p.scopes.some((s) => s.scopeName.startsWith('comment.')),
+        ),
+      ).toBe(true);
+    }
+    const native = highlighter
+      .codeToTokensBase('const text="if const value=lookup(){}"; // if const value=lookup(){}', {
+        lang,
+        theme: 'github-dark',
+        includeExplanation: true,
+      })
+      .flat();
+    expect(
+      native.some((t) =>
+        t.explanation?.some((p) => p.scopes.some((s) => s.scopeName === 'meta.if.binding.twill')),
+      ),
+    ).toBe(false);
+  },
+);
 beforeAll(async () => {
   highlighter = await createTwillHighlighter();
 });

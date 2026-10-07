@@ -13,6 +13,7 @@ const keys: Record<string, string[]> = {
   TwillParenthesized: ['expression'],
   GuardStatement: ['binding', 'test', 'failure'],
   TwillGuardBinding: ['declarations'],
+  TwillIfBinding: ['binding', 'consequent', 'alternate'],
   DeferStatement: ['cleanup'],
   TwillSwitchExpression: ['discriminant', 'cases'],
   TwillSwitchCase: ['test', 'pattern', 'enumPattern', 'value'],
@@ -105,6 +106,40 @@ const printer: Printer<any> = {
         return group([path.call(print, 'call'), ' ', join(' ', path.map(print, 'closures'))]);
       case 'TwillClosure': {
         let block = path.call(print, 'body');
+        if (
+          !options.semi &&
+          node.body.body.length === 1 &&
+          node.body.body[0].type === 'ExpressionStatement'
+        ) {
+          // Native Prettier protects a leading '(' with an empty statement.
+          // In a single-expression Twill closure that would disable implicit
+          // return. Only discard an ASI token at the start of this block.
+          let opened = false;
+          let leading = true;
+          const removeASI = (part: Doc): Doc => {
+            if (!leading) return part;
+            if (typeof part === 'string') {
+              if (!opened) {
+                if (part === '{') opened = true;
+                return part;
+              }
+              if (!part.trim()) return part;
+              if (part.trimStart().startsWith('//')) return part;
+              leading = false;
+              return part === ';' ? '' : part;
+            }
+            if (Array.isArray(part)) {
+              // Prettier prints multiline block comments as slash-delimited
+              // Docs. Keep the whole comment opaque, including any ';' text.
+              if (opened && (part[0] === '/' || part[0] === '/*')) return part;
+              return part.map(removeASI);
+            }
+            if (part && typeof part === 'object' && 'contents' in part)
+              return { ...part, contents: removeASI(part.contents) };
+            return part;
+          };
+          block = removeASI(block);
+        }
         if (node.header) {
           const params = join(', ', path.map(print, 'params'));
           const header: Doc = [
@@ -133,6 +168,14 @@ const printer: Printer<any> = {
       }
       case 'TwillGuardBinding':
         return ['const ', join(', ', path.map(print, 'declarations'))];
+      case 'TwillIfBinding':
+        return group([
+          'if ',
+          path.call(print, 'binding'),
+          ' ',
+          path.call(print, 'consequent'),
+          node.alternate ? [' else ', path.call(print, 'alternate')] : '',
+        ]);
       case 'GuardStatement':
         return group([
           'guard ',

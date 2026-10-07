@@ -202,4 +202,6 @@ Use the [web highlighting package](./highlighting.md) for static or browser-rend
 
 ## Unreleased match tooling
 
+The RFC 0018 source prototype also supports `if const` branch bindings across the checker, formatter/standalone, ESLint, shared grammar, declarations/export and packaged editor. Original binding tokens move into the native success scope, preserving narrowing, completion, diagnostics and safe local rename; outer names in the initializer and else keep their own references. Required grouping around initializer trailing calls survives formatting. See [syntax and status](syntax.md#branch-nullish-bindings-unreleased).
+
 The accepted RFC 0016 source implementation supports formatting and highlighting `match (state) { case State.loaded({ value }): value; default: 0; }`, checked descriptors and bindings, mapped navigation/completion, native export and declarations. Descriptor method rename is withheld because its name determines the literal tag; owner/import aliases and local bindings can be edited safely. Typed ESLint still reports omitted variants but withholds native statement-case suggestions inside match/switch expressions. Safe source edits remain available. See [syntax and status](syntax.md#match-expressions-unreleased); npm/Marketplace 0.1.2 does not include match expressions.

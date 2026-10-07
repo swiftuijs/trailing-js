@@ -93,6 +93,7 @@ export function transform(source: string, options: TransformOptions = {}) {
     ast: Node;
     calls: Node[];
     guards: Node[];
+    ifBindings: Node[];
     defers: Node[];
     switches: Node[];
     enums: Node[];
@@ -122,6 +123,7 @@ export function transform(source: string, options: TransformOptions = {}) {
   );
   if (
     patternGuards.length ||
+    parsed.ifBindings.length ||
     parsed.switches.length ||
     parsed.defers.length ||
     parsed.closures.some((closure) => closure.implicitMembers.length) ||
@@ -131,6 +133,26 @@ export function transform(source: string, options: TransformOptions = {}) {
       if (node.type === 'Identifier' || node.type === 'JSXIdentifier') usedNames.add(node.name);
     });
   let guardCounter = 0;
+  const ifBindingStarts = new Set(parsed.ifBindings.map((node) => node.consequent.start + 1));
+  for (const statement of parsed.ifBindings) {
+    const binding = statement.binding.declarations[0].id;
+    let temporary: string;
+    do temporary = `__twillIf${guardCounter++}`;
+    while (usedNames.has(temporary));
+    usedNames.add(temporary);
+    const patternEnd = binding.typeAnnotation?.start ?? binding.end;
+    // Evaluate in the outer scope, then move the original binding tokens into
+    // the success branch. This preserves maps, narrowing and native defaults.
+    code.overwrite(statement.start, binding.start, `{const ${temporary}`);
+    code.move(binding.start, patternEnd, statement.consequent.start + 1);
+    code.prependRight(binding.start, 'const ');
+    code.appendLeft(patternEnd, ` = ${temporary};`);
+    code.prependLeft(
+      statement.consequent.start,
+      `; if (${temporary} !== null && ${temporary} !== void 0) `,
+    );
+    code.appendLeft(statement.end, '}');
+  }
   for (const guard of parsed.guards) {
     // A guard is one source statement. Without these braces an outer `else`
     // would bind to the lowered inner if (JavaScript's dangling-else rule).
@@ -450,7 +472,11 @@ export function transform(source: string, options: TransformOptions = {}) {
         const collect = (statement: Node): void => {
           switch (statement.type) {
             case 'ExpressionStatement':
-              code.prependLeft(statement.start, `${collector}.push(`);
+              // The prefix belongs to the expression's own chunk. A moved
+              // if-binding at this same boundary must remain before it.
+              if (ifBindingStarts.has(statement.start))
+                code.appendRight(statement.start, `${collector}.push(`);
+              else code.prependLeft(statement.start, `${collector}.push(`);
               code.appendLeft(
                 source[statement.end - 1] === ';' ? statement.end - 1 : statement.end,
                 ')',
@@ -460,6 +486,7 @@ export function transform(source: string, options: TransformOptions = {}) {
               statement.body.forEach(collect);
               break;
             case 'IfStatement':
+            case 'TwillIfBinding':
               collect(statement.consequent);
               if (statement.alternate) collect(statement.alternate);
               break;
@@ -584,6 +611,7 @@ export function transform(source: string, options: TransformOptions = {}) {
     changed: code.hasChanged(),
     closures: parsed.closures.length,
     guards: parsed.guards.length,
+    ifBindings: parsed.ifBindings.length,
     defers: parsed.defers.length,
     switches: parsed.switches.length,
     associatedEnums: parsed.enums,

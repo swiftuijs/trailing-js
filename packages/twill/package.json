@@ -159,7 +159,8 @@
     "test": "pnpm run test:unit",
     "benchmark:branching": "node benchmarks/branching.mjs",
     "benchmark:enum-patterns": "node benchmarks/enum-patterns.mjs",
-    "benchmark:runtime": "node benchmarks/runtime-helpers.mjs"
+    "benchmark:runtime": "node benchmarks/runtime-helpers.mjs",
+    "benchmark:if-bindings": "node benchmarks/if-bindings.mjs"
   },
   "devDependencies": {
     "vite": "catalog:",

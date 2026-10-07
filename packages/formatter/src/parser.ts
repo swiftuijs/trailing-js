@@ -30,6 +30,15 @@ export async function parse(source: string, options: ParserOptions<any>) {
   );
   for (const offset of implicitMembers) layout.appendLeft(offset, '__twillImplicit');
   const labels = new Map<string, any>();
+  const ifLabels = new Map<string, any>();
+  for (const statement of parsed.ifBindings) {
+    let label = `__TwillIf${ifLabels.size}`;
+    while (source.includes(label)) label += '_';
+    ifLabels.set(label, statement);
+    layout.overwrite(statement.start, statement.start + 2, '{');
+    layout.prependLeft(statement.consequent.start, `; if (${label}) `);
+    layout.appendLeft(statement.end, '}');
+  }
   for (const guard of parsed.guards) {
     if (guard.binding) {
       let label = `__TwillGuard${labels.size}`;
@@ -219,6 +228,58 @@ export async function parse(source: string, options: ParserOptions<any>) {
     node.start = originalOffset(start);
     node.end = end > start ? originalOffset(end - 1) + 1 : node.start;
     node.range = [node.start, node.end];
+    if (node.type === 'BlockStatement' && node.body.length === 2) {
+      const conditional = node.body[1];
+      const statement = ifLabels.get(conditional.test?.name);
+      if (statement) {
+        node.type = 'TwillIfBinding';
+        node.binding = node.body[0];
+        node.binding.type = 'TwillGuardBinding';
+        // Prettier may remove grouping around a custom trailing call. Only
+        // expression edges exposed to the outer condition need that boundary;
+        // arguments and function bodies already have their own delimiters.
+        const needsGrouping = (expression: Node): boolean => {
+          if (expression.type === 'TwillCall') return true;
+          if (
+            [
+              'ArrowFunctionExpression',
+              'FunctionExpression',
+              'ObjectExpression',
+              'ArrayExpression',
+              'TwillSwitchExpression',
+            ].includes(expression.type)
+          )
+            return false;
+          return [
+            'object',
+            'callee',
+            'tag',
+            'left',
+            'right',
+            'argument',
+            'test',
+            'consequent',
+            'alternate',
+            'expression',
+          ].some((key) => expression[key]?.type && needsGrouping(expression[key]));
+        };
+        const declaration = node.binding.declarations[0];
+        if (needsGrouping(declaration.init))
+          declaration.init = {
+            type: 'TwillParenthesized',
+            start: declaration.init.start,
+            end: declaration.init.end,
+            range: declaration.init.range,
+            expression: declaration.init,
+          };
+        node.consequent = conditional.consequent;
+        node.alternate = conditional.alternate;
+        node.start = statement.start;
+        node.end = statement.end;
+        node.range = [node.start, node.end];
+        delete node.body;
+      }
+    }
     if (node.type === 'TSMethodSignature') {
       const branch = enumCasesByStart.get(node.key.start);
       if (branch) {

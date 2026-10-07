@@ -67,6 +67,8 @@ it('highlights associated enum cases while preserving native payload types', () 
     ).toBe(true);
 });
 it.each([
+  ['function f() { if const value = lookup() { use(value); } }', 'if'],
+  ['function f() { if /* boundary */ const { value } = lookup() { use(value); } }', 'if'],
   ['items.map { value in value + 1 }', 'in'],
   ['items.map { (value: number) in value + 1 }', 'in'],
   ['items.map { async (value: number): Promise<number> in await read(value) }', 'in'],

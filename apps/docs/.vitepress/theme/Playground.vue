@@ -62,6 +62,18 @@ export function describe(input: { result: Result } | null): string {
   };
 }`,
   },
+  'if-bindings': {
+    filename: 'example.twill',
+    jsxImportSource: 'react',
+    note: 'Unreleased RFC 0018 prototype. Bind a non-nullish value only in the success branch; zero survives. The output is a native branch without a wrapper or runtime.',
+    source: `export function label(input: { value: number } | null) {
+  if const { value } = input {
+    return value.toFixed(2);
+  } else {
+    return 'Missing';
+  }
+}`,
+  },
   'enum-patterns': {
     filename: 'example.twill',
     jsxImportSource: 'react',
@@ -129,10 +141,11 @@ const summary = computed(() => {
   if (state.phase === 'pending') return 'Waiting for edits…';
   if (state.phase === 'compiling') return 'Compiling…';
   if (state.phase === 'error') return 'Check your source';
-  const { duration, closures, guards, defers, switches } = state.result;
+  const { duration, closures, guards, ifBindings, defers, switches } = state.result;
   const features = [
     [closures, 'closure'],
     [guards, 'guard'],
+    [ifBindings, 'if binding'],
     [defers, 'defer'],
     [switches, 'switch expression'],
   ]
@@ -239,6 +252,7 @@ onBeforeUnmount(() => {
             <option value="members">Implicit members</option>
             <option value="cleanup">Guard and defer</option>
             <option value="branching">Typed outcome matching</option>
+            <option value="if-bindings">Branch bindings (unreleased)</option>
             <option value="enum-patterns">Match expressions (unreleased)</option>
             <option value="react">React component</option>
             <option value="vue">Vue lazy slot</option>

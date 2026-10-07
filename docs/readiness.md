@@ -33,6 +33,8 @@ The virtual checker uses TypeScript 5.9. Compatibility with arbitrary workspace 
 
 ## Runtime and tooling performance
 
+The unreleased [RFC 0018 branch-binding prototype](syntax.md#branch-nullish-bindings-unreleased) evaluates once, destructures only on success and keeps bindings local to that branch. Grouped trailing calls follow Swift's condition boundary. Native lowering adds no closure, wrapper or runtime dependency; declarations, export and mapped tools use normal TS narrowing. This is source-only work awaiting review/release.
+
 Ordinary trailing closures and guards lower to arrows and branches without a runtime library. Direct-return switch expressions lower to scoped native switches. The unreleased prototype also lowers standalone identifier initializers to native branches without an IIFE; other expression positions retain a synchronous IIFE. Await/yield inside a switch requires a direct return. Expression exhaustiveness requires the checker, not transpile-only builds. `defer` and general child collection allocate local closures or arrays. Use native `try/finally` when those allocations matter in a hot path.
 
 The checker caches unchanged snapshots and transforms. Disk edits refresh affected files; configuration changes rebuild affected projects. [Performance measurements](performance.md) describe synthetic compiler, checker and formatter workloads, including their limits. They do not establish whole-application latency or a universal performance guarantee.

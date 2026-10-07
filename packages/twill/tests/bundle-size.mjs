@@ -11,6 +11,19 @@ import { runtimeReport } from './runtime-size.mjs';
 const root = mkdtempSync(join(tmpdir(), 'twill-bundle-size-'));
 const fixtures = [
   {
+    name: 'optional-branch-binding',
+    // Keep the hygienic snapshot required for initializer shadowing/global
+    // reads. V8 can eliminate scalar aliases; minified source retains 10 bytes.
+    maxExtraBytes: 10,
+    extension: 'twill',
+    nativeExtension: 'ts',
+    inputs: [null, undefined, { value: 0 }, { value: 3 }],
+    sugar:
+      'export function run(input:{value:number}|null|undefined){if const {value}=input{return value*2;}return 0;}',
+    native:
+      'export function run(input:{value:number}|null|undefined){if(input!==null&&input!==void 0){const {value}=input;return value*2;}return 0;}',
+  },
+  {
     name: 'implicit-members',
     extension: 'twill',
     nativeExtension: 'ts',

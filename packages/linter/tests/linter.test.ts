@@ -81,6 +81,24 @@ describe('ESLint Twill processor', () => {
     expect(fixed!.output).toContain('return switch(v)');
     expect(fixed!.messages).toEqual([]);
   });
+  it('maps branch binding diagnostics and safe body fixes without generated temporaries', async () => {
+    const source =
+      'export function run(input:{value:number}|null){if const {value}=input{return 0;}return 1;}';
+    const [result] = await engine().lintText(source, { filePath: 'if-binding.twill' });
+    expect(result!.messages).toHaveLength(1);
+    expect(result!.messages[0]).toMatchObject({
+      ruleId: '@typescript-eslint/no-unused-vars',
+      column: source.indexOf('value}=') + 1,
+    });
+    const fix =
+      'export function run(input:number|null){if const value=input{let total=value+1;return total;}return 0;}';
+    const [fixed] = await engine({ rules: { 'prefer-const': 'error' } }, true).lintText(fix, {
+      filePath: 'if-binding-fix.twill',
+    });
+    expect(fixed!.messages).toEqual([]);
+    expect(fixed!.output).toContain('if const value=input{const total=value+1;');
+    expect(fixed!.output).not.toMatch(/__twill|!= null/);
+  });
   it('supports type-aware rules against the virtual TypeScript program', async () => {
     const root = mkdtempSync(join(tmpdir(), 'twill-lint-'));
     try {

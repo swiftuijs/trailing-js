@@ -51,6 +51,23 @@ The initializer comparison uses a natural native switch assigning a local. The u
 
 The [application bundle report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/bundle-size.json) covers five supported paths. Guards, callbacks and a single React child match the native minified byte size. The direct object-pattern switch is 205 bytes versus 203 bytes: its explicit lexical block adds two braces. Tests enforce those exact output budgets and runtime parity. There is no Twill runtime imported into these application fixtures. Dynamic cleanup, general child collection and arbitrary expression switches have separate costs and are outside this parity claim.
 
+## Optional branch bindings (unreleased prototype)
+
+RFC 0018's `if const` emits a single initializer snapshot, a strict null/undefined test and a success-local const binding. Ordinary initializers add no function, runtime import, wrapper or scheduling. Object/array defaults, getters, iterators and rest retain their native costs. A nested `match` initializer retains the existing general-expression lowering and its synchronous IIFE cost.
+
+On 2026-10-07, Node v24.19.0 on an INTEL(R) XEON(R) PLATINUM 8573C shared Linux host, each case ran seven pairs of isolated processes with alternating launch order. Each worker performs five warmups and 15 samples of 1,000,000 calls. Inputs cycle through null, undefined and present values including zero. The reported ratio is the median of the seven paired median-time ratios:
+
+| Workload                      | Twill / natural handwritten JS |
+| ----------------------------- | ------------------------------ |
+| Identifier binding            | 0.96×                          |
+| Single-evaluation lookup call | 0.93×                          |
+| Object destructuring          | 1.03×                          |
+| Array default and rest        | 1.03×                          |
+
+All four medians pass the controlled-host 1.10× target. Individual trial ratios vary substantially (0.44×–1.26×); these observations support comparable performance in this run, not a stable speedup or a cross-engine/application guarantee. The [complete report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/if-bindings.json) retains every timing, cold call, checksum, generated/minified source, source/build hash and implementation commit. Standalone minified functions add 11–21 bytes over these native baselines; the separately bundled object-binding application adds 10 bytes. Neither byte count is a runtime timing claim.
+
+Reproduce after building with `pnpm benchmark:if-bindings --output ../../docs/benchmarks/if-bindings.json --verify-performance`. Run this separately from CPU-intensive validation to reduce host contention. Timing remains an acceptance measurement; CI checks semantics, output structure and byte budgets deterministically.
+
 ## Mixed projects and editing
 
 The project benchmark uses isolated processes, one-third native TypeScript and two-thirds Twill, plus a module importing every file and a member-callback document. Cold checks include TypeScript standard libraries; warm checks, edited-hover requests and partial-member completions use 15 samples. Values below come from the [project report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/project.json) on the same host.
@@ -66,6 +83,8 @@ The project stays alive while a 1,000-closure file is formatted. That cold, sing
 Unchanged editor snapshots, transforms and mapping decoders are cached. The native TS-server bridge applies only changed overlays, retaining unrelated snapshots and script versions. The linter uses line indexes for source mapping rather than parsing additional ASTs. Edits invalidate affected files, while configuration changes rebuild affected projects. Typed ESLint includes program construction and freshness checks; syntactic lint offers lighter feedback. No editor responsiveness SLA follows from these synthetic results.
 
 ## Application output and distribution budgets
+
+The unreleased RFC 0018 branch binding uses a hygienic initializer snapshot and native success-scope binding. It introduces no runtime allocation, function, promise or helper import; native rest destructuring still allocates its own rest value. The checked object-binding application fixture allows at most 10 extra minified bytes for that snapshot compared with a handwritten branch over an already evaluated parameter. This budget is separate from runtime timing. `benchmark:if-bindings` records isolated native comparisons, all samples and generated/source/build checksums; `--verify-performance` checks the 1.10× controlled-host target.
 
 Equivalent native and dialect application fixtures are built with real esbuild bundling and minification. An implicit-member filter/map pipeline emits 76 bytes in both forms; a guarded numeric pipeline emits 88 bytes in both forms; a React single-child component emits 121 bytes in both forms. The checks compare byte counts and executed behavior, and reject compiler/runtime dependencies in the application graph. Identifier mangling can choose different short names. React's normal JSX runtime is external in this comparison. These small fixtures do not cover every application, dynamic cleanup or general child collection.
 

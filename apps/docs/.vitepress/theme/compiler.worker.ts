@@ -25,6 +25,7 @@ self.onmessage = async ({ data }: MessageEvent<CompileRequest>) => {
         code,
         closures: result.closures,
         guards: result.guards,
+        ifBindings: result.ifBindings,
         defers: result.defers,
         switches: result.switches,
         duration: performance.now() - start,

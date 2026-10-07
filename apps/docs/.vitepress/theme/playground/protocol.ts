@@ -16,6 +16,7 @@ export type CompileResponse = { id: number } & (
         code: string;
         closures: number;
         guards: number;
+        ifBindings: number;
         defers: number;
         switches: number;
         duration: number;
