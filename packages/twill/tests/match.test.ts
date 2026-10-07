@@ -381,3 +381,17 @@ it('preserves Unicode/namespace descriptors and incomplete-member editor recover
       .info?.entries.map((e) => e.name),
   ).toEqual(expect.arrayContaining(['idle', 'loaded']));
 });
+
+it('reports malformed arm-leading comments at their original source offsets', () => {
+  const source = 'function read(input){return match(input){/* unterminated';
+  try {
+    transform(source, { language: 'js' });
+    throw new Error('Expected a lexical error');
+  } catch (error) {
+    expect(error).toMatchObject({
+      offset: source.indexOf('/*'),
+      line: 1,
+      column: source.indexOf('/*'),
+    });
+  }
+});

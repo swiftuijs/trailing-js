@@ -647,9 +647,14 @@ function parserFor(language) {
         base.callee.start === base.start &&
         this.input.slice(base.callee.start, base.callee.end) === 'match'
       ) {
-        const first = Parser.tokenizer(this.input.slice(this.end), options).getToken();
-        if (first.type === tt._case || first.type === tt._default)
-          return this.parseSwitchExpression(base);
+        let first;
+        try {
+          first = Parser.tokenizer(this.input.slice(this.end), options).getToken().type;
+        } catch {
+          // The main parser reports lexical errors at their original offsets,
+          // rather than the lookahead tokenizer's relative slice positions.
+        }
+        if (first === tt._case || first === tt._default) return this.parseSwitchExpression(base);
       }
       if (!noCalls && !classBody && this.tsMatchLeftRelational?.() && this.start === base.end) {
         const parameters = this.tsTryParseAndCatch(() => {
