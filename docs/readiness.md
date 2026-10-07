@@ -51,14 +51,15 @@ This is source export rather than a complete application installer. Dependencies
 
 ## Tested tool versions
 
-| Tool                         | Tested contract                                                  |
-| ---------------------------- | ---------------------------------------------------------------- |
-| Compiler consumers           | Node 20.19+ or 22.12+                                            |
-| Checker and editor semantics | TypeScript 5.9                                                   |
-| React development adapter    | Vite 8, React plugin 6, automatic JSX runtime; React 18/19 peers |
-| Formatter                    | Prettier 3.9                                                     |
-| Linter                       | ESLint 9/10 flat configuration                                   |
-| VS Code                      | Minimum 1.95.3 and current stable                                |
+| Tool                         | Tested contract                                                                                                |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Compiler consumers           | Node 20.19+ or 22.12+                                                                                          |
+| Checker and editor semantics | TypeScript 5.9                                                                                                 |
+| Build adapters               | Vite 8, Rollup 4, Webpack 5, Rspack 2 and esbuild 0.28; [development matrix](./build-tools.md#adapter-support) |
+| React development adapter    | Vite 8, React plugin 6, automatic JSX runtime; React 18/19 peers                                               |
+| Formatter                    | Prettier 3.9                                                                                                   |
+| Linter                       | ESLint 9/10 flat configuration                                                                                 |
+| VS Code                      | Minimum 1.95.3 and current stable                                                                              |
 
 Validation covers execution, type checking, source mappings, actual bundler builds, independently installed tarballs and real VS Code extension hosts. CI enforces statement, branch, function and line coverage gates, including 100% line/function coverage for the compiler and parser. Highlighting checks use real TS/TSX grammars, and the packaged editor is tested for completion, navigation, source-safe edits and debugging. Coverage does not prove correctness for every input. Every change is validated on Linux, including packaged editor and browser tests. Windows, macOS and Node 24 compatibility checks are available through a manual validation workflow; the minimum supported VS Code host is also checked for releases. The grammar corpus exercises TypeScript constructs with closures, while seeded differential tests compare combined callbacks, guards and cleanup against handwritten JavaScript. These checks cover the documented workflows; they do not prove every application or language construct works.
 

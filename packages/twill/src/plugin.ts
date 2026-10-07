@@ -24,12 +24,38 @@ export const twillPlugin = createUnplugin<PluginOptions | undefined, false>(
   (options = {}, meta) => {
     let root = options.root ?? process.cwd();
     let config = { ...loadConfig(root), ...options };
+    let configFiles = configurationFiles(root);
+    let configError: unknown;
     let servingVite = false;
     // Reuse native host emission where it already exists.
     const nativeSources = options.nativeSources ?? !['vite', 'esbuild'].includes(meta.framework);
     return {
       name: 'twill',
       enforce: 'pre',
+      buildStart() {
+        // Refresh once per build, including incremental contexts. Vite dev
+        // uses its server watcher to report errors and invalidate the graph.
+        if (!servingVite) {
+          configError = undefined;
+          try {
+            config = { ...loadConfig(root), ...options };
+            configFiles = configurationFiles(root);
+          } catch (cause) {
+            // Report through transformed modules, retaining their watch
+            // dependencies. A fatal make/start error can stop host watching.
+            configError = cause;
+          }
+        }
+      },
+      webpack(compiler) {
+        if (nativeSources)
+          compiler.options.module.rules.push({
+            include: (file) => !isDependency(file) && needsTypeEmission(file),
+            // Twill already emits JS. Webpack's automatic TS stripper rejects
+            // .tsx by extension even when a loader has lowered all JSX.
+            parser: { typescript: false },
+          });
+      },
       esbuild: {
         setup(build) {
           // unplugin tags its resolved files with a custom namespace. Native
@@ -119,18 +145,24 @@ export const twillPlugin = createUnplugin<PluginOptions | undefined, false>(
       transform(source, id) {
         const filename = splitId(id)[0];
         if (isDependency(filename)) return null;
-        if (isTwillFile(filename)) {
-          // Vite's dev import analysis treats addWatchFile as a browser import.
-          // Watch config with the server instead; a missing optional config
-          // must never become an unresolved browser module.
-          if (!servingVite)
-            for (const file of configurationFiles(root))
-              if (existsSync(file)) this.addWatchFile(file);
-          return transpile(source, { ...config, filename });
+        const dialect = isTwillFile(filename);
+        if (!dialect && !(nativeSources && needsTypeEmission(filename))) return null;
+        // Vite's dev import analysis treats addWatchFile as a browser import.
+        // Watch config with the server instead; a missing optional config
+        // must never become an unresolved browser module.
+        if (!servingVite) for (const file of configFiles) this.addWatchFile(file);
+        try {
+          if (configError !== undefined) throw configError;
+          return dialect
+            ? transpile(source, { ...config, filename })
+            : transpileNative(source, filename, undefined, undefined, config.jsxImportSource);
+        } catch (cause) {
+          if (meta.framework !== 'esbuild') throw cause;
+          // Throwing from esbuild's onLoad discards its watchFiles. Report a
+          // failed build while returning dependency metadata for recovery.
+          this.error(cause instanceof Error ? cause : String(cause));
+          return { code: ';', map: null };
         }
-        return nativeSources && needsTypeEmission(filename)
-          ? transpileNative(source, filename, undefined, undefined, config.jsxImportSource)
-          : null;
       },
     };
   },

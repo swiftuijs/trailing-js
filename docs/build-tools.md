@@ -6,6 +6,24 @@ The unreleased [optional runtime](./runtime.md) prototype reads `runtime` from t
 
 Run `twill check` separately before production builds. Adapters emit code and source maps; they do not perform project type checking.
 
+## Adapter support
+
+All five adapters are exported by `@swiftuijs/twill` 0.1.2. Use the adapter for your host; installing another bundler is unnecessary.
+
+| Host         | Import                     | Native TS/JSX emission   | Development validation in this checkout                    |
+| ------------ | -------------------------- | ------------------------ | ---------------------------------------------------------- |
+| Vite 8       | `@swiftuijs/twill/vite`    | Vite                     | Dev module reload; React Fast Refresh through `vite-react` |
+| Rollup 4     | `@swiftuijs/twill/rollup`  | Twill adapter by default | Real watch builds, errors and recovery                     |
+| Webpack 5    | `@swiftuijs/twill/webpack` | Twill adapter by default | Real watch builds, errors and recovery                     |
+| Rspack 2     | `@swiftuijs/twill/rspack`  | Twill adapter by default | Real watch builds, errors and recovery                     |
+| esbuild 0.28 | `@swiftuijs/twill/esbuild` | esbuild                  | Context watch and explicit incremental rebuilds            |
+
+These are the tested host lines, not a guarantee for every host version or framework plugin combination. All adapters produce original-source maps and have real production-build coverage. See [tested versions](./readiness.md#tested-tool-versions).
+
+**Unreleased watch fix:** This source checkout also refreshes configuration at each build and invalidates transformed modules when project or inherited JSX settings change, including optional config creation/deletion and recovery from invalid language config. npm 0.1.2 exports the adapters but does not contain this fix. Restart the published host after changing configuration. Explicit adapter options override project settings.
+
+Watch rebuilds produce updated code. React/Vue state preservation requires the framework's own HMR integration; only the Vite React adapter's Fast Refresh is tested here. Run a separate `twill check` for type errors: source watch builds remain transpile-only.
+
 ## Vite
 
 `vite.config.ts`:
@@ -33,7 +51,9 @@ export default {
 };
 ```
 
-Keep your standard dependency resolution, CommonJS conversion and other Rollup plugins. The adapter emits local native TS/TSX/JSX by default, as well as Twill.
+Keep your standard dependency resolution, CommonJS conversion and other Rollup plugins. The adapter emits local native TS/TSX/JSX by default, as well as Twill. Use the host's normal `rollup --watch` command when the Rollup CLI is installed, or its `watch()` API; keep the same adapter configuration.
+
+Rollup 4.64's native Linux watcher can miss consecutive atomic replacements of a transform dependency, also reproducible without Twill. For editors that save by atomic replacement or filesystems with unreliable native events, configure `watch: { chokidar: { usePolling: true } }` in Rollup. Tests cover ordinary saves with its default watcher and atomic saves with polling. Twill does not enable polling globally.
 
 ## esbuild
 
@@ -51,7 +71,23 @@ await build({
 });
 ```
 
-esbuild keeps its native TS/JSX pipeline. Set normal platform, target and dependency externalization options for your application.
+esbuild keeps its native TS/JSX pipeline. Set normal platform, target and dependency externalization options for your application. For development, reuse the same options with a context:
+
+```ts
+import { context } from 'esbuild';
+import twill from '@swiftuijs/twill/esbuild';
+
+const build = await context({
+  entryPoints: ['src/main.twill'],
+  bundle: true,
+  outfile: 'dist/main.js',
+  sourcemap: true,
+  plugins: [twill()],
+});
+await build.watch();
+// Alternatively: await build.rebuild() for explicit incremental builds.
+// Call await build.dispose() when your development task stops.
+```
 
 ## webpack and Rspack
 
@@ -79,7 +115,7 @@ export default {
 };
 ```
 
-Both adapters emit local native TS/TSX/JSX by default. Keep framework, CSS, assets and CommonJS handling in the host's standard configuration.
+Both adapters emit local native TS/TSX/JSX by default. Keep framework, CSS, assets and CommonJS handling in the host's standard configuration. Enable the host's normal `watch: true`, CLI watch command or `compiler.watch()` API. Close the watcher and compiler when an embedded build task stops.
 
 ## Avoid duplicate native emission
 
