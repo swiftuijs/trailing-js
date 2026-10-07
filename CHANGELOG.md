@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Prototype RFC 0032 optional versioned runtime helpers: default inline emission and explicit external sharing for dynamic synchronous defer. Generate the inline algorithm from the canonical zero-dependency runtime source; preserve async scheduling and native fast paths.
+- Keep external helper imports before complete adjacent declaration documentation and suppression blocks, preserving file pragmas and native checkJs annotations.
 - Synchronize compiler/config schemas, CLI, build/loader/editor projects, native export/declarations, documentation and package/release verification. Fix compact final-defer insertion order and preserve headers/directives when inserting helper imports.
 
 - Lower standalone switch-expression identifier initializers to native branches without an IIFE, retaining binding semantics, result inference and mapped editor operations. Add semantic regression tests and an 8-byte checked application budget.

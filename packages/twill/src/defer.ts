@@ -189,15 +189,17 @@ export function lowerDefers(
     // An adjacent declaration JSDoc/suppression stays with its original node.
     const statement = ast.body.find((node: Node) => !node.directive)!;
     let start = statement.start;
-    const comment = [...comments].reverse().find((comment) => comment.end <= start);
-    if (
-      comment &&
-      /^\s*$/.test(source.slice(comment.end, start)) &&
-      (source.startsWith('/**', comment.start) ||
-        /@ts-(?:ignore|expect-error)\b/.test(comment.value)) &&
-      !/@(?:ts-(?:check|nocheck)|jsxImportSource|jsxRuntime)\b/.test(comment.value)
-    )
-      start = comment.start;
+    for (const comment of sortedComments) {
+      if (comment.end > start) continue;
+      if (/\S/.test(source.slice(comment.end, start))) break;
+      if (
+        (source.startsWith('/**', comment.start) ||
+          /@ts-(?:ignore|expect-error)\b/.test(comment.value)) &&
+        !/@(?:ts-(?:check|nocheck)|jsxImportSource|jsxRuntime)\b/.test(comment.value)
+      )
+        start = comment.start;
+      else break;
+    }
     code.prependLeft(
       start,
       `\nimport { runDefers as ${sharedHelper} } from '@swiftuijs/twill-runtime/helpers/v1';\n`,

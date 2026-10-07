@@ -9,6 +9,7 @@ import { fixtureRoot } from './helpers/fixture';
 import { loadConfig } from '../src/config';
 import { TwillProject, virtualFilename } from '../src/project';
 import { TwillEditor } from '../src/editor';
+import ts from 'typescript';
 const roots: string[] = [];
 afterEach(() => roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })));
 function compile(body: string, runtime: 'inline' | 'external' = 'external') {
@@ -275,6 +276,66 @@ it('keeps file pragmas and declaration documentation before/after the import res
   expect(result.code.indexOf('@ts-nocheck')).toBeLessThan(result.code.indexOf('import {'));
   expect(result.code.indexOf('@jsxImportSource')).toBeLessThan(result.code.indexOf('import {'));
   expect(result.code).toMatch(/import[^;]+;\s*\/\*\* Cleanup API\. \*\/\s*export function/);
+});
+it('keeps adjacent declaration documentation with native generic checkJs annotations', () => {
+  const root = fixtureRoot('external-jsdoc-');
+  roots.push(root);
+  const filename = join(root, 'main.js');
+  const source =
+    '// @ts-check\n/** Cleanup API description. */\n/** @template T\n * @param {T} input\n * @param {T[]} events\n * @returns {T} */\nexport function work(input,events){defer {events.push(input);}defer {events.push(input);}return input;}';
+  const result = transform(source, { language: 'js', runtime: 'external' });
+  expect(result.code).toMatch(
+    /import[^;]+;\s*\/\*\* Cleanup API description\. \*\/\s*\/\*\* @template T/,
+  );
+  writeFileSync(filename, result.code);
+  writeFileSync(
+    join(root, 'consumer.ts'),
+    'import {work} from "./main.js";const value:number=work(1,[]);\n// @ts-expect-error generic result retains its source type\nconst invalid:string=work(1,[]);',
+  );
+  const program = ts.createProgram([filename, join(root, 'consumer.ts')], {
+    allowJs: true,
+    checkJs: true,
+    noEmit: true,
+    strict: true,
+    skipLibCheck: true,
+    types: [],
+    target: ts.ScriptTarget.ES2022,
+    module: ts.ModuleKind.ESNext,
+    moduleResolution: ts.ModuleResolutionKind.Bundler,
+  });
+  expect(
+    ts
+      .getPreEmitDiagnostics(program)
+      .map((item) => ts.flattenDiagnosticMessageText(item.messageText, '\n')),
+  ).toEqual([]);
+});
+it('keeps suppression comments before the documented source declaration under native checkJs', () => {
+  const root = fixtureRoot('external-suppression-');
+  roots.push(root);
+  const filename = join(root, 'main.js');
+  const source =
+    '// @ts-check\n/** Source API. */\n// @ts-expect-error intentional implicit-any parameter\nexport function run(events){defer {events.push(1);}defer {events.push(2);}}';
+  const result = transform(source, { language: 'js', runtime: 'external' });
+  expect(result.code.indexOf('@ts-check')).toBeLessThan(result.code.indexOf('import {'));
+  expect(result.code.indexOf('import {')).toBeLessThan(result.code.indexOf('Source API.'));
+  expect(result.code.indexOf('import {')).toBeLessThan(result.code.indexOf('@ts-expect-error'));
+  writeFileSync(filename, result.code);
+  const program = ts.createProgram([filename], {
+    allowJs: true,
+    checkJs: true,
+    noEmit: true,
+    strict: true,
+    skipLibCheck: true,
+    types: [],
+    target: ts.ScriptTarget.ES2022,
+    module: ts.ModuleKind.ESNext,
+    moduleResolution: ts.ModuleResolutionKind.Bundler,
+  });
+  expect(
+    ts
+      .getPreEmitDiagnostics(program)
+      .map((item) => ts.flattenDiagnosticMessageText(item.messageText, '\n')),
+  ).toEqual([]);
 });
 it('inserts imports before a lowered first initializer rather than inside its control flow', () => {
   const source =
