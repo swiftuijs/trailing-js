@@ -318,6 +318,22 @@ export async function run() {
     async () => vscode.languages.getDiagnostics(enumConsumer.uri),
     (items) => items.length === 0,
   );
+  for (const [document, token, offset] of [
+    [enumeration, 'value:T', 0],
+    [enumConsumer, 'result.value', 7],
+  ] as const) {
+    try {
+      const edits = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
+        'vscode.executeDocumentRenameProvider',
+        document.uri,
+        position(document, token, offset),
+        'renamedPayload',
+      );
+      assert(!edits || edits.size === 0, 'Unsafe enum payload rename must be withheld');
+    } catch (error) {
+      assert.match(String(error), /renam/i);
+    }
+  }
   const enumFormats = await vscode.commands.executeCommand<vscode.TextEdit[]>(
     'vscode.executeFormatDocumentProvider',
     enumeration.uri,

@@ -4,7 +4,7 @@ import { parse } from './parser.js';
 import type { Plugin, Printer, ParserOptions, Doc } from 'prettier';
 
 type Node = { type: string; start: number; end: number; [key: string]: any };
-const { group, join, indent, hardline } = doc.builders;
+const { group, join, indent, hardline, softline, line } = doc.builders;
 const standard = estree.printers.estree as Printer<any>;
 const keys: Record<string, string[]> = {
   TwillCall: ['call', 'closures'],
@@ -42,7 +42,9 @@ const printer: Printer<any> = {
         return group([
           'case ',
           path.call(print, 'id'),
-          node.hasParens ? ['(', join(', ', path.map(print, 'params')), ')'] : '',
+          node.hasParens
+            ? ['(', indent([softline, join([',', line], path.map(print, 'params'))]), softline, ')']
+            : '',
           options.semi ? ';' : '',
         ]);
       case 'ExpressionStatement': {

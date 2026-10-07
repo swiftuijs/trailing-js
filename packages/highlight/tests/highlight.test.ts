@@ -64,6 +64,38 @@ it('registers both dialects and their native dependencies', () => {
     expect.arrayContaining(['twill', 'twillx', 'typescript', 'tsx']),
   );
 });
+
+it.each(['twill', 'twillx'])(
+  'retains comment scopes between associated case keywords and names in %s',
+  (lang) => {
+    const tokens = highlighter
+      .codeToTokensBase(
+        'enum State{case /* payload */ loaded(value:number);}\nenum Native{case /* member */ =1,other=2}',
+        { lang, theme: 'github-dark', includeExplanation: true },
+      )
+      .flat();
+    const scoped = (word: string, scope: string) =>
+      tokens.some((token) =>
+        token.explanation?.some(
+          (part) =>
+            part.content.includes(word) &&
+            part.scopes.some((item) => item.scopeName.startsWith(scope)),
+        ),
+      );
+    expect(scoped('loaded', 'entity.name.function.twill')).toBe(true);
+    expect(scoped('payload', 'comment.block')).toBe(true);
+    expect(scoped('member', 'comment.block')).toBe(true);
+    expect(
+      tokens.filter((token) =>
+        token.explanation?.some(
+          (part) =>
+            part.content === 'case' &&
+            part.scopes.some((item) => item.scopeName === 'keyword.control.twill'),
+        ),
+      ),
+    ).toHaveLength(1);
+  },
+);
 it.each(['twill', 'twillx'])('retains dialect and native token scopes in %s', (lang) => {
   const tokens = highlighter
     .codeToTokensBase(

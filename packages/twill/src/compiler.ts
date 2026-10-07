@@ -568,7 +568,9 @@ export function transform(source: string, options: TransformOptions = {}) {
     includeContent: true,
     hires: true,
   });
-  if (enumInsertions.length) mapEnumCopies(source, code.toString(), map, enumInsertions);
+  const enumCopies = enumInsertions.length
+    ? mapEnumCopies(source, code.toString(), map, enumInsertions)
+    : [];
   return {
     code: code.toString(),
     map,
@@ -578,6 +580,7 @@ export function transform(source: string, options: TransformOptions = {}) {
     defers: parsed.defers.length,
     switches: parsed.switches.length,
     associatedEnums: parsed.enums,
+    enumCopies,
     componentProps,
   };
 }

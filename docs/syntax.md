@@ -76,7 +76,7 @@ The failure block must provably exit: a direct `return`, `throw`, `break`, or `c
 
 ## Associated-value enums (unreleased)
 
-This is the implementation of proposed RFC 0015 on the development branch; npm and Marketplace 0.1.2 do not include it. The [RFC review](https://github.com/swiftuijs/twill/pull/12) defines its proposed scope; [implementation PR #13](https://github.com/swiftuijs/twill/pull/13) tracks the prototype.
+This implements [accepted RFC 0015](rfcs/0015-associated-value-enums.md) from source; npm and Marketplace 0.1.2 do not include it. [Implementation PR #13](https://github.com/swiftuijs/twill/pull/13) records its review and validation.
 
 ```twill
 export enum LoadState<T, E = Error> {
@@ -93,7 +93,7 @@ The declaration creates a normal TS union type and a same-named object of factor
 
 Payload fields require names and native TS types. Generic factories infer the parameters used by their payloads, including constraint/default dependencies, and return precise variant types. Match them using the existing `case { kind: 'loaded', value }` syntax below; new variants expose missing arms through `twill check`. Defaults keep their existing catch-all semantics. Native TS numeric/string enums retain their original behavior.
 
-Duplicate cases/fields, a payload named `kind`, optional/default/rest payload fields, const/ambient associated enums and mixed native members are rejected. Custom tags, case shorthand and broader pattern matching are separate proposals. Constructor completion, diagnostics, formatting, shared highlighting, declarations and source export are supported in this implementation; enum declaration/case/payload rename is conservatively withheld until its linked type/tag edits can be proven complete.
+Duplicate cases/fields, a payload named `kind`, optional/default/rest payload fields, const/ambient associated enums, const/variance type parameter modifiers and mixed native members are rejected. Like native lexical declarations, associated enums require braces in control-flow bodies. Custom tags, case shorthand and broader pattern matching are separate proposals. Constructor completion, diagnostics, formatting, shared highlighting, declarations and source export are supported in this implementation; enum declaration/case/payload/type-parameter rename is conservatively withheld until its linked type/tag edits can be proven complete.
 
 ## Switch expressions and union patterns
 

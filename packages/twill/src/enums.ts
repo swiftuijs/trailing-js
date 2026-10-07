@@ -40,6 +40,9 @@ function references(
           if (part.type === 'TSInferType') childBound.add(part.typeParameter.name);
           for (const [property, nested] of Object.entries(part)) {
             if (property === 'loc') continue;
+            // An inner conditional's extends clause owns its own infer binders.
+            // Its check/true/false branches may still infer for this outer clause.
+            if (part.type === 'TSConditionalType' && property === 'extendsType') continue;
             for (const item of Array.isArray(nested) ? nested : [nested])
               if (item?.type) bind(item);
           }
@@ -171,6 +174,7 @@ export function mapEnumCopies(
   };
   const trace = new TraceMap(map as any);
   const decoded = decodedMappings(trace);
+  const copies: { generatedStart: number; sourceStart: number; length: number }[] = [];
   for (const insertion of insertions) {
     const anchor = position(originalLines, insertion.anchor);
     const location = generatedPositionFor(trace, {
@@ -184,7 +188,12 @@ export function mapEnumCopies(
       (insertion.before ? insertion.text.length : 0);
     if (generated.slice(offset, offset + insertion.text.length) !== insertion.text)
       throw new Error('Enum mapping anchor does not match generated text.');
-    for (const copy of insertion.copies)
+    for (const copy of insertion.copies) {
+      copies.push({
+        generatedStart: offset + copy.start,
+        sourceStart: copy.sourceStart,
+        length: copy.length,
+      });
       for (let index = 0; index < copy.length; index++) {
         const target = position(generatedLines, offset + copy.start + index);
         const original = position(originalLines, copy.sourceStart + index);
@@ -199,9 +208,11 @@ export function mapEnumCopies(
         if (existing >= 0) line[existing] = entry;
         else line.push(entry);
       }
+    }
   }
   for (const line of decoded) line.sort((left, right) => left[0] - right[0]);
   map.mappings = encodedMappings(
     new TraceMap({ ...JSON.parse(map.toString()), mappings: decoded }),
   );
+  return copies;
 }

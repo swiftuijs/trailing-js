@@ -1,8 +1,8 @@
 # RFC 0015: Associated-value enums
 
-**Status:** Proposed.
+**Status:** Accepted.
 **Kind:** Language. **Release:** Not released. **Dependencies:** 0010, 0011, 0027.
-**Review:** Pending. [Implementation prototype PR #13](https://github.com/swiftuijs/twill/pull/13); opening it does not record acceptance.
+**Review:** Accepted after implementation review in [PR #13](https://github.com/swiftuijs/twill/pull/13) on 2026-10-07. Named payload factories and existing object-pattern switches are the accepted scope; release remains pending.
 
 ## Problem and native baseline
 
@@ -10,7 +10,7 @@ TS discriminated unions express business states well, but each type, tag literal
 
 ## Design
 
-Proposed declaration syntax:
+Accepted declaration syntax:
 
 ```text
 export enum LoadState<T, E = Error> {
@@ -28,9 +28,9 @@ Case names and payload fields are identifiers; every payload field has a native 
 
 The declaration creates a same-named native union type and constructor value. Each variant is a record with readonly kind equal to the case name and readonly named payload fields. Readonly is a static property rule, not deep immutability or runtime freezing. Payload objects retain reference identity; construction does not copy them. Values remain structural and JSON-friendly; plain records of the same type are valid native inputs. There is no nominal identity or generated equality operator.
 
-Generic parameters, constraints and defaults use native TS syntax. Constructor generics include type parameters needed by that case's payload types and their constraints/defaults; preserve their original order and transitive dependencies. A case that does not use a parameter must not force a meaningless inferred argument. Each factory returns its precise variant type. The overall enum alias contains all variants and preserves its declared generic parameters. The implementation must demonstrate inference and noUnusedParameters behavior before acceptance; it must not use any/casts to conceal generated errors.
+Generic parameter names, constraints and defaults use native TS syntax; const and variance modifiers are rejected in this initial scope. Constructor generics include type parameters needed by that case's payload types and their constraints/defaults; preserve their original order and transitive dependencies. A case that does not use a parameter must not force a meaningless inferred argument. Each factory returns its precise variant type. The overall enum alias contains all variants and preserves its declared generic parameters. The implementation must demonstrate inference and noUnusedParameters behavior before acceptance; it must not use any/casts to conceal generated errors.
 
-The initial prototype uses const assertions on fresh result literals to infer readonly fields and literal tags. These assertions do not change runtime behavior or mask payload/constraint errors. Copied annotations/constraints retain mappings to their original tokens. Enum declaration, case and payload rename is deliberately withheld, including at references, until linked type/tag edits can be shown complete; constructor completion, hover and diagnostics remain available. This bounded editor scope requires review before acceptance.
+The initial prototype uses const assertions on fresh result literals to infer readonly fields and literal tags. These assertions do not change runtime behavior or mask payload/constraint errors. Copied annotations/constraints retain mappings to their original tokens. Enum declaration, case, payload and type-parameter rename is deliberately withheld, including at references, until linked type/tag edits can be shown complete; constructor completion, hover and diagnostics remain available. This bounded editor scope is accepted; ordinary external type renames remain supported and must update every copied annotation.
 
 Matching initially uses released syntax:
 
@@ -80,4 +80,4 @@ Handwritten unions/factories remain the public baseline. A class-per-case or run
 
 ## Open questions and decision history
 
-Precise spelling, generic-factory ergonomics and edit mappings require implementation evidence and review. Initial scope is named payload fields plus existing object-pattern switches. Broader matching, custom tags, methods and value equality are intentionally separate proposals. Acceptance and implementation/release references have not yet been recorded.
+Precise spelling, generic-factory ergonomics and edit mappings require implementation evidence and review. Initial scope is named payload fields plus existing object-pattern switches. Broader matching, custom tags, methods and value equality are intentionally separate proposals. The implementation review accepted this scope after fixing nested infer binding, lexical-body rejection and source-mapped rename safety, and adding runtime/type/declaration/formatter/highlighter regressions. Declaration, case, payload and type-parameter renames remain withheld. PR #13 supplies the implementation; a release/version reference must be recorded before changing the status to Implemented.

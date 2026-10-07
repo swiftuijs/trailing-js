@@ -197,15 +197,23 @@
       ]
     },
     "enum-case": {
-      "match": "\\b(case)\\s+([[:alpha:]_$][\\w$]*)",
-      "captures": {
+      "begin": "\\b(case)\\b(?=(?:\\s|/\\*.*?\\*/)*[[:alpha:]_$])",
+      "beginCaptures": {
         "1": {
           "name": "keyword.control.twill"
-        },
-        "2": {
+        }
+      },
+      "end": "([[:alpha:]_$][\\w$]*)",
+      "endCaptures": {
+        "1": {
           "name": "entity.name.function.twill"
         }
-      }
+      },
+      "patterns": [
+        {
+          "include": "source.ts#comment"
+        }
+      ]
     }
   },
   "injections": {

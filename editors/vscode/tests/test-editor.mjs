@@ -69,7 +69,7 @@ const fixture = {
   'enums.twill':
     'export enum State<T>{case idle;case loaded(value:T);}\nexport const result=State.loaded(42);\nexport function read(state:State<number>){return switch(state){case {kind:"idle"}: 0;case {kind:"loaded",value}: value.toFixed();};}\n',
   'enums-consumer.ts':
-    'import {State,result} from "./enums.twill";export const value:State<number>=result;export const idle:"idle"=State.idle().kind;\n',
+    'import {State,result} from "./enums.twill";export const value:State<number>=result;export const idle:"idle"=State.idle().kind;export const payload=result.value;\n',
   'view.twillx': `import type { ReactNode } from 'react';\ndeclare function Card(props: { title: string; onClick?: (event: { x: number }) => void; children?: ReactNode }): ReactNode;\nexport const view = Card({ tit }) { 'Hello' };\n`,
   'debug.twill':
     'const run = (body: () => void) => body();\nrun {\n  const value = 21;\n  debugger;\n  console.log(value * 2);\n};\n',

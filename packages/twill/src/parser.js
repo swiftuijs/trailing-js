@@ -194,7 +194,19 @@ function parserFor(language) {
       this.expectContextual('enum');
       node.id = this.parseIdent();
       this.checkLValSimple(node.id, 2);
-      node.typeParameters = this.tsTryParseTypeParameters();
+      node.typeParameters = this.tsTryParseTypeParameters(() => {
+        if (this.type === tt._in || (this.isContextual('out') && this.lookahead().type === tt.name))
+          this.raise(
+            this.start,
+            'Associated-value enum type parameters cannot have const/in/out modifiers.',
+          );
+      });
+      const constant = node.typeParameters?.params.find((parameter) => parameter.const);
+      if (constant)
+        this.raise(
+          constant.start,
+          'Associated-value enum type parameters cannot have const/in/out modifiers.',
+        );
       node.braceStart = this.start;
       this.expect(tt.braceL);
       node.cases = [];
@@ -284,8 +296,15 @@ function parserFor(language) {
         node.cleanup = cleanup;
         return this.finishNode(node, 'DeferStatement');
       }
-      if (!this.isContextual('guard') || !guardAt(this.input, this.end, !!this.implicitClosure))
-        return super.parseStatement(context, ...args);
+      if (!this.isContextual('guard') || !guardAt(this.input, this.end, !!this.implicitClosure)) {
+        const statement = super.parseStatement(context, ...args);
+        if (context && statement.type === 'TwillEnumDeclaration')
+          this.raise(
+            statement.start,
+            'An associated-value enum requires a block; add braces around this body.',
+          );
+        return statement;
+      }
       const node = this.startNode();
       node.singleStatement = !!context;
       this.next();

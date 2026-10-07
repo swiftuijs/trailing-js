@@ -39,3 +39,17 @@ it('preserves empty-case comments and original type/member diagnostic positions'
   expect(formatted).toContain('readonly nested: string[]');
   expect(await format(formatted)).toBe(formatted);
 });
+
+it.each([true, false])(
+  'wraps long case payloads and remains idempotent with semi=%s',
+  async (semi) => {
+    const formatted = await format(
+      'export enum State<T>{case item(firstPayload:T,secondPayload:T,thirdPayload:T);}',
+      { printWidth: 40, semi },
+    );
+    expect(formatted).toContain('case item(\n');
+    expect(formatted.split('\n').every((line) => line.length <= 40)).toBe(true);
+    expect(await format(formatted, { printWidth: 40, semi })).toBe(formatted);
+    expect(transform(formatted).associatedEnums).toHaveLength(1);
+  },
+);

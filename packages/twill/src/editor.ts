@@ -98,13 +98,24 @@ export class TwillEditor {
     if (source === undefined) return undefined;
     if (!isTwillFile(filename))
       return span.start >= 0 && span.start + span.length <= source.length ? span : undefined;
-    const generated = this.project.transformed(filename)?.code;
+    const transformed = this.project.transformed(filename);
+    const generated = transformed?.code;
     if (generated === undefined) return undefined;
     const start = this.project.toOriginalOffset(filename, span.start);
     if (
       start < 0 ||
       start + span.length > source.length ||
-      this.project.toGeneratedOffset(filename, start) !== span.start ||
+      (this.project.toGeneratedOffset(filename, start) !== span.start &&
+        !transformed!.enumCopies.some(
+          (copy) =>
+            (span.start >= copy.generatedStart &&
+              span.start + span.length <= copy.generatedStart + copy.length &&
+              start === copy.sourceStart + span.start - copy.generatedStart) ||
+            (start >= copy.sourceStart &&
+              start + span.length <= copy.sourceStart + copy.length &&
+              this.project.toOriginalOffset(filename, span.start + span.length - 1) ===
+                start + span.length - 1),
+        )) ||
       source.slice(start, start + span.length) !==
         generated.slice(span.start, span.start + span.length)
     )
@@ -212,21 +223,31 @@ export class TwillEditor {
     );
     for (const definition of definitions ?? []) {
       const file = sourceFilename(definition.fileName);
-      const span = this.mapSpan(file, definition.textSpan);
-      if (!span) continue;
       const declarations = this.project.transformed(file)?.associatedEnums;
-      if (
-        declarations?.some((declaration) =>
-          [
-            declaration.id,
-            ...declaration.cases.flatMap((branch: any) => [branch.id, ...branch.params]),
-          ].some((node: any) => node.start === span.start),
-        )
-      )
+      if (!declarations?.length) continue;
+      const sourceFile = this.sourceFile(file);
+      let generatedEnum = false;
+      const visit = (node: ts.Node) => {
+        if (definition.textSpan.start < node.getStart() || definition.textSpan.start >= node.end)
+          return;
+        if (
+          (ts.isTypeAliasDeclaration(node) || ts.isVariableDeclaration(node)) &&
+          ts.isIdentifier(node.name)
+        ) {
+          const start = this.project.toOriginalOffset(file, node.name.getStart());
+          if (declarations.some((declaration) => declaration.id.start === start)) {
+            generatedEnum = true;
+            return;
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+      if (sourceFile) visit(sourceFile);
+      if (generatedEnum)
         return {
           canRename: false,
           localizedErrorMessage:
-            'Renaming associated-value enum declarations, cases and payload fields is not supported yet.',
+            'Renaming associated-value enum declarations, cases, payload fields and type parameters is not supported yet.',
         };
     }
     const info = this.project.service.getRenameInfo(virtualFilename(filename), offset, {
