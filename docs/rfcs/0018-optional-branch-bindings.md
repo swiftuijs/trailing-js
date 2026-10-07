@@ -52,6 +52,8 @@ The actual temporary is collision-free. Keep original initializer, pattern, anno
 
 Use strict comparisons and `void 0` so shadowed `undefined` and the browser's legacy `document.all` do not change the null/undefined contract. Existing guard emission retains its released native comparison behavior.
 
+An initializer written as a `match` expression retains the existing general-expression lowering, including its synchronous IIFE cost and suspension restrictions. This RFC does not optimize those separate expression contexts.
+
 Host minifiers retain their native assumptions: esbuild can fold the same strict pair in handwritten JS and emitted JS into a loose null comparison. The browser test covers the unminified Vite pipeline's `document.all` behavior; this does not claim to override a host's exotic-object optimization policy.
 
 Compare natural handwritten nullish branches with equivalent inputs and side effects. Require zero additional closures, wrappers, arrays or scheduling beyond operations explicitly written in the source; record generated/minified code and bytes. Timing reports retain all trials and source/build identities. A repeatable material slowdown blocks acceptance; representative controlled-host medians target within 10% of equivalent native code. This is an acceptance target, not an unmeasured speed claim.
@@ -66,4 +68,4 @@ Test falsy/nullish values, identity and one evaluation, getter/default/iterator 
 
 ## Open questions and decision history
 
-The maintainer selected `if const` and directed the implementation to follow Swift's condition parsing boundary on 2026-10-07. This fixes the syntax direction; the full implementation remains proposed pending review and release. Initial scope is statement-only. RFC 0017 composition, multiple bindings and Swift-style recovery warnings remain deferred. Nullish/destructuring behavior reuses RFCs 0007/0008; branch scope deliberately differs from guard's enclosing-scope binding.
+The maintainer selected `if const` and directed the implementation to follow Swift's condition parsing boundary on 2026-10-07. [Implementation PR #17](https://github.com/swiftuijs/twill/pull/17) provides the source prototype and coordinated tooling. This fixes the syntax direction; the full implementation remains proposed pending review and release. Initial scope is statement-only. RFC 0017 composition, multiple bindings and Swift-style recovery warnings remain deferred. Nullish/destructuring behavior reuses RFCs 0007/0008; branch scope deliberately differs from guard's enclosing-scope binding.
