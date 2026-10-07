@@ -2,7 +2,7 @@
 
 **Status:** Proposed.
 **Kind:** Language. **Release:** Not released. **Dependencies:** 0010, 0011, 0027.
-**Review:** Pending. An implementation PR may prototype this proposal before an acceptance decision.
+**Review:** Pending. [Implementation prototype PR #13](https://github.com/swiftuijs/twill/pull/13); opening it does not record acceptance.
 
 ## Problem and native baseline
 
