@@ -101,12 +101,16 @@ it('reports a missing enum case and invalid construction through native TS check
 
 it('preserves native enums and checks associated enums in TSX and nested lexical scopes', () => {
   const source = `export enum Native { A, B='b' } export const enum Const { A=1 }
+    export enum NativeKeyword {case=1, value=2} export enum NativeImplicitKeyword {case,value}
     export function make() { enum Inner {case value(data:number);} return Inner.value(2); }
     enum View<T> {case ready(value:T);} export const value=View.ready(3);`;
   expect(transform(source, { filename: 'view.twillx' }).code).toContain(
     'export enum Native { A, B=',
   );
   expect(parse(source).enums).toHaveLength(2);
+  expect(
+    run('enum Native{case=1,value=2}enum Implicit{case,value}return [Native.case,Implicit.case];'),
+  ).toEqual([1, 0]);
   expect(checked(source).project.diagnostics()).toEqual([]);
   expect(
     run(

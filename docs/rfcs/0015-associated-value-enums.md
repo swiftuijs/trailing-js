@@ -63,7 +63,7 @@ const Status = {
 
 Export modifiers apply to both generated declarations. Type-only imports consume the alias; value imports consume constructors. Native declarations must describe the union and precise factories without requiring a Twill-only type checker. Normal ESM initialization and function call semantics apply. A factory allocates one result object and performs ordinary argument evaluation exactly once; no runtime module, wrapper class, frozen graph or task is created. Nullary factories also allocate one object per call; object equality is native identity.
 
-Recognition must be token/AST based: generic enum declarations and enum bodies beginning with case opt into associated-value syntax. Plain native enums must still parse through the original parser. The declaration is a lexical binding and follows native top-level/block declaration rules. Generic type annotations may include nested syntax, comments and function/object types; do not parse them using broad regex replacement. JS-only parsing modes cannot accept TS type declarations.
+Recognition must be token/AST based: generic enum declarations and enum bodies beginning with case followed by a case-name identifier opt into associated-value syntax. A native member named case (assigned or implicit) does not opt in. Plain native enums must still parse through the original parser. The declaration is a lexical binding and follows native top-level/block declaration rules. Generic type annotations may include nested syntax, comments and function/object types; do not parse them using broad regex replacement. JS-only parsing modes cannot accept TS type declarations.
 
 ## Compatibility and alternatives
 

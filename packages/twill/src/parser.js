@@ -162,7 +162,12 @@ function associatedEnumAt(input, offset) {
     const tokens = Parser.tokenizer(input.slice(offset), { ecmaVersion: 'latest' });
     tokens.getToken(); // Declaration name; the TS parser validates it.
     const next = tokens.getToken();
-    return next.value === '<' || (next.type === tt.braceL && tokens.getToken().type === tt._case);
+    return (
+      next.value === '<' ||
+      (next.type === tt.braceL &&
+        tokens.getToken().type === tt._case &&
+        tokens.getToken().type === tt.name)
+    );
   } catch {
     // Let the original parser diagnose malformed native syntax at its real offset.
     return false;
