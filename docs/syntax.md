@@ -76,7 +76,7 @@ The failure block must provably exit: a direct `return`, `throw`, `break`, or `c
 
 ## Associated-value enums (unreleased)
 
-This implements [accepted RFC 0015](rfcs/0015-associated-value-enums.md) from source; npm and Marketplace 0.1.2 do not include it. [Implementation PR #13](https://github.com/swiftuijs/twill/pull/13) records its review and validation.
+This implements [accepted RFC 0015](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0015-associated-value-enums.md) from source; npm and Marketplace 0.1.2 do not include it. [Implementation PR #13](https://github.com/swiftuijs/twill/pull/13) records its review and validation.
 
 ```twill
 export enum LoadState<T, E = Error> {
