@@ -1,5 +1,7 @@
 # Contributing
 
+Coding agents should read [AGENTS.md](AGENTS.md) for repository conventions. Public language, tooling, compatibility and release changes must review and update the [official AI skill](skills/twill/SKILL.md) in the same PR; explain in the PR when its guidance is unaffected. Run `pnpm verify:skills` after building its dependencies. Website downloads are generated from that canonical file.
+
 These guides describe development of Twill itself. Application users should start with the [user documentation](https://twill.evecalm.com/). Repository references: [development and workspace commands](docs/contributing/tooling.md), [compiler architecture](docs/contributing/architecture.md), [release process](docs/contributing/releasing.md), [GitHub language registration](docs/contributing/github.md) and [language proposals and RFC process](docs/rfcs/README.md).
 
 Use Node 22.13+ or Node 24+ and the pnpm version pinned in `packageManager`. Install with `pnpm install --frozen-lockfile`. Run `pnpm check` before submitting changes; it includes formatting checks. `pnpm test:watch` supports compiler development; `pnpm dev:react` and `pnpm dev:vue` run the examples after a build.

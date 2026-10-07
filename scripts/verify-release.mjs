@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync, statSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { readSkill } from '../skills/skill.mjs';
 
 const manifest = (path) => JSON.parse(readFileSync(path, 'utf8'));
 const version = manifest('package.json').version;
+readSkill();
 assert.match(version, /^\d+\.\d+\.\d+$/, 'Release versions must use a complete semver');
 for (const path of [
   'packages/twill/package.json',
