@@ -112,6 +112,18 @@ Independent [examples](https://github.com/swiftuijs/twill/blob/main/examples/REA
 
 ## Packages
 
+The compiler includes adapters for your existing bundler:
+
+| Host    | Adapter import             | Native TS/JSX owner      |
+| ------- | -------------------------- | ------------------------ |
+| Vite    | `@swiftuijs/twill/vite`    | Vite                     |
+| Rollup  | `@swiftuijs/twill/rollup`  | Twill adapter by default |
+| Webpack | `@swiftuijs/twill/webpack` | Twill adapter by default |
+| Rspack  | `@swiftuijs/twill/rspack`  | Twill adapter by default |
+| esbuild | `@swiftuijs/twill/esbuild` | esbuild                  |
+
+Use `@swiftuijs/twill/vite-react` for React Fast Refresh. The [build guide](https://twill.evecalm.com/build-tools#adapter-support) records tested host versions, watch/incremental workflows and the unreleased configuration-refresh fix. Builds remain transpile-only; run `twill check` separately.
+
 Install only the tools your project needs. Keep Twill packages on the same release version.
 
 | Package                                                                                  | Purpose                                                        |

@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Refresh build-adapter configuration at build boundaries and track project/inherited JSX config dependencies for real Rollup, Webpack, Rspack and esbuild watch/incremental workflows. Preserve host-native emission and adapter-option precedence; verify failed builds recover with original-source maps.
+- Document the five published adapter imports, tested host versions and development-mode boundaries in READMEs, the website and the official AI skill. The configuration-refresh fix is not published in 0.1.2.
+
 - Prototype accepted RFC 0018 `if const` nullish branch bindings with one evaluation, native object/array destructuring and success-only immutable scope. Follow Swift's condition boundary, retaining grouped/nested trailing closures and unchanged native `if (...)` behavior.
 - Lower branch bindings to native scoped const/if code without a wrapper, closure, promise or runtime import. Synchronize mapped checking/editing, formatter/standalone, ESLint, TS/TSX grammars, declarations/export, build/loader/browser consumers, packaged editor, playground, documentation and the official AI skill.
 

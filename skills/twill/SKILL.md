@@ -117,6 +117,10 @@ import twill from '@swiftuijs/twill/vite';
 export default defineConfig({ plugins: [twill()] });
 ```
 
+For other bundlers use the matching published entry: `@swiftuijs/twill/rollup`, `/webpack`, `/rspack` or `/esbuild`. The checkout tests Vite 8, Rollup 4, Webpack 5, Rspack 2 and esbuild 0.28. Vite/esbuild own native TS/JSX emission; the other adapters emit local native TS/TSX/JSX by default. Set `nativeSources: false` when another plugin/loader already owns it. Keep aliases, dependency handling and framework HMR in the host. Use the host's watch API; esbuild uses `context().watch()` or `.rebuild()`, with `.dispose()` on exit.
+
+**Source-only watch fix (unreleased):** Configuration refresh on each build, inherited JSX dependency invalidation and optional config creation/deletion are covered by real host tests in this checkout. npm 0.1.2 has the adapters but requires a host restart after configuration changes. Do not assume incremental output preserves framework state or performs type checking. For Rollup editors using atomic saves on Linux, the host's native watcher can miss repeat replacements; use `watch.chokidar.usePolling: true` if affected. See the [development matrix](https://twill.evecalm.com/build-tools#adapter-support).
+
 For React with Vite 8 and React plugin 6, use `@swiftuijs/twill/vite-react`: `plugins: twillReact()`. It composes React Fast Refresh. Keep native hook rules and framework runtime dependencies. `.twillx` component closures emit JSX children; a single child is direct, general collection can allocate arrays. Own-scope `return` is forbidden in children collection; parameterized closures are render callbacks.
 
 ```twillx
