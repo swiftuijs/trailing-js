@@ -1,0 +1,770 @@
+{
+  "timestamp": "2026-10-07T11:00:06.425Z",
+  "commit": "a96e26c8114afb404c8e593c326333154ba10125",
+  "tree": "6af40d8c88321dff247452d2b019deaf88a7912f",
+  "workingTreeDirty": true,
+  "buildDigest": "62e2ac297f682bf2c4df4c7a293b4464d2f64057d3b48417fa4f8e74e1e8ea7d",
+  "benchmarkDigest": "742e62b85bcdc5feafc3d9cda4736e18f840cddf21f746fea7f0a3464519689e",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "arch": "x64",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C"
+  },
+  "methodology": {
+    "iterations": 100000,
+    "samples": 15,
+    "warmups": 5,
+    "trials": 3,
+    "runtime": "All workers generate every mode before timing. Three isolated processes per variant, alternating launch order; aggregate all 45 samples. Handwritten native baseline has equivalent closures, lazy stack, reverse order and cleanup error replacement. First call is an unsampled observation per process; no cross-engine/cold-start guarantee.",
+    "bundle": "Minified ES2022 ESM, separate synthetic modules and real packaged helper; helper bytes included; gzip level 9. Build times are single observations including compilation/bundling.",
+    "scope": "Dynamic registration only; single direct cleanup and async paths are unchanged. Not a comparison against minimal single native finally, nor an application speed guarantee."
+  },
+  "results": [
+    {
+      "registrations": 0,
+      "native": {
+        "medianMs": 0.32096900000000517,
+        "p95Ms": 0.5024690000000049,
+        "checksum": 0,
+        "trials": [
+          {
+            "firstCallMs": 0.10983699999999885,
+            "checksum": 0,
+            "samplesMs": [
+              0.3453710000000001, 0.3196449999999942, 0.3194380000000052, 0.5024690000000049,
+              0.3247490000000113, 0.31956800000000385, 0.3445960000000099, 0.3195490000000092,
+              0.5857510000000019, 0.3198500000000024, 0.3234429999999975, 0.3473549999999932,
+              0.31948799999999267, 0.3194510000000008, 0.5536230000000018
+            ]
+          },
+          {
+            "firstCallMs": 0.13904300000000092,
+            "checksum": 0,
+            "samplesMs": [
+              0.3208099999999945, 0.33838300000000743, 0.336229000000003, 0.32096900000000517,
+              0.3994999999999891, 0.3772739999999999, 0.3195710000000105, 0.3509350000000069,
+              0.31942800000000204, 0.31942399999999793, 0.3383890000000065, 0.3195139999999981,
+              0.31939299999999093, 0.34011699999999223, 0.31947200000000464
+            ]
+          },
+          {
+            "firstCallMs": 0.0837280000000078,
+            "checksum": 0,
+            "samplesMs": [
+              0.32108699999999146, 0.3384460000000047, 0.31958099999999945, 0.3210410000000081,
+              0.31947700000000623, 0.3365179999999981, 0.3194919999999968, 0.3193859999999944,
+              0.3791180000000054, 0.31952400000000125, 0.31943300000000363, 0.3441320000000019,
+              0.3195209999999946, 0.3193689999999947, 0.3415409999999923
+            ]
+          }
+        ]
+      },
+      "inline": {
+        "medianMs": 0.344664999999992,
+        "p95Ms": 0.7542250000000053,
+        "checksum": 0,
+        "trials": [
+          {
+            "firstCallMs": 0.14358000000000004,
+            "checksum": 0,
+            "samplesMs": [
+              0.46940399999999727, 0.6579720000000009, 0.9071679999999986, 0.44976700000000847,
+              0.8708830000000063, 0.58876699999999, 0.3204680000000053, 0.3367709999999988,
+              0.5313419999999951, 0.31974199999999087, 0.34371699999999805, 0.6261109999999945,
+              0.344664999999992, 0.6228739999999959, 0.345712000000006
+            ]
+          },
+          {
+            "firstCallMs": 0.10772299999999291,
+            "checksum": 0,
+            "samplesMs": [
+              0.33511900000000594, 0.31977399999999534, 0.35107999999999606, 0.32123199999999485,
+              0.319507999999999, 0.3389569999999935, 0.3195439999999934, 0.31936199999999815,
+              0.33821600000000274, 0.3195399999999893, 0.31938500000001113, 0.38043399999999394,
+              0.34368099999998947, 0.3194860000000119, 0.3537780000000055
+            ]
+          },
+          {
+            "firstCallMs": 0.10852900000000432,
+            "checksum": 0,
+            "samplesMs": [
+              0.5398890000000023, 0.32015600000001143, 0.56323900000001, 0.4178670000000011,
+              0.5561560000000014, 0.32058399999999665, 0.31953199999999526, 0.7542250000000053,
+              0.31989199999999585, 0.3959210000000013, 0.6825929999999971, 0.3967360000000042,
+              0.32448800000000233, 0.5225400000000064, 0.3195709999999963
+            ]
+          }
+        ]
+      },
+      "external": {
+        "medianMs": 0.3206469999999939,
+        "p95Ms": 0.4689419999999984,
+        "checksum": 0,
+        "trials": [
+          {
+            "firstCallMs": 0.15731499999999699,
+            "checksum": 0,
+            "samplesMs": [
+              0.3206469999999939, 0.33962499999999807, 0.3195429999999959, 0.3206339999999983,
+              0.3918120000000016, 0.31955100000000414, 0.3193419999999918, 0.3485780000000034,
+              0.34320100000000764, 0.3195230000000038, 0.34274899999999775, 0.3195180000000022,
+              0.31949699999999837, 0.3394909999999953, 0.31949000000000183
+            ]
+          },
+          {
+            "firstCallMs": 0.1286529999999999,
+            "checksum": 0,
+            "samplesMs": [
+              0.32422100000000853, 0.3422640000000001, 0.36471699999999885, 0.32120600000000366,
+              0.3475080000000048, 0.3195670000000064, 0.3193150000000031, 0.34038400000000024,
+              0.31946200000000147, 0.31937899999999786, 0.34019099999999014, 0.31944099999999764,
+              0.31939599999999757, 0.31932199999999966, 0.37653899999999396
+            ]
+          },
+          {
+            "firstCallMs": 0.7175590000000085,
+            "checksum": 0,
+            "samplesMs": [
+              0.3211419999999947, 0.31960800000000233, 0.3387379999999922, 0.32088699999999903,
+              0.3194909999999993, 0.6188429999999983, 0.535743999999994, 0.32001099999999383,
+              0.3194730000000021, 0.3373150000000038, 0.319587999999996, 0.3194430000000068,
+              0.4689419999999984, 0.3195880000000102, 0.38714000000000226
+            ]
+          }
+        ]
+      },
+      "inlineRatio": 1.0738264442983168,
+      "externalRatio": 0.9989967878517513
+    },
+    {
+      "registrations": 1,
+      "native": {
+        "medianMs": 3.931015000000002,
+        "p95Ms": 5.621846000000005,
+        "checksum": 100000,
+        "trials": [
+          {
+            "firstCallMs": 0.1912980000000033,
+            "checksum": 100000,
+            "samplesMs": [
+              3.8138580000000104, 3.6451039999999892, 3.6961399999999998, 3.9833659999999895,
+              3.6933730000000082, 3.71731299999999, 3.9085090000000093, 4.407808999999986,
+              10.314629999999994, 4.542110000000008, 5.042347000000007, 5.621846000000005,
+              3.8683540000000107, 3.8720830000000035, 3.8403209999999888
+            ]
+          },
+          {
+            "firstCallMs": 0.1346810000000005,
+            "checksum": 100000,
+            "samplesMs": [
+              3.738871000000003, 4.04152400000001, 4.303633999999988, 3.766602000000006,
+              3.7383079999999893, 4.0025540000000035, 3.7214879999999937, 3.798310999999984,
+              3.693380000000019, 3.9398310000000265, 4.112052000000006, 4.136773000000005,
+              4.4416789999999935, 5.454801000000003, 3.666694000000007
+            ]
+          },
+          {
+            "firstCallMs": 0.2776889999999952,
+            "checksum": 100000,
+            "samplesMs": [
+              3.931015000000002, 3.707971999999984, 3.902801000000011, 3.6872610000000066,
+              4.070105999999981, 4.27121600000001, 3.7668779999999913, 4.596913000000001,
+              4.482392000000004, 5.059234000000004, 5.707655999999986, 4.171314000000024,
+              3.723974999999996, 3.883683000000019, 4.199156999999985
+            ]
+          }
+        ]
+      },
+      "inline": {
+        "medianMs": 4.083533000000017,
+        "p95Ms": 5.953427000000005,
+        "checksum": 100000,
+        "trials": [
+          {
+            "firstCallMs": 0.0996329999999972,
+            "checksum": 100000,
+            "samplesMs": [
+              4.109139999999982, 4.046014000000014, 3.882813999999996, 3.8527699999999925,
+              4.143895999999984, 4.328458000000012, 4.083533000000017, 4.167468000000014,
+              4.538025000000005, 4.298721999999998, 5.953427000000005, 4.1995620000000145,
+              3.7475209999999777, 3.6862179999999967, 4.002967000000012
+            ]
+          },
+          {
+            "firstCallMs": 0.12937500000001023,
+            "checksum": 100000,
+            "samplesMs": [
+              4.325581999999997, 3.8709090000000117, 3.9896019999999908, 3.7889999999999873,
+              3.8920679999999948, 3.950051000000002, 4.276966999999985, 4.065784000000008,
+              3.9466950000000054, 5.225687999999991, 7.925346999999988, 8.89659499999999,
+              5.256647999999984, 4.013958000000002, 3.7530810000000088
+            ]
+          },
+          {
+            "firstCallMs": 0.1523559999999975,
+            "checksum": 100000,
+            "samplesMs": [
+              4.090674000000007, 3.9796790000000044, 4.574635999999998, 4.020594999999986,
+              4.038880000000006, 4.017268999999999, 4.248256999999995, 4.560990000000004,
+              4.341054999999983, 4.838349999999991, 5.252362000000005, 3.824082000000004,
+              3.83951399999998, 3.6632879999999943, 4.208527999999973
+            ]
+          }
+        ]
+      },
+      "external": {
+        "medianMs": 3.9958310000000097,
+        "p95Ms": 5.486238999999983,
+        "checksum": 100000,
+        "trials": [
+          {
+            "firstCallMs": 0.11064700000000016,
+            "checksum": 100000,
+            "samplesMs": [
+              4.189751000000001, 3.826512000000008, 5.180649999999986, 3.952744999999993,
+              4.121636999999993, 3.9015420000000063, 3.8282800000000066, 3.905786000000006,
+              3.6744810000000143, 4.473011000000014, 4.397285000000011, 4.3493600000000185,
+              5.486238999999983, 3.787599, 3.7185739999999896
+            ]
+          },
+          {
+            "firstCallMs": 0.16981099999999572,
+            "checksum": 100000,
+            "samplesMs": [
+              6.41248800000001, 3.977522999999991, 3.9958310000000097, 4.365970000000004,
+              3.8894380000000126, 3.819158000000016, 3.590742000000006, 3.713495000000023,
+              3.715122000000008, 4.083599000000021, 4.989511999999991, 4.5668549999999755,
+              5.56120199999998, 3.8320779999999957, 4.350055999999995
+            ]
+          },
+          {
+            "firstCallMs": 0.10961199999999849,
+            "checksum": 100000,
+            "samplesMs": [
+              3.9444939999999917, 3.818286999999998, 3.91832500000001, 3.6302440000000047,
+              4.173041999999981, 3.6860149999999976, 4.113920000000007, 5.211635999999999,
+              4.364992999999998, 5.183642999999989, 4.495226000000002, 4.263601999999992,
+              3.7950139999999806, 3.6090440000000115, 4.385029000000003
+            ]
+          }
+        ]
+      },
+      "inlineRatio": 1.038798630887955,
+      "externalRatio": 1.0164883624203946
+    },
+    {
+      "registrations": 5,
+      "native": {
+        "medianMs": 10.207385999999985,
+        "p95Ms": 12.861413000000027,
+        "checksum": 1500000,
+        "trials": [
+          {
+            "firstCallMs": 0.10679600000000278,
+            "checksum": 1500000,
+            "samplesMs": [
+              15.748469999999998, 10.266776000000021, 10.207385999999985, 9.558927000000011,
+              9.718028000000004, 9.705418000000009, 9.551999999999992, 10.215947999999997,
+              10.820984999999979, 11.420840999999967, 10.748996999999974, 10.052331999999979,
+              9.949058999999977, 9.241588999999976, 9.886347
+            ]
+          },
+          {
+            "firstCallMs": 0.09911900000000173,
+            "checksum": 1500000,
+            "samplesMs": [
+              10.395488, 13.219617, 12.688073000000003, 9.98832999999999, 10.013952999999987,
+              10.991169999999983, 11.00013100000001, 11.85630599999999, 10.451617999999996,
+              10.160378000000037, 9.903241000000037, 9.837778000000014, 10.264071999999999,
+              10.05325300000004, 9.851309000000015
+            ]
+          },
+          {
+            "firstCallMs": 0.16700500000000318,
+            "checksum": 1500000,
+            "samplesMs": [
+              11.499230000000011, 10.268575999999996, 10.261792000000014, 12.861413000000027,
+              9.994576999999992, 10.514080000000007, 9.677886999999998, 10.10086800000002,
+              9.923885000000013, 9.838288999999975, 9.561463000000003, 10.039537999999993,
+              10.530276000000015, 12.823882999999967, 10.79982799999999
+            ]
+          }
+        ]
+      },
+      "inline": {
+        "medianMs": 10.687837000000002,
+        "p95Ms": 14.045491000000027,
+        "checksum": 1500000,
+        "trials": [
+          {
+            "firstCallMs": 0.13409500000000207,
+            "checksum": 1500000,
+            "samplesMs": [
+              9.802932999999996, 9.512218000000018, 9.610431999999975, 9.705636999999996,
+              10.976935999999995, 9.569607999999988, 10.857587999999993, 12.753165999999993,
+              11.11470700000001, 10.80044399999997, 9.624355000000037, 11.53557699999999,
+              9.853131000000019, 10.280317000000025, 9.845912999999996
+            ]
+          },
+          {
+            "firstCallMs": 0.10532800000000009,
+            "checksum": 1500000,
+            "samplesMs": [
+              10.245907999999986, 13.186183, 11.775273999999996, 11.104131999999993,
+              11.147542000000016, 11.133449000000013, 10.704959000000002, 10.082190999999995,
+              11.237481000000031, 14.045491000000027, 19.778299000000004, 12.551030000000026,
+              9.744693999999981, 9.740306999999973, 9.972252999999967
+            ]
+          },
+          {
+            "firstCallMs": 0.10227500000000589,
+            "checksum": 1500000,
+            "samplesMs": [
+              11.379124999999988, 11.68789000000001, 10.318636999999995, 9.711460000000017,
+              10.687837000000002, 9.901199999999989, 10.710721000000007, 9.91851299999999,
+              12.092263000000003, 13.362088999999969, 14.079572999999982, 10.58461299999999,
+              9.849063999999998, 9.761844999999994, 9.92360199999996
+            ]
+          }
+        ]
+      },
+      "external": {
+        "medianMs": 10.570853,
+        "p95Ms": 16.339669000000015,
+        "checksum": 1500000,
+        "trials": [
+          {
+            "firstCallMs": 0.11485600000000318,
+            "checksum": 1500000,
+            "samplesMs": [
+              11.078430999999995, 10.289379999999994, 11.552837000000011, 12.255921999999998,
+              10.382161999999994, 9.953139000000021, 13.058616999999998, 15.279239000000018,
+              10.295410000000004, 10.006925999999993, 11.378106000000002, 16.339669000000015,
+              10.601150000000018, 18.159875999999997, 17.656632000000002
+            ]
+          },
+          {
+            "firstCallMs": 0.10627000000000919,
+            "checksum": 1500000,
+            "samplesMs": [
+              10.31717999999998, 10.242125999999985, 10.086313000000018, 10.430240999999995,
+              10.737570000000005, 13.113912, 10.301048000000009, 10.134226000000012,
+              9.94966199999999, 9.601158999999996, 11.332694000000004, 11.073847999999998,
+              9.540557999999976, 10.497488999999973, 13.713522000000012
+            ]
+          },
+          {
+            "firstCallMs": 0.10706399999999405,
+            "checksum": 1500000,
+            "samplesMs": [
+              11.684887000000003, 12.881657000000018, 14.78930200000002, 12.728302000000014,
+              11.112635000000012, 12.232026999999988, 11.877460000000013, 10.570853,
+              10.120376000000022, 10.147721999999987, 9.916600000000017, 10.12624599999998,
+              10.05717199999998, 10.53249900000003, 10.319727
+            ]
+          }
+        ]
+      },
+      "inlineRatio": 1.0470689557541977,
+      "externalRatio": 1.0356082350564595
+    },
+    {
+      "registrations": 25,
+      "native": {
+        "medianMs": 53.44031000000001,
+        "p95Ms": 64.6784540000001,
+        "checksum": 32500000,
+        "trials": [
+          {
+            "firstCallMs": 0.11029399999999612,
+            "checksum": 32500000,
+            "samplesMs": [
+              53.44031000000001, 48.096408999999994, 51.05044800000002, 50.35243099999997,
+              60.88471800000002, 48.695648000000006, 52.252745000000004, 49.32049600000005,
+              51.87953700000003, 54.91367600000001, 63.533225000000016, 50.14499999999998,
+              50.17838900000004, 71.30121699999995, 50.29796199999987
+            ]
+          },
+          {
+            "firstCallMs": 0.15424300000000812,
+            "checksum": 32500000,
+            "samplesMs": [
+              50.482732, 59.31562500000001, 50.55059499999999, 64.6784540000001, 50.57378599999993,
+              56.09872900000005, 47.232548000000065, 61.155718999999976, 72.27538700000002,
+              57.617021999999906, 54.023121999999944, 49.151468000000136, 60.979372999999896,
+              51.5106659999999, 54.09475300000008
+            ]
+          },
+          {
+            "firstCallMs": 0.6288749999999936,
+            "checksum": 32500000,
+            "samplesMs": [
+              49.46173900000002, 56.471191999999974, 55.743082999999956, 63.77897600000006,
+              58.06551000000002, 50.98514399999999, 53.38754699999993, 47.477412999999956,
+              60.08838299999991, 48.147974999999974, 55.308535000000006, 59.22592300000008,
+              56.15425500000015, 57.01822399999992, 50.71172699999988
+            ]
+          }
+        ]
+      },
+      "inline": {
+        "medianMs": 53.66775800000005,
+        "p95Ms": 68.42580299999997,
+        "checksum": 32500000,
+        "trials": [
+          {
+            "firstCallMs": 0.181083000000001,
+            "checksum": 32500000,
+            "samplesMs": [
+              49.10123799999997, 61.12740600000001, 49.56166200000007, 54.33831800000007,
+              51.24790100000007, 55.817458999999985, 51.771368999999936, 50.624544000000014,
+              48.43982900000003, 49.760677999999984, 58.747139999999945, 48.04081199999996,
+              50.999007000000006, 50.62079999999992, 54.00393999999983
+            ]
+          },
+          {
+            "firstCallMs": 0.2063320000000033,
+            "checksum": 32500000,
+            "samplesMs": [
+              62.260366999999974, 57.16478599999999, 51.69386900000001, 58.59816699999999,
+              55.02932099999998, 58.98554899999999, 53.20879599999989, 54.05882400000007,
+              79.69195300000001, 53.56165699999997, 49.468481999999995, 53.05297899999994,
+              53.89159600000016, 53.66775800000005, 49.939685000000054
+            ]
+          },
+          {
+            "firstCallMs": 0.1923579999999987,
+            "checksum": 32500000,
+            "samplesMs": [
+              61.62543700000003, 55.010407999999984, 52.41443300000003, 49.89692600000001,
+              52.43817899999999, 68.42580299999997, 68.50774799999999, 56.22675300000003,
+              46.86082500000009, 55.90073099999995, 56.707629, 54.51463599999988, 49.73101200000019,
+              53.48659899999984, 56.46056599999997
+            ]
+          }
+        ]
+      },
+      "external": {
+        "medianMs": 52.242887999999994,
+        "p95Ms": 69.94072000000006,
+        "checksum": 32500000,
+        "trials": [
+          {
+            "firstCallMs": 0.23190200000000516,
+            "checksum": 32500000,
+            "samplesMs": [
+              58.03291300000001, 62.113658000000044, 53.97713599999997, 53.09723799999995,
+              69.94072000000006, 72.59907199999998, 51.35320999999999, 50.544633999999974,
+              46.725384000000076, 49.45142599999997, 51.28202600000009, 49.79199399999993,
+              45.39746500000001, 50.94041399999992, 54.90520399999991
+            ]
+          },
+          {
+            "firstCallMs": 0.21955500000001393,
+            "checksum": 32500000,
+            "samplesMs": [
+              50.01464000000004, 49.34428500000001, 57.96918499999998, 49.330105, 50.24694999999997,
+              48.84571699999992, 58.29456700000003, 50.73389300000008, 47.930593000000044,
+              49.869102, 49.009207999999944, 54.61688700000002, 52.36668999999995,
+              51.53131099999996, 52.242887999999994
+            ]
+          },
+          {
+            "firstCallMs": 0.2400570000000073,
+            "checksum": 32500000,
+            "samplesMs": [
+              63.21763499999997, 53.41528900000003, 49.93475999999998, 55.494744999999966,
+              73.11893699999996, 55.575258000000076, 58.345055, 48.56158999999991,
+              57.218474000000015, 55.24213999999995, 52.78579000000002, 52.39102099999991,
+              51.966731999999865, 51.47085100000004, 68.31034900000009
+            ]
+          }
+        ]
+      },
+      "inlineRatio": 1.0042561130352732,
+      "externalRatio": 0.9775932811766994
+    }
+  ],
+  "bundles": [
+    {
+      "scopes": 1,
+      "inline": {
+        "bytes": 237,
+        "gzipBytes": 191,
+        "buildMs": 68.59475799999927,
+        "inputs": ["runtime-fixture:scope0", "runtime-fixture:entry"]
+      },
+      "external": {
+        "bytes": 256,
+        "gzipBytes": 195,
+        "buildMs": 19.6679890000014,
+        "inputs": [
+          "packages/runtime/dist/helpers/v1.js",
+          "runtime-fixture:scope0",
+          "runtime-fixture:entry"
+        ]
+      }
+    },
+    {
+      "scopes": 10,
+      "inline": {
+        "bytes": 2289,
+        "gzipBytes": 257,
+        "buildMs": 39.868185999999696,
+        "inputs": [
+          "runtime-fixture:scope0",
+          "runtime-fixture:scope1",
+          "runtime-fixture:scope2",
+          "runtime-fixture:scope3",
+          "runtime-fixture:scope4",
+          "runtime-fixture:scope5",
+          "runtime-fixture:scope6",
+          "runtime-fixture:scope7",
+          "runtime-fixture:scope8",
+          "runtime-fixture:scope9",
+          "runtime-fixture:entry"
+        ]
+      },
+      "external": {
+        "bytes": 1570,
+        "gzipBytes": 264,
+        "buildMs": 24.764744000000064,
+        "inputs": [
+          "packages/runtime/dist/helpers/v1.js",
+          "runtime-fixture:scope0",
+          "runtime-fixture:scope1",
+          "runtime-fixture:scope2",
+          "runtime-fixture:scope3",
+          "runtime-fixture:scope4",
+          "runtime-fixture:scope5",
+          "runtime-fixture:scope6",
+          "runtime-fixture:scope7",
+          "runtime-fixture:scope8",
+          "runtime-fixture:scope9",
+          "runtime-fixture:entry"
+        ]
+      }
+    },
+    {
+      "scopes": 100,
+      "inline": {
+        "bytes": 23007,
+        "gzipBytes": 829,
+        "buildMs": 147.68956099999923,
+        "inputs": [
+          "runtime-fixture:scope0",
+          "runtime-fixture:scope1",
+          "runtime-fixture:scope2",
+          "runtime-fixture:scope3",
+          "runtime-fixture:scope4",
+          "runtime-fixture:scope5",
+          "runtime-fixture:scope6",
+          "runtime-fixture:scope7",
+          "runtime-fixture:scope8",
+          "runtime-fixture:scope9",
+          "runtime-fixture:scope10",
+          "runtime-fixture:scope11",
+          "runtime-fixture:scope12",
+          "runtime-fixture:scope13",
+          "runtime-fixture:scope14",
+          "runtime-fixture:scope15",
+          "runtime-fixture:scope16",
+          "runtime-fixture:scope17",
+          "runtime-fixture:scope18",
+          "runtime-fixture:scope19",
+          "runtime-fixture:scope20",
+          "runtime-fixture:scope21",
+          "runtime-fixture:scope22",
+          "runtime-fixture:scope23",
+          "runtime-fixture:scope24",
+          "runtime-fixture:scope25",
+          "runtime-fixture:scope26",
+          "runtime-fixture:scope27",
+          "runtime-fixture:scope28",
+          "runtime-fixture:scope29",
+          "runtime-fixture:scope30",
+          "runtime-fixture:scope31",
+          "runtime-fixture:scope32",
+          "runtime-fixture:scope33",
+          "runtime-fixture:scope34",
+          "runtime-fixture:scope35",
+          "runtime-fixture:scope36",
+          "runtime-fixture:scope37",
+          "runtime-fixture:scope38",
+          "runtime-fixture:scope39",
+          "runtime-fixture:scope40",
+          "runtime-fixture:scope41",
+          "runtime-fixture:scope42",
+          "runtime-fixture:scope43",
+          "runtime-fixture:scope44",
+          "runtime-fixture:scope45",
+          "runtime-fixture:scope46",
+          "runtime-fixture:scope47",
+          "runtime-fixture:scope48",
+          "runtime-fixture:scope49",
+          "runtime-fixture:scope50",
+          "runtime-fixture:scope51",
+          "runtime-fixture:scope52",
+          "runtime-fixture:scope53",
+          "runtime-fixture:scope54",
+          "runtime-fixture:scope55",
+          "runtime-fixture:scope56",
+          "runtime-fixture:scope57",
+          "runtime-fixture:scope58",
+          "runtime-fixture:scope59",
+          "runtime-fixture:scope60",
+          "runtime-fixture:scope61",
+          "runtime-fixture:scope62",
+          "runtime-fixture:scope63",
+          "runtime-fixture:scope64",
+          "runtime-fixture:scope65",
+          "runtime-fixture:scope66",
+          "runtime-fixture:scope67",
+          "runtime-fixture:scope68",
+          "runtime-fixture:scope69",
+          "runtime-fixture:scope70",
+          "runtime-fixture:scope71",
+          "runtime-fixture:scope72",
+          "runtime-fixture:scope73",
+          "runtime-fixture:scope74",
+          "runtime-fixture:scope75",
+          "runtime-fixture:scope76",
+          "runtime-fixture:scope77",
+          "runtime-fixture:scope78",
+          "runtime-fixture:scope79",
+          "runtime-fixture:scope80",
+          "runtime-fixture:scope81",
+          "runtime-fixture:scope82",
+          "runtime-fixture:scope83",
+          "runtime-fixture:scope84",
+          "runtime-fixture:scope85",
+          "runtime-fixture:scope86",
+          "runtime-fixture:scope87",
+          "runtime-fixture:scope88",
+          "runtime-fixture:scope89",
+          "runtime-fixture:scope90",
+          "runtime-fixture:scope91",
+          "runtime-fixture:scope92",
+          "runtime-fixture:scope93",
+          "runtime-fixture:scope94",
+          "runtime-fixture:scope95",
+          "runtime-fixture:scope96",
+          "runtime-fixture:scope97",
+          "runtime-fixture:scope98",
+          "runtime-fixture:scope99",
+          "runtime-fixture:entry"
+        ]
+      },
+      "external": {
+        "bytes": 14904,
+        "gzipBytes": 836,
+        "buildMs": 88.05490499999723,
+        "inputs": [
+          "packages/runtime/dist/helpers/v1.js",
+          "runtime-fixture:scope0",
+          "runtime-fixture:scope1",
+          "runtime-fixture:scope2",
+          "runtime-fixture:scope3",
+          "runtime-fixture:scope4",
+          "runtime-fixture:scope5",
+          "runtime-fixture:scope6",
+          "runtime-fixture:scope7",
+          "runtime-fixture:scope8",
+          "runtime-fixture:scope9",
+          "runtime-fixture:scope10",
+          "runtime-fixture:scope11",
+          "runtime-fixture:scope12",
+          "runtime-fixture:scope13",
+          "runtime-fixture:scope14",
+          "runtime-fixture:scope15",
+          "runtime-fixture:scope16",
+          "runtime-fixture:scope17",
+          "runtime-fixture:scope18",
+          "runtime-fixture:scope19",
+          "runtime-fixture:scope20",
+          "runtime-fixture:scope21",
+          "runtime-fixture:scope22",
+          "runtime-fixture:scope23",
+          "runtime-fixture:scope24",
+          "runtime-fixture:scope25",
+          "runtime-fixture:scope26",
+          "runtime-fixture:scope27",
+          "runtime-fixture:scope28",
+          "runtime-fixture:scope29",
+          "runtime-fixture:scope30",
+          "runtime-fixture:scope31",
+          "runtime-fixture:scope32",
+          "runtime-fixture:scope33",
+          "runtime-fixture:scope34",
+          "runtime-fixture:scope35",
+          "runtime-fixture:scope36",
+          "runtime-fixture:scope37",
+          "runtime-fixture:scope38",
+          "runtime-fixture:scope39",
+          "runtime-fixture:scope40",
+          "runtime-fixture:scope41",
+          "runtime-fixture:scope42",
+          "runtime-fixture:scope43",
+          "runtime-fixture:scope44",
+          "runtime-fixture:scope45",
+          "runtime-fixture:scope46",
+          "runtime-fixture:scope47",
+          "runtime-fixture:scope48",
+          "runtime-fixture:scope49",
+          "runtime-fixture:scope50",
+          "runtime-fixture:scope51",
+          "runtime-fixture:scope52",
+          "runtime-fixture:scope53",
+          "runtime-fixture:scope54",
+          "runtime-fixture:scope55",
+          "runtime-fixture:scope56",
+          "runtime-fixture:scope57",
+          "runtime-fixture:scope58",
+          "runtime-fixture:scope59",
+          "runtime-fixture:scope60",
+          "runtime-fixture:scope61",
+          "runtime-fixture:scope62",
+          "runtime-fixture:scope63",
+          "runtime-fixture:scope64",
+          "runtime-fixture:scope65",
+          "runtime-fixture:scope66",
+          "runtime-fixture:scope67",
+          "runtime-fixture:scope68",
+          "runtime-fixture:scope69",
+          "runtime-fixture:scope70",
+          "runtime-fixture:scope71",
+          "runtime-fixture:scope72",
+          "runtime-fixture:scope73",
+          "runtime-fixture:scope74",
+          "runtime-fixture:scope75",
+          "runtime-fixture:scope76",
+          "runtime-fixture:scope77",
+          "runtime-fixture:scope78",
+          "runtime-fixture:scope79",
+          "runtime-fixture:scope80",
+          "runtime-fixture:scope81",
+          "runtime-fixture:scope82",
+          "runtime-fixture:scope83",
+          "runtime-fixture:scope84",
+          "runtime-fixture:scope85",
+          "runtime-fixture:scope86",
+          "runtime-fixture:scope87",
+          "runtime-fixture:scope88",
+          "runtime-fixture:scope89",
+          "runtime-fixture:scope90",
+          "runtime-fixture:scope91",
+          "runtime-fixture:scope92",
+          "runtime-fixture:scope93",
+          "runtime-fixture:scope94",
+          "runtime-fixture:scope95",
+          "runtime-fixture:scope96",
+          "runtime-fixture:scope97",
+          "runtime-fixture:scope98",
+          "runtime-fixture:scope99",
+          "runtime-fixture:entry"
+        ]
+      }
+    }
+  ]
+}

@@ -20,6 +20,8 @@ export interface TransformOptions {
   jsxImportSource?: string;
   /** Swift's single-expression implicit return. Defaults to true. */
   implicitReturn?: boolean;
+  /** Share dynamic synchronous cleanup through the optional runtime. Defaults to inline. */
+  runtime?: 'inline' | 'external';
 }
 export const extensions = ['.twill', '.twillx'] as const;
 export function isTwillFile(id: string): boolean {
@@ -84,6 +86,8 @@ function calleeName(node: Node): string | undefined {
 }
 
 export function transform(source: string, options: TransformOptions = {}) {
+  if (options.runtime !== undefined && !['inline', 'external'].includes(options.runtime))
+    throw new TypeError('runtime must be inline or external');
   const filename = options.filename ?? 'input.twill';
   let parsed: {
     ast: Node;
@@ -124,7 +128,7 @@ export function transform(source: string, options: TransformOptions = {}) {
     /\.twillx$/.test(filename.split(/[?#]/, 1)[0]!)
   )
     walk(parsed.ast, (node) => {
-      if (node.type === 'Identifier') usedNames.add(node.name);
+      if (node.type === 'Identifier' || node.type === 'JSXIdentifier') usedNames.add(node.name);
     });
   let guardCounter = 0;
   for (const guard of parsed.guards) {
@@ -554,6 +558,8 @@ export function transform(source: string, options: TransformOptions = {}) {
       usedNames,
       starts,
       parsed.comments,
+      options.runtime ?? 'inline',
+      options.sourceType ?? 'module',
       (node, message) => {
         throw new TwillSyntaxError(source, filename, {
           message,

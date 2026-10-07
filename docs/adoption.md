@@ -30,7 +30,7 @@ pnpm exec twill export -p tsconfig.json -o ../native-project
 
 It formats lowered TS/TSX, rewrites relative dialect imports in both native and dialect sources, copies local declarations/direct imported assets and flattens TS configuration. The destination must be outside the input root and must not exist. Errors and collisions prevent writes; originals remain intact.
 
-Install the project's normal dependencies in the destination or merge the sources into an existing native application. Use native `tsc` and normal build tools afterward. There is no Twill runtime or compiler plugin requirement for exported sources; React/Vue and any application libraries retain their ordinary requirements.
+Install the project's normal dependencies in the destination or merge the sources into an existing native application. Use native `tsc` and normal build tools afterward. Default inline export needs no Twill runtime or compiler plugin. The unreleased [external runtime mode](./runtime.md) preserves its helper import and requires the runtime in the destination; export does not install it or alter manifests. React/Vue and any application libraries retain their ordinary requirements.
 
 This is a source export. It does not copy package manifests, bundler configuration, public folders or every indirectly referenced asset. Project references, sources outside the root and computed dynamic module paths need an explicit migration plan. See the [export package](../packages/export/README.md) for exact boundaries. Single-file `twill compile` remains an inspection tool and preserves its input import specifiers.
 

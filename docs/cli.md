@@ -6,7 +6,7 @@ The locally installed `@swiftuijs/twill` package provides the `twill` command. R
 pnpm exec twill --help
 ```
 
-Your normal `tsconfig.json` supplies project types and JSX settings. Commands work without `twill.config.json`; its optional `implicitReturn` setting is only needed when deliberately changing that language behavior.
+Your normal `tsconfig.json` supplies project types and JSX settings. Commands work without `twill.config.json`; its optional `implicitReturn` setting changes that language behavior. The unreleased [runtime helper option](./runtime.md) also selects inline or external cleanup emission.
 
 ## Check types
 
@@ -41,6 +41,8 @@ pnpm exec twill compile src/service.twill --js -o generated/service.js
 The default preserves TS types and lowers Twill syntax to native TS/TSX. `--js` also erases types and lowers JSX. Without `-o`, code goes to standard output. With `-o` / `--out`, it writes code plus an adjacent map, such as `generated/service.ts.map`; output must differ from input.
 
 `-p` / `--project` can select a tsconfig for the compilation's project/JSX settings. Without it, configuration is read from the current directory. This command performs syntax emission, not project type checking.
+
+The unreleased prototype accepts `--runtime inline|external` for this command only, overriding project configuration. Check/declarations/export and editor projects use `twill.config.json` so their types and emitted imports agree.
 
 Single-file compilation preserves import specifiers. Use a [build adapter](./build-tools.md) for an application's module graph, or [source export](./adoption.md#export-back-to-native-ts) when converting the project to native TS/TSX.
 

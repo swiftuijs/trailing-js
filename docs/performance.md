@@ -80,6 +80,7 @@ Distributed builds enforce these compressed artifact size limits:
 | Linter tarball             | 24 KiB                  |
 | Highlight tarball          | 24 KiB                  |
 | Export tarball             | 28 KiB                  |
+| Optional runtime tarball   | 8 KiB                   |
 | VSIX, including its engine | 3 MiB                   |
 
 Tarball budgets cover the package's own files, not installed npm dependencies. Development tools remain outside application bundles. These are distribution limits, not application bundle budgets or build-time guarantees.
@@ -113,6 +114,31 @@ Synthetic typed files contain 10 / 100 / 1,000 functions sharing two variants. T
 Unchanged pattern diagnostics have cached medians of 0.02–0.07 ms. The descriptor rename guard indexes each file once and caches symbols by Program. Its first request on the 1,000-function fixture takes 217.91 ms, including mapping/symbol work; cached requests take 0.43 ms median. Edits invalidate the Program cache. These costs concern synthetic compiler/checker requests, not visible editor latency.
 
 The [report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/enum-patterns.json) records inputs, p95, checksums, environment, base commit/tree, dirty-working-tree status and build/script digests. The source was an unreleased implementation checkout. Reproduce with `pnpm build` then `pnpm benchmark:enum-patterns --output enum-patterns-results.json`. Runtime tests use unchecked JS lowering; erased TS descriptors and native imports are additionally covered by checked bundle and package tests. Timing ratios are observations; correctness, absence of runtime dependencies and bytes are deterministic CI gates.
+
+## Optional runtime helpers (unreleased prototype)
+
+[RFC 0032](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0032-optional-runtime-helpers.md) adds opt-in external helpers; inline remains the default. Dynamic synchronous cleanup shares a small `runDefers` function. Single direct cleanup, explicit async and mixed cleanup retain identical output, including scheduling. The helper centralizes draining; registrations still allocate callbacks and a lazy array. It does not remove the allocation costs shown in the minimal-finally comparison above.
+
+The [runtime report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/runtime-helpers.json) compares generated inline/external output with handwritten native code having the **same dynamic registrations and failure contract**. Each sample executes 100,000 function calls. Three separate processes per variant, alternating launch order, contribute all 45 samples after five warmups. All workers perform the same compiler setup before timing; checksums and cleanup order agree. First-call and bundle-build timings are unsampled observations, not startup guarantees.
+
+| Registrations per call | Native median | Inline / native | External / native |
+| ---------------------- | ------------- | --------------- | ----------------- |
+| 0                      | 0.32 ms       | 1.07×           | 1.00×             |
+| 1                      | 3.93 ms       | 1.04×           | 1.02×             |
+| 5                      | 10.21 ms      | 1.05×           | 1.04×             |
+| 25                     | 53.44 ms      | 1.00×           | 0.98×             |
+
+Separate synthetic modules are bundled as minified ES2022 ESM, including every byte of the actual helper. Gzip uses level 9:
+
+| Modules with dynamic cleanup | Inline bytes / gzip | External bytes / gzip |
+| ---------------------------- | ------------------- | --------------------- |
+| 1                            | 237 / 191           | 256 / 195             |
+| 10                           | 2,289 / 257         | 1,570 / 264           |
+| 100                          | 23,007 / 829        | 14,904 / 836          |
+
+At 100 modules the external helper removes 35% of uncompressed output; gzip is approximately equal. A single module can grow. Split chunks and multiple installed versions can change sharing. CI enforces a 256-byte minified helper budget, one dependency-free helper in the application graph, no runtime import for inline output, and representative bundle/behavior budgets.
+
+Reproduce after `pnpm build` with `pnpm benchmark:runtime --output runtime-results.json --verify-performance`. The optional flag rejects a median over 1.10× native for either mode and retains the full report before failing. The same flag is available for `benchmark:enum-patterns`. This is a performance review target on a controlled host; investigate repeatable failures rather than accepting material regressions or treating noisy CI clocks as a portable gate. These synthetic results establish comparable performance for the measured paths, not a general speedup over optimized native code.
 
 ## Evaluate your application
 

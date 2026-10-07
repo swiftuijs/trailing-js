@@ -229,3 +229,10 @@ const report = {
 const output = process.argv.indexOf('--output');
 if (output >= 0) writeFileSync(process.argv[output + 1], JSON.stringify(report, null, 2) + '\n');
 console.log(JSON.stringify(report, null, 2));
+
+if (process.argv.includes('--verify-performance'))
+  for (const result of results)
+    assert(
+      result.medianRatio <= 1.1,
+      `${result.name}: exceeds the native-comparable 1.10 ratio target; retain all observations and investigate`,
+    );

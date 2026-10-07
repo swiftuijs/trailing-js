@@ -2,6 +2,8 @@
 
 Install `@swiftuijs/twill` as a development dependency in your application. Select the adapter for your existing bundler. Native TS/JS and Twill can share the graph; no component lists, wrapping APIs or Twill config file are needed.
 
+The unreleased [optional runtime](./runtime.md) prototype reads `runtime` from the common project configuration, or from the adapter options. External cleanup requires the runtime as a production dependency; inline remains the default.
+
 Run `twill check` separately before production builds. Adapters emit code and source maps; they do not perform project type checking.
 
 ## Vite

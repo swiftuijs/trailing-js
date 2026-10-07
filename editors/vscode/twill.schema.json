@@ -11,6 +11,12 @@
       "type": "boolean",
       "default": true,
       "description": "Return the value of a single-expression ordinary closure."
+    },
+    "runtime": {
+      "type": "string",
+      "enum": ["inline", "external"],
+      "default": "inline",
+      "description": "Inline cleanup code, or import versioned runtime helpers for dynamic synchronous defer scopes."
     }
   }
 }

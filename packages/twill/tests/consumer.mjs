@@ -439,7 +439,54 @@ import { createRequire } from 'node:module';
       return true;
     },
   );
-  console.log('Independent package install, exports, CLI and Node loader passed.');
+  // Inline compilation remains usable with no runtime installed. External
+  // applications then install the independent production package explicitly.
+  const consumerRequire = createRequire(join(root, 'package.json'));
+  assert.throws(() => consumerRequire.resolve('@swiftuijs/twill-runtime/helpers/v1'), {
+    code: 'MODULE_NOT_FOUND',
+  });
+  let runtimeArchive = resolve(`swiftuijs-twill-runtime-${metadata.version}.tgz`);
+  if (!existsSync(runtimeArchive)) {
+    const packed = JSON.parse(
+      execFileSync(
+        'pnpm',
+        ['--config.ignore-scripts=true', 'pack', '--json', '--pack-destination', root],
+        { cwd: resolve('packages/runtime'), encoding: 'utf8', shell: process.platform === 'win32' },
+      ),
+    );
+    runtimeArchive = resolve(root, packed.filename);
+  }
+  npm(['install', '--ignore-scripts', '--no-audit', '--no-fund', runtimeArchive], {
+    cwd: root,
+    stdio: 'pipe',
+  });
+  writeFileSync(
+    join(root, 'runtime.twill'),
+    'export function run(events:number[]){defer {events.push(1);}defer {events.push(2);}return 3;}const events:number[]=[];console.log(JSON.stringify([run(events),events]));',
+  );
+  writeFileSync(join(root, 'twill.config.json'), '{"runtime":"external"}');
+  const runtimeResult = execFileSync(
+    process.execPath,
+    ['--import', '@swiftuijs/twill/register', 'runtime.twill'],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert.deepEqual(JSON.parse(runtimeResult), [3, [2, 1]]);
+  const runtimeOutput = execFileSync(
+    process.execPath,
+    [resolve(base, '..', installed.bin.twill), 'compile', 'runtime.twill', '--js'],
+    { cwd: root, encoding: 'utf8' },
+  );
+  assert(runtimeOutput.includes('@swiftuijs/twill-runtime/helpers/v1'));
+  writeFileSync(join(root, 'runtime-output.mjs'), runtimeOutput);
+  assert.deepEqual(
+    JSON.parse(
+      execFileSync(process.execPath, ['runtime-output.mjs'], { cwd: root, encoding: 'utf8' }),
+    ),
+    [3, [2, 1]],
+  );
+  console.log(
+    'Independent package install, exports, CLI, optional runtime and Node loader passed.',
+  );
 } finally {
   rmSync(root, { recursive: true, force: true });
 }

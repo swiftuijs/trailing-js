@@ -1,5 +1,6 @@
 import MagicString from 'magic-string';
 import type { Language } from './compiler.js';
+import { syncDeferBody } from './defer-helper.js';
 
 type Node = { type: string; start: number; end: number; [key: string]: any };
 type Comment = { start: number; end: number; value: string; type: string };
@@ -26,6 +27,8 @@ export function lowerDefers(
   usedNames: Set<string>,
   contentStarts: Map<Node, number>,
   comments: Comment[],
+  runtime: 'inline' | 'external',
+  sourceType: 'module' | 'script',
   fail: (node: Node, message: string) => never,
 ) {
   const scopes: Scope[] = [];
@@ -82,6 +85,7 @@ export function lowerDefers(
     }
     return start;
   };
+  let sharedHelper: string | undefined;
   for (const scope of scopes) {
     if (!scope.defers.length) continue;
     const { block } = scope;
@@ -118,7 +122,7 @@ export function lowerDefers(
         'Function overloads/ambient function declarations in a defer scope are not supported; move them to a separate scope.',
       );
     const names = [...new Set(declarations.map((node) => node.id.name as string))];
-    code.appendLeft(
+    code.prependLeft(
       start,
       `;${jsdoc}let ${stack}${annotation};${names.length ? `var ${names.join(',')};` : ''}try {\n`,
     );
@@ -153,7 +157,21 @@ export function lowerDefers(
       // Guard the await as well as the call: unreached async cleanup must not
       // add a microtask turn. Native finally preserves all completion kinds.
       const call = allAsync ? `if (${stack}) await ${stack}();` : `${stack}?.();`;
-      code.prependLeft(block.end - 1, `\n} finally { ${call} }\n`);
+      code.appendLeft(block.end - 1, `\n} finally { ${call} }\n`);
+      continue;
+    }
+    if (!anyAsync) {
+      let body: string;
+      if (runtime === 'external') {
+        if (sourceType !== 'module')
+          fail(
+            scope.defers[0]!,
+            'External runtime helpers require module sourceType; use runtime: inline for scripts.',
+          );
+        sharedHelper ??= fresh('RunDefers');
+        body = `${sharedHelper}(${stack});`;
+      } else body = syncDeferBody({ stack, failed, failure, cleanup: callback, error });
+      code.appendLeft(block.end - 1, `} finally { ${body} }`);
       continue;
     }
     const call = mixed
@@ -161,9 +179,28 @@ export function lowerDefers(
       : `${allAsync ? 'await ' : ''}${callback}();`;
     // Nested-finally semantics: every registered cleanup runs, and the last
     // cleanup failure replaces an earlier cleanup/body failure (even undefined).
-    code.prependLeft(
+    code.appendLeft(
       block.end - 1,
       `} finally { let ${failed} = false, ${failure}; while (${stack}?.length) { const ${callback} = ${stack}.pop(); if (${callback}) { try { ${call} } catch (${error}) { ${failed} = true; ${failure} = ${error}; } } } if (${failed}) throw ${failure}; }`,
+    );
+  }
+  if (sharedHelper) {
+    // Keep shebangs, file pragmas and the directive prologue before imports.
+    // An adjacent declaration JSDoc/suppression stays with its original node.
+    const statement = ast.body.find((node: Node) => !node.directive)!;
+    let start = statement.start;
+    const comment = [...comments].reverse().find((comment) => comment.end <= start);
+    if (
+      comment &&
+      /^\s*$/.test(source.slice(comment.end, start)) &&
+      (source.startsWith('/**', comment.start) ||
+        /@ts-(?:ignore|expect-error)\b/.test(comment.value)) &&
+      !/@(?:ts-(?:check|nocheck)|jsxImportSource|jsxRuntime)\b/.test(comment.value)
+    )
+      start = comment.start;
+    code.prependLeft(
+      start,
+      `\nimport { runDefers as ${sharedHelper} } from '@swiftuijs/twill-runtime/helpers/v1';\n`,
     );
   }
 }

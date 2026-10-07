@@ -75,6 +75,12 @@ Associated-value enums are accepted and merged, but unreleased. RFC 0016 next pr
 | [0030](0030-linting.md)                      | Mapped lint diagnostics and safe fixes   | Implemented: 0.1.2 |
 | [0031](0031-highlighting.md)                 | Shared TS/TSX and Twill highlighting     | Implemented: 0.1.2 |
 
+## Proposed runtime/tooling capabilities
+
+| RFC                                      | Capability                         | Status   | Dependencies           |
+| ---------------------------------------- | ---------------------------------- | -------- | ---------------------- |
+| [0032](0032-optional-runtime-helpers.md) | Optional versioned runtime helpers | Proposed | 0009, 0026, 0027, 0028 |
+
 ## Implementation checklist
 
 An implementation PR links the RFC, identifies supported and deferred portions, and records relevant commands and outcomes. Check parser/lowering and negative diagnostics, runtime/evaluation order, native syntax compatibility, types and mixed-file declarations, source mappings and editor edits, formatting/idempotence, lint positions/fix safety, grammar scopes and actual colors, and independent packaged consumers. Use `pnpm check` plus feature-specific browser/editor/package checks as applicable. Update the public syntax guide, compatibility page and changelog when behavior is implemented. Changes that affect packaged syntax need a coordinated release, independently of merging their PR.

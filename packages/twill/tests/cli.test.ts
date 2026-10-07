@@ -167,3 +167,26 @@ it('declarations builds a reference-only solution and compile honors the selecte
     ]),
   ).toBe(0);
 });
+it('uses external config for compile and allows an inline CLI override', async () => {
+  const { root, input, config, stdout } = fixture(
+    'export function run(events:number[]){defer {events.push(1);}defer {events.push(2);}return 3;}',
+  );
+  writeFileSync(join(root, 'twill.config.json'), '{"runtime":"external"}');
+  expect(await main(['compile', input, '-p', config])).toBe(0);
+  expect(stdout.mock.calls.flat().join('')).toContain('@swiftuijs/twill-runtime/helpers/v1');
+  stdout.mockClear();
+  expect(await main(['compile', input, '-p', config, '--js', '--runtime', 'inline'])).toBe(0);
+  expect(stdout.mock.calls.flat().join('')).not.toContain('twill-runtime');
+  stdout.mockClear();
+  writeFileSync(join(root, 'twill.config.json'), '{"runtime":"inline"}');
+  expect(await main(['compile', input, '-p', config, '--runtime', 'external'])).toBe(0);
+  expect(stdout.mock.calls.flat().join('')).toContain('twill-runtime');
+});
+it.each([
+  ['compile', 'file', '--runtime', 'auto'],
+  ['check', '--runtime', 'external'],
+  ['declarations', '--runtime', 'inline'],
+])('rejects invalid or misplaced runtime flags %j', async (...args) => {
+  fixture();
+  await expect(main(args)).rejects.toThrow(/runtime/);
+});

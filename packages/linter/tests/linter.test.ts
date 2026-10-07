@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ESLint } from 'eslint';
 import twill, { disposeProjects } from '../src/index.js';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, mkdirSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -272,6 +272,53 @@ it('checks typed enum patterns and maps exhaustiveness without lowering source f
     writeFileSync(filename, complete);
     const [valid] = await eslint.lintText(complete, { filePath: filename });
     expect(valid!.messages).toEqual([]);
+  } finally {
+    disposeProjects();
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+it('retains typed lint and safe source fixes with configured external cleanup', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'twill-runtime-lint-'));
+  try {
+    mkdirSync(join(root, 'node_modules', '@swiftuijs'), { recursive: true });
+    symlinkSync(
+      join(import.meta.dirname, '../../runtime'),
+      join(root, 'node_modules', '@swiftuijs', 'twill-runtime'),
+      process.platform === 'win32' ? 'junction' : 'dir',
+    );
+    writeFileSync(join(root, 'twill.config.json'), '{"runtime":"external"}');
+    writeFileSync(
+      join(root, 'tsconfig.json'),
+      JSON.stringify({
+        compilerOptions: {
+          strict: true,
+          target: 'ES2022',
+          module: 'ESNext',
+          moduleResolution: 'Bundler',
+          types: [],
+        },
+        include: ['*.twill'],
+      }),
+    );
+    const source =
+      'export function run(input:number,events:number[]){let value=input;defer {events.push(value);}defer {events.push(value+1);}return value;}';
+    const filename = join(root, 'main.twill');
+    writeFileSync(filename, source);
+    const eslint = new ESLint({
+      cwd: root,
+      overrideConfigFile: true,
+      overrideConfig: [
+        ...twill.configs.recommendedTypeChecked!,
+        { files: ['**/*.ts'], rules: { 'prefer-const': 'error' } },
+      ],
+      fix: true,
+    });
+    const [result] = await eslint.lintText(source, { filePath: filename });
+    expect(result!.messages).toEqual([]);
+    expect(result!.output).toContain('const value=input');
+    expect(result!.output).toContain('defer {events.push(value);}');
+    expect(result!.output).not.toMatch(/__twill|twill-runtime/);
   } finally {
     disposeProjects();
     rmSync(root, { recursive: true, force: true });

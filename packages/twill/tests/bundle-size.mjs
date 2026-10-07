@@ -6,6 +6,7 @@ import { gzipSync } from 'node:zlib';
 import { build, transform } from 'esbuild';
 import { createRequire } from 'node:module';
 import twill from '../dist/esbuild.js';
+import { runtimeReport } from './runtime-size.mjs';
 
 const root = mkdtempSync(join(tmpdir(), 'twill-bundle-size-'));
 const fixtures = [
@@ -160,6 +161,7 @@ try {
     scope:
       'Minified application output for seven representative supported paths; excludes host/framework runtime and does not cover expression IIFEs, dynamic cleanup or child collection.',
     results,
+    runtime: runtimeReport,
   };
   const output = process.argv.indexOf('--output');
   if (output >= 0) writeFileSync(process.argv[output + 1], JSON.stringify(report, null, 2) + '\n');

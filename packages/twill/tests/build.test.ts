@@ -202,3 +202,116 @@ describe('real build tools', () => {
     }
   });
 });
+function runtimeFixture() {
+  const root = fixtureRoot('runtime-build-');
+  roots.push(root);
+  writeFileSync(join(root, 'twill.config.json'), '{"runtime":"external"}');
+  writeFileSync(
+    join(root, 'cleanup.twill'),
+    'export function run(events:string[],early:boolean){defer {events.push("first");}if(early)return 7;defer {events.push("second");}events.push("body");return 8;}',
+  );
+  writeFileSync(
+    join(root, 'entry.twill'),
+    'import {run} from "./cleanup";export const events:string[]=[];export const result=run(events,false);',
+  );
+  return root;
+}
+function runtimeResult(loaded: { events: string[]; result: number }) {
+  expect(loaded.events).toEqual(['body', 'second', 'first']);
+  expect(loaded.result).toBe(8);
+}
+it('bundles the configured runtime through the esbuild adapter', async () => {
+  const root = runtimeFixture();
+  const result = await esbuild({
+    entryPoints: [join(root, 'entry.twill')],
+    bundle: true,
+    write: false,
+    metafile: true,
+    format: 'cjs',
+    platform: 'node',
+    plugins: [esbuildPlugin({ root })],
+  });
+  const module = { exports: {} };
+  Function('module', 'exports', result.outputFiles![0]!.text)(module, module.exports);
+  runtimeResult(module.exports as any);
+  expect(
+    Object.keys(result.metafile!.inputs).filter((file) =>
+      file.includes('/runtime/dist/helpers/v1.js'),
+    ),
+  ).toHaveLength(1);
+});
+it('retains the explicit production runtime import through Rollup', async () => {
+  const root = runtimeFixture();
+  const bundle = await rollup({
+    input: join(root, 'entry.twill'),
+    plugins: [rollupPlugin({ root })],
+    external: ['@swiftuijs/twill-runtime/helpers/v1'],
+  });
+  try {
+    const { output } = await bundle.generate({ format: 'cjs' });
+    const chunk = output[0]!;
+    if (chunk.type !== 'chunk') throw Error('Expected chunk');
+    expect(chunk.code).toContain('@swiftuijs/twill-runtime/helpers/v1');
+    const exports = {};
+    Function('exports', 'require', chunk.code)(exports, createRequire(import.meta.url));
+    runtimeResult(exports as any);
+  } finally {
+    await bundle.close();
+  }
+});
+it('loads external cleanup in Vite dev SSR and bundles it for production', async () => {
+  const root = runtimeFixture();
+  const server = await createServer({
+    root,
+    configFile: false,
+    plugins: [vitePlugin({ root })],
+    server: { middlewareMode: true },
+  });
+  try {
+    runtimeResult(
+      (await server.ssrLoadModule('/entry.twill')) as { events: string[]; result: number },
+    );
+  } finally {
+    await server.close();
+  }
+  await vite({
+    root,
+    configFile: false,
+    logLevel: 'silent',
+    plugins: [vitePlugin({ root })],
+    build: {
+      outDir: join(root, 'dist'),
+      lib: { entry: join(root, 'entry.twill'), formats: ['es'], fileName: () => 'main.mjs' },
+    },
+  });
+  runtimeResult(await import(pathToFileURL(join(root, 'dist/main.mjs')).href));
+});
+it.each(['webpack', 'rspack'] as const)('bundles external cleanup with %s', async (tool) => {
+  const root = runtimeFixture();
+  const config = {
+    mode: 'none' as const,
+    target: 'node',
+    entry: join(root, 'entry.twill'),
+    output: { path: join(root, 'dist'), filename: 'main.cjs', library: { type: 'commonjs2' } },
+    plugins: [tool === 'webpack' ? webpackPlugin({ root }) : rspackPlugin({ root })],
+  };
+  const compiler =
+    tool === 'webpack'
+      ? webpack(config as webpack.Configuration)
+      : rspack(config as Parameters<typeof rspack>[0]);
+  if (!compiler) throw Error('Missing compiler');
+  try {
+    await new Promise<void>((resolve, reject) =>
+      compiler.run((error, stats) => {
+        if (error) reject(error);
+        else if (stats?.hasErrors()) reject(Error(stats.toString({ all: false, errors: true })));
+        else resolve();
+      }),
+    );
+    runtimeResult(createRequire(import.meta.url)(join(root, 'dist', 'main.cjs')));
+  } finally {
+    await new Promise<void>((resolve, reject) =>
+      compiler.close((error) => (error ? reject(error) : resolve())),
+    );
+  }
+});

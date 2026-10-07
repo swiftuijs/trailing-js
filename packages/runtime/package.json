@@ -1,0 +1,61 @@
+{
+  "name": "@swiftuijs/twill-runtime",
+  "version": "0.1.2",
+  "description": "Optional, zero-dependency runtime helpers for compiled Twill programs.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/swiftuijs/twill.git",
+    "directory": "packages/runtime"
+  },
+  "homepage": "https://twill.evecalm.com/",
+  "bugs": {
+    "url": "https://github.com/swiftuijs/twill/issues"
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    "./helpers/v1": {
+      "types": "./dist/helpers/v1.d.ts",
+      "import": "./dist/helpers/v1.js",
+      "default": "./dist/helpers/v1.js"
+    }
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "typescript": "catalog:",
+    "@types/node": "catalog:",
+    "vitest": "catalog:",
+    "@vitest/coverage-v8": "catalog:"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test:unit": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:package": "node tests/consumer.mjs",
+    "prepack": "pnpm run build"
+  },
+  "author": {
+    "name": "forth.ink",
+    "url": "https://forth.ink"
+  },
+  "keywords": [
+    "twill",
+    "runtime",
+    "typescript",
+    "defer",
+    "cleanup"
+  ]
+}

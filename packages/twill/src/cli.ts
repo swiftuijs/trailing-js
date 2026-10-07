@@ -3,7 +3,7 @@ import { resolve, dirname } from 'node:path';
 import { parseArgs } from 'node:util';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
-import { transform } from './compiler.js';
+import { transform, type TransformOptions } from './compiler.js';
 import { transpile } from './transpile.js';
 import { loadConfig } from './config.js';
 import { TwillProject } from './project.js';
@@ -19,6 +19,7 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
       out: { type: 'string', short: 'o' },
       project: { type: 'string', short: 'p' },
       js: { type: 'boolean', default: false },
+      runtime: { type: 'string' },
       help: { type: 'boolean', short: 'h' },
       json: { type: 'boolean', default: false },
       build: { type: 'boolean', default: false },
@@ -26,6 +27,14 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
     },
   });
   const [command, input, ...extra] = positionals;
+  if (values.runtime !== undefined) {
+    if (!['inline', 'external'].includes(values.runtime))
+      throw new Error('--runtime must be inline or external');
+    if (command !== 'compile' && !values.help)
+      throw new Error(
+        '--runtime is only supported by twill compile; use twill.config.json for project commands',
+      );
+  }
   if (command === 'export') {
     // Resolve from the selected project, including under pnpm's isolated
     // dependency layout. Core does not depend on the optional export tool.
@@ -48,7 +57,7 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
   if (values['dry-run']) throw new Error('--dry-run is only supported by twill export');
   if (values.help || !command) {
     console.log(
-      'twill compile <file> [-o output.ts] [--js]\ntwill check [-p tsconfig.json] [--json]\ntwill doctor [-p tsconfig.json] [--json]\ntwill declarations [-p tsconfig.json] [-o dist] [--build] [--json]\ntwill export [-p tsconfig.json] -o ../native-project [--dry-run] [--json]\n\ncompile keeps TypeScript types by default; --js erases types and lowers JSX.\nexport requires the optional @swiftuijs/twill-export package.\nCommands use the optional twill.config.json from the project root.',
+      'twill compile <file> [-o output.ts] [--js] [--runtime inline|external]\ntwill check [-p tsconfig.json] [--json]\ntwill doctor [-p tsconfig.json] [--json]\ntwill declarations [-p tsconfig.json] [-o dist] [--build] [--json]\ntwill export [-p tsconfig.json] -o ../native-project [--dry-run] [--json]\n\ncompile keeps TypeScript types by default; --js erases types and lowers JSX.\nexport requires the optional @swiftuijs/twill-export package.\nCommands use the optional twill.config.json from the project root.',
     );
     return 0;
   }
@@ -113,6 +122,9 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
   const options = {
     ...loadConfig(root, values.project ? resolve(values.project) : undefined),
     filename,
+    ...(values.runtime === undefined
+      ? {}
+      : { runtime: values.runtime as TransformOptions['runtime'] }),
   };
   const source = readFileSync(filename, 'utf8');
   const result = values.js ? transpile(source, options) : transform(source, options);

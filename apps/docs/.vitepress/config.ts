@@ -32,6 +32,7 @@ const pages = [
       { text: 'Editor and tooling', link: '/tooling' },
       { text: 'Web highlighting', link: '/highlighting' },
       { text: 'Build tools', link: '/build-tools' },
+      { text: 'Optional runtime', link: '/runtime' },
       { text: 'React and Vue', link: '/frameworks' },
       { text: 'Mixed TS / JS', link: '/interoperability' },
       { text: 'Libraries and declarations', link: '/libraries' },
