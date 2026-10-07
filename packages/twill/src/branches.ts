@@ -136,7 +136,7 @@ export function lowerSwitchExpressions(
     if (suspended)
       fail(
         suspended,
-        'await/yield inside a switch expression requires a direct return. Bind the subject first, or await the whole result explicitly.',
+        `await/yield inside a ${node.keyword} expression requires a direct return. Bind the subject first, or await the whole result explicitly.`,
       );
     const initializer = initializers.get(node);
     const result = initializer ? fresh('Result') : undefined;
@@ -164,8 +164,23 @@ export function lowerSwitchExpressions(
     if (!initializer)
       code.appendLeft(node.start, `${direct ? '{' : '(() => {'}const ${subject} = `);
     code.remove(node.parenStart, node.parenStart + 1);
-    // Retain a real source-backed switch token for typed lint diagnostics.
-    code.move(node.start, node.start + 6, node.parenEnd);
+    if (node.keyword === 'match') {
+      // The native call parser permits a trailing comma. It is not part of the
+      // subject initializer; preserve intervening comments/grouping tokens.
+      const tokens = Parser.tokenizer(source.slice(node.discriminant.end, node.parenEnd), {
+        ecmaVersion: 'latest',
+      });
+      for (;;) {
+        const token = tokens.getToken();
+        if (token.type === tokTypes.eof) break;
+        if (token.type === tokTypes.comma)
+          code.remove(node.discriminant.end + token.start, node.discriminant.end + token.end);
+      }
+    }
+    // Keep the keyword source-backed for mapped lint diagnostics.
+    const keywordEnd = node.start + (node.keyword === 'match' ? 5 : 6);
+    if (node.keyword === 'match') code.overwrite(node.start, keywordEnd, 'switch');
+    code.move(node.start, keywordEnd, node.parenEnd);
     code.appendLeft(node.parenEnd, `; ${kind ? `const ${kind} = ${subject}["kind"]; ` : ''}`);
     code.overwrite(
       node.parenEnd,
@@ -174,19 +189,24 @@ export function lowerSwitchExpressions(
     );
     for (const branch of node.cases) {
       if (branch.enumPattern) {
-        const { reference, binding, start, parenStart, parenEnd } = branch.enumPattern;
+        const { reference, binding, start, parenStart, parenEnd, explicitKeyword } =
+          branch.enumPattern;
         const tag = JSON.stringify(reference.property.name);
         if (language.startsWith('ts')) {
           // A type-only factory witness checks the reference and literal tag.
           // Native TS erases it; matching performs no factory/property lookup.
-          code.overwrite(start, start + 4, `(${tag} satisfies (typeof `);
+          const witness = `(${tag} satisfies (typeof `;
+          if (explicitKeyword) code.overwrite(start, start + 4, witness);
+          else code.appendLeft(start, witness);
           code.appendLeft(
             reference.end,
             ` extends (...args: never[]) => { readonly kind: ${tag} } ? ${tag} : never))`,
           );
         } else {
-          code.overwrite(start, start + 4, tag);
-          code.remove(reference.start, reference.end);
+          if (explicitKeyword) {
+            code.overwrite(start, start + 4, tag);
+            code.remove(reference.start, reference.end);
+          } else code.overwrite(reference.start, reference.end, tag);
         }
         code.remove(parenStart, parenStart + 1);
         code.remove(parenEnd, parenEnd + 1);

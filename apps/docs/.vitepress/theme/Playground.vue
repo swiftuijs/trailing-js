@@ -65,7 +65,7 @@ export function describe(input: { result: Result } | null): string {
   'enum-patterns': {
     filename: 'example.twill',
     jsxImportSource: 'react',
-    note: 'Unreleased RFC 0016 prototype. Match a checked case descriptor and bind named fields without calling the factory. Run twill check for type and exhaustiveness checks.',
+    note: 'Accepted, unreleased RFC 0016. Match a checked case descriptor and bind named fields without calling the factory. Run twill check for type and exhaustiveness checks.',
     source: `enum LoadState<T> {
   case idle;
   case loaded(value: T);
@@ -73,10 +73,10 @@ export function describe(input: { result: Result } | null): string {
 }
 
 export function describe(state: LoadState<number>) {
-  return switch (state) {
-    case enum LoadState.idle(): 'Idle';
-    case enum LoadState.loaded({ value: result }): result.toFixed(2);
-    case enum LoadState.failed({ error }): throw error;
+  return match (state) {
+    case LoadState.idle(): 'Idle';
+    case LoadState.loaded({ value: result }): result.toFixed(2);
+    case LoadState.failed({ error }): throw error;
   };
 }`,
   },
@@ -239,7 +239,7 @@ onBeforeUnmount(() => {
             <option value="members">Implicit members</option>
             <option value="cleanup">Guard and defer</option>
             <option value="branching">Typed outcome matching</option>
-            <option value="enum-patterns">Enum case patterns (unreleased)</option>
+            <option value="enum-patterns">Match expressions (unreleased)</option>
             <option value="react">React component</option>
             <option value="vue">Vue lazy slot</option>
           </select>

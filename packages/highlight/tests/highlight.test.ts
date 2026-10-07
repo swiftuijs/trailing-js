@@ -379,3 +379,61 @@ it.each(['twill', 'twillx'])('retains native operators after implicit members in
     ),
   ).toBe(true);
 });
+
+it.each(['twill', 'twillx'])(
+  'highlights match patterns while retaining native scopes in %s',
+  (lang) => {
+    for (const theme of ['github-dark', 'github-light']) {
+      const source =
+        'return match(state){case /*descriptor*/ NS.State.loaded({value:amount}):amount && amount ?? 0;default:0;}';
+      const parts = highlighter
+        .codeToTokensBase(source, { lang, theme, includeExplanation: true })
+        .flat()
+        .flatMap((token) => token.explanation ?? []);
+      for (const [word, scope] of [
+        ['match', 'keyword.control.twill'],
+        ['State', 'entity.name.type.twill'],
+        ['loaded', 'entity.name.function.twill'],
+        ['&&', 'keyword.operator.logical.'],
+        ['??', 'keyword.operator.logical.'],
+      ])
+        expect(
+          parts.some(
+            (part) =>
+              part.content === word && part.scopes.some((s) => s.scopeName.startsWith(scope!)),
+          ),
+        ).toBe(true);
+      expect(
+        parts.some(
+          (part) =>
+            part.content.includes('descriptor') &&
+            part.scopes.some((s) => s.scopeName.startsWith('comment.')),
+        ),
+      ).toBe(true);
+      const ordinary = highlighter
+        .codeToTokensBase(
+          'const result=match(state); object.match(state); const text="match(state){case State.loaded():0;}"; // match(state){case State.loaded():0;}',
+          { lang, theme, includeExplanation: true },
+        )
+        .flat()
+        .flatMap((token) => token.explanation ?? []);
+      expect(
+        ordinary.some((part) => part.scopes.some((s) => s.scopeName === 'keyword.control.twill')),
+      ).toBe(false);
+      const multiline = highlighter
+        .codeToTokensBase(
+          'return match (state) {\n case State.loaded({ value }): value;\n default: 0;\n};',
+          { lang, theme, includeExplanation: true },
+        )
+        .flat()
+        .flatMap((token) => token.explanation ?? []);
+      expect(
+        multiline.some(
+          (part) =>
+            part.content === 'match' &&
+            part.scopes.some((s) => s.scopeName === 'keyword.control.twill'),
+        ),
+      ).toBe(true);
+    }
+  },
+);

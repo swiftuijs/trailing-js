@@ -179,7 +179,7 @@ import { createRequire } from 'node:module';
   );
   writeFileSync(
     join(root, 'enums.twill'),
-    'export enum State<T>{case idle;case loaded(value:T);} export const state:State<number>=State.loaded(42);export function read(state:State<number>){return switch(state){case enum State.idle(): 0;case enum State.loaded({value}): value;};}',
+    'export enum State<T>{case idle;case loaded(value:T);} export const state:State<number>=State.loaded(42);export function read(state:State<number>){return match(state){case State.idle(): 0;case State.loaded({value}): value;};}',
   );
   execFileSync(
     process.execPath,

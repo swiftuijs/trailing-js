@@ -141,23 +141,25 @@ const processor: Linter.Processor = {
       const start = generated.getPositionOfLineAndCharacter(message.line - 1, message.column - 1);
       let offset = originalOffset(state, start);
       let expressionSwitch = false;
+      let expressionKeywordLength = 6;
       if (
         message.ruleId === '@typescript-eslint/switch-exhaustiveness-check' &&
         state.project &&
         (offset === undefined || state.result!.code[start] !== state.source[offset])
       ) {
         // Expression subjects use a generated once-evaluated local. Report the
-        // missing union arm on the source-backed switch keyword instead.
+        // missing union arm on the source-backed switch/match keyword instead.
         const file = state.project.service.getProgram()?.getSourceFile(virtualFilename(filename));
         const visit = (node: ts.Node) => {
           if (ts.isSwitchStatement(node) && node.expression.getStart() === start) {
             const sourceStart = originalOffset(state, node.getStart());
             if (
               sourceStart !== undefined &&
-              state.source.slice(sourceStart, sourceStart + 6) === 'switch'
+              /^(?:switch|match)\b/.test(state.source.slice(sourceStart))
             ) {
               offset = sourceStart;
               expressionSwitch = true;
+              expressionKeywordLength = state.source.startsWith('match', sourceStart) ? 5 : 6;
             }
           } else if (start >= node.getFullStart() && start < node.end) ts.forEachChild(node, visit);
         };
@@ -172,7 +174,7 @@ const processor: Linter.Processor = {
         return [];
       const position = state.original.getLineAndCharacterOfPosition(offset);
       const endOffset = expressionSwitch
-        ? offset + 6
+        ? offset + expressionKeywordLength
         : message.endLine && message.endColumn
           ? originalOffset(
               state,

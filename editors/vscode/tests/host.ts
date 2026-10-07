@@ -361,7 +361,7 @@ export async function run() {
   assert(nativeOwnerRename && nativeOwnerRename.size > 0);
   assert(await vscode.workspace.applyEdit(nativeOwnerRename));
   assert(nativePattern.getText().includes('LibraryFactory as Cases'));
-  assert(nativePattern.getText().includes('case enum Cases.loaded'));
+  assert(nativePattern.getText().includes('case Cases.loaded'));
   await eventually(
     async () => vscode.languages.getDiagnostics(nativePattern.uri),
     (items) => items.length === 0,
@@ -409,7 +409,7 @@ export async function run() {
   enumFormatEdit.set(enumeration.uri, enumFormats!);
   assert(await vscode.workspace.applyEdit(enumFormatEdit));
   assert(enumeration.getText().includes('case loaded(value: T)'));
-  assert(enumeration.getText().includes('case enum State.loaded({ value: amount })'));
+  assert(enumeration.getText().includes('case State.loaded({ value: amount })'));
   const patternRename = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
     'vscode.executeDocumentRenameProvider',
     enumeration.uri,
@@ -427,7 +427,7 @@ export async function run() {
       new vscode.Position(0, 0),
       enumeration.positionAt(enumeration.getText().length),
     ),
-    enumeration.getText().replace(/\s*case enum State\.idle\(\): 0;/, ''),
+    enumeration.getText().replace(/\s*case State\.idle\(\): 0;/, ''),
   );
   assert(await vscode.workspace.applyEdit(omitEnumCase));
   await eventually(

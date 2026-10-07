@@ -244,7 +244,7 @@ it('checks typed enum patterns and maps exhaustiveness without lowering source f
     );
     const filename = join(root, 'main.twill');
     const source =
-      'export enum State{case idle;case loaded(value:number);}\nexport function run(input:State){return switch(input){case enum State.loaded({value}):(()=>{let result=value;return result;})();default:0;};}';
+      'export enum State{case idle;case loaded(value:number);}\nexport function run(input:State){return match(input){case State.loaded({value}):(()=>{let result=value;return result;})();default:0;};}';
     const eslint = new ESLint({
       cwd: root,
       overrideConfigFile: true,
@@ -260,15 +260,16 @@ it('checks typed enum patterns and maps exhaustiveness without lowering source f
       expect.objectContaining({
         ruleId: '@typescript-eslint/switch-exhaustiveness-check',
         line: 2,
-        column: source.split('\n')[1]!.indexOf('switch') + 1,
+        column: source.split('\n')[1]!.indexOf('match') + 1,
+        endColumn: source.split('\n')[1]!.indexOf('match') + 6,
         suggestions: [],
         message: expect.stringContaining('"idle"'),
       }),
     ]);
-    expect(result!.output).toContain('case enum State.loaded({value})');
+    expect(result!.output).toContain('case State.loaded({value})');
     expect(result!.output).toContain('const result=value');
     expect(result!.output).not.toContain('__twill');
-    const complete = source.replace('default:0;', 'case enum State.idle():0;');
+    const complete = source.replace('default:0;', 'case State.idle():0;');
     writeFileSync(filename, complete);
     const [valid] = await eslint.lintText(complete, { filePath: filename });
     expect(valid!.messages).toEqual([]);

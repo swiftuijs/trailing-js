@@ -109,3 +109,32 @@ test('external synchronous cleanup runs in the browser and config reload returns
     rmSync(source, { force: true });
   }
 });
+
+test('match expressions execute through Vite while native switch fallthrough remains intact', async ({
+  page,
+}) => {
+  const source = resolve('.twill/browser-fixture/match.twill');
+  writeFileSync(
+    source,
+    'export enum State<T>{case idle;case loaded(value:T);}export function read(input:State<number>){const result=match(input){case State.idle():0;case State.loaded({value}):value;};return result*2;}export function trace(value:number){const events:number[]=[];switch(value){case 1:events.push(1);case 2:events.push(2);break;default:events.push(0);}return events;}',
+  );
+  try {
+    await page.goto('/');
+    const result = await page.evaluate(async () => {
+      const path = '/match.twill';
+      const module = await import(/* @vite-ignore */ path);
+      return {
+        idle: module.read(module.State.idle()),
+        loaded: module.read(module.State.loaded(21)),
+        trace: module.trace(1),
+      };
+    });
+    expect(result).toEqual({ idle: 0, loaded: 42, trace: [1, 2] });
+    const output = await (await page.request.get('/match.twill?import')).text();
+    expect(output).not.toContain('match(input)');
+    expect(output).toContain('case "loaded"');
+  } finally {
+    const { rmSync } = await import('node:fs');
+    rmSync(source, { force: true });
+  }
+});

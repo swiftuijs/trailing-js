@@ -204,3 +204,21 @@ it('highlights explicit enum patterns in the packaged TS/TSX grammar', () => {
   has(source, 'State', 'entity.name.type.twill');
   has(source, 'loaded', 'entity.name.function.twill');
 });
+
+it('highlights match descriptors and keeps native operators in the packaged TS/TSX grammar', () => {
+  const source = 'return match(state){case State.loaded({value}):value && value ?? 0;default:0;};';
+  has(source, 'match', 'keyword.control.twill');
+  has(source, 'State', 'entity.name.type.twill');
+  has(source, 'loaded', 'entity.name.function.twill');
+  for (const grammar of grammars) {
+    const result = tokens(grammar, source);
+    for (const word of ['&&', '??'])
+      expect(
+        result.some(
+          (token) =>
+            token.text === word &&
+            token.scopes.some((scope) => scope.startsWith('keyword.operator.logical.')),
+        ),
+      ).toBe(true);
+  }
+});

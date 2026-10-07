@@ -93,7 +93,7 @@ The declaration creates a normal TS union type and a same-named object of factor
 
 Payload fields require names and native TS types. Generic factories infer the parameters used by their payloads, including constraint/default dependencies, and return precise variant types. Match them using the existing `case { kind: 'loaded', value }` syntax below; new variants expose missing arms through `twill check`. Defaults keep their existing catch-all semantics. Native TS numeric/string enums retain their original behavior.
 
-Duplicate cases/fields, a payload named `kind`, optional/default/rest payload fields, const/ambient associated enums, const/variance type parameter modifiers and mixed native members are rejected. Like native lexical declarations, associated enums require braces in control-flow bodies. Custom tags and contextual case shorthand are separate proposals; the explicit enum-case pattern prototype is described below. Constructor completion, diagnostics, formatting, shared highlighting, declarations and source export are supported in this implementation; enum declaration/case/payload/type-parameter rename is conservatively withheld until its linked type/tag edits can be proven complete.
+Duplicate cases/fields, a payload named `kind`, optional/default/rest payload fields, const/ambient associated enums, const/variance type parameter modifiers and mixed native members are rejected. Like native lexical declarations, associated enums require braces in control-flow bodies. Custom tags and contextual case shorthand are separate proposals; the accepted, unreleased match expression is described below. Constructor completion, diagnostics, formatting, shared highlighting, declarations and source export are supported in this implementation; enum declaration/case/payload/type-parameter rename is conservatively withheld until its linked type/tag edits can be proven complete.
 
 ## Switch expressions and union patterns
 
@@ -115,15 +115,19 @@ const size = switch (count) {
 
 Each arm contains one expression or `throw expression`, terminated by a semicolon or ordinary ASI. There is no fallthrough. Multi-statement arms, fallthrough labels and jumps are not expression syntax; use a native switch statement or call an ordinary helper. The subject is evaluated once, value-case tests follow native strict-equality and evaluation order, and only the selected arm's value/defaults execute. Duplicate value labels follow native first-match behavior.
 
+Native switch statements retain JS implicit fallthrough. TypeScript's `noFallthroughCasesInSwitch` option can diagnose fallthrough from nonempty statement cases without changing execution; empty grouped labels remain valid. Match and switch expressions terminate the selected arm automatically.
+
 An object case has exactly one noncomputed literal discriminator, with the same key in every object arm. The other properties bind values with native nested/default/rest patterns. Literal discriminators can be strings, numbers, booleans, bigint or null; regular expressions are not discriminator literals. Object cases and value cases cannot mix; either form allows one `default`. Bindings have a separate lexical scope per arm. Matching selects by the discriminator, then performs native destructuring including that key; a discriminator getter is therefore read for selection and again in the selected object arm. Object rest excludes every mentioned key, including the discriminator. Patterns match a typed union, not arbitrary shapes or deep predicates.
 
 Without `default`, generated TS checks `subject satisfies never` after the returning arms. Run **`twill check`** or the editor checker to prove exhaustiveness, including unions imported from ordinary TS. Adding a variant exposes omitted cases. Transpile-only Vite/bundler builds and the playground do not prove types. Unknown/unbounded subjects need a default. Unexpected unchecked JS values throw `TypeError('Non-exhaustive switch expression')`, rather than returning undefined. The optional typed linter also checks native switches and can require every known union case even with a default.
 
 A direct `return switch (...)` lowers to a scoped native switch without an additional function. Other expression positions use a synchronous lexical arrow IIFE, retaining `this`, `arguments`, `super` and `new.target`. This can allocate a closure; there is no runtime library, promise conversion or implicit async scheduling. `await` and `yield` inside the switch require a direct return, where they remain in the enclosing function. Elsewhere, bind an awaited subject before switching or write `await switch (...) { ... }` with promise-producing arms. Nested functions can use their own await/yield normally. See [performance](performance.md) for scoped measurements.
 
-## Explicit enum-case patterns (unreleased)
+<a id="explicit-enum-case-patterns-unreleased"></a>
 
-**RFC 0016 prototype; design review pending.** This syntax is available in the implementation branch and its playground build. It is not in npm/Marketplace 0.1.2. See [the proposal](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0016-pattern-matching.md).
+## Match expressions (unreleased)
+
+**RFC 0016 accepted; unreleased implementation.** This syntax is available in the source build and playground. It is not in npm/Marketplace 0.1.2. See [the proposal](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0016-pattern-matching.md).
 
 ```twill
 enum LoadState<T> {
@@ -133,19 +137,21 @@ enum LoadState<T> {
 }
 
 export function describe(state: LoadState<number>) {
-  return switch (state) {
-    case enum LoadState.idle(): 'Idle';
-    case enum LoadState.loaded({ value: result }): result.toFixed(2);
-    case enum LoadState.failed({ error }): throw error;
+  return match (state) {
+    case LoadState.idle(): 'Idle';
+    case LoadState.loaded({ value: result }): result.toFixed(2);
+    case LoadState.failed({ error }): throw error;
   };
 }
 ```
 
-`case enum` explicitly selects a variant by its `kind`. The qualified factory reference is checked as a callable descriptor returning the named literal tag; it is never read or called at runtime. Imported aliases, namespaces and native TS/declaration factories work, including type-only imports. Matching uses structural tagged records. A factory descriptor does not add nominal identity or runtime input validation.
+`match` selects enum variants by their `kind`, with no repeated marker in each `case`. The qualified factory reference is checked as a callable descriptor returning the named literal tag; it is never read or called at runtime. Imported aliases, namespaces and native TS/declaration factories work, including type-only imports. Matching uses structural tagged records. A factory descriptor does not add nominal identity or runtime input validation.
 
 Parentheses contain no binding or one native object binding. An empty pattern ignores payload fields. Bindings are `const`, scoped to one arm, and checked against the narrowed subject. Aliases, defaults, nested destructuring and rest retain native behavior and exceptions. Rest includes `kind` unless explicitly bound; it retains native copying/allocation cost. The subject and its selection tag are read once; explicit tag bindings/rest perform their normal extra reads.
 
-Enum patterns may mix with existing object arms using `kind` and a default. Existing object arms retain their discriminator re-read and rest exclusion. Value cases cannot mix with pattern arms. Ordinary `case Factory.loaded(value)` remains a native call-valued case with strict identity matching. Native switch statements keep their existing syntax.
+Enum patterns may mix with existing object arms using `kind` and a default. Existing object arms retain their discriminator re-read and rest exclusion. Match accepts qualified enum descriptors, tagged-object patterns and a default. Arbitrary value/call cases remain switch-expression syntax: ordinary `case Factory.loaded(value)` there calls the factory and compares strict identity. Native switch statements keep their existing syntax and implicit fallthrough. Match and switch expressions produce one result and never fall through; there is no `fallthrough` control keyword.
+
+`match` is contextual: `match(subject)` followed by a block beginning with `case` or `default` introduces the expression. Its subject is one argument expression; parenthesize comma expressions. Ordinary calls, methods, optional/generic calls and trailing closures named `match` keep their native behavior. Empty or ordinary callback bodies remain trailing closures. The earlier unreleased `switch (...) { case enum State.loaded({ value }): value; }` spelling stays supported for compatibility.
 
 Without a default, `twill check` verifies tag exhaustiveness, including single-variant records. Direct returns add no function; general expression positions retain the existing synchronous IIFE and await/yield restrictions. Descriptor case-method rename is withheld until linked tag edits can be proven complete; native owner/import aliases and local binding renames work. Positional patterns, `.loaded`, `where`, alternatives and deep predicates are deferred. All tools consume this syntax together; keep compiler and tooling versions aligned when it is released.
 

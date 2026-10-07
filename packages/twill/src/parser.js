@@ -427,12 +427,25 @@ function parserFor(language) {
       return super.parseExprAtom(...args);
     }
 
-    parseSwitchExpression() {
-      const node = this.startNode();
-      this.next();
-      node.parenStart = this.start;
-      node.discriminant = this.parseParenExpression();
-      node.parenEnd = this.lastTokStart;
+    parseSwitchExpression(call) {
+      const node = call ? this.startNodeAt(call.start, call.loc.start) : this.startNode();
+      node.keyword = call ? 'match' : 'switch';
+      if (call) {
+        if (call.arguments.length !== 1 || call.arguments[0].type === 'SpreadElement')
+          this.raise(
+            call.start,
+            'A match expression requires one subject; parenthesize comma expressions.',
+          );
+        const opening = Parser.tokenizer(this.input.slice(call.callee.end), options).getToken();
+        node.parenStart = call.callee.end + opening.start;
+        node.discriminant = call.arguments[0];
+        node.parenEnd = call.end - 1;
+      } else {
+        this.next();
+        node.parenStart = this.start;
+        node.discriminant = this.parseParenExpression();
+        node.parenEnd = this.lastTokStart;
+      }
       this.expect(tt.braceL);
       node.cases = [];
       let mode,
@@ -448,7 +461,10 @@ function parserFor(language) {
           if (sawDefault) this.raise(branch.start, 'Multiple default clauses.');
           sawDefault = true;
           branch.test = null;
-        } else if (this.type.label === 'name' && this.value === 'enum' && !this.containsEsc) {
+        } else if (
+          (call && this.type !== tt.braceL) ||
+          (!call && this.type.label === 'name' && this.value === 'enum' && !this.containsEsc)
+        ) {
           if (mode === 'value')
             this.raise(branch.start, 'Cannot mix enum patterns and value cases.');
           if (discriminator !== undefined && discriminator !== 'kind')
@@ -456,7 +472,8 @@ function parserFor(language) {
           mode = 'pattern';
           discriminator = 'kind';
           const pattern = this.startNode();
-          this.next();
+          pattern.explicitKeyword = !call;
+          if (!call) this.next();
           let reference = this.parseIdent();
           while (this.eat(tt.dot)) {
             const member = this.startNodeAt(reference.start, reference.loc.start);
@@ -542,7 +559,7 @@ function parserFor(language) {
       }
       this.next();
       if (!node.cases.length)
-        this.raise(node.start, 'A switch expression requires at least one arm.');
+        this.raise(node.start, `A ${node.keyword} expression requires at least one arm.`);
       node.discriminator = discriminator;
       return this.finishNode(node, 'TwillSwitchExpression');
     }
@@ -615,6 +632,30 @@ function parserFor(language) {
       // expression operand. In this dialect it can instead begin the callback.
       const classBody =
         this.classSuperDepth !== null && this.subscriptDepth === this.classSuperDepth + 1;
+      // Inspect only the arm-leading token after the ordinary call parser has
+      // parsed the subject once. Native calls/TSX subjects and trailing closures
+      // named match remain intact; case/default cannot start a native callback.
+      if (
+        !noCalls &&
+        !classBody &&
+        this.type === tt.braceL &&
+        base.type === 'CallExpression' &&
+        !base.optional &&
+        !base.typeParameters &&
+        base.callee.type === 'Identifier' &&
+        base.callee.name === 'match' &&
+        base.callee.start === base.start &&
+        this.input.slice(base.callee.start, base.callee.end) === 'match'
+      ) {
+        let first;
+        try {
+          first = Parser.tokenizer(this.input.slice(this.end), options).getToken().type;
+        } catch {
+          // The main parser reports lexical errors at their original offsets,
+          // rather than the lookahead tokenizer's relative slice positions.
+        }
+        if (first === tt._case || first === tt._default) return this.parseSwitchExpression(base);
+      }
       if (!noCalls && !classBody && this.tsMatchLeftRelational?.() && this.start === base.end) {
         const parameters = this.tsTryParseAndCatch(() => {
           const parsed = this.tsParseTypeArgumentsInExpression();

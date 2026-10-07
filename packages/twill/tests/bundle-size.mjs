@@ -66,7 +66,7 @@ const fixtures = [
     nativeExtension: 'ts',
     inputs: [{ kind: 'idle' }, { kind: 'loaded', value: 3 }, { kind: 'loaded', extra: true }],
     sugar:
-      'declare const State:{idle():{kind:"idle"};loaded(value:number):{kind:"loaded";value:number}};export function run(input:{kind:"idle"}|{kind:"loaded";value?:number;extra?:boolean}){return switch(input){case enum State.idle():0;case enum State.loaded({value=4,...rest}):[value,rest];};}',
+      'declare const State:{idle():{kind:"idle"};loaded(value:number):{kind:"loaded";value:number}};export function run(input:{kind:"idle"}|{kind:"loaded";value?:number;extra?:boolean}){return match(input){case State.idle():0;case State.loaded({value=4,...rest}):[value,rest];};}',
     native:
       'export function run(input:{kind:"idle"}|{kind:"loaded";value?:number;extra?:boolean}){const subject=input;const kind=subject.kind;switch(kind){case "idle":return 0;case "loaded":{const {value=4,...rest}=subject;return [value,rest];}}throw new TypeError("Non-exhaustive switch expression");}',
   },
@@ -77,7 +77,7 @@ const fixtures = [
     nativeExtension: 'ts',
     inputs: [{ kind: 'idle' }, { kind: 'loaded', value: 3 }, { kind: 'loaded', value: 7 }],
     sugar:
-      'declare const State:{idle():{kind:"idle"};loaded(value:number):{kind:"loaded";value:number}};export function run(input:{kind:"idle"}|{kind:"loaded";value:number}){const result=switch(input){case enum State.idle():0;case enum State.loaded({value}):value;};return result*2;}',
+      'declare const State:{idle():{kind:"idle"};loaded(value:number):{kind:"loaded";value:number}};export function run(input:{kind:"idle"}|{kind:"loaded";value:number}){const result=match(input){case State.idle():0;case State.loaded({value}):value;};return result*2;}',
     native:
       'export function run(input:{kind:"idle"}|{kind:"loaded";value:number}){let result;switch(input.kind){case "idle":result=0;break;case "loaded":{const {value}=input;result=value;break;}default:throw new TypeError("Non-exhaustive switch expression");}return result*2;}',
   },
