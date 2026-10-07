@@ -3,6 +3,7 @@ import { Parser, tokTypes } from 'acorn';
 import { parse } from './parser.js';
 import { lowerDefers } from './defer.js';
 import { lowerSwitchExpressions } from './branches.js';
+import { lowerEnums, mapEnumCopies } from './enums.js';
 import {
   originalPositionFor,
   generatedPositionFor,
@@ -90,6 +91,7 @@ export function transform(source: string, options: TransformOptions = {}) {
     guards: Node[];
     defers: Node[];
     switches: Node[];
+    enums: Node[];
     comments: { start: number; end: number; value: string; type: string }[];
     closures: ClosureMetadata[];
   };
@@ -107,6 +109,9 @@ export function transform(source: string, options: TransformOptions = {}) {
     );
   }
   const code = new MagicString(source);
+  const enumInsertions = parsed.enums.length
+    ? lowerEnums(source, parsed.ast, parsed.enums, code)
+    : [];
   const usedNames = new Set<string>();
   const patternGuards = parsed.guards.filter(
     (guard) => guard.binding && guard.binding.declarations[0].id.type !== 'Identifier',
@@ -563,6 +568,9 @@ export function transform(source: string, options: TransformOptions = {}) {
     includeContent: true,
     hires: true,
   });
+  const enumCopies = enumInsertions.length
+    ? mapEnumCopies(source, code.toString(), map, enumInsertions)
+    : [];
   return {
     code: code.toString(),
     map,
@@ -571,6 +579,8 @@ export function transform(source: string, options: TransformOptions = {}) {
     guards: parsed.guards.length,
     defers: parsed.defers.length,
     switches: parsed.switches.length,
+    associatedEnums: parsed.enums,
+    enumCopies,
     componentProps,
   };
 }

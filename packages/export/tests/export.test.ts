@@ -52,6 +52,30 @@ function nativeDiagnostics(config: string) {
   ].map((error) => ts.flattenDiagnosticMessageText(error.messageText, '\n'));
 }
 
+it('exports associated enums as ordinary checked TS with precise constructors', async () => {
+  const source =
+    'export enum State<T>{case idle;case loaded(value:T);} export const state:State<number>=State.loaded(42);';
+  const { root, tsconfig, outDir } = fixture({
+    'state.twill': source,
+    'consumer.ts':
+      'import {State,state} from "./state.twill"; export const value:State<number>=state; export const tag:"idle"=State.idle().kind;',
+  });
+  const result = await exportProject(tsconfig, { outDir });
+  expect(result.diagnostics).toEqual([]);
+  expect(result.written).toBe(true);
+  expect(nativeDiagnostics(result.tsconfig)).toEqual([]);
+  const output = readFileSync(join(outDir, 'state.ts'), 'utf8');
+  expect(output).toContain('export type State<T>');
+  expect(output).toContain('export const State');
+  expect(readFileSync(join(root, 'state.twill'), 'utf8')).toBe(source);
+  const exports: any = {};
+  Function(
+    'exports',
+    ts.transpileModule(output, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText,
+  )(exports);
+  expect(exports.state).toEqual({ kind: 'loaded', value: 42 });
+});
+
 it('exports a checked mixed graph with rewritten imports, native TS checking and execution', async () => {
   const input = {
     'values.twill':

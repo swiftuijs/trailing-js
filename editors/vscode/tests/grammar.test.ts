@@ -47,6 +47,25 @@ const has = (source: string, text: string, scope: string) => {
       (grammar === grammars[0] ? 'Twill' : 'TwillX') + ': ' + source,
     ).toBe(true);
 };
+it('highlights associated enum cases while preserving native payload types', () => {
+  const source = 'enum State<T> {\ncase idle;\ncase loaded(value:T, count:number);\n}';
+  has(source, 'case', 'keyword.control.twill');
+  has(source, 'loaded', 'entity.name.function.twill');
+  has('enum State{case 加载(value:number);}', '加载', 'entity.name.function.twill');
+  has(
+    'enum State{case /* payload */ loaded(value:number);}',
+    'loaded',
+    'entity.name.function.twill',
+  );
+  for (const grammar of grammars)
+    expect(
+      tokens(grammar, source).some(
+        (token) =>
+          token.text === 'number' &&
+          token.scopes.some((s) => s.startsWith('support.type.primitive.')),
+      ),
+    ).toBe(true);
+});
 it.each([
   ['items.map { value in value + 1 }', 'in'],
   ['items.map { (value: number) in value + 1 }', 'in'],

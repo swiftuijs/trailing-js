@@ -195,6 +195,25 @@
           "include": "source.ts#statements"
         }
       ]
+    },
+    "enum-case": {
+      "begin": "\\b(case)\\b(?=(?:\\s|/\\*.*?\\*/)*[[:alpha:]_$])",
+      "beginCaptures": {
+        "1": {
+          "name": "keyword.control.twill"
+        }
+      },
+      "end": "([[:alpha:]_$][\\w$]*)",
+      "endCaptures": {
+        "1": {
+          "name": "entity.name.function.twill"
+        }
+      },
+      "patterns": [
+        {
+          "include": "source.ts#comment"
+        }
+      ]
     }
   },
   "injections": {
@@ -217,6 +236,19 @@
         },
         {
           "include": "#closure-header"
+        }
+      ]
+    },
+    "L:source.twill.ts meta.enum.declaration.ts -comment -string": {
+      "patterns": [
+        {
+          "include": "source.ts#type-parameters"
+        },
+        {
+          "include": "#enum-case"
+        },
+        {
+          "include": "source.ts#function-parameters"
         }
       ]
     }

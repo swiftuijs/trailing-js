@@ -13,6 +13,18 @@ export async function parse(source: string, options: ParserOptions<any>) {
   const filename = options.filepath ?? 'input.twill';
   const parsed = parseSyntax(source, { filename });
   const layout = new MagicString(source);
+  const enumsByStart = new Map<number, any>();
+  const enumCasesByStart = new Map<number, any>();
+  for (const declaration of parsed.enums) {
+    enumsByStart.set(declaration.start, declaration);
+    layout.overwrite(declaration.start, declaration.start + 4, 'interface');
+    for (const branch of declaration.cases) {
+      enumCasesByStart.set(branch.id.start, branch);
+      layout.remove(branch.start, branch.start + 4);
+      if (!branch.hasParens) layout.appendLeft(branch.id.end, '()');
+      layout.appendLeft(branch.valueEnd, ': unknown');
+    }
+  }
   const implicitMembers = new Set<number>(
     parsed.closures.flatMap((closure: any) => closure.implicitMembers),
   );
@@ -171,6 +183,29 @@ export async function parse(source: string, options: ParserOptions<any>) {
     node.start = originalOffset(start);
     node.end = end > start ? originalOffset(end - 1) + 1 : node.start;
     node.range = [node.start, node.end];
+    if (node.type === 'TSMethodSignature') {
+      const branch = enumCasesByStart.get(node.key.start);
+      if (branch) {
+        node.type = 'TwillEnumCase';
+        node.id = node.key;
+        node.hasParens = branch.hasParens;
+        node.start = branch.start;
+        node.end = branch.end;
+        node.range = [node.start, node.end];
+        delete node.returnType;
+        delete node.key;
+      }
+    }
+    if (node.type === 'TSInterfaceDeclaration') {
+      const declaration = enumsByStart.get(node.start);
+      if (declaration) {
+        node.type = 'TwillEnumDeclaration';
+        node.cases = node.body.body;
+        node.end = declaration.end;
+        node.range = [node.start, node.end];
+        delete node.body;
+      }
+    }
     if (
       node.type === 'Identifier' &&
       node.name === '__twillImplicit' &&

@@ -74,6 +74,27 @@ The failure block must provably exit: a direct `return`, `throw`, `break`, or `c
 
 `guard` is contextual at a statement boundary when its condition/binding is followed by a top-level `else`. Existing `guard()`, `guard = value`, `object.guard` and `guard:` labels retain their meaning. Like other JS statements, use semicolons where adjacent expressions could otherwise join across lines. Parameter and expression tokens retain their original source positions, so TS narrowing and diagnostics operate on the lowered code.
 
+## Associated-value enums (unreleased)
+
+This implements [accepted RFC 0015](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0015-associated-value-enums.md) from source; npm and Marketplace 0.1.2 do not include it. [Implementation PR #13](https://github.com/swiftuijs/twill/pull/13) records its review and validation.
+
+```twill
+export enum LoadState<T, E = Error> {
+  case idle;
+  case loaded(value: T);
+  case failed(error: E);
+}
+
+const state: LoadState<number> = LoadState.loaded(42);
+const idle: LoadState<number> = LoadState.idle();
+```
+
+The declaration creates a normal TS union type and a same-named object of factory methods. Every case, including a case without payloads, is constructed with a call. A case has a readonly `kind` equal to its name and readonly named payload fields. Construction evaluates arguments once, allocates one result object and retains payload references. Readonly is shallow static checking; values are not frozen, copied deeply or compared by value. Structurally compatible native records are valid inputs.
+
+Payload fields require names and native TS types. Generic factories infer the parameters used by their payloads, including constraint/default dependencies, and return precise variant types. Match them using the existing `case { kind: 'loaded', value }` syntax below; new variants expose missing arms through `twill check`. Defaults keep their existing catch-all semantics. Native TS numeric/string enums retain their original behavior.
+
+Duplicate cases/fields, a payload named `kind`, optional/default/rest payload fields, const/ambient associated enums, const/variance type parameter modifiers and mixed native members are rejected. Like native lexical declarations, associated enums require braces in control-flow bodies. Custom tags, case shorthand and broader pattern matching are separate proposals. Constructor completion, diagnostics, formatting, shared highlighting, declarations and source export are supported in this implementation; enum declaration/case/payload/type-parameter rename is conservatively withheld until its linked type/tag edits can be proven complete.
+
 ## Switch expressions and union patterns
 
 In an expression position, `switch (subject) { ... }` produces the selected arm's value. A native switch **statement** retains native fallthrough, break and statement-body semantics. To return a switch from a closure, write `items.map { item in return switch (item) { ... }; }` or parenthesize it as a single expression.

@@ -8,12 +8,94 @@ beforeAll(async () => {
 });
 afterAll(() => highlighter.dispose());
 
+it.each(['twill', 'twillx'])(
+  'highlights associated enums and native payload types in %s',
+  (lang) => {
+    const source =
+      'export enum State<T extends {value:number}> {\n case idle;\n case loaded(value:T, callback:<U>(value:U)=>number);\n case 加载(value:T);\n}\nconst result=State.loaded({value:42},value=>1);';
+    const tokens = highlighter
+      .codeToTokensBase(source, { lang, theme: 'github-dark', includeExplanation: true })
+      .flat();
+    const scoped = (word: string, scope: string) =>
+      tokens.some((token) =>
+        token.explanation?.some(
+          (part) => part.content === word && part.scopes.some((s) => s.scopeName.startsWith(scope)),
+        ),
+      );
+    expect(scoped('case', 'keyword.control.twill')).toBe(true);
+    expect(scoped('loaded', 'entity.name.function.twill')).toBe(true);
+    expect(scoped('加载', 'entity.name.function.twill')).toBe(true);
+    expect(scoped('number', 'support.type.primitive.')).toBe(true);
+    const literal = highlighter
+      .codeToTokensBase(
+        'const text="enum State<T> { case loaded(value:T); }"; // enum State { case idle; }',
+        { lang, theme: 'github-dark', includeExplanation: true },
+      )
+      .flat();
+    expect(
+      literal.some((token) =>
+        token.explanation?.some((part) =>
+          part.scopes.some((s) => s.scopeName === 'entity.name.function.twill'),
+        ),
+      ),
+    ).toBe(false);
+    const plain = highlighter
+      .codeToTokensBase('enum State {\n // comment\n case idle;\n case loaded(value:number);\n}', {
+        lang,
+        theme: 'github-dark',
+        includeExplanation: true,
+      })
+      .flat();
+    expect(
+      plain.some((token) =>
+        token.explanation?.some(
+          (part) =>
+            part.content === 'loaded' &&
+            part.scopes.some((s) => s.scopeName === 'entity.name.function.twill'),
+        ),
+      ),
+    ).toBe(true);
+  },
+);
+
 it('registers both dialects and their native dependencies', () => {
   expect(twillLanguages.map((language) => language.name)).toEqual(['twill', 'twillx']);
   expect(highlighter.getLoadedLanguages()).toEqual(
     expect.arrayContaining(['twill', 'twillx', 'typescript', 'tsx']),
   );
 });
+
+it.each(['twill', 'twillx'])(
+  'retains comment scopes between associated case keywords and names in %s',
+  (lang) => {
+    const tokens = highlighter
+      .codeToTokensBase(
+        'enum State{case /* payload */ loaded(value:number);}\nenum Native{case /* member */ =1,other=2}',
+        { lang, theme: 'github-dark', includeExplanation: true },
+      )
+      .flat();
+    const scoped = (word: string, scope: string) =>
+      tokens.some((token) =>
+        token.explanation?.some(
+          (part) =>
+            part.content.includes(word) &&
+            part.scopes.some((item) => item.scopeName.startsWith(scope)),
+        ),
+      );
+    expect(scoped('loaded', 'entity.name.function.twill')).toBe(true);
+    expect(scoped('payload', 'comment.block')).toBe(true);
+    expect(scoped('member', 'comment.block')).toBe(true);
+    expect(
+      tokens.filter((token) =>
+        token.explanation?.some(
+          (part) =>
+            part.content === 'case' &&
+            part.scopes.some((item) => item.scopeName === 'keyword.control.twill'),
+        ),
+      ),
+    ).toHaveLength(1);
+  },
+);
 it.each(['twill', 'twillx'])('retains dialect and native token scopes in %s', (lang) => {
   const tokens = highlighter
     .codeToTokensBase(
@@ -124,6 +206,7 @@ it.each(['github-light', 'github-dark'])(
     const source = [
       'import { readFile } from "node:fs";',
       'type Result<T> = { value?: T } | null;',
+      'enum Native { A = 1, B = "b" }',
       'export async function run<T extends number>(input: Result<T>) {',
       '  const value = input?.value ?? 42;',
       '  const accepted = value >= 0 && value !== 1 || !input;',

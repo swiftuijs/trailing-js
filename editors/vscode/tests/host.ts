@@ -303,6 +303,66 @@ export async function run() {
     'PASS: destructured guard and pattern switch completion, rename, formatting and exhaustive diagnostics',
   );
 
+  const enumeration = await open('enums.twill');
+  await eventually(
+    async () => vscode.languages.getDiagnostics(enumeration.uri),
+    (items) => items.length === 0,
+  );
+  const enumMembers = await eventually(
+    () => completions(enumeration, position(enumeration, 'State.loaded', 6)),
+    (list) => !!list?.items.some((item) => label(item) === 'loaded'),
+  );
+  assert(enumMembers!.items.some((item) => label(item) === 'idle'));
+  const enumConsumer = await open('enums-consumer.ts');
+  await eventually(
+    async () => vscode.languages.getDiagnostics(enumConsumer.uri),
+    (items) => items.length === 0,
+  );
+  for (const [document, token, offset] of [
+    [enumeration, 'value:T', 0],
+    [enumConsumer, 'result.value', 7],
+  ] as const) {
+    let edits: vscode.WorkspaceEdit | undefined;
+    try {
+      edits = await vscode.commands.executeCommand<vscode.WorkspaceEdit>(
+        'vscode.executeDocumentRenameProvider',
+        document.uri,
+        position(document, token, offset),
+        'renamedPayload',
+      );
+    } catch (error) {
+      assert.match(String(error), /renam/i);
+    }
+    assert(!edits || edits.size === 0, 'Unsafe enum payload rename must be withheld');
+  }
+  const enumFormats = await vscode.commands.executeCommand<vscode.TextEdit[]>(
+    'vscode.executeFormatDocumentProvider',
+    enumeration.uri,
+    { tabSize: 2, insertSpaces: true },
+  );
+  assert(enumFormats?.length);
+  const enumFormatEdit = new vscode.WorkspaceEdit();
+  enumFormatEdit.set(enumeration.uri, enumFormats!);
+  assert(await vscode.workspace.applyEdit(enumFormatEdit));
+  assert(enumeration.getText().includes('case loaded(value: T)'));
+  const omitEnumCase = new vscode.WorkspaceEdit();
+  omitEnumCase.replace(
+    enumeration.uri,
+    new vscode.Range(
+      new vscode.Position(0, 0),
+      enumeration.positionAt(enumeration.getText().length),
+    ),
+    enumeration.getText().replace(/\s*case \{ kind: ["']idle["'] \}: 0;/, ''),
+  );
+  assert(await vscode.workspace.applyEdit(omitEnumCase));
+  await eventually(
+    async () => vscode.languages.getDiagnostics(enumeration.uri),
+    (items) => items.some((item) => item.code === 1360),
+  );
+  console.log(
+    'PASS: associated enum constructor completion, native consumer, formatting and exhausted switch diagnostics',
+  );
+
   const view = await open('view.twillx');
   const props = await eventually(
     () => completions(view, position(view, 'tit }', 3)),

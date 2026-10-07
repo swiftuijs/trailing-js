@@ -46,13 +46,13 @@ The language may introduce its own semantics. Changes to existing JS/TS spelling
 | [0013](0013-render-prop-closures.md)        | React render-prop closures                  | Implemented: 0.1.2 |
 | [0014](0014-vue-slots.md)                   | Lazy default and named Vue slots            | Implemented: 0.1.2 |
 
-## Proposed language features
+## Accepted and proposed language features
 
 The first implementation milestone is associated-value enums using existing object-pattern switches. Broader pattern matching is a separate proposal. Error propagation follows after those foundations; structured concurrency needs its own runtime design.
 
 | RFC                                      | Feature                               | Status   | Dependencies                                |
 | ---------------------------------------- | ------------------------------------- | -------- | ------------------------------------------- |
-| [0015](0015-associated-value-enums.md)   | Associated-value enums                | Proposed | 0010, 0011                                  |
+| [0015](0015-associated-value-enums.md)   | Associated-value enums                | Accepted | 0010, 0011                                  |
 | [0016](0016-pattern-matching.md)         | Broader pattern matching              | Proposed | 0010, 0011; enum patterns depend on 0015    |
 | [0017](0017-if-expressions.md)           | If expressions                        | Proposed | None                                        |
 | [0018](0018-optional-branch-bindings.md) | Nullish bindings in if branches       | Proposed | 0007, 0008                                  |
