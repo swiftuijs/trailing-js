@@ -153,14 +153,13 @@ const processor: Linter.Processor = {
         const visit = (node: ts.Node) => {
           if (ts.isSwitchStatement(node) && node.expression.getStart() === start) {
             const sourceStart = originalOffset(state, node.getStart());
-            const keyword =
-              sourceStart === undefined
-                ? undefined
-                : /^(?:switch|match)\b/.exec(state.source.slice(sourceStart))?.[0];
-            if (sourceStart !== undefined && keyword) {
+            if (
+              sourceStart !== undefined &&
+              /^(?:switch|match)\b/.test(state.source.slice(sourceStart))
+            ) {
               offset = sourceStart;
               expressionSwitch = true;
-              expressionKeywordLength = keyword.length;
+              expressionKeywordLength = state.source.startsWith('match', sourceStart) ? 5 : 6;
             }
           } else if (start >= node.getFullStart() && start < node.end) ts.forEachChild(node, visit);
         };

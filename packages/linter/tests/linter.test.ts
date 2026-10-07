@@ -261,6 +261,7 @@ it('checks typed enum patterns and maps exhaustiveness without lowering source f
         ruleId: '@typescript-eslint/switch-exhaustiveness-check',
         line: 2,
         column: source.split('\n')[1]!.indexOf('match') + 1,
+        endColumn: source.split('\n')[1]!.indexOf('match') + 6,
         suggestions: [],
         message: expect.stringContaining('"idle"'),
       }),
