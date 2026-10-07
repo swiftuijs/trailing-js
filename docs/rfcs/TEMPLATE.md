@@ -8,7 +8,7 @@
 
 ## Problem and native baseline
 
-Describe a recurring task and the error or maintenance burden. Include equivalent native TS/JS and the proposed improvement.
+Describe a recurring task and the error or maintenance burden. Identify the capability Twill adds and include equivalent native TS/JS and the proposed improvement. Native JS/TS features retain their contracts and serve as baselines or compatibility requirements; they do not need independent RFCs.
 
 ## Design
 

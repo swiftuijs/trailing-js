@@ -1,10 +1,10 @@
-# RFC 0018: Branch-scoped optional bindings
+# RFC 0018: Nullish bindings in if branches
 
 **Status:** Proposed. **Kind:** Language. **Release:** Not released. **Dependencies:** 0007, 0008.
 
 ## Problem and native baseline
 
-Optional success handling uses a temporary plus a nullish test even when the binding is needed only inside a branch. Explore `if const user = find(id) { use(user); } else { missing(); }` without changing JS let's meaning.
+The proposed Twill addition is an `if const` declaration that binds a non-nullish value only inside the success branch. Native TS/JS uses a temporary plus a nullish test for this task. Explore `if const user = find(id) { use(user); } else { missing(); }` without changing JS let's meaning. Optional chaining (`?.`) and nullish coalescing (`??`) remain native operators; an initializer may use them with their existing behavior.
 
 ## Design
 

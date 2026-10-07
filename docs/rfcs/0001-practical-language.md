@@ -1,6 +1,6 @@
 # RFC 0001: Practical language direction
 
-**Status: Active design guidance.** This document defines product priorities and acceptance criteria. The [RFC index](README.md) assigns an independent RFC to every language feature and public tooling capability, with separate released and proposed statuses. This is not a language specification. The public [language guide](../language.md) and [syntax contract](../syntax.md) describe shipped behavior.
+**Status: Active design guidance.** This document defines product priorities and acceptance criteria. The [RFC index](README.md) assigns an independent RFC to every syntax extension, semantic extension and public tooling capability introduced by Twill, with separate released and proposed statuses. This is not a language specification. The public [language guide](../language.md) and [syntax contract](../syntax.md) describe shipped behavior.
 
 The roadmap may define new Twill semantics, including explicit runtime-backed features. Released behavior is the compatibility baseline, not a permanent restriction on language design. Proposals that change existing spelling, identity, coercion or scheduling must specify native JS/TS boundaries, costs and a versioned migration. Acceptance is recorded through RFC review; implementation PRs link their feature RFCs.
 

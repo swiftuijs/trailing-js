@@ -6,7 +6,9 @@ Use Node 22.13+ or Node 24+ and the pnpm version pinned in `packageManager`. Ins
 
 For a syntax change, add execution or negative-diagnostic tests covering the new behavior, nearby ordinary JS/TS syntax, and nesting. For mapping changes, check real diagnostic/editor positions. Build integrations must be exercised with their actual tool. Avoid replacing parser behavior with broad string rewrites.
 
-Every language feature and public tooling capability has an independent [RFC](docs/rfcs/README.md). Write or amend it before the implementation PR, using [the template](docs/rfcs/TEMPLATE.md). Link the RFC from the PR and record dependencies, supported scope and validation. New proposals stay proposed until a maintainer records acceptance; implementation and release are separate statuses. Retrospective RFCs document shipped behavior without inventing earlier approval.
+Every syntax extension, semantic extension and public tooling capability introduced by Twill has an independent [RFC](docs/rfcs/README.md). Write or amend it before the implementation PR, using [the template](docs/rfcs/TEMPLATE.md). Link the RFC from the PR and record dependencies, supported scope and validation. New proposals stay proposed until a maintainer records acceptance; implementation and release are separate statuses. Retrospective RFCs document shipped behavior without inventing earlier approval.
+
+Native JS/TS features such as optional chaining (`?.`) and nullish coalescing (`??`) need no standalone RFC while their native behavior is retained. Describe their compatibility with Twill additions in the relevant feature RFC.
 
 Start with a concrete JS/TS problem and an equivalent handwritten baseline. A proposal needs explicit semantics, costs, ecosystem boundaries and compiler, checker, formatter, linter, highlighting and editor support. Twill can define new semantics; changes to existing spelling or runtime behavior need an explicit native boundary and versioned migration. [RFC 0001](docs/rfcs/0001-practical-language.md) provides direction; the individual feature RFCs specify the contracts.
 

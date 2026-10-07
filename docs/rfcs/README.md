@@ -1,6 +1,12 @@
 # Twill RFCs
 
-Every language feature and public tooling capability has an independent RFC. RFC 0001 describes the product direction; the feature RFCs describe contracts and proposals. The [syntax reference](../syntax.md) remains the user-facing specification for released syntax.
+Every syntax extension, semantic extension and public tooling capability introduced by Twill has an independent RFC. RFC 0001 describes the product direction; the feature RFCs describe contracts and proposals. The [syntax reference](../syntax.md) remains the user-facing specification for released syntax.
+
+## RFC scope
+
+Write RFCs for capabilities introduced by Twill, including retrospective specifications for Twill features already released. Native JS/TS features such as optional chaining (`?.`), nullish coalescing (`??`), generics and `async`/`await` retain their native contracts and do not need independent RFCs. Reference them as baselines or compatibility requirements within a Twill feature RFC.
+
+Each RFC must identify the Twill addition: its new syntax, semantics, checking guarantee or dialect-specific tooling behavior. Tooling RFCs cover Twill's integration with native facilities, such as declaration emission for `.twill` sources. A proposal to change a native contract must specify the new behavior and its compatibility/migration requirements.
 
 ## Status and review process
 
@@ -49,7 +55,7 @@ The first implementation milestone is associated-value enums using existing obje
 | [0015](0015-associated-value-enums.md)   | Associated-value enums                | Proposed | 0010, 0011                                  |
 | [0016](0016-pattern-matching.md)         | Broader pattern matching              | Proposed | 0010, 0011; enum patterns depend on 0015    |
 | [0017](0017-if-expressions.md)           | If expressions                        | Proposed | None                                        |
-| [0018](0018-optional-branch-bindings.md) | Branch-scoped optional bindings       | Proposed | 0007, 0008                                  |
+| [0018](0018-optional-branch-bindings.md) | Nullish bindings in if branches       | Proposed | 0007, 0008                                  |
 | [0019](0019-typed-error-propagation.md)  | Explicit typed error propagation      | Proposed | 0015 for the optional result representation |
 | [0020](0020-structured-concurrency.md)   | Structured concurrency                | Proposed | Error/cleanup contracts; runtime prototype  |
 | [0021](0021-immutable-values.md)         | Immutable records and value semantics | Proposed | None                                        |
