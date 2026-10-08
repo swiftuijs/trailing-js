@@ -137,7 +137,9 @@ console.log(JSON.stringify({args:process.argv.slice(2),values,pid:process.pid}))
       assert.deepEqual(JSON.parse(preserved.stdout).args, scriptArgs);
     }
   }
-  const exitScript = join(root, 'runner-exit.twill');
+  const runnerDirectory = join(root, 'runner-smoke');
+  mkdirSync(runnerDirectory);
+  const exitScript = join(runnerDirectory, 'exit.twill');
   writeFileSync(exitScript, 'process.exitCode=23;');
   assert.equal(spawnSync(process.execPath, [cli, exitScript], { cwd: root }).status, 23);
   assert.equal(installed.dependencies['@swiftuijs/twill-export'], undefined);
