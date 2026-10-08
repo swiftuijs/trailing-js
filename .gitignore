@@ -17,6 +17,7 @@ editors/twill-typescript-plugin/*.map
 editors/twill-typescript-plugin/THIRD_PARTY_LICENSES.txt
 project-results.json
 release-manifest.json
+native-release-manifest.json
 bundle-results.json
 
 **/.vitepress/cache/

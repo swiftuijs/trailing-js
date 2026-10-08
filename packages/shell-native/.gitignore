@@ -1,0 +1,6 @@
+native/*.node
+native/manifest.json
+native/*.json
+native/*.tmp
+crate/target/
+*.tgz

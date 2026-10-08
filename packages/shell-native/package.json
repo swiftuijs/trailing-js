@@ -1,21 +1,21 @@
 {
-  "name": "@swiftuijs/twill-shell",
+  "name": "@swiftuijs/twill-shell-native",
   "version": "0.1.2",
-  "description": "Swift-inspired subprocess toolkit for Twill and native Node scripts: explicit arguments, bounded output and owned teardown.",
+  "description": "Optional Rust asynchronous subprocess backend for Twill shell scripts and Node.",
   "type": "module",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/swiftuijs/twill.git",
-    "directory": "packages/shell"
+    "directory": "packages/shell-native"
   },
-  "homepage": "https://twill.evecalm.com/",
+  "homepage": "https://twill.evecalm.com/scripting",
   "bugs": {
     "url": "https://github.com/swiftuijs/twill/issues"
   },
-  "sideEffects": false,
   "files": [
     "dist",
+    "native",
     "README.md",
     "LICENSE"
   ],
@@ -23,10 +23,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./backend": {
-      "types": "./dist/backend.d.ts",
-      "import": "./dist/backend.js"
     }
   },
   "engines": {
@@ -35,24 +31,23 @@
   "publishConfig": {
     "access": "public"
   },
+  "dependencies": {
+    "@swiftuijs/twill-shell": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "catalog:",
     "@types/node": "catalog:",
     "vitest": "catalog:",
-    "@vitest/coverage-v8": "catalog:",
-    "@swiftuijs/twill": "workspace:*",
-    "@swiftuijs/twill-formatter": "workspace:*",
-    "@swiftuijs/twill-export": "workspace:*",
-    "prettier": "catalog:"
+    "@vitest/coverage-v8": "catalog:"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "node scripts/build.mjs && tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:native": "node scripts/check.mjs",
     "test:package": "node tests/consumer.mjs",
-    "prepack": "pnpm run build",
-    "benchmark": "node benchmarks/run.mjs"
+    "prepack": "node scripts/verify-binaries.mjs"
   },
   "author": {
     "name": "forth.ink",
@@ -62,17 +57,9 @@
     "twill",
     "shell",
     "subprocess",
-    "scripting",
+    "rust",
+    "napi",
     "swift",
-    "typescript",
     "node"
-  ],
-  "peerDependencies": {
-    "@types/node": "^20.0.0 || ^22.0.0 || ^24.0.0 || ^26.0.0"
-  },
-  "peerDependenciesMeta": {
-    "@types/node": {
-      "optional": true
-    }
-  }
+  ]
 }

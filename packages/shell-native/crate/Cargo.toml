@@ -1,0 +1,28 @@
+[package]
+name = "twill-shell-native"
+version = "0.1.2"
+edition = "2021"
+publish = false
+rust-version = "1.90"
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+libc = "=0.2.190"
+napi = { version = "=3.14.2", default-features = false, features = ["napi8"] }
+napi-derive = "=3.6.12"
+tokio = { version = "=1.53.2", features = ["rt", "process", "net", "io-util", "sync", "time", "macros"] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "=0.61.2", features = ["Win32_Foundation", "Win32_System_Console", "Win32_Security_Cryptography"] }
+
+[build-dependencies]
+napi-build = "=2.6.0"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"
+panic = "unwind"

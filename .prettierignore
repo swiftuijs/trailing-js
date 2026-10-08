@@ -13,6 +13,7 @@ packages/twill/LICENSE
 
 # Generated Cargo artifacts; the native source is checked by rustfmt/clippy.
 packages/shell/experiments/rust-native/target
+packages/shell-native/crate/target
 
 **/.vitepress/cache/
 

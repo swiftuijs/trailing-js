@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Implement the optional `@swiftuijs/twill-shell-native` Rust backend with an independent async reactor, the shared subprocess API/errors, bounded cancellation/teardown and environment cleanup. Add real five-target platform CI, independent Node 20 consumers, validated prebuild assembly and separate native artifact budgets; keep the Node SDK dependency-free. This source implementation is not an npm publication.
+
 - Implement the isolated RFC 0036 Linux Rust/N-API direct-child experiment outside published SDK files: literal argv, call-time input/environment snapshots, nonblocking bounded dual capture, deadlines and direct-child reaping. Record complete paired Node/SDK/Rust measurements, lower observed capture RSS, default-pool concurrency regression and no demonstrated source-startup gain. Validate real native calls on Node 20.19/24; keep the SDK's Node backend, dependencies and archive gate unchanged.
 
 - Prototype RFC 0035 executable-script startup caching: lazy compiler initialization, content/configuration/toolchain invalidation, original source maps, private bounded atomic storage and an environment opt-out. Advanced Node registration stays uncached by default. Record the independent RFC 0036 Rust/N-API backend evaluation; no native backend or publication.

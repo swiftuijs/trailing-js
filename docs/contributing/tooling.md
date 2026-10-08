@@ -1,6 +1,6 @@
 # Repository development
 
-Use Node 22.13+ and the pnpm version pinned in the root `packageManager`. `corepack enable` enables pnpm where Corepack is available; otherwise install that pnpm version separately. The distributed compiler also supports Node 20.19+; the repository build/test tools require Node 22+.
+Use Node 22.13+ and the pnpm version pinned in the root `packageManager`. `corepack enable` enables pnpm where Corepack is available; otherwise install that pnpm version separately. The optional native shell workspace requires pinned Rust 1.90.0 with rustfmt/clippy; `pnpm build` builds its host addon. Installed native archives contain prebuilds and need no Rust. The distributed compiler also supports Node 20.19+; the repository build/test tools require Node 22+.
 
 ## Layout
 
@@ -96,3 +96,5 @@ The optional release workflow is dispatched manually at a release tag, uses the 
 The unreleased shell SDK is a separate Node-only, zero-production-dependency package. Its archive has a 16 KiB compressed gate and independent native JS/TS consumer tests on Node 20. Add its exact tarball and manifest entry to the next coordinated release; implementing/merging the prototype does not publish it. Run the focused Windows/macOS subprocess CI and the native comparison `pnpm benchmark:shell --output ../../shell-results.json --verify-performance` before release.
 
 The separate [Rust experiment](../../packages/shell/experiments/rust-native/README.md) is Linux-only and excluded from published SDK files and pnpm dependencies. Its pinned Cargo/toolchain files, real Node addon tests and operation-interleaved benchmark evaluate a direct-child subset; it is not a selectable SDK backend. The dedicated Linux CI job runs rustfmt/clippy, builds the addon and executes it on Node 22 and minimum Node 20.19.0. Keep performance, native artifact bytes, pool contention and full-contract adoption gates distinct; do not relax the SDK archive/coverage gates for this experiment.
+
+The optional `packages/shell-native` workspace implements the full direct-child backend contract with an independent async reactor. Use `pnpm --filter @swiftuijs/twill-shell-native... build`, `test:native`, `test:coverage`, `pnpm package:native` and its `test:package`. Five native platform jobs validate real Node 22/20.19 consumers; `native-assemble` combines those exact binaries, verifies pinned source/protocol/digests and emits a separate archive/manifest without rebuilding Rust. A local pack includes only available host binaries; release assembly requires all five. Preserve the SDK's 16 KiB gate and the separate 2 MiB binary / 6 MiB archive gates.
