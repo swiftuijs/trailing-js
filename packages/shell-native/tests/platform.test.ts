@@ -1,5 +1,6 @@
 import { expect, it, vi } from 'vitest';
 import { nativeTarget } from '../src/platform.js';
+import * as executable from '../src/libc.js';
 import { targets, rustTargets } from '../scripts/identity.mjs';
 
 it.each(['x64', 'arm64'])('selects each Linux ABI for %s without probing libraries', (arch) => {
@@ -16,7 +17,8 @@ it.each(['darwin', 'win32'])('selects both %s architectures without a Linux repo
     expect(nativeTarget(platform, arch, report)).toBe(`${platform}-${arch}`);
   expect(report).not.toHaveBeenCalled();
 });
-it('uses the Node process report when the Linux report provider is omitted', () => {
+it('uses the Node process report when executable inspection is unavailable', () => {
+  const inspect = vi.spyOn(executable, 'processLibc').mockReturnValue(undefined);
   const report = vi.spyOn(process.report, 'getReport').mockReturnValue({
     header: { glibcVersionRuntime: '2.28' },
   });
@@ -25,8 +27,25 @@ it('uses the Node process report when the Linux report provider is omitted', () 
     expect(report).toHaveBeenCalledOnce();
   } finally {
     report.mockRestore();
+    inspect.mockRestore();
   }
 });
+it.each(['glibc', 'musl'] as const)(
+  'avoids the diagnostic report for an identified %s executable',
+  (libc) => {
+    const inspect = vi.spyOn(executable, 'processLibc').mockReturnValue(libc);
+    const report = vi.spyOn(process.report, 'getReport').mockImplementation(() => {
+      throw Error('diagnostic report must remain lazy');
+    });
+    try {
+      expect(nativeTarget('linux', 'x64')).toBe(libc === 'musl' ? 'linux-x64-musl' : 'linux-x64');
+      expect(report).not.toHaveBeenCalled();
+    } finally {
+      inspect.mockRestore();
+      report.mockRestore();
+    }
+  },
+);
 it.each([
   null,
   undefined,
