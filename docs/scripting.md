@@ -26,7 +26,7 @@ The explicit `twill` forms work on Windows too. POSIX executable permission and 
 
 All arguments after the script path are forwarded unchanged, including `--help`, `-p`, `--` and shell metacharacters. Use `twill run -- <file>` for a filename beginning with a dash, or `twill run check` for a filename matching a compiler subcommand. `process.argv` has the normal Node shape: executable, absolute script path, then arguments.
 
-Execution uses the current Node process, native stdin/stdout/stderr, unchanged cwd/environment and the script's own exit status and signal behavior. Imports resolve from the script's location, so making `twill` available globally does not install its application dependencies globally. Configuration still comes from the nearest source project. Source maps are enabled; native `.ts`/`.js` imports and top-level await keep their normal loader meaning. Run `twill check` separately: running a script does not perform type checking.
+Execution uses the current Node process, native stdin/stdout/stderr, unchanged cwd/environment and the script's own exit status and signal behavior. Imports resolve from the script's location, so making `twill` available globally does not install its application dependencies globally. Configuration still comes from the nearest source project. Source maps are enabled; native `.ts`/`.js` imports and top-level await keep their normal loader meaning. Run `twill check` separately: running a script does not perform type checking. The CLI imports the entry module; `import.meta.main` / `require.main === module` do not identify it as Node's main module. Put executable code in a dedicated entry file and reusable code in imported modules.
 
 The published 0.1.2 loader remains available for advanced Node integration:
 

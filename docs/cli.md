@@ -19,7 +19,7 @@ pnpm exec twill run scripts/build.twill 'app, tests'
 
 On Linux/macOS, start the file with `#!/usr/bin/env twill`, grant executable permission and use `./scripts/build.twill` when `twill` is on PATH. `pnpm exec ./scripts/build.twill` supplies a project-local binary. Windows uses the explicit CLI forms. Entry filenames may be extensionless.
 
-Arguments after the file are script arguments, never compiler options. `twill run -- <file>` handles dash-prefixed filenames; `twill run check` disambiguates a filename from a compiler command. The script sees standard Node argv, cwd, environment and descriptors. It executes in the current process, with source maps enabled and native exit/signal behavior. Packages resolve from the script's location, independently of the installed CLI. There is no automatic package installation or type checking.
+Arguments after the file are script arguments, never compiler options. `twill run -- <file>` handles dash-prefixed filenames; `twill run check` disambiguates a filename from a compiler command. The script sees standard Node argv, cwd, environment and descriptors. It executes in the current process, with source maps enabled and native exit/signal behavior. Packages resolve from the script's location, independently of the installed CLI. There is no automatic package installation or type checking. The CLI imports the entry; Node main-module detection (`import.meta.main` / `require.main === module`) refers to the launcher rather than the script. Use a dedicated executable entry file.
 
 This runner is unreleased; npm 0.1.2 supports the explicit Node loader instead. See [shell scripting](./scripting.md) for the complete example and version boundary.
 

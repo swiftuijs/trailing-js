@@ -257,3 +257,15 @@ it.skipIf(process.platform === 'win32')(
     }
   },
 );
+
+it('retains entry URLs while documenting the imported-entry main-module boundary', () => {
+  for (const [name, source] of [
+    ['entry.twill', 'console.log(JSON.stringify({main: import.meta.main ?? null}));'],
+    ['entry.cjs', 'console.log(JSON.stringify({main: require.main === module}));'],
+  ]) {
+    const { cwd, file } = fixture(source!, name!);
+    const result = execute(cwd, [file]);
+    expect(result.status, result.stderr).toBe(0);
+    expect([null, false]).toContain(JSON.parse(result.stdout).main);
+  }
+});
