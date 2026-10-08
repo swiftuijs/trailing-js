@@ -23,10 +23,8 @@ export interface TransformOptions {
   /** Share dynamic synchronous cleanup through the optional runtime. Defaults to inline. */
   runtime?: 'inline' | 'external';
 }
-export const extensions = ['.twill', '.twillx'] as const;
-export function isTwillFile(id: string): boolean {
-  return extensions.some((extension) => id.split(/[?#]/, 1)[0]!.endsWith(extension));
-}
+import { extensions, isTwillFile } from './extensions.js';
+export { extensions, isTwillFile } from './extensions.js';
 export function inferLanguage(filename: string): Language {
   if (/\.(?:twillx|tsx)$/.test(filename)) return 'tsx';
   if (/\.jsx$/.test(filename)) return 'jsx';

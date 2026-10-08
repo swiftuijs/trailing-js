@@ -1,30 +1,19 @@
-import { readFileSync, existsSync } from 'node:fs';
-import { dirname, resolve as resolvePath } from 'node:path';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { ResolveHook, LoadHook } from 'node:module';
-import { isTwillFile } from './compiler.js';
-import { transpile, transpileNative } from './transpile.js';
-import { loadConfig } from './config.js';
+import { isTwillFile } from './extensions.js';
 import { isDependency, needsTypeEmission, resolveSourceFile } from './files.js';
-import ts from 'typescript';
+import { openCompilationCache, type CompilationCache } from './compilation-cache.js';
 
 let entries = new Set<string>();
-export function initialize(data: { entries?: string[] } | undefined) {
+let cacheEnabled = false;
+let cache: CompilationCache | undefined;
+let cacheInitialized = false;
+export function initialize(data: { entries?: string[]; cache?: boolean } | undefined) {
   entries = new Set(data?.entries);
-}
-
-function configuration(filename: string) {
-  let root = dirname(filename);
-  for (;;) {
-    if (
-      existsSync(resolvePath(root, 'twill.config.json')) ||
-      existsSync(resolvePath(root, 'tsconfig.json'))
-    )
-      return loadConfig(root);
-    const parent = dirname(root);
-    if (parent === root) return {};
-    root = parent;
-  }
+  cacheEnabled = data?.cache === true && process.env.TWILL_CACHE !== '0';
+  cache = undefined;
+  cacheInitialized = false;
 }
 
 export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
@@ -58,22 +47,14 @@ export const load: LoadHook = async (url, context, nextLoad) => {
   if (!dialect && (isDependency(filename) || !needsTypeEmission(filename)))
     return nextLoad(url, context);
   const source = readFileSync(filename, 'utf8');
-  const result = dialect
-    ? transpile(source, { ...configuration(filename), filename }, ts.ScriptTarget.ES2022)
-    : transpileNative(
-        source,
-        filename,
-        undefined,
-        undefined,
-        configuration(filename).jsxImportSource,
-        ts.ScriptTarget.ES2022,
-      );
-  return {
-    format: 'module',
-    source:
-      result.code +
-      '\n//# sourceMappingURL=data:application/json;base64,' +
-      Buffer.from(result.map).toString('base64'),
-    shortCircuit: true,
-  };
+  if (cacheEnabled && !cacheInitialized) {
+    cache = openCompilationCache();
+    cacheInitialized = true;
+  }
+  const cached = cache?.read(url, source, dialect);
+  if (cached !== undefined) return { format: 'module', source: cached, shortCircuit: true };
+  const { compileModule } = await import('./loader-compiler.js');
+  const result = compileModule(source, filename, dialect);
+  cache?.write(url, source, dialect, result.source, result.observations);
+  return { format: 'module', source: result.source, shortCircuit: true };
 };

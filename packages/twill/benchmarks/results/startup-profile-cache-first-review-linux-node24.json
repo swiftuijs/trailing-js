@@ -1,0 +1,722 @@
+{
+  "workload": "Instrumented loader hook: dynamic loader import and per-module load, no SDK or subprocess. Five fresh interpreter observations per mode; all retained.",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "arch": "x64",
+    "os": "6.18.44",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C"
+  },
+  "gitHead": "b15fd34e85554aa643dc18bd3141046f48d232a8",
+  "sourceSHA256": "483e565eaccd3ec9b0d823930a385ce066297fe78ddae958306ac0218f1dce52",
+  "loaderPath": "/workspace/twill-shell-startup/packages/twill/dist/loader.js",
+  "loaderSHA256": "4c57126967bb66189dd8d06af9755e730a7a104499cf1dbb255cfa6b59325663",
+  "pairs": [
+    {
+      "uncached": {
+        "loaderImportMs": 8.886556999999996,
+        "loads": [
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/loader-compiler-bQElfqEV.js",
+            "ms": 0.3951410000000095
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/configuration-B8zxdX8D.js",
+            "ms": 208.19651999999996
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/transpile-DG81yfVs.js",
+            "ms": 208.18269099999998
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/typescript.js",
+            "ms": 208.080733
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/compiler-DY1N07np.js",
+            "ms": 0.2183050000000435
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/magic-string@1.4.2/node_modules/magic-string/dist/index.mjs",
+            "ms": 0.2202050000000213
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@ampproject+remapping@2.3.0/node_modules/@ampproject/remapping/dist/remapping.mjs",
+            "ms": 0.1923919999999839
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn@8.18.0/node_modules/acorn/dist/acorn.mjs",
+            "ms": 0.9099879999999985
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-typescript@1.4.13_acorn@8.18.0/node_modules/acorn-typescript/lib/index.mjs",
+            "ms": 0.7428010000000427
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-jsx@5.3.2_acorn@8.18.0/node_modules/acorn-jsx/index.js",
+            "ms": 0.6764650000000074
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping/dist/trace-mapping.mjs",
+            "ms": 0.22590500000001157
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+sourcemap-codec@1.6.0/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs",
+            "ms": 0.1611419999999839
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/gen-mapping/dist/gen-mapping.mjs",
+            "ms": 0.11332200000003922
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+resolve-uri@3.1.2/node_modules/@jridgewell/resolve-uri/dist/resolve-uri.mjs",
+            "ms": 0.18509999999997717
+          },
+          {
+            "url": "file:///tmp/twill-startup-profile-t18x9Q/script.twill",
+            "ms": 479.241223
+          }
+        ]
+      },
+      "miss": {
+        "loaderImportMs": 10.581736000000006,
+        "loads": [
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/loader-compiler-bQElfqEV.js",
+            "ms": 0.60735600000001
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/configuration-B8zxdX8D.js",
+            "ms": 193.84316899999996
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/transpile-DG81yfVs.js",
+            "ms": 193.759473
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/typescript.js",
+            "ms": 193.740051
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/compiler-DY1N07np.js",
+            "ms": 0.21515800000003082
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/magic-string@1.4.2/node_modules/magic-string/dist/index.mjs",
+            "ms": 0.13862199999999802
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@ampproject+remapping@2.3.0/node_modules/@ampproject/remapping/dist/remapping.mjs",
+            "ms": 0.15033899999997402
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn@8.18.0/node_modules/acorn/dist/acorn.mjs",
+            "ms": 0.7189280000000053
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-typescript@1.4.13_acorn@8.18.0/node_modules/acorn-typescript/lib/index.mjs",
+            "ms": 0.6307760000000258
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-jsx@5.3.2_acorn@8.18.0/node_modules/acorn-jsx/index.js",
+            "ms": 0.5815220000000068
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping/dist/trace-mapping.mjs",
+            "ms": 0.1981330000000412
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+sourcemap-codec@1.6.0/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs",
+            "ms": 0.15268199999997023
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/gen-mapping/dist/gen-mapping.mjs",
+            "ms": 0.12427700000000641
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+resolve-uri@3.1.2/node_modules/@jridgewell/resolve-uri/dist/resolve-uri.mjs",
+            "ms": 0.08319199999993998
+          },
+          {
+            "url": "file:///tmp/twill-startup-profile-t18x9Q/script.twill",
+            "ms": 440.131006
+          }
+        ]
+      },
+      "hit": {
+        "loaderImportMs": 9.809899000000001,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-t18x9Q/script.twill",
+            "ms": 41.792406000000014
+          }
+        ]
+      }
+    },
+    {
+      "uncached": {
+        "loaderImportMs": 11.189823000000004,
+        "loads": [
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/loader-compiler-bQElfqEV.js",
+            "ms": 0.3281780000000083
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/configuration-B8zxdX8D.js",
+            "ms": 179.875376
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/transpile-DG81yfVs.js",
+            "ms": 179.830185
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/typescript.js",
+            "ms": 179.4577
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/compiler-DY1N07np.js",
+            "ms": 0.26103299999999763
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/magic-string@1.4.2/node_modules/magic-string/dist/index.mjs",
+            "ms": 0.3622760000000085
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@ampproject+remapping@2.3.0/node_modules/@ampproject/remapping/dist/remapping.mjs",
+            "ms": 0.33846899999997504
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn@8.18.0/node_modules/acorn/dist/acorn.mjs",
+            "ms": 0.9777890000000298
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-typescript@1.4.13_acorn@8.18.0/node_modules/acorn-typescript/lib/index.mjs",
+            "ms": 0.8856460000000084
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-jsx@5.3.2_acorn@8.18.0/node_modules/acorn-jsx/index.js",
+            "ms": 0.818102999999951
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping/dist/trace-mapping.mjs",
+            "ms": 0.32638500000001613
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+sourcemap-codec@1.6.0/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs",
+            "ms": 0.2461219999999571
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/gen-mapping/dist/gen-mapping.mjs",
+            "ms": 0.14057999999999993
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+resolve-uri@3.1.2/node_modules/@jridgewell/resolve-uri/dist/resolve-uri.mjs",
+            "ms": 0.08687900000001036
+          },
+          {
+            "url": "file:///tmp/twill-startup-profile-t18x9Q/script.twill",
+            "ms": 398.773595
+          }
+        ]
+      },
+      "miss": {
+        "loaderImportMs": 13.964298,
+        "loads": [
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/loader-compiler-bQElfqEV.js",
+            "ms": 0.2575380000000109
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/configuration-B8zxdX8D.js",
+            "ms": 154.73846299999997
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/transpile-DG81yfVs.js",
+            "ms": 154.51456700000003
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/typescript.js",
+            "ms": 154.441127
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/compiler-DY1N07np.js",
+            "ms": 0.20802200000002813
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/magic-string@1.4.2/node_modules/magic-string/dist/index.mjs",
+            "ms": 0.13396099999999933
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@ampproject+remapping@2.3.0/node_modules/@ampproject/remapping/dist/remapping.mjs",
+            "ms": 0.1464339999999993
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn@8.18.0/node_modules/acorn/dist/acorn.mjs",
+            "ms": 0.8082140000000209
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-typescript@1.4.13_acorn@8.18.0/node_modules/acorn-typescript/lib/index.mjs",
+            "ms": 0.7092959999999948
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-jsx@5.3.2_acorn@8.18.0/node_modules/acorn-jsx/index.js",
+            "ms": 0.6533779999999751
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping/dist/trace-mapping.mjs",
+            "ms": 0.2124719999999911
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+sourcemap-codec@1.6.0/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs",
+            "ms": 0.15069399999998723
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/gen-mapping/dist/gen-mapping.mjs",
+            "ms": 0.11747499999995625
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+resolve-uri@3.1.2/node_modules/@jridgewell/resolve-uri/dist/resolve-uri.mjs",
+            "ms": 0.07703700000001845
+          },
+          {
+            "url": "file:///tmp/twill-startup-profile-t18x9Q/script.twill",
+            "ms": 392.117609
+          }
+        ]
+      },
+      "hit": {
+        "loaderImportMs": 9.87451,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-t18x9Q/script.twill",
+            "ms": 52.06668099999999
+          }
+        ]
+      }
+    },
+    {
+      "uncached": {
+        "loaderImportMs": 10.176810000000003,
+        "loads": [
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/loader-compiler-bQElfqEV.js",
+            "ms": 0.4903099999999938
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/configuration-B8zxdX8D.js",
+            "ms": 169.74086900000003
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/transpile-DG81yfVs.js",
+            "ms": 169.759187
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/typescript.js",
+            "ms": 169.680973
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/compiler-DY1N07np.js",
+            "ms": 0.6138799999999947
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/magic-string@1.4.2/node_modules/magic-string/dist/index.mjs",
+            "ms": 0.35524300000002995
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@ampproject+remapping@2.3.0/node_modules/@ampproject/remapping/dist/remapping.mjs",
+            "ms": 0.26944400000002133
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn@8.18.0/node_modules/acorn/dist/acorn.mjs",
+            "ms": 0.7536069999999881
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-typescript@1.4.13_acorn@8.18.0/node_modules/acorn-typescript/lib/index.mjs",
+            "ms": 0.7185749999999871
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-jsx@5.3.2_acorn@8.18.0/node_modules/acorn-jsx/index.js",
+            "ms": 0.6677620000000388
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping/dist/trace-mapping.mjs",
+            "ms": 0.27177800000004027
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+sourcemap-codec@1.6.0/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs",
+            "ms": 0.21634299999999484
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/gen-mapping/dist/gen-mapping.mjs",
+            "ms": 0.18779200000000174
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+resolve-uri@3.1.2/node_modules/@jridgewell/resolve-uri/dist/resolve-uri.mjs",
+            "ms": 0.08920399999999518
+          },
+          {
+            "url": "file:///tmp/twill-startup-profile-t18x9Q/script.twill",
+            "ms": 391.486912
+          }
+        ]
+      },
+      "miss": {
+        "loaderImportMs": 12.151184,
+        "loads": [
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/loader-compiler-bQElfqEV.js",
+            "ms": 0.2411950000000047
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/configuration-B8zxdX8D.js",
+            "ms": 174.50804499999998
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/transpile-DG81yfVs.js",
+            "ms": 174.375319
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/typescript.js",
+            "ms": 174.248415
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/compiler-DY1N07np.js",
+            "ms": 0.22180600000001505
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/magic-string@1.4.2/node_modules/magic-string/dist/index.mjs",
+            "ms": 0.14538499999997612
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@ampproject+remapping@2.3.0/node_modules/@ampproject/remapping/dist/remapping.mjs",
+            "ms": 0.1499329999999759
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn@8.18.0/node_modules/acorn/dist/acorn.mjs",
+            "ms": 0.8210630000000378
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-typescript@1.4.13_acorn@8.18.0/node_modules/acorn-typescript/lib/index.mjs",
+            "ms": 0.7341349999999807
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-jsx@5.3.2_acorn@8.18.0/node_modules/acorn-jsx/index.js",
+            "ms": 0.6860209999999825
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping/dist/trace-mapping.mjs",
+            "ms": 0.22318200000000843
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+sourcemap-codec@1.6.0/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs",
+            "ms": 0.1569390000000226
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/gen-mapping/dist/gen-mapping.mjs",
+            "ms": 0.12335799999999608
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+resolve-uri@3.1.2/node_modules/@jridgewell/resolve-uri/dist/resolve-uri.mjs",
+            "ms": 0.08203000000003158
+          },
+          {
+            "url": "file:///tmp/twill-startup-profile-t18x9Q/script.twill",
+            "ms": 409.916698
+          }
+        ]
+      },
+      "hit": {
+        "loaderImportMs": 10.537314999999992,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-t18x9Q/script.twill",
+            "ms": 35.133133
+          }
+        ]
+      }
+    },
+    {
+      "uncached": {
+        "loaderImportMs": 9.606958000000006,
+        "loads": [
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/loader-compiler-bQElfqEV.js",
+            "ms": 0.5157870000000031
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/configuration-B8zxdX8D.js",
+            "ms": 166.05631700000004
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/transpile-DG81yfVs.js",
+            "ms": 166.00070500000004
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/typescript.js",
+            "ms": 165.910522
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/compiler-DY1N07np.js",
+            "ms": 0.6050420000000258
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/magic-string@1.4.2/node_modules/magic-string/dist/index.mjs",
+            "ms": 0.406866999999977
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@ampproject+remapping@2.3.0/node_modules/@ampproject/remapping/dist/remapping.mjs",
+            "ms": 0.32931899999999814
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn@8.18.0/node_modules/acorn/dist/acorn.mjs",
+            "ms": 1.474031000000025
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-typescript@1.4.13_acorn@8.18.0/node_modules/acorn-typescript/lib/index.mjs",
+            "ms": 1.3958690000000047
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-jsx@5.3.2_acorn@8.18.0/node_modules/acorn-jsx/index.js",
+            "ms": 1.340093999999965
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping/dist/trace-mapping.mjs",
+            "ms": 0.44871499999999287
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+sourcemap-codec@1.6.0/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs",
+            "ms": 0.3888029999999958
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/gen-mapping/dist/gen-mapping.mjs",
+            "ms": 0.2936440000000289
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+resolve-uri@3.1.2/node_modules/@jridgewell/resolve-uri/dist/resolve-uri.mjs",
+            "ms": 0.19507700000002615
+          },
+          {
+            "url": "file:///tmp/twill-startup-profile-t18x9Q/script.twill",
+            "ms": 417.060513
+          }
+        ]
+      },
+      "miss": {
+        "loaderImportMs": 10.593644999999995,
+        "loads": [
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/loader-compiler-bQElfqEV.js",
+            "ms": 0.35133100000001605
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/configuration-B8zxdX8D.js",
+            "ms": 171.85756300000003
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/transpile-DG81yfVs.js",
+            "ms": 171.75459700000002
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/typescript.js",
+            "ms": 171.703041
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/compiler-DY1N07np.js",
+            "ms": 0.25817899999998417
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/magic-string@1.4.2/node_modules/magic-string/dist/index.mjs",
+            "ms": 0.21940999999998212
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@ampproject+remapping@2.3.0/node_modules/@ampproject/remapping/dist/remapping.mjs",
+            "ms": 0.20882299999999532
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn@8.18.0/node_modules/acorn/dist/acorn.mjs",
+            "ms": 1.057818999999995
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-typescript@1.4.13_acorn@8.18.0/node_modules/acorn-typescript/lib/index.mjs",
+            "ms": 0.9681700000000433
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-jsx@5.3.2_acorn@8.18.0/node_modules/acorn-jsx/index.js",
+            "ms": 0.9124340000000188
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping/dist/trace-mapping.mjs",
+            "ms": 0.388067000000035
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+sourcemap-codec@1.6.0/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs",
+            "ms": 0.3069939999999747
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/gen-mapping/dist/gen-mapping.mjs",
+            "ms": 0.1661919999999668
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+resolve-uri@3.1.2/node_modules/@jridgewell/resolve-uri/dist/resolve-uri.mjs",
+            "ms": 0.08378700000002937
+          },
+          {
+            "url": "file:///tmp/twill-startup-profile-t18x9Q/script.twill",
+            "ms": 409.46827099999996
+          }
+        ]
+      },
+      "hit": {
+        "loaderImportMs": 10.833704000000012,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-t18x9Q/script.twill",
+            "ms": 50.655557000000016
+          }
+        ]
+      }
+    },
+    {
+      "uncached": {
+        "loaderImportMs": 8.976686999999998,
+        "loads": [
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/loader-compiler-bQElfqEV.js",
+            "ms": 0.5198589999999967
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/configuration-B8zxdX8D.js",
+            "ms": 183.59173899999996
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/transpile-DG81yfVs.js",
+            "ms": 183.58959400000003
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/typescript.js",
+            "ms": 183.46301799999998
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/compiler-DY1N07np.js",
+            "ms": 0.9557500000000232
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/magic-string@1.4.2/node_modules/magic-string/dist/index.mjs",
+            "ms": 0.4539580000000001
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@ampproject+remapping@2.3.0/node_modules/@ampproject/remapping/dist/remapping.mjs",
+            "ms": 0.2346029999999928
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn@8.18.0/node_modules/acorn/dist/acorn.mjs",
+            "ms": 2.575181999999984
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-typescript@1.4.13_acorn@8.18.0/node_modules/acorn-typescript/lib/index.mjs",
+            "ms": 2.439622999999983
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-jsx@5.3.2_acorn@8.18.0/node_modules/acorn-jsx/index.js",
+            "ms": 2.3755950000000325
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping/dist/trace-mapping.mjs",
+            "ms": 0.3532000000000153
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+sourcemap-codec@1.6.0/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs",
+            "ms": 0.244241000000045
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/gen-mapping/dist/gen-mapping.mjs",
+            "ms": 0.19058699999999362
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+resolve-uri@3.1.2/node_modules/@jridgewell/resolve-uri/dist/resolve-uri.mjs",
+            "ms": 0.10449199999999337
+          },
+          {
+            "url": "file:///tmp/twill-startup-profile-t18x9Q/script.twill",
+            "ms": 405.58494700000006
+          }
+        ]
+      },
+      "miss": {
+        "loaderImportMs": 8.792344999999997,
+        "loads": [
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/loader-compiler-bQElfqEV.js",
+            "ms": 0.3026790000000119
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/configuration-B8zxdX8D.js",
+            "ms": 162.65013099999996
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/transpile-DG81yfVs.js",
+            "ms": 162.090285
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/typescript@5.9.3/node_modules/typescript/lib/typescript.js",
+            "ms": 162.02837200000002
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/packages/twill/dist/compiler-DY1N07np.js",
+            "ms": 0.30141499999996313
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/magic-string@1.4.2/node_modules/magic-string/dist/index.mjs",
+            "ms": 0.31341400000002295
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@ampproject+remapping@2.3.0/node_modules/@ampproject/remapping/dist/remapping.mjs",
+            "ms": 0.3573660000000132
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn@8.18.0/node_modules/acorn/dist/acorn.mjs",
+            "ms": 0.8561290000000099
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-typescript@1.4.13_acorn@8.18.0/node_modules/acorn-typescript/lib/index.mjs",
+            "ms": 0.7627940000000422
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/acorn-jsx@5.3.2_acorn@8.18.0/node_modules/acorn-jsx/index.js",
+            "ms": 0.6509389999999939
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+trace-mapping@0.3.31/node_modules/@jridgewell/trace-mapping/dist/trace-mapping.mjs",
+            "ms": 0.23043499999999995
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+sourcemap-codec@1.6.0/node_modules/@jridgewell/sourcemap-codec/dist/sourcemap-codec.mjs",
+            "ms": 0.17300500000004604
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+gen-mapping@0.3.13/node_modules/@jridgewell/gen-mapping/dist/gen-mapping.mjs",
+            "ms": 0.13241100000004735
+          },
+          {
+            "url": "file:///workspace/twill-shell-startup/node_modules/.pnpm/@jridgewell+resolve-uri@3.1.2/node_modules/@jridgewell/resolve-uri/dist/resolve-uri.mjs",
+            "ms": 0.08123299999999745
+          },
+          {
+            "url": "file:///tmp/twill-startup-profile-t18x9Q/script.twill",
+            "ms": 405.719429
+          }
+        ]
+      },
+      "hit": {
+        "loaderImportMs": 9.916398999999998,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-t18x9Q/script.twill",
+            "ms": 40.130253999999994
+          }
+        ]
+      }
+    }
+  ],
+  "limitations": "Instrumentation changes startup and excludes interpreter/hook-worker initialization. Use script-startup.mjs for ordinary binary wall time. On the original eager loader, compiler imports belong to loaderImportMs; on the lazy loader they belong to a miss load."
+}

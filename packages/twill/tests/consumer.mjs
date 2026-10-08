@@ -93,6 +93,8 @@ try {
   assert.equal(installed.name, metadata.name);
   assert.equal(installed.version, metadata.version);
   const cli = join(root, 'node_modules/@swiftuijs/twill', installed.bin.twill);
+  process.env.TWILL_CACHE_DIR = join(root, 'private-runner-cache');
+  delete process.env.TWILL_CACHE;
   const help = execFileSync(process.execPath, [cli, '--help'], { cwd: root, encoding: 'utf8' });
   assert(help.includes('twill export'), 'Unified CLI help must list source export');
   assert(help.includes('twill run'), 'Unified CLI help must list script execution');

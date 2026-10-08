@@ -34,6 +34,21 @@ The published 0.1.2 loader remains available for advanced Node integration:
 node --enable-source-maps --import @swiftuijs/twill/register scripts/build.twill
 ```
 
+## Repeated script startup (source-only)
+
+The runner caches successfully compiled modules so subsequent fresh launches can skip loading the compiler. Each run still executes the script and its imports normally. Source content, compiler/dependency code and observed project configuration determine validity; editing an imported file or inherited config invalidates the affected module even if timestamps stay unchanged. Source maps keep their original filenames and text. The advanced Node loader above remains uncached by default.
+
+Set `TWILL_CACHE=0` in the environment to disable caching:
+
+```sh
+TWILL_CACHE=0 twill scripts/build.twill
+# PowerShell: $env:TWILL_CACHE = '0'; twill scripts/build.twill
+```
+
+The default directory is `~/.twill/script-cache-v1`. `TWILL_CACHE_DIR` can select an absolute private directory; deleting that directory clears it. Cache files include original source through maps, so disable caching for source you do not want stored. POSIX ownership/permissions and regular-file checks reject unsafe locations; Windows uses the selected directory's inherited user-profile ACL, which Node does not validate. Treat custom directories as user-trusted. Unavailable locations, corrupt entries and cache I/O errors fall back to compilation without changing script output.
+
+Completed storage uses 128 slots of at most 512 KiB each (64 MiB total, excluding filesystem overhead and concurrent temporary files). Collisions or larger modules compile normally. Caching and the runner are unreleased source features; npm 0.1.2 is unchanged. Native exported/prebuilt JavaScript still avoids compiler work on its first launch.
+
 ## Optional subprocess SDK (unreleased)
 
 **`@swiftuijs/twill-shell` is a source prototype, not an npm release.** Its local 0.1.2 manifest is a coordinated checkout version. Use these APIs only with a deliberately built source package. Ordinary npm 0.1.2 applications can use native `node:child_process` today.
@@ -124,3 +139,5 @@ The [native comparison harness](https://github.com/swiftuijs/twill/blob/main/pac
 [Recorded Linux/Node 24 samples](https://github.com/swiftuijs/twill/blob/main/packages/shell/benchmarks/results/README.md) measured SDK/native warm wall ratios of 1.003–1.013, with all paired 95% interval upper bounds below 1.04. Parent CPU is separate: dual capture used about 10% more parent CPU in this run. Native/SDK/source-loader cold medians were 84.8/91.3/567.5 ms including one child, so build/export source scripts when startup matters. These are environment-specific observations, not general speed or cold-source parity claims.
 
 The executable runner has its own [cold-start report](https://github.com/swiftuijs/twill/blob/main/packages/twill/benchmarks/results/README.md). Fifteen paired Linux/Node 24 launches measured 520.8 ms for the existing loader and 475.0 ms for direct `twill` invocation, with no added regression in that sample. The runner skips compile/check/export tooling initialization and keeps the interpreter PID; source compilation still costs startup time. This is not a general speedup or native-Node cold-start parity claim.
+
+The [source-only runner cache measurements](https://github.com/swiftuijs/twill/blob/main/packages/twill/benchmarks/results/README.md#compilation-cache-prototype) retain 21 fresh-interpreter pairs and compiler/dependency validation. On this Linux/Node 24 workload, uncached/empty-cache/cached/native medians were 513.6/544.3/157.3/43.9 ms. The paired cache-hit ratio was 0.2938 (95% interval 0.2826–0.3046); empty-cache paired overhead was about 7%. These are source-startup observations, not native parity, external-command acceleration or Rust measurements. A valid hit skips compiler initialization; prebuilt JavaScript remains the faster first-launch path.
