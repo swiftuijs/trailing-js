@@ -244,4 +244,24 @@ The [new complete Linux/Node 24 report](https://github.com/swiftuijs/twill/blob/
 
 The [actual denied-pidfd diagnostic](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/platform-pidfd-denied.json) runs Node under a verified syscall filter returning ENOSYS. Twelve pairs retain all six operation orders and compare checked short launches and dual 1 MiB capture with handwritten Node. Short-launch Rust/native median ratio is 1.080 (95% interval 1.071–1.106); dual capture is 0.642 (0.624–0.681). Polling adds short-command wait latency; the short-launch interval does not establish the complete run's 1.10 acceptance bound. The separately retained [readiness diagnostic](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/platform-pidfd-readiness.json) and exact diagnostic source keep these observations distinct. Parent CPU includes the Rust reactor; child CPU is excluded.
 
-ABI detection inspects Node's process report on the first native load. Fresh SDK/Rust interpreter/import/one-command medians in the complete run are 63.5/80.7 ms; cached Twill source medians are 202.3/259.6 ms. Rust does not demonstrate a cold-start improvement, and these measurements do not attribute the whole difference to ABI detection. Neither platform contract tests nor faster warm capture prove cold-source parity.
+That historical implementation inspected Node's complete process report on the first native load. Fresh SDK/Rust interpreter/import/one-command medians in that run were 63.5/80.7 ms; cached Twill source medians were 202.3/259.6 ms. Those measurements do not attribute the whole difference to ABI detection.
+
+### 0.2.0 public SDK measurements
+
+The [Rust-only report](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/rust-only-linux-node24.json) measures the public SDK against handwritten Node on the same Linux x64 / Node 24.19 / four-CPU-quota host. Eleven warm pairs alternate both operation orders; both default-pool concurrency workloads retain 48 pairs. All seven warm and both concurrency gates pass unchanged, requiring both paired medians and upper 95% bounds at most 1.10.
+
+| Warm workload                | Rust / handwritten Node | 95% paired interval |
+| ---------------------------- | ----------------------: | ------------------- |
+| Short native launch          |                   0.631 | 0.610–0.633         |
+| Node interpreter launch      |                   0.983 | 0.946–0.999         |
+| Native dual 1 MiB capture    |                   0.561 | 0.523–0.578         |
+| Native dual 8 MiB capture    |                   0.640 | 0.634–0.685         |
+| Node dual 1 MiB capture      |                   0.898 | 0.850–1.033         |
+| Native 1 MiB stdin/text      |                   0.654 | 0.630–0.703         |
+| Native 1 MiB duplex          |                   0.597 | 0.560–0.612         |
+| 32 concurrent Node children  |                   0.996 | 0.960–1.011         |
+| 128 concurrent Node children |                   0.997 | 0.981–1.010         |
+
+Ordinary Linux startup now reads the current Node ELF interpreter with bounded descriptor reads, retaining the conservative report fallback for unknown/static layouts. Fresh native/SDK medians are 62.9/70.0 ms. Cached Twill source medians are 207.3/223.8 ms; its paired ratio is 1.110 with interval 1.039–1.191. Uncached source medians are 689.8/635.4 ms, with an interval spanning parity. These observations do not establish cold-source parity, isolate the ELF optimization's contribution or demonstrate a general startup speedup. The historical denied-pidfd latency tradeoff above also remains separately scoped.
+
+The report preserves memory, filesystem, cancellation and cold observations alongside every warm/concurrency sample and source/build hash. Cold warmup initially failed on a workspace-only import after the dependency direction changed. A retained completion script verifies every unchanged runtime/build identity before fixing the unexecuted fixture's import and measuring only the eleven cold pairs; no earlier sample is repeated or removed. The [measurement history](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/README.md#rust-only-sdk-release) retains the incomplete checkpoints, failure logs, completion source and exact serialized report.

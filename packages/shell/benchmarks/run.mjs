@@ -7,6 +7,7 @@ import { platform, arch, cpus } from 'node:os';
 import { performance } from 'node:perf_hooks';
 import { Command, Output, Subprocess } from '../dist/index.js';
 import { nativeRun } from './native.mjs';
+import { nativeTarget } from '../../shell-native/dist/platform.js';
 const args = process.argv.slice(2),
   outputIndex = args.indexOf('--output');
 const samples = 9,
@@ -69,6 +70,28 @@ for (const file of [
   'tests/fixtures/child.mjs',
 ])
   identities[file] = hash(resolve(import.meta.dirname, '..', file));
+// The public SDK delegates to Rust: identify the implementation actually measured.
+for (const file of [
+  'src/index.ts',
+  'src/bindings.ts',
+  'src/platform.ts',
+  'src/libc.ts',
+  'dist/index.js',
+  'dist/bindings.js',
+  'dist/platform.js',
+  'dist/libc.js',
+  'crate/Cargo.toml',
+  'crate/Cargo.lock',
+  'crate/rust-toolchain.toml',
+  'crate/build.rs',
+  'crate/src/lib.rs',
+  'crate/src/process.rs',
+  'crate/src/platform.rs',
+  `native/${nativeTarget()}.node`,
+])
+  identities[`../shell-native/${file}`] = hash(
+    resolve(import.meta.dirname, '../../shell-native', file),
+  );
 const results = [];
 const median = (values) => {
   const sorted = [...values].sort((a, b) => a - b);
