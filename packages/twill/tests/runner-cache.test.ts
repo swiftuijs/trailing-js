@@ -202,3 +202,54 @@ it('settles concurrent fresh launches with complete atomic cache records', async
   expect(readdirSync(cache).every((f) => f.endsWith('.json'))).toBe(true);
   expect(execute(file, cache).stdout.trim()).toBe('[ 2, 4 ]');
 });
+
+it('keeps query/fragment module identities and executes imports anew on every cached launch', () => {
+  const { root, file, cache } = fixture(
+    'import {value as one} from "./query.twill?one#part"; import {value as two} from "./query.twill?two#part"; console.log(JSON.stringify([one,two]));',
+  );
+  writeFileSync(
+    join(root, 'query.twill'),
+    'globalThis.count=(globalThis.count ?? 0)+1;export const value={count:globalThis.count,url:import.meta.url};',
+  );
+  for (let i = 0; i < 2; i++) {
+    const result = execute(file, cache);
+    expect(result.status, result.stderr).toBe(0);
+    const values = JSON.parse(result.stdout);
+    expect(values.map((v: { count: number }) => v.count)).toEqual([1, 2]);
+    expect(values[0].url).toContain('query.twill?one#part');
+    expect(values[1].url).toContain('query.twill?two#part');
+  }
+});
+it('executes modules larger than a cache slot without storing their emitted source', () => {
+  const { file, cache } = fixture(
+    'console.log("large module");\n/*' + 'x'.repeat(256 * 1024) + '*/',
+  );
+  for (let i = 0; i < 2; i++) {
+    const result = execute(file, cache);
+    expect(result.status, result.stderr).toBe(0);
+    expect(result.stdout.trim()).toBe('large module');
+    expect(records(cache)).toEqual([]);
+  }
+});
+
+it.skipIf(process.platform === 'win32' || process.getuid?.() === 0)(
+  'reports new unreadable Twill configuration instead of reusing an absent-config hit',
+  () => {
+    const { root, file, cache } = fixture('console.log(JSON.stringify([1].map { 7; }));');
+    expect(execute(file, cache).stdout.trim()).toBe('[7]');
+    const config = join(root, 'twill.config.json');
+    writeFileSync(config, '{"implicitReturn":false}');
+    chmodSync(config, 0o000);
+    try {
+      for (const enabled of ['1', '0']) {
+        const result = execute(file, cache, enabled);
+        expect(result.status).toBe(1);
+        expect(result.stderr).toContain('EACCES');
+        expect(result.stdout).toBe('');
+      }
+    } finally {
+      chmodSync(config, 0o600);
+    }
+    expect(execute(file, cache).stdout.trim()).toBe('[null]');
+  },
+);

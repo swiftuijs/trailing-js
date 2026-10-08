@@ -43,12 +43,17 @@ export function observe(path: string, kind: ConfigurationObservation['kind']): s
   try {
     if (kind === 'directory') return statSync(path).isDirectory() ? 'directory' : 'absent';
     return digest(readFileSync(path));
-  } catch {
-    return 'absent';
+  } catch (error) {
+    return ['ENOENT', 'ENOTDIR'].includes((error as NodeJS.ErrnoException).code ?? '')
+      ? 'absent'
+      : 'unavailable';
   }
 }
 export function observationsMatch(observations: ConfigurationObservation[]): boolean {
-  return observations.every(({ path, kind, value }) => observe(path, kind) === value);
+  return observations.every(({ path, kind, value }) => {
+    const current = observe(path, kind);
+    return current !== 'unavailable' && current === value;
+  });
 }
 
 /** Hash actual installed code without evaluating any compiler or dependency module. */
@@ -67,7 +72,9 @@ export function toolchainIdentity(
     const visit = (name: string, from: string) => {
       const require = createRequire(from);
       let root = dirname(require.resolve(name));
-      while (!existsSync(join(root, 'package.json'))) {
+      for (;;) {
+        const metadata = join(root, 'package.json');
+        if (existsSync(metadata) && JSON.parse(readFileSync(metadata, 'utf8')).name === name) break;
         const parent = dirname(root);
         if (parent === root) throw new Error('Package metadata unavailable');
         root = parent;
@@ -83,6 +90,8 @@ export function toolchainIdentity(
           a.name.localeCompare(b.name),
         )) {
           const path = join(folder, entry.name);
+          if (entry.isSymbolicLink() && statSync(path).isDirectory())
+            throw new Error('Directory symlink requires uncached compilation');
           if (entry.isDirectory() && entry.name !== 'node_modules') walk(path);
           else if (/\.(?:[cm]?js|json)$/.test(entry.name))
             add(path.slice(root.length), readFileSync(path));

@@ -274,3 +274,48 @@ it('keeps file boundaries in fingerprints when code bytes move between artifacts
   fs.writeFileSync(join(root, 'b.js'), 'z\n');
   expect(toolchainIdentity(location, [])).not.toBe(first);
 });
+
+it('does not confuse unreadable configuration with absence or cache failed observations', () => {
+  const { file, url, cache } = fixture();
+  const read = vi.spyOn(fs, 'readFileSync').mockImplementationOnce(() => {
+    throw Object.assign(new Error('denied'), { code: 'EACCES' });
+  });
+  syncBuiltinESMExports();
+  expect(observe(file, 'file')).toBe('unavailable');
+  read.mockRestore();
+  syncBuiltinESMExports();
+  expect(observationsMatch([{ path: file, kind: 'file', value: 'unavailable' }])).toBe(false);
+  cache.write(url, 'source', true, 'bad', [{ path: file, kind: 'file', value: 'unavailable' }]);
+  expect(cache.read(url, 'source', true)).toBeUndefined();
+});
+
+it('includes parent package code when an entry directory has its own module-type metadata', () => {
+  const { root } = fixture();
+  const location = pathToFileURL(join(root, 'loader.js')).href;
+  const pkg = join(root, 'node_modules', 'nested-compiler');
+  fs.mkdirSync(join(pkg, 'lib'), { recursive: true });
+  fs.writeFileSync(join(pkg, 'package.json'), '{"name":"nested-compiler","main":"lib/index.js"}');
+  fs.writeFileSync(join(pkg, 'lib', 'package.json'), '{"type":"commonjs"}');
+  fs.writeFileSync(join(pkg, 'lib', 'index.js'), 'module.exports = require("../helper.js");');
+  fs.writeFileSync(join(pkg, 'helper.js'), 'module.exports=1;');
+  const first = toolchainIdentity(location, ['nested-compiler']);
+  expect(first).toMatch(/^[a-f0-9]{64}$/);
+  fs.writeFileSync(join(pkg, 'helper.js'), 'module.exports=2;');
+  expect(toolchainIdentity(location, ['nested-compiler'])).not.toBe(first);
+});
+it.skipIf(process.platform === 'win32')(
+  'falls back for dependency directory symlinks rather than omitting their code',
+  () => {
+    const { root } = fixture();
+    const location = pathToFileURL(join(root, 'loader.js')).href;
+    const pkg = join(root, 'node_modules', 'linked-compiler');
+    fs.mkdirSync(pkg, { recursive: true });
+    fs.writeFileSync(join(pkg, 'package.json'), '{"name":"linked-compiler","main":"index.js"}');
+    fs.writeFileSync(join(pkg, 'index.js'), 'module.exports = require("./lib/helper.js");');
+    const outside = join(root, 'external');
+    fs.mkdirSync(outside);
+    fs.writeFileSync(join(outside, 'helper.js'), 'module.exports=1;');
+    fs.symlinkSync(outside, join(pkg, 'lib'));
+    expect(toolchainIdentity(location, ['linked-compiler'])).toBeUndefined();
+  },
+);

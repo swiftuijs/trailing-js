@@ -59,7 +59,7 @@ function jsxSource(
         try {
           bytes = readFileSync(file);
         } catch {
-          observations.set('file' + path, { path, kind: 'file', value: 'absent' });
+          observations.set('file' + path, { path, kind: 'file', value: 'unavailable' });
           return undefined;
         }
         observations.set('file' + path, { path, kind: 'file', value: digest(bytes) });

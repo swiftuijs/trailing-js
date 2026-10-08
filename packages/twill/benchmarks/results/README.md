@@ -17,7 +17,7 @@ The runner dispatches before importing compile/check/export tooling and executes
 
 `script-cache-first-review-linux-node24.json` retains the first 21 alternating paired observations from source commit `de30197`. Uncached/empty-cache/hit/native medians were 516.9/551.5/152.1/41.2 ms. The paired hit/uncached median was 0.2935 (95% interval 0.2794–0.2996); the paired miss/uncached median was 1.0588. The subsequent review gives file boundaries explicit framing in compiler fingerprints and hashes source directly before constructing the compact cache key. These are cache-correctness refinements, not discarded timing samples.
 
-`script-cache-linux-node24.json` records the final 21 pairs at source commit `b15fd34`, including every source/build identity. Medians were:
+`script-cache-second-review-linux-node24.json` records the second review’s 21 pairs at source commit `b15fd34`, including every source/build identity. Medians were:
 
 | Fresh interpreter workload | Wall time | Interpreter CPU |  Peak RSS |
 | -------------------------- | --------: | --------------: | --------: |
@@ -28,7 +28,7 @@ The runner dispatches before importing compile/check/export tooling and executes
 
 The paired hit/uncached median ratio was 0.2923 (deterministic bootstrap 95% interval 0.2887–0.3028), a roughly 71% startup reduction for this workload. The paired miss/uncached median was 1.0331, about 3% overhead. The completed entry occupied 1,607 bytes. Native startup remains faster; no native parity claim.
 
-`startup-profile-original-linux-node24.json` identifies the separately built eager loader from PR #20 (`caf2c7e`) by its path and SHA-256; `startup-profile-cache-linux-node24.json` identifies the lazy/cache loader. Each preserves five phase observations per mode. The original loader's compiler initialization happens during loader import. The new loader imports only lightweight hooks; compiler initialization moves to misses, while hits load only the cached entry without compiler modules. The ordinary binary measurements above include the additional interpreter and asynchronous-hook worker startup that the phase wrapper excludes.
+`startup-profile-original-linux-node24.json` identifies the separately built eager loader from PR #20 (`caf2c7e`) by its path and SHA-256; `startup-profile-cache-first-review-linux-node24.json` identifies the lazy/cache loader at that review. Each preserves five phase observations per mode. The original loader's compiler initialization happens during loader import. The new loader imports only lightweight hooks; compiler initialization moves to misses, while hits load only the cached entry without compiler modules. The ordinary binary measurements above include the additional interpreter and asynchronous-hook worker startup that the phase wrapper excludes.
 
 Reproduce the ordinary binary and instrumented phase observations after building:
 
