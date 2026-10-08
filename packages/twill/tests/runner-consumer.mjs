@@ -5,6 +5,9 @@ import {
   mkdirSync,
   writeFileSync,
   readFileSync,
+  readdirSync,
+  statSync,
+  utimesSync,
   chmodSync,
   rmSync,
   symlinkSync,
@@ -26,6 +29,9 @@ try {
     stdio: 'pipe',
   });
   const cli = join(root, 'node_modules/@swiftuijs/twill/bin/twill.mjs');
+  const cache = join(root, 'private-cache');
+  process.env.TWILL_CACHE_DIR = cache;
+  delete process.env.TWILL_CACHE;
   const app = join(root, 'app with spaces');
   mkdirSync(app);
   const file = join(app, 'deploy');
@@ -57,6 +63,43 @@ console.log(JSON.stringify({args:process.argv.slice(2),values,pid:process.pid,cw
       input: 'stdin',
     });
   }
+  const cacheFiles = () =>
+    readdirSync(cache)
+      .filter((name) => name.endsWith('.json'))
+      .map((name) => join(cache, name));
+  const before = cacheFiles().map((path) => [path, statSync(path).mtimeMs]);
+  const cached = spawnSync(process.execPath, [cli, file, ...args], {
+    cwd: root,
+    encoding: 'utf8',
+    input: 'stdin',
+    timeout: 15000,
+  });
+  assert.equal(cached.status, 0, cached.stderr);
+  assert.deepEqual(
+    before.map(([path]) => [path, statSync(path).mtimeMs]),
+    before,
+  );
+  assert(cacheFiles().length > 0, 'Installed runner must write a private cache');
+  const helper = join(app, 'values.ts');
+  const helperTime = statSync(helper);
+  writeFileSync(helper, 'export const values: number[] = [3,4].map(n=>n*2);');
+  utimesSync(helper, helperTime.atime, helperTime.mtime);
+  const changed = spawnSync(process.execPath, [cli, file, ...args], {
+    cwd: root,
+    encoding: 'utf8',
+    input: 'stdin',
+  });
+  assert.equal(changed.status, 0, changed.stderr);
+  assert.deepEqual(JSON.parse(changed.stdout).values, [6, 8]);
+  writeFileSync(helper, 'export const values: number[] = [1,2].map(n=>n*2);');
+  for (const path of cacheFiles()) writeFileSync(path, '{');
+  const recovered = spawnSync(process.execPath, [cli, file, ...args], {
+    cwd: root,
+    encoding: 'utf8',
+    input: 'stdin',
+  });
+  assert.equal(recovered.status, 0, recovered.stderr);
+  assert.deepEqual(JSON.parse(recovered.stdout).values, [2, 4]);
   if (process.platform !== 'win32') {
     chmodSync(file, 0o755);
     const result = spawnSync(file, args, {
@@ -107,7 +150,7 @@ console.log(JSON.stringify({args:process.argv.slice(2),values,pid:process.pid,cw
   const help = execFileSync(process.execPath, [cli, '--help'], { cwd: root, encoding: 'utf8' });
   assert(help.includes('twill compile') && help.includes('twill run'));
   console.log(
-    `Installed runner on ${process.version}/${process.platform}: direct/explicit argv, extensionless entry, mixed TS, native I/O/PID/cwd, exit status, source maps and POSIX shebang verified.`,
+    `Installed runner on ${process.version}/${process.platform}: direct/explicit argv, extensionless entry, mixed TS, native I/O/PID/cwd, exit status, source maps, cache hits/content invalidation/corruption recovery and POSIX shebang verified.`,
   );
 } finally {
   rmSync(root, { recursive: true, force: true });

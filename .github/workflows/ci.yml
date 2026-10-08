@@ -106,7 +106,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @swiftuijs/twill-shell... build
-      - run: pnpm --filter @swiftuijs/twill exec vitest run tests/runner.test.ts
+      - run: pnpm --filter @swiftuijs/twill exec vitest run tests/runner.test.ts tests/runner-cache.test.ts tests/compilation-cache.test.ts tests/config.test.ts
       - run: pnpm --filter @swiftuijs/twill-shell typecheck
       - run: pnpm --filter @swiftuijs/twill-shell test:unit
       - run: pnpm --filter @swiftuijs/twill --config.ignore-scripts=true pack --out swiftuijs-twill-%v.tgz

@@ -21,6 +21,8 @@ On Linux/macOS, start the file with `#!/usr/bin/env twill`, grant executable per
 
 Arguments after the file are script arguments, never compiler options. `twill run -- <file>` handles dash-prefixed filenames; `twill run check` disambiguates a filename from a compiler command. The script sees standard Node argv, cwd, environment and descriptors. It executes in the current process, with source maps enabled and native exit/signal behavior. Packages resolve from the script's location, independently of the installed CLI. There is no automatic package installation or type checking. The CLI imports the entry; Node main-module detection (`import.meta.main` / `require.main === module`) refers to the launcher rather than the script. Use a dedicated executable entry file.
 
+The source runner caches compiled modules across launches. Set `TWILL_CACHE=0` to disable it, or `TWILL_CACHE_DIR` to select an absolute private directory. These are environment settings; arguments after the filename remain script arguments. See the scripting guide for source privacy, bounds and invalidation.
+
 This runner is unreleased; npm 0.1.2 supports the explicit Node loader instead. See [shell scripting](./scripting.md) for the complete example and version boundary.
 
 ## Check types

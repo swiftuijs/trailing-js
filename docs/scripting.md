@@ -34,6 +34,21 @@ The published 0.1.2 loader remains available for advanced Node integration:
 node --enable-source-maps --import @swiftuijs/twill/register scripts/build.twill
 ```
 
+## Repeated script startup (source-only)
+
+The runner caches successfully compiled modules so subsequent fresh launches can skip loading the compiler. Each run still executes the script and its imports normally. Source content, compiler/dependency code and observed project configuration determine validity; editing an imported file or inherited config invalidates the affected module even if timestamps stay unchanged. Source maps keep their original filenames and text. The advanced Node loader above remains uncached by default.
+
+Set `TWILL_CACHE=0` in the environment to disable caching:
+
+```sh
+TWILL_CACHE=0 twill scripts/build.twill
+# PowerShell: $env:TWILL_CACHE = '0'; twill scripts/build.twill
+```
+
+The default directory is `~/.twill/script-cache-v1`. `TWILL_CACHE_DIR` can select an absolute private directory; deleting that directory clears it. Cache files include original source through maps, so disable caching for source you do not want stored. POSIX ownership/permissions and regular-file checks reject unsafe locations; Windows uses the selected directory's inherited user-profile ACL, which Node does not validate. Treat custom directories as user-trusted. Unavailable locations, corrupt entries and cache I/O errors fall back to compilation without changing script output.
+
+Completed storage uses 128 slots of at most 512 KiB each (64 MiB total, excluding filesystem overhead and concurrent temporary files). Collisions or larger modules compile normally. Caching and the runner are unreleased source features; npm 0.1.2 is unchanged. Native exported/prebuilt JavaScript still avoids compiler work on its first launch.
+
 ## Optional subprocess SDK (unreleased)
 
 **`@swiftuijs/twill-shell` is a source prototype, not an npm release.** Its local 0.1.2 manifest is a coordinated checkout version. Use these APIs only with a deliberately built source package. Ordinary npm 0.1.2 applications can use native `node:child_process` today.

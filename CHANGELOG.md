@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Prototype RFC 0035 executable-script startup caching: lazy compiler initialization, content/configuration/toolchain invalidation, original source maps, private bounded atomic storage and an environment opt-out. Advanced Node registration stays uncached by default. Record the independent RFC 0036 Rust/N-API backend evaluation; no native backend or publication.
+
 - Implement RFC 0034 first-stage `@swiftuijs/twill-shell` source prototype: direct native argv execution, explicit bounded text/bytes, stdin, isolated cwd/environment, typed status/errors and joined abort/timeout teardown. No compiler runtime dependency or new language syntax.
 - Add real subprocess and Twill/export tests, independent Node 20 consumers, Windows/macOS CI, native performance comparisons, scripting documentation and official skill guidance. Add an executable-script runner: `#!/usr/bin/env twill`, `twill script.twill` and `twill run script.twill`, with literal arguments, extensionless entries, source maps and native process behavior. Scoped streaming, pipelines and shell templates remain deferred; no npm publication. Keep documentation canonical URLs current during client navigation.
 

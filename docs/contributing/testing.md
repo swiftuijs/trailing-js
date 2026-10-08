@@ -46,7 +46,7 @@ JSON summaries and HTML reports are generated under each workspace's `coverage/`
 - Semantics: native-JavaScript differential execution, guard narrowing and exits, cleanup ordering and failures, hoisted declarations and JSDoc, asynchronous cleanup, switch exhaustiveness, native React/Vue rendering and component identity.
 - Hosts: actual Vite, Rollup, esbuild, webpack and Rspack builds; mixed native/dialect imports; Node loader resolution, host error forwarding, inherited JSX settings and original-source debugging.
 - Editor: partial and unsaved inputs, source-safe edits, auto-imports, references, cross-file rename, definitions, signatures, formatting, configuration reloads and native TS-server consumers. Highlighting uses real TS/TSX grammars in both unit tests and packaged extension hosts, including strings, comments, regexps, templates and JSX nesting.
-- Executable runner: actual direct/explicit invocation and POSIX shebangs, literal arguments including CLI flags, standard argv/I/O/cwd/environment, script-local dependencies/configuration, extensionless entries and native imports, original error positions, native exit codes/signals and independent installed binaries.
+- Executable runner: actual direct/explicit invocation and POSIX shebangs, literal arguments including CLI flags, standard argv/I/O/cwd/environment, script-local dependencies/configuration, extensionless entries and native imports, original error positions, native exit codes/signals and independent installed binaries. Persistent runner caches cover miss/hit, same-timestamp content changes, configuration probes/inheritance, source maps, corruption, collisions/bounds, private-directory/file rules, concurrent atomic writes and optional I/O failure fallback.
 - Shell SDK: literal argv, NUL/invalid options, immutable values, concurrent cwd/environment isolation, binary and multi-byte input/output, byte overflow, both output pipes, exit/signal/launch/write/read failures, cancellation races, graceful/forced teardown, unresolved PID reporting, descriptor-owning descendants, actual Twill scripts/defer cleanup, declarations and native exported execution. Native backend faults are injected at Node API boundaries only; real children are joined/cleaned.
 - Tooling: formatter idempotence and compiled AST preservation, type-aware linting with cache refresh/eviction, withheld unsafe fixes, declarations, export preflight, imported assets and rollback on disk failure.
 - Framework pilot: pinned React core source integrity, compilation, formatted AST preservation, dev/prod APIs and lazy/transition/act behavior; native/dialect ReactDOM rendering and output budgets. This is not the full upstream React test suite.
@@ -63,6 +63,8 @@ pnpm benchmark:project --output project-results.json
 pnpm benchmark:branching --output branching-results.json
 pnpm benchmark:shell --output ../../shell-results.json --verify-performance
 node packages/twill/benchmarks/runner.mjs > runner-results.json
+node packages/twill/benchmarks/script-startup.mjs > script-startup-results.json
+node packages/twill/benchmarks/startup-profile.mjs > startup-profile-results.json
 pnpm --filter @swiftuijs/twill test:size --output ../../bundle-results.json
 ```
 

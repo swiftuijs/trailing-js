@@ -1,5 +1,5 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readdirSync, statSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -12,6 +12,7 @@ import { fixtureRoot } from './helpers/fixture';
 const roots: string[] = [];
 afterEach(() => {
   initialize(undefined);
+  vi.unstubAllEnvs();
   roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true }));
 });
 function fixture() {
@@ -179,4 +180,40 @@ it('preserves comment-only source and uncoded resolver errors', async () => {
       throw failure;
     }),
   ).rejects.toBe(failure);
+});
+
+it('serves identical cached loader bytes and resets cache opt-in on ordinary registration', async () => {
+  const root = fixture();
+  const cache = join(root, 'cache');
+  vi.stubEnv('TWILL_CACHE_DIR', cache);
+  const filename = join(root, 'cached.twill');
+  writeFileSync(filename, 'export const values:number[]=[1].map { n in n+1 };');
+  const url = pathToFileURL(filename).href;
+  const host = { format: 'module', importAttributes: {}, conditions: ['node'] };
+  const next = vi.fn(async () => ({ format: 'module', source: 'host' }));
+  initialize({ cache: true });
+  const first = await load(url, host, next);
+  const path = join(cache, readdirSync(cache)[0]!);
+  const time = statSync(path).mtimeMs;
+  expect(await load(url, host, next)).toEqual(first);
+  expect(statSync(path).mtimeMs).toBe(time);
+  initialize(undefined);
+  expect(await load(url, host, next)).toEqual(first);
+  vi.stubEnv('TWILL_CACHE', '0');
+  initialize({ cache: true });
+  expect(await load(url, host, next)).toEqual(first);
+  expect(next).not.toHaveBeenCalled();
+});
+it('compiles normally when optional cache setup cannot be used', async () => {
+  const root = fixture();
+  const filename = join(root, 'cached.ts');
+  writeFileSync(filename, 'export const value:number=1;');
+  vi.stubEnv('TWILL_CACHE_DIR', 'relative');
+  initialize({ cache: true });
+  const host = { format: 'module', importAttributes: {}, conditions: ['node'] };
+  const next = vi.fn(async () => ({ format: 'module', source: 'host' }));
+  for (let i = 0; i < 2; i++)
+    expect(String((await load(pathToFileURL(filename).href, host, next)).source)).toContain(
+      'value = 1',
+    );
 });
