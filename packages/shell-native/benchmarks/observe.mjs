@@ -12,12 +12,37 @@ function cpuState() {
 
 const [mode, measurement, count] = process.argv.slice(2);
 const sdk = mode === 'native' ? undefined : await import('../../shell/dist/index.js');
-const run =
-  mode === 'native'
-    ? (await import('../../shell/benchmarks/native.mjs')).nativeRun
-    : mode === 'sdk'
-      ? sdk.Subprocess.run
-      : (await import('../dist/index.js')).Subprocess.run;
+let run = sdk ? sdk.Subprocess.run : (await import('../../shell/benchmarks/native.mjs')).nativeRun;
+// The success baseline deliberately has no cancellation implementation.
+// Measure this workload with ordinary Node spawn, SIGTERM/grace/SIGKILL/close.
+if (mode === 'native' && measurement === 'cancellation') {
+  const { spawn } = await import('node:child_process');
+  run = (command, options) =>
+    new Promise((resolve, reject) => {
+      const child = spawn(command.executable, command.arguments, {
+        shell: false,
+        stdio: ['ignore', 'pipe', 'inherit'],
+      });
+      child.stdout.resume();
+      let grace;
+      const abort = () => {
+        child.kill('SIGTERM');
+        grace = setTimeout(() => child.kill('SIGKILL'), options.gracePeriodMs);
+      };
+      options.signal.addEventListener('abort', abort, { once: true });
+      child.once('error', reject);
+      child.once('close', () => {
+        clearTimeout(grace);
+        options.signal.removeEventListener('abort', abort);
+        reject(
+          Object.assign(new Error('Cancelled', { cause: options.signal.reason }), {
+            name: 'ProcessAbortError',
+            processIdentifier: child.pid,
+          }),
+        );
+      });
+    });
+}
 const command = (executable, args = []) =>
   sdk ? sdk.Command.path(executable, args) : { executable, arguments: args };
 const policy = (limit) => (sdk ? sdk.Output.bytes({ limit }) : { kind: 'bytes', limit });
@@ -131,7 +156,7 @@ if (measurement === 'memory') {
         signal: controller.signal,
         gracePeriodMs: 20,
         killTimeoutMs: 1000,
-        output: sdk.Output.bytes({ limit: 1024 }),
+        output: policy(1024),
       });
       task.catch(() => {});
       const deadline = Date.now() + 10000;

@@ -1,6 +1,7 @@
 # RFC 0032: Optional runtime helpers
 
-**Status:** Proposed; implementation prototype pending review and release.
+**Release reference:** 0.2.0 implements the accepted scope; broader/deferred items below remain proposals.
+**Status:** Implemented in 0.2.0 for the accepted scope; deferred capabilities remain proposals.
 **Kind:** Tooling and runtime. **Dependencies:** 0009, 0026, 0027, 0028.
 
 Implementation prototype: [PR #15](https://github.com/swiftuijs/twill/pull/15), stacked on the native switch-initializer optimization in [PR #14](https://github.com/swiftuijs/twill/pull/14).

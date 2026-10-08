@@ -27,7 +27,7 @@ function fixture() {
   // Resolve through an isolated local package graph, not source-path aliases.
   const modules = join(root, 'node_modules');
   mkdirSync(join(modules, '@swiftuijs'), { recursive: true });
-  for (const name of ['shell', 'twill'])
+  for (const name of ['shell', 'shell-native', 'twill'])
     symlinkSync(
       resolve(import.meta.dirname, '../../', name),
       join(modules, '@swiftuijs', `twill${name === 'twill' ? '' : '-' + name}`),
@@ -66,67 +66,36 @@ function fixture() {
   );
   return { root, source, config };
 }
-it('checks, formats, declares and executes the real Twill script with source-mapped failure cleanup', async () => {
-  const { root, source, config } = fixture(),
+it('formats the real script idempotently and executes the formatted source', async () => {
+  const { root, source } = fixture();
+  const filename = join(source, 'build.twill'),
+    original = readFileSync(filename, 'utf8');
+  const formatted = await format(original);
+  expect(await format(formatted)).toBe(formatted);
+  writeFileSync(filename, formatted);
+  const result = JSON.parse(
+    execFileSync(
+      process.execPath,
+      [
+        '--enable-source-maps',
+        '--import',
+        '@swiftuijs/twill/register',
+        join(source, 'main.twill'),
+        ' x,中文;$(echo nope) ',
+      ],
+      { cwd: root, encoding: 'utf8', timeout: 15000 },
+    ),
+  );
+  expect(result.items).toEqual(['x', '中文;$(echo nope)']);
+  expect(result.tag).toBe('isolated');
+  expect(existsSync(result.cwd)).toBe(false);
+});
+it('checks the real script and maps incorrect output types to original Twill source', () => {
+  const { source, config } = fixture(),
     project = new TwillProject(config);
   try {
     expect(project.diagnostics()).toEqual([]);
-    const filename = join(source, 'build.twill'),
-      original = readFileSync(filename, 'utf8');
-    const formatted = await format(original);
-    expect(await format(formatted)).toBe(formatted);
-    const declarations = emitDeclarations(config, { outDir: join(root, 'declarations') });
-    expect(declarations.diagnostics).toEqual([]);
-    expect(readFileSync(join(root, 'declarations', 'build.d.ts'), 'utf8')).toContain(
-      'Promise<BuildReport>',
-    );
-    const result = JSON.parse(
-      execFileSync(
-        process.execPath,
-        [
-          '--enable-source-maps',
-          '--import',
-          '@swiftuijs/twill/register',
-          join(source, 'main.twill'),
-          ' x,中文;$(echo nope) ',
-        ],
-        { cwd: root, encoding: 'utf8' },
-      ),
-    );
-    expect(result.items).toEqual(['x', '中文;$(echo nope)']);
-    expect(result.tag).toBe('isolated');
-    expect(existsSync(result.cwd)).toBe(false);
-    writeFileSync(
-      join(root, 'mixed.mjs'),
-      `import {run} from './source/client.ts';console.log(JSON.stringify(await run()));`,
-    );
-    const mixed = JSON.parse(
-      execFileSync(process.execPath, ['--import', '@swiftuijs/twill/register', 'mixed.mjs'], {
-        cwd: root,
-        encoding: 'utf8',
-      }),
-    );
-    expect(mixed.items).toEqual(['a', 'b']);
-    expect(existsSync(mixed.cwd)).toBe(false);
-    const runner = join(root, 'failure.mjs');
-    writeFileSync(
-      runner,
-      `import {build} from './source/build.twill';try{await build('item','fail');}catch(e){console.log(JSON.stringify({name:e.name,status:e.terminationStatus,output:e.standardOutput,error:e.standardError,stack:e.stack}));}`,
-    );
-    const failure = JSON.parse(
-      execFileSync(
-        process.execPath,
-        ['--enable-source-maps', '--import', '@swiftuijs/twill/register', runner],
-        { cwd: root, encoding: 'utf8' },
-      ),
-    );
-    expect(failure).toMatchObject({
-      name: 'ProcessExitError',
-      status: { kind: 'exited', code: 7 },
-      error: 'Build failed',
-    });
-    expect(existsSync(JSON.parse(failure.output).cwd)).toBe(false);
-    // A successful native launch must leave ordinary declarations; validation points at dialect source.
+    // The SDK retains ordinary types; validation points at dialect source.
     writeFileSync(
       join(source, 'bad.twill'),
       `import {Command,Output,Subprocess} from '@swiftuijs/twill-shell';\nconst result=await Subprocess.run(Command.path(process.execPath),{output:Output.text({limit:10})});\nresult.standardOutput.toFixed();\n`,
@@ -140,28 +109,86 @@ it('checks, formats, declares and executes the real Twill script with source-map
         code: 2551,
       }),
     ]);
-    writeFileSync(
-      join(root, 'throw.twill'),
-      `import {build} from './source/build.twill';\nawait build(undefined);`,
-    );
-    try {
-      execFileSync(
-        process.execPath,
-        ['--enable-source-maps', '--import', '@swiftuijs/twill/register', 'throw.twill'],
-        { cwd: root, encoding: 'utf8', stdio: 'pipe' },
-      );
-      throw Error('Expected failure');
-    } catch (error) {
-      const failure = error as Error & { stderr: string };
-      expect(failure.stderr).toContain(
-        'build.twill:' +
-          original.slice(0, original.indexOf('throw new TypeError')).split('\n').length +
-          ':',
-      );
-      expect(failure.stderr).toMatch(/throw\.twill:2:/);
-    }
   } finally {
     project.dispose();
+  }
+});
+it('emits ordinary declarations for the real script', () => {
+  const { root, config } = fixture();
+  const declarations = emitDeclarations(config, { outDir: join(root, 'declarations') });
+  expect(declarations.diagnostics).toEqual([]);
+  expect(readFileSync(join(root, 'declarations', 'build.d.ts'), 'utf8')).toContain(
+    'Promise<BuildReport>',
+  );
+});
+it('executes the real Twill and mixed TS scripts with source-mapped failure cleanup', () => {
+  const { root, source } = fixture();
+  const original = readFileSync(join(source, 'build.twill'), 'utf8');
+  const result = JSON.parse(
+    execFileSync(
+      process.execPath,
+      [
+        '--enable-source-maps',
+        '--import',
+        '@swiftuijs/twill/register',
+        join(source, 'main.twill'),
+        ' x,中文;$(echo nope) ',
+      ],
+      { cwd: root, encoding: 'utf8' },
+    ),
+  );
+  expect(result.items).toEqual(['x', '中文;$(echo nope)']);
+  expect(result.tag).toBe('isolated');
+  expect(existsSync(result.cwd)).toBe(false);
+  writeFileSync(
+    join(root, 'mixed.mjs'),
+    `import {run} from './source/client.ts';console.log(JSON.stringify(await run()));`,
+  );
+  const mixed = JSON.parse(
+    execFileSync(process.execPath, ['--import', '@swiftuijs/twill/register', 'mixed.mjs'], {
+      cwd: root,
+      encoding: 'utf8',
+    }),
+  );
+  expect(mixed.items).toEqual(['a', 'b']);
+  expect(existsSync(mixed.cwd)).toBe(false);
+  const runner = join(root, 'failure.mjs');
+  writeFileSync(
+    runner,
+    `import {build} from './source/build.twill';try{await build('item','fail');}catch(e){console.log(JSON.stringify({name:e.name,status:e.terminationStatus,output:e.standardOutput,error:e.standardError,stack:e.stack}));}`,
+  );
+  const failure = JSON.parse(
+    execFileSync(
+      process.execPath,
+      ['--enable-source-maps', '--import', '@swiftuijs/twill/register', runner],
+      { cwd: root, encoding: 'utf8' },
+    ),
+  );
+  expect(failure).toMatchObject({
+    name: 'ProcessExitError',
+    status: { kind: 'exited', code: 7 },
+    error: 'Build failed',
+  });
+  expect(existsSync(JSON.parse(failure.output).cwd)).toBe(false);
+  writeFileSync(
+    join(root, 'throw.twill'),
+    `import {build} from './source/build.twill';\nawait build(undefined);`,
+  );
+  try {
+    execFileSync(
+      process.execPath,
+      ['--enable-source-maps', '--import', '@swiftuijs/twill/register', 'throw.twill'],
+      { cwd: root, encoding: 'utf8', stdio: 'pipe' },
+    );
+    throw Error('Expected failure');
+  } catch (error) {
+    const failure = error as Error & { stderr: string };
+    expect(failure.stderr).toContain(
+      'build.twill:' +
+        original.slice(0, original.indexOf('throw new TypeError')).split('\n').length +
+        ':',
+    );
+    expect(failure.stderr).toMatch(/throw\.twill:2:/);
   }
 });
 it('exports the script and mixed TS graph for native execution without a compiler loader', async () => {

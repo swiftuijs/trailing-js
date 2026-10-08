@@ -1,6 +1,6 @@
 {
   "name": "@swiftuijs/twill-export",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Export a checked Twill source project to formatted native TypeScript.",
   "type": "module",
   "license": "MIT",

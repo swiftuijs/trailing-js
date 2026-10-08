@@ -12,13 +12,12 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { setMaxListeners } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { Command, Output, Subprocess, ProcessAbortError } from '../src/index.js';
-import { Subprocess as NodeSubprocess } from '@swiftuijs/twill-shell';
 const apiURL = new URL('../dist/index.js', import.meta.url).href;
-const fixture = fileURLToPath(new URL('../../shell/tests/fixtures/child.mjs', import.meta.url));
+const fixture = fileURLToPath(new URL('./fixtures/child.mjs', import.meta.url));
 const roots: string[] = [],
   workers: Worker[] = [],
   pids: number[] = [];
@@ -69,13 +68,31 @@ it('snapshots default and relative cwd before asynchronous launch without normal
   );
 });
 
-it('coexists with Node spawn completion and signal handling across concurrent commands', async () => {
+it('coexists with handwritten Node spawn completion across concurrent commands', async () => {
+  const native = (i: number) =>
+    new Promise<{ processIdentifier: number; standardOutput: string }>((resolve, reject) => {
+      const child = spawn(process.execPath, [fixture, 'argv', String(i)], {
+        stdio: ['ignore', 'pipe', 'ignore'],
+      });
+      const chunks: Buffer[] = [];
+      child.stdout.on('data', (chunk) => chunks.push(chunk));
+      child.once('error', reject);
+      child.once('close', (code) =>
+        code === 0
+          ? resolve({
+              processIdentifier: child.pid!,
+              standardOutput: Buffer.concat(chunks).toString(),
+            })
+          : reject(Error('Node child failed')),
+      );
+    });
   const results = await Promise.all(
     Array.from({ length: 48 }, (_, i) =>
-      (i % 2 ? NodeSubprocess : Subprocess).run(
-        Command.path(process.execPath, [fixture, 'argv', String(i)]),
-        { output: Output.text({ limit: 1024 }) },
-      ),
+      i % 2
+        ? native(i)
+        : Subprocess.run(Command.path(process.execPath, [fixture, 'argv', String(i)]), {
+            output: Output.text({ limit: 1024 }),
+          }),
     ),
   );
   results.forEach((result, i) => {
@@ -83,6 +100,47 @@ it('coexists with Node spawn completion and signal handling across concurrent co
     gone(result.processIdentifier);
   });
 });
+
+it.skipIf(process.platform !== 'darwin')(
+  'reaps immediate native exits across concurrent batches',
+  async () => {
+    for (let batch = 0; batch < 8; batch++) {
+      const results = await Promise.all(
+        Array.from({ length: 32 }, () =>
+          Subprocess.run(Command.path('/usr/bin/true'), {
+            output: Output.discard(),
+            error: Output.discard(),
+          }),
+        ).concat([
+          Subprocess.run(Command.path(process.execPath, ['-e', '']), {
+            output: Output.discard(),
+            error: Output.discard(),
+          }),
+        ]),
+      );
+      for (const result of results) {
+        expect(result.terminationStatus).toEqual({ kind: 'exited', code: 0 });
+        gone(result.processIdentifier);
+      }
+    }
+  },
+);
+
+it.skipIf(process.platform !== 'linux')(
+  'preserves a real unnamed realtime signal in results and errors',
+  async () => {
+    const command = Command.path(process.execPath, ['-e', 'process.kill(process.pid,34)']);
+    const result = await Subprocess.run(command, { check: false });
+    expect(result.terminationStatus).toEqual({ kind: 'signaled', signal: 34 });
+    gone(result.processIdentifier);
+    const error = await Subprocess.run(command).catch((error) => error);
+    expect(error).toMatchObject({
+      name: 'ProcessExitError',
+      result: { terminationStatus: { kind: 'signaled', signal: 34 } },
+    });
+    gone(error.result.processIdentifier);
+  },
+);
 
 it('terminates a worker even when an unowned descendant keeps its capture pipes open', async () => {
   const marker = join(root(), 'descendant');

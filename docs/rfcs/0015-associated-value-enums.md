@@ -1,7 +1,8 @@
 # RFC 0015: Associated-value enums
 
-**Status:** Accepted.
-**Kind:** Language. **Release:** Not released. **Dependencies:** 0010, 0011, 0027.
+**Release reference:** 0.2.0 implements the accepted scope; broader/deferred items below remain proposals.
+**Status:** Implemented in 0.2.0 for the accepted scope; deferred capabilities remain proposals.
+**Kind:** Language. **Release:** 0.2.0.
 **Review:** Accepted after implementation review in [PR #13](https://github.com/swiftuijs/twill/pull/13) on 2026-10-07. Named payload factories and existing object-pattern switches are the accepted scope; release remains pending.
 
 ## Problem and native baseline

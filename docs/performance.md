@@ -37,7 +37,7 @@ The single-direct output matches a minimal handwritten callback/finally implemen
 
 ## Guards and switch expressions
 
-Destructured guards add a temporary and a nullish branch, followed by native destructuring. They add no wrapper object, callback or library. Direct-return switch expressions add a scoped native switch without a function. The unreleased standalone identifier-initializer path uses a result temporary and native labelled branches without a function. Other expression positions use one synchronous lexical arrow IIFE; `this`, `arguments` and scheduling retain native semantics. Selected object cases destructure the discriminator too, so a discriminator getter is read twice. Rest/default costs remain native destructuring costs.
+Destructured guards add a temporary and a nullish branch, followed by native destructuring. They add no wrapper object, callback or library. Direct-return switch expressions add a scoped native switch without a function. The standalone identifier-initializer path uses a result temporary and native labelled branches without a function. Other expression positions use one synchronous lexical arrow IIFE; `this`, `arguments` and scheduling retain native semantics. Selected object cases destructure the discriminator too, so a discriminator getter is read twice. Rest/default costs remain native destructuring costs.
 
 The [branching report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/branching.json) measures 1,000,000 calls per sample, 15 samples after warmup, with each native/dialect case in a separate process on Node 24.19 / AMD EPYC 9V74. Isolated processes avoid shared call-site feedback favoring whichever function runs first.
 
@@ -47,11 +47,11 @@ The [branching report](https://github.com/swiftuijs/twill/blob/main/docs/benchma
 | Direct-return value switch    | 2.76 ms      | 2.89 ms       | 77 / 77                                |
 | Switch in a local initializer | 2.75 ms      | 2.72 ms       | 95 / 90                                |
 
-The initializer comparison uses a natural native switch assigning a local. The unreleased standalone identifier-initializer optimization removes the IIFE and preserves the original declaration, TDZ and mutability. Larger expressions, for headers, multiple declarators, destructuring, direct eval, JS JSDoc context and TS suppression pragmas retain the established expression path. Timing differences are not a general speedup claim or evidence that remaining closures never allocate. Other engines, cold execution, larger branches and captured values need application measurements. Await/yield inside a switch requires a direct return, avoiding hidden promise conversion or additional async scheduling.
+The initializer comparison uses a natural native switch assigning a local. The standalone identifier-initializer optimization removes the IIFE and preserves the original declaration, TDZ and mutability. Larger expressions, for headers, multiple declarators, destructuring, direct eval, JS JSDoc context and TS suppression pragmas retain the established expression path. Timing differences are not a general speedup claim or evidence that remaining closures never allocate. Other engines, cold execution, larger branches and captured values need application measurements. Await/yield inside a switch requires a direct return, avoiding hidden promise conversion or additional async scheduling.
 
 The [application bundle report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/bundle-size.json) covers five supported paths. Guards, callbacks and a single React child match the native minified byte size. The direct object-pattern switch is 205 bytes versus 203 bytes: its explicit lexical block adds two braces. Tests enforce those exact output budgets and runtime parity. There is no Twill runtime imported into these application fixtures. Dynamic cleanup, general child collection and arbitrary expression switches have separate costs and are outside this parity claim.
 
-## Optional branch bindings (unreleased prototype)
+## Optional branch bindings
 
 RFC 0018's `if const` emits a single initializer snapshot, a strict null/undefined test and a success-local const binding. Ordinary initializers add no function, runtime import, wrapper or scheduling. Object/array defaults, getters, iterators and rest retain their native costs. A nested `match` initializer retains the existing general-expression lowering and its synchronous IIFE cost.
 
@@ -84,7 +84,7 @@ Unchanged editor snapshots, transforms and mapping decoders are cached. The nati
 
 ## Application output and distribution budgets
 
-The unreleased RFC 0018 branch binding uses a hygienic initializer snapshot and native success-scope binding. It introduces no runtime allocation, function, promise or helper import; native rest destructuring still allocates its own rest value. The checked object-binding application fixture allows at most 10 extra minified bytes for that snapshot compared with a handwritten branch over an already evaluated parameter. This budget is separate from runtime timing. `benchmark:if-bindings` records isolated native comparisons, all samples and generated/source/build checksums; `--verify-performance` checks the 1.10× controlled-host target.
+The RFC 0018 branch binding uses a hygienic initializer snapshot and native success-scope binding. It introduces no runtime allocation, function, promise or helper import; native rest destructuring still allocates its own rest value. The checked object-binding application fixture allows at most 10 extra minified bytes for that snapshot compared with a handwritten branch over an already evaluated parameter. This budget is separate from runtime timing. `benchmark:if-bindings` records isolated native comparisons, all samples and generated/source/build checksums; `--verify-performance` checks the 1.10× controlled-host target.
 
 Equivalent native and dialect application fixtures are built with real esbuild bundling and minification. An implicit-member filter/map pipeline emits 76 bytes in both forms; a guarded numeric pipeline emits 88 bytes in both forms; a React single-child component emits 121 bytes in both forms. The checks compare byte counts and executed behavior, and reject compiler/runtime dependencies in the application graph. Identifier mangling can choose different short names. React's normal JSX runtime is external in this comparison. These small fixtures do not cover every application, dynamic cleanup or general child collection.
 
@@ -108,7 +108,7 @@ Tarball budgets cover the package's own files, not installed npm dependencies. D
 
 The [React source study](./react-source.md) compares the real React 19.3.0 client-core entry graph after identical Flow erasure. It adds an independently reproducible framework workload to the small synthetic fixtures above. The [report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/react-framework.json) includes production bytes, gzip size, interleaved build samples and isolated core-runtime samples. ReactDOM/reconciler are not rewritten; this is not a full rendering-throughput or typed framework-port benchmark.
 
-## Explicit enum patterns (unreleased prototype)
+## Explicit enum patterns
 
 RFC 0016's match expressions and explicit case descriptors are erased by native TS. Direct-return patterns and standalone identifier initializers use native switches and per-arm const destructuring without an IIFE. Other expression positions keep the existing synchronous IIFE. The preferred `match` spelling uses the same lowering; regression tests require emitted JS identical to the earlier explicit-marker spelling. Native rest bindings allocate/copy normally. The checked TS application bundle fixture with defaults/rest is 182 bytes versus 180 bytes for handwritten JS: two outer scope braces, with no matching runtime, factory access/call or additional result record. CI enforces that 2-byte budget and verifies runtime behavior and dependency absence.
 
@@ -134,7 +134,7 @@ Unchanged pattern diagnostics have cached medians of 0.02–0.07 ms. The descrip
 
 The [report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/enum-patterns.json) records inputs, p95, checksums, environment, base commit/tree, dirty-working-tree status and build/script digests. The source was an unreleased implementation checkout. Reproduce with `pnpm build` then `pnpm benchmark:enum-patterns --output enum-patterns-results.json`. Runtime tests use unchecked JS lowering; erased TS descriptors and native imports are additionally covered by checked bundle and package tests. Timing ratios are observations; correctness, absence of runtime dependencies and bytes are deterministic CI gates.
 
-## Optional runtime helpers (unreleased prototype)
+## Optional runtime helpers
 
 [RFC 0032](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0032-optional-runtime-helpers.md) adds opt-in external helpers; inline remains the default. Dynamic synchronous cleanup shares a small `runDefers` function. Single direct cleanup, explicit async and mixed cleanup retain identical output, including scheduling. The helper centralizes draining; registrations still allocate callbacks and a lazy array. It does not remove the allocation costs shown in the minimal-finally comparison above.
 
@@ -167,9 +167,9 @@ Measure build time, edited-file feedback and representative runtime paths before
 
 The reports above include their inputs, sampling methods, environment and build identity. Instructions for reproducing repository benchmarks are in the [contributor development guide](https://github.com/swiftuijs/twill/blob/main/docs/contributing/tooling.md#benchmark-changes). Correctness and output budgets are enforced; wall-clock thresholds are not enforced across different runners.
 
-## Optional shell SDK (unreleased)
+## Earlier Node shell SDK measurements
 
-The [shell prototype](scripting.md) executes through native Node `spawn` / libuv, without command translation or a runtime compiler dependency. Inherited/discarded descriptors bypass capture. Explicit capture retains bounded chunks and concatenates/decodes once at settlement; the byte limit is not a total heap/RSS cap.
+The earlier [shell implementation](scripting.md) executed through native Node `spawn` / libuv, without command translation or a runtime compiler dependency. Inherited/discarded descriptors bypass capture. Explicit capture retains bounded chunks and concatenates/decodes once at settlement; the byte limit is not a total heap/RSS cap.
 
 `pnpm benchmark:shell --output ../../shell-results.json --verify-performance` compares equivalent successful direct-child work with handwritten `spawn`: native/Node inherited output, dual binary capture and text stdin/capture. Nine paired samples alternate order, retain parent CPU and wall time separately, and include source/build hashes. The local gate requires a median wall ratio at most 1.10 and a paired bootstrap interval within tolerance; inconclusive samples do not pass. Separate reports cover parent memory observations at 1 MiB/8 MiB per stream, native/SDK/Twill cold startup and an `execFile` capture reference. Memory sampling is not a hard peak bound. No universal speedup, cancellation, concurrency or process-tree claim follows from these workloads.
 
@@ -179,7 +179,7 @@ The [source-only runner cache measurements](https://github.com/swiftuijs/twill/b
 
 ## Rust subprocess experiment
 
-The repository also contains an isolated Linux Rust/N-API experiment. It owns a direct child and nonblocking pipes, drains both output streams in one native loop and transfers captured buffers through N-API. It is outside published SDK files and cannot be selected through `Subprocess.run`; the SDK still uses Node/libuv. No Rust interpreter or compiler port is involved.
+The repository also contains an isolated Linux Rust/N-API experiment. It owns a direct child and nonblocking pipes, drains both output streams in one native loop and transfers captured buffers through N-API. It is outside published SDK files and cannot be selected through `Subprocess.run`; the measurement baseline used the earlier Node SDK. No Rust interpreter or compiler port is involved.
 
 On Linux x64 / Node 24.19.0, eleven paired batches compare the prototype with the current SDK and handwritten Node `spawn`. All six operation orders rotate; every result is verified, and parent CPU includes native worker threads but excludes child work. Independent C producers expose launch/I/O costs; a Node producer includes its interpreter startup. These are observed paired ratios, not application-wide speed guarantees:
 
@@ -199,9 +199,11 @@ Two measured limits prevent adopting this prototype as the default backend. Actu
 
 The addon is 495,808 bytes uncompressed, excluded from the SDK's existing 16 KiB archive gate. It snapshots input/environment and tests byte bounds, statuses, failures, deadlines and direct-child reaping on Node 20.19/24. It uses generic errors and immediate termination; graceful cancellation, bounded join, environment shutdown, containment, pipelines and Windows/macOS parity remain unimplemented. A production backend needs independent asynchronous scheduling and the full ownership/platform contract before adoption. See the [experiment and reproduction instructions](https://github.com/swiftuijs/twill/blob/main/packages/shell/experiments/rust-native/README.md) and [RFC 0036](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0036-native-subprocess-backend.md).
 
-## Optional Rust backend
+<a id="optional-rust-backend"></a>
 
-The source-only `@swiftuijs/twill-shell-native` package implements the complete direct-child SDK contract with one independent asynchronous reactor per Node environment. Native process creation runs synchronously on the calling Node thread, matching Node spawn. Unix readiness notifications and overlapped Windows pipes handle already-started children without a libuv worker per command. It preserves byte bounds, typed errors, cancellation, bounded join and environment cleanup. Byte input is copied at submission; captures and decoding still allocate. Neither shell package is published on npm 0.1.2.
+## Rust shell backend
+
+The `@swiftuijs/twill-shell` SDK in 0.2.0 uses `@swiftuijs/twill-shell-native` as its automatically installed prebuilt Rust engine and implements the complete direct-child SDK contract with one independent asynchronous reactor per Node environment. Native process creation runs synchronously on the calling Node thread, matching Node spawn. Unix readiness notifications and overlapped Windows pipes handle already-started children without a libuv worker per command. It preserves byte bounds, typed errors, cancellation, bounded join and environment cleanup. Byte input is copied at submission; captures and decoding still allocate. The prior optional-backend reports below retain the earlier Node SDK as a historical baseline; 0.2.0 provides one public Rust-backed SDK.
 
 The [complete-contract report](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/production-linux-node24.json) measures the production implementation on 2026-10-08, Linux x64, Node 24.19.0 and Intel Xeon Platinum 8573C, with Rust 1.90.0. Eleven paired warm samples interleave all six handwritten Node / SDK / Rust orders between individual operations. Sequential work uses CPU 0; concurrency uses CPUs 0–3, matching the host's four-CPU quota. Each backend receives the same workload affinity. Output and termination status are checked outside timing. Parent CPU includes the Rust reactor and excludes child CPU.
 
@@ -230,7 +232,7 @@ Isolated capture RSS-increase medians are SDK/Rust 3.88/2.43 MiB at 1 MiB per st
 
 Fresh interpreter/import/one-command medians are handwritten Node 53.9 ms, SDK 56.3 ms and Rust 60.6 ms. Actual Twill runner medians are SDK/Rust 187.3/192.2 ms with cache hits and 543.9/560.9 ms with caching disabled. Their paired ratios are 1.029× and 1.010×; there is no demonstrated source-startup improvement. The compiler and Node interpreter remain on that path.
 
-The measured Linux addon is 781,016 bytes. The separately verified five-target CI archive is 1,814,079 bytes compressed; each binary stays below 2 MiB and the archive below 6 MiB. The Node SDK retains its independent 16 KiB budget. Binary hashes, source fingerprints, archive digest and license verification are retained in the [package evidence](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/production-package-validation.json).
+The measured Linux addon is 781,016 bytes. The separately verified five-target CI archive is 1,814,079 bytes compressed; each binary stays below 2 MiB and the archive below 6 MiB. The public SDK retains its independent 16 KiB budget. Binary hashes, source fingerprints, archive digest and license verification are retained in the [package evidence](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/production-package-validation.json).
 
 The [measurement history and reproduction instructions](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/README.md) retain every failed review, the interrupted checkpoint and continuation source. The checkpoint already contained all warm, memory and concurrency observations; its continuation completed lifecycle and cold measurements on unchanged sources/builds. Review found a PID-marker race in the benchmark tool; atomic-marker lifecycle measurements were then repeated and recorded separately, preserving the original observations. Earlier foreign-thread cleanup crashes were fixed in the backend and are covered by repeated fresh-process, worker and actual Twill-runner tests. No sample was dropped to pass a performance gate. Process-tree containment, pipelines and unsupported prebuild targets remain outside this direct-child contract.
 
@@ -242,4 +244,26 @@ The [new complete Linux/Node 24 report](https://github.com/swiftuijs/twill/blob/
 
 The [actual denied-pidfd diagnostic](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/platform-pidfd-denied.json) runs Node under a verified syscall filter returning ENOSYS. Twelve pairs retain all six operation orders and compare checked short launches and dual 1 MiB capture with handwritten Node. Short-launch Rust/native median ratio is 1.080 (95% interval 1.071–1.106); dual capture is 0.642 (0.624–0.681). Polling adds short-command wait latency; the short-launch interval does not establish the complete run's 1.10 acceptance bound. The separately retained [readiness diagnostic](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/platform-pidfd-readiness.json) and exact diagnostic source keep these observations distinct. Parent CPU includes the Rust reactor; child CPU is excluded.
 
-ABI detection inspects Node's process report on the first native load. Fresh SDK/Rust interpreter/import/one-command medians in the complete run are 63.5/80.7 ms; cached Twill source medians are 202.3/259.6 ms. Rust does not demonstrate a cold-start improvement, and these measurements do not attribute the whole difference to ABI detection. Neither platform contract tests nor faster warm capture prove cold-source parity.
+That historical implementation inspected Node's complete process report on the first native load. Fresh SDK/Rust interpreter/import/one-command medians in that run were 63.5/80.7 ms; cached Twill source medians were 202.3/259.6 ms. Those measurements do not attribute the whole difference to ABI detection.
+
+### 0.2.0 public SDK measurements
+
+The [Rust-only report](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/rust-only-linux-node24.json) measures the public SDK against handwritten Node on the same Linux x64 / Node 24.19 / four-CPU-quota host. Eleven warm pairs alternate both operation orders; both default-pool concurrency workloads retain 48 pairs. All seven warm and both concurrency gates pass unchanged, requiring both paired medians and upper 95% bounds at most 1.10.
+
+| Warm workload                | Rust / handwritten Node | 95% paired interval |
+| ---------------------------- | ----------------------: | ------------------- |
+| Short native launch          |                   0.631 | 0.610–0.633         |
+| Node interpreter launch      |                   0.983 | 0.946–0.999         |
+| Native dual 1 MiB capture    |                   0.561 | 0.523–0.578         |
+| Native dual 8 MiB capture    |                   0.640 | 0.634–0.685         |
+| Node dual 1 MiB capture      |                   0.898 | 0.850–1.033         |
+| Native 1 MiB stdin/text      |                   0.654 | 0.630–0.703         |
+| Native 1 MiB duplex          |                   0.597 | 0.560–0.612         |
+| 32 concurrent Node children  |                   0.996 | 0.960–1.011         |
+| 128 concurrent Node children |                   0.997 | 0.981–1.010         |
+
+Ordinary Linux startup now reads the current Node ELF interpreter with bounded descriptor reads, retaining the conservative report fallback for unknown/static layouts. Fresh native/SDK medians are 62.9/70.0 ms. Cached Twill source medians are 207.3/223.8 ms; its paired ratio is 1.110 with interval 1.039–1.191. Uncached source medians are 689.8/635.4 ms, with an interval spanning parity. These observations do not establish cold-source parity, isolate the ELF optimization's contribution or demonstrate a general startup speedup. The historical denied-pidfd latency tradeoff above also remains separately scoped.
+
+The report preserves memory, filesystem, cancellation and cold observations alongside every warm/concurrency sample and source/build hash. Cold warmup initially failed on a workspace-only import after the dependency direction changed. A retained completion script verifies every unchanged runtime/build identity before fixing the unexecuted fixture's import and measuring only the eleven cold pairs; no earlier sample is repeated or removed. The [measurement history](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/README.md#rust-only-sdk-release) retains the incomplete checkpoints, failure logs, completion source and exact serialized report.
+
+The [final 0.2.0 shell recheck](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/release-final-linux-node24.json) retains a complete run after the Mac exit-race and unnamed-signal fixes. All seven warm workloads and both default-pool gates pass without changing sample counts or limits. Native launch/capture/input ratios are 0.555–0.679, Node interpreter launch is 0.948, and 32/128-child concurrency medians are 0.975/0.992 (upper 95% bounds 0.998/0.997). This is Linux readiness-path evidence; the report retains separate cold, memory, cancellation and filesystem observations, and establishes no universal or external-command speedup.

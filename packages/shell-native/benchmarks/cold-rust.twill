@@ -1,2 +1,2 @@
-import { Command, Subprocess } from '@swiftuijs/twill-shell-native';
+import { Command, Subprocess } from '../../shell/dist/index.js';
 await Subprocess.run(Command.path('/usr/bin/true'));

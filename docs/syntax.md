@@ -74,9 +74,11 @@ The failure block must provably exit: a direct `return`, `throw`, `break`, or `c
 
 `guard` is contextual at a statement boundary when its condition/binding is followed by a top-level `else`. Existing `guard()`, `guard = value`, `object.guard` and `guard:` labels retain their meaning. Like other JS statements, use semicolons where adjacent expressions could otherwise join across lines. Parameter and expression tokens retain their original source positions, so TS narrowing and diagnostics operate on the lowered code.
 
-## Branch nullish bindings (unreleased)
+<a id="branch-nullish-bindings-unreleased"></a>
 
-The [accepted RFC 0018](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0018-optional-branch-bindings.md) source prototype adds immutable success-branch bindings; npm and Marketplace 0.1.2 do not include them.
+## Branch nullish bindings
+
+Twill 0.2.0 adds immutable success-branch bindings from [RFC 0018](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0018-optional-branch-bindings.md).
 
 ```twill
 export function label(input: { name?: string } | null) {
@@ -94,9 +96,11 @@ As in Swift's condition parsing, a brace after the outer initializer expression 
 
 One binding and a braced success body are required. Else is optional and may be a block or another native/binding if. Multiple bindings, while bindings and if expressions are not implemented. Await/yield remain in their enclosing scope; return, break/continue, finally and branch-local defer retain their ownership. Lowering adds a hygienic temporary and a scoped native const/nullish branch, with no closure, optional wrapper or runtime import in either runtime mode. Type inference, source mappings and native declarations/export use ordinary TS.
 
-## Associated-value enums (unreleased)
+<a id="associated-value-enums-unreleased"></a>
 
-This implements [accepted RFC 0015](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0015-associated-value-enums.md) from source; npm and Marketplace 0.1.2 do not include it. [Implementation PR #13](https://github.com/swiftuijs/twill/pull/13) records its review and validation.
+## Associated-value enums
+
+This implements [accepted RFC 0015](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0015-associated-value-enums.md) in Twill 0.2.0. [Implementation PR #13](https://github.com/swiftuijs/twill/pull/13) records its review and validation.
 
 ```twill
 export enum LoadState<T, E = Error> {
@@ -113,7 +117,7 @@ The declaration creates a normal TS union type and a same-named object of factor
 
 Payload fields require names and native TS types. Generic factories infer the parameters used by their payloads, including constraint/default dependencies, and return precise variant types. Match them using the existing `case { kind: 'loaded', value }` syntax below; new variants expose missing arms through `twill check`. Defaults keep their existing catch-all semantics. Native TS numeric/string enums retain their original behavior.
 
-Duplicate cases/fields, a payload named `kind`, optional/default/rest payload fields, const/ambient associated enums, const/variance type parameter modifiers and mixed native members are rejected. Like native lexical declarations, associated enums require braces in control-flow bodies. Custom tags and contextual case shorthand are separate proposals; the accepted, unreleased match expression is described below. Constructor completion, diagnostics, formatting, shared highlighting, declarations and source export are supported in this implementation; enum declaration/case/payload/type-parameter rename is conservatively withheld until its linked type/tag edits can be proven complete.
+Duplicate cases/fields, a payload named `kind`, optional/default/rest payload fields, const/ambient associated enums, const/variance type parameter modifiers and mixed native members are rejected. Like native lexical declarations, associated enums require braces in control-flow bodies. Custom tags and contextual case shorthand are separate proposals; the match expression is described below. Constructor completion, diagnostics, formatting, shared highlighting, declarations and source export are supported in this implementation; enum declaration/case/payload/type-parameter rename is conservatively withheld until its linked type/tag edits can be proven complete.
 
 ## Switch expressions and union patterns
 
@@ -145,9 +149,11 @@ A direct `return switch (...)` lowers to a scoped native switch without an addit
 
 <a id="explicit-enum-case-patterns-unreleased"></a>
 
-## Match expressions (unreleased)
+<a id="match-expressions-unreleased"></a>
 
-**RFC 0016 accepted; unreleased implementation.** This syntax is available in the source build and playground. It is not in npm/Marketplace 0.1.2. See [the proposal](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0016-pattern-matching.md).
+## Match expressions
+
+**Available in Twill 0.2.0.** Use the installed compiler and editor from that release or newer. See [the proposal](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0016-pattern-matching.md).
 
 ```twill
 enum LoadState<T> {
@@ -171,7 +177,7 @@ Parentheses contain no binding or one native object binding. An empty pattern ig
 
 Enum patterns may mix with existing object arms using `kind` and a default. Existing object arms retain their discriminator re-read and rest exclusion. Match accepts qualified enum descriptors, tagged-object patterns and a default. Arbitrary value/call cases remain switch-expression syntax: ordinary `case Factory.loaded(value)` there calls the factory and compares strict identity. Native switch statements keep their existing syntax and implicit fallthrough. Match and switch expressions produce one result and never fall through; there is no `fallthrough` control keyword.
 
-`match` is contextual: `match(subject)` followed by a block beginning with `case` or `default` introduces the expression. Its subject is one argument expression; parenthesize comma expressions. Ordinary calls, methods, optional/generic calls and trailing closures named `match` keep their native behavior. Empty or ordinary callback bodies remain trailing closures. The earlier unreleased `switch (...) { case enum State.loaded({ value }): value; }` spelling stays supported for compatibility.
+`match` is contextual: `match(subject)` followed by a block beginning with `case` or `default` introduces the expression. Its subject is one argument expression; parenthesize comma expressions. Ordinary calls, methods, optional/generic calls and trailing closures named `match` keep their native behavior. Empty or ordinary callback bodies remain trailing closures. The compatibility `switch (...) { case enum State.loaded({ value }): value; }` spelling stays supported for compatibility.
 
 Without a default, `twill check` verifies tag exhaustiveness, including single-variant records. Direct returns add no function; general expression positions retain the existing synchronous IIFE and await/yield restrictions. Descriptor case-method rename is withheld until linked tag edits can be proven complete; native owner/import aliases and local binding renames work. Positional patterns, `.loaded`, `where`, alternatives and deep predicates are deferred. All tools consume this syntax together; keep compiler and tooling versions aligned when it is released.
 

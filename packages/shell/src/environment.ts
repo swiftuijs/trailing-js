@@ -1,5 +1,5 @@
-import { childEnvironment } from '@swiftuijs/twill-shell/backend';
-import type { Environment } from '@swiftuijs/twill-shell';
+import { childEnvironment } from './values.js';
+import type { Environment } from './values.js';
 
 // Match Node/libuv's mandatory Windows spawn environment additions (including
 // replacement/removal policies). Explicit empty values still override defaults.

@@ -2,6 +2,9 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
+    // Process/lifetime tests provide their own concurrency. Separate suites
+    // must not distort descriptor baselines or compete with compiler fixtures.
+    fileParallelism: false,
     testTimeout: 15000,
     coverage: {
       provider: 'v8',

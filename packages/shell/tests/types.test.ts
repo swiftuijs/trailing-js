@@ -33,7 +33,7 @@ it('infers captured output and accounts for omitted policies in typed options', 
     command.arguments.push('changed');
     if (bytes.terminationStatus.kind === 'exited')
       expectTypeOf(bytes.terminationStatus.code).toEqualTypeOf<number>();
-    else expectTypeOf(bytes.terminationStatus.signal).toEqualTypeOf<NodeJS.Signals>();
+    else expectTypeOf(bytes.terminationStatus.signal).toEqualTypeOf<NodeJS.Signals | number>();
   }
   expectTypeOf(types).toBeFunction();
 });
