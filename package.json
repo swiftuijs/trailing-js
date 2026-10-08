@@ -21,6 +21,7 @@
     "@swiftuijs/twill-linter": "workspace:*"
   },
   "scripts": {
+    "package:native": "pnpm --filter @swiftuijs/twill-shell pack --out swiftuijs-twill-shell-%v.tgz && pnpm --filter @swiftuijs/twill-shell-native pack --out swiftuijs-twill-shell-native-%v.tgz",
     "build": "pnpm -r --workspace-concurrency=1 run build",
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r --workspace-concurrency=1 --if-present run test:unit",
@@ -63,7 +64,8 @@
     "benchmark:react-framework": "pnpm --filter @swiftuijs/twill-example-react-framework run benchmark",
     "benchmark:runtime": "pnpm --filter @swiftuijs/twill run benchmark:runtime",
     "benchmark:if-bindings": "pnpm --filter @swiftuijs/twill run benchmark:if-bindings",
-    "benchmark:shell": "pnpm --filter @swiftuijs/twill-shell run benchmark"
+    "benchmark:shell": "pnpm --filter @swiftuijs/twill-shell run benchmark",
+    "benchmark:shell-native": "pnpm --filter @swiftuijs/twill-shell-native run benchmark"
   },
   "author": {
     "name": "forth.ink",

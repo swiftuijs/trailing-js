@@ -1,0 +1,2 @@
+import { Command, Subprocess } from '@swiftuijs/twill-shell';
+await Subprocess.run(Command.path('/usr/bin/true'));

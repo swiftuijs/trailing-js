@@ -19,7 +19,11 @@ jobs:
         with:
           name: twill-packages
           path: artifacts
-      - run: gh release create "$RELEASE_TAG" --verify-tag --generate-notes artifacts/*.tgz artifacts/dist/twill.vsix artifacts/release-manifest.json
+      - uses: actions/download-artifact@v8.0.1
+        with:
+          name: twill-native-package
+          path: artifacts
+      - run: gh release create "$RELEASE_TAG" --verify-tag --generate-notes artifacts/*.tgz artifacts/dist/twill.vsix artifacts/release-manifest.json artifacts/native-release-manifest.json
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ github.ref_name }}

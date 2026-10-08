@@ -13,6 +13,7 @@ packages/twill/LICENSE
 
 # Generated Cargo artifacts; the native source is checked by rustfmt/clippy.
 packages/shell/experiments/rust-native/target
+packages/shell-native/crate/target
 
 **/.vitepress/cache/
 
@@ -20,3 +21,5 @@ packages/shell/experiments/rust-native/target
 examples/react-framework/upstream
 examples/react-framework/src/packages
 examples/react-framework/sources.json
+
+packages/shell-native/benchmarks/target/

@@ -55,7 +55,38 @@ Completed storage uses 128 slots of at most 512 KiB each (64 MiB total, excludin
 
 The SDK takes its API direction from [Swift Subprocess](https://github.com/swiftlang/swift-subprocess): immutable commands, explicit input/output policies, typed status and owned process teardown. The execution backend calls native Node `spawn` / libuv directly with `shell: false`. It never translates a command into TypeScript or loads the Twill compiler. Native JS/TS can use it independently; Twill's loader only compiles the surrounding script when loaded.
 
-This checkout also has a separate Linux Rust/N-API experiment for process launch and bounded capture. It cannot be selected through this SDK or installed from npm. [Measured results](performance.md#rust-subprocess-experiment) show gains for sequential launches/capture and lower observed capture RSS, alongside a default-thread-pool concurrency regression and no demonstrated source-startup gain. Adoption requires independent asynchronous scheduling, the full cancellation/ownership contract and platform support.
+This checkout implements an optional Rust backend in the separate `@swiftuijs/twill-shell-native` package. Select it explicitly by importing `Subprocess` from that package; commands, policies, declarations and error classes are shared with the SDK. It is **not published on npm 0.1.2**. The Node SDK remains independent and uses Node/libuv. The earlier Linux-only experiment and its measurements remain historical evidence.
+
+## Optional Rust backend (unreleased)
+
+```ts
+import { Command, Output, Subprocess } from '@swiftuijs/twill-shell-native';
+const result = await Subprocess.run(Command.name('git', ['status', '--short']), {
+  output: Output.text({ limit: 1024 * 1024 }),
+  timeoutMs: 10_000,
+});
+console.log(result.standardOutput);
+```
+
+The same import works in a Twill shebang script. One Rust async reactor per Node environment multiplexes native child waits and pipe readiness, independently of libuv's shared worker pool. Native creation runs synchronously on the calling Node thread, matching Node spawn; OS launch can block the caller. The reactor handles already-started children, so a launch burst cannot block its pipe draining. It implements the input/output, status/error, cancellation and bounded direct-child ownership contract below. Unix cancellation requests SIGTERM before forced termination; Windows uses native process-handle termination. Worker teardown cancels only that environment's commands, with a cleanup barrier bounded to 1.1 seconds on the owning Node thread. Explicit `process.exit()` uses the same bounded native cleanup barrier, during which JS promise callbacks cannot run. OS launch/uninterruptible kernel waits prevent a hard real-time guarantee; SIGKILL and native faults cannot run exit handlers. Descendants and pipelines remain outside direct-child ownership.
+
+Native execution snapshots cwd/environment and copies byte input before returning to JS. Captured bytes transfer native storage through N-API where supported, followed by one UTF-8 decode for text. Allocation/copy costs still apply; output byte bounds do not cap total RSS. Missing or incompatible native binaries reject before launch: there is no automatic fallback, installation-time Rust build, runtime download or library path override.
+
+Prebuilds target Linux glibc x64/arm64, macOS x64/arm64 and Windows x64. Linux needs kernel 5.3+ with `pidfd_open` permitted; the initial Linux builds target Ubuntu 24.04/glibc 2.39+. Other platforms, including musl and Windows ARM, need separate validated builds. Source development requires the pinned Rust 1.90.0 toolchain. Platform CI tests real children on Node 22 and independently installed archives on Node 20.19.0; release assembly verifies all five binaries from one pinned source. The original SDK retains its 16 KiB compressed budget; native has separate 2 MiB-per-binary and 6 MiB compressed-archive gates.
+
+For a deliberate source installation:
+
+```sh
+pnpm --filter @swiftuijs/twill-shell-native... build
+pnpm --filter @swiftuijs/twill-shell-native test:coverage
+pnpm package:native
+# In an independent app, install both locally validated archives:
+npm install /path/to/swiftuijs-twill-shell-0.1.2.tgz /path/to/swiftuijs-twill-shell-native-0.1.2.tgz
+```
+
+A local archive contains the host binary; coordinated release assembly requires all five validated targets. Neither archive is currently an npm release. [Performance](performance.md#optional-rust-backend) separates backend measurements from external-command work and source/compiler startup.
+
+## Run a command
 
 ```twill
 #!/usr/bin/env twill
@@ -143,3 +174,5 @@ The [native comparison harness](https://github.com/swiftuijs/twill/blob/main/pac
 The executable runner has its own [cold-start report](https://github.com/swiftuijs/twill/blob/main/packages/twill/benchmarks/results/README.md). Fifteen paired Linux/Node 24 launches measured 520.8 ms for the existing loader and 475.0 ms for direct `twill` invocation, with no added regression in that sample. The runner skips compile/check/export tooling initialization and keeps the interpreter PID; source compilation still costs startup time. This is not a general speedup or native-Node cold-start parity claim.
 
 The [source-only runner cache measurements](https://github.com/swiftuijs/twill/blob/main/packages/twill/benchmarks/results/README.md#compilation-cache-prototype) retain 21 fresh-interpreter pairs and compiler/dependency validation. On this Linux/Node 24 workload, uncached/empty-cache/cached/native medians were 513.6/544.3/157.3/43.9 ms. The paired cache-hit ratio was 0.2938 (95% interval 0.2826–0.3046); empty-cache paired overhead was about 7%. These are source-startup observations, not native parity, external-command acceleration or Rust measurements. A valid hit skips compiler initialization; prebuilt JavaScript remains the faster first-launch path.
+
+Environment replacement follows native Node boundaries: Windows supplements omitted libuv-required system variables (including PATH, SYSTEMROOT and TEMP) from the parent; explicit empty strings override those defaults. Node coverage output settings propagate when not explicitly supplied. Use a trusted executable path rather than assuming an omitted Windows PATH disables lookup.

@@ -1,0 +1,23 @@
+native-executable-inherit: Rust/SDK wall 0.599, parent CPU 0.502
+node-inherit: Rust/SDK wall 0.976, parent CPU 0.488
+native-dual-capture-1048576: Rust/SDK wall 0.542, parent CPU 0.577
+native-dual-capture-8388608: Rust/SDK wall 0.885, parent CPU 0.825
+node-dual-capture-1048576: Rust/SDK wall 0.892, parent CPU 0.519
+native-stdin-text-1048576: Rust/SDK wall 0.695, parent CPU 0.695
+native-duplex-1048576: Rust/SDK wall 0.540, parent CPU 0.627
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Native parity gate failed: concurrency-32
+    at file:///workspace/twill-shell-native/packages/shell-native/benchmarks/benchmark.mjs:416:5
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.19.0
