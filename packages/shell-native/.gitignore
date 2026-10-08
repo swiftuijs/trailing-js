@@ -4,3 +4,4 @@ native/*.json
 native/*.tmp
 crate/target/
 *.tgz
+benchmarks/target/

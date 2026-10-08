@@ -1,6 +1,6 @@
 import { addAbortListener } from 'node:events';
 import { constants } from 'node:os';
-import { isAbsolute, win32 } from 'node:path';
+import { cwdSnapshot } from './cwd.js';
 import {
   ProcessError,
   ProcessLaunchError,
@@ -17,7 +17,8 @@ import {
   type OutputPolicy,
   type InheritedOutput,
 } from '@swiftuijs/twill-shell';
-import { settings, childEnvironment } from '@swiftuijs/twill-shell/backend';
+import { settings } from '@swiftuijs/twill-shell/backend';
+import { environmentSnapshot } from './environment.js';
 import { loadBackend, type NativeFailure, type NativeOutcome } from './bindings.js';
 export {
   Command,
@@ -84,15 +85,8 @@ function run<Options extends RunOptions = RunOptions<InheritedOutput, InheritedO
       job = backend.start({
         executable: command.executable,
         arguments: command.arguments,
-        cwd:
-          config.cwd === undefined
-            ? process.cwd()
-            : process.platform === 'win32'
-              ? win32.resolve(config.cwd)
-              : isAbsolute(config.cwd)
-                ? config.cwd
-                : `${process.cwd()}/${config.cwd}`,
-        environment: { ...(childEnvironment(config.environment) ?? process.env) },
+        cwd: cwdSnapshot(config.cwd),
+        environment: environmentSnapshot(config.environment),
         input,
         inheritInput: inputPolicy?.kind === 'inherit',
         outputLimit: 'limit' in config.output ? config.output.limit : undefined,

@@ -178,6 +178,9 @@ impl Failure {
     }
     fn io(kind: &str, stream: Option<&str>, error: io::Error) -> Self {
         let code = match error.kind() {
+            #[cfg(windows)]
+            _ if kind == "launch" && error.raw_os_error() == Some(267) => Some("ENOENT"),
+            io::ErrorKind::NotADirectory => Some("ENOTDIR"),
             io::ErrorKind::NotFound => Some("ENOENT"),
             io::ErrorKind::PermissionDenied => Some("EACCES"),
             io::ErrorKind::BrokenPipe => Some("EPIPE"),
@@ -507,15 +510,28 @@ async fn teardown(
     } else {
         options.join
     };
-    match time::timeout(join, child.wait()).await {
-        Ok(Ok(value)) => *status = Some(value),
-        result => {
-            outcome.unresolved_process_identifier = child.id();
-            let failure = match result {
-                Ok(Err(failure)) => Failure::io("teardown", None, failure),
-                _ => Failure::simple("teardown", "Owned subprocess could not be terminated"),
-            };
-            outcome.cleanup_errors.push(failure);
+    let deadline = time::sleep(join);
+    tokio::pin!(deadline);
+    let failure = loop {
+        tokio::select! {
+            _ = &mut deadline => break Some(Failure::simple("teardown", "Owned subprocess could not be terminated")),
+            result = child.wait() => match result {
+                Ok(value) => { *status = Some(value); break None; }
+                Err(failure) => break Some(Failure::io("teardown", None, failure)),
+            },
+            changed = control.changed() => {
+                // Environment disposal can arrive after ordinary failure teardown
+                // already began with a longer user-configured join. Shorten that
+                // pending join too, rather than waiting out the original timer.
+                if changed.is_err() || *control.borrow() == Control::Shutdown {
+                    let bound = deadline.deadline().min(Instant::now() + Duration::from_millis(1000));
+                    deadline.as_mut().reset(bound);
+                }
+            }
         }
+    };
+    if let Some(failure) = failure {
+        outcome.unresolved_process_identifier = child.id();
+        outcome.cleanup_errors.push(failure);
     }
 }

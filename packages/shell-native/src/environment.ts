@@ -1,0 +1,38 @@
+import { childEnvironment } from '@swiftuijs/twill-shell/backend';
+import type { Environment } from '@swiftuijs/twill-shell';
+
+// Match Node/libuv's mandatory Windows spawn environment additions (including
+// replacement/removal policies). Explicit empty values still override defaults.
+const windowsRequired = [
+  'HOMEDRIVE',
+  'HOMEPATH',
+  'LOGONSERVER',
+  'PATH',
+  'SYSTEMDRIVE',
+  'SYSTEMROOT',
+  'TEMP',
+  'USERDOMAIN',
+  'USERNAME',
+  'USERPROFILE',
+  'WINDIR',
+];
+export function environmentSnapshot(
+  policy: Environment | undefined,
+  platform = process.platform,
+  parent = process.env,
+) {
+  const environment = { ...(childEnvironment(policy, platform) ?? parent) };
+  if (parent.NODE_V8_COVERAGE && !Object.hasOwn(environment, 'NODE_V8_COVERAGE'))
+    environment.NODE_V8_COVERAGE = parent.NODE_V8_COVERAGE;
+  if (platform === 'win32') {
+    const selected = new Set(Object.keys(environment).map((key) => key.toUpperCase()));
+    const inherited = new Map(
+      Object.entries(parent).map(([key, value]) => [key.toUpperCase(), value]),
+    );
+    for (const key of windowsRequired) {
+      const value = inherited.get(key);
+      if (!selected.has(key) && value !== undefined) environment[key] = value;
+    }
+  }
+  return environment;
+}

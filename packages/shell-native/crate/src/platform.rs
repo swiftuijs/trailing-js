@@ -331,7 +331,10 @@ fn exit_notification(pid: u32) -> io::Result<AsyncFd<OwnedFd>> {
         return Err(io::Error::last_os_error());
     }
     // SAFETY: This successful syscall returns a uniquely owned descriptor.
-    AsyncFd::new(unsafe { OwnedFd::from_raw_fd(fd as i32) })
+    AsyncFd::with_interest(
+        unsafe { OwnedFd::from_raw_fd(fd as i32) },
+        tokio::io::Interest::READABLE,
+    )
 }
 #[cfg(target_os = "macos")]
 fn exit_notification(pid: u32) -> io::Result<AsyncFd<OwnedFd>> {
@@ -343,9 +346,7 @@ fn exit_notification(pid: u32) -> io::Result<AsyncFd<OwnedFd>> {
     let fd = unsafe { OwnedFd::from_raw_fd(raw) };
     // SAFETY: These flags apply only to our owned kqueue descriptor. In
     // particular it must never leak into concurrently launched child processes.
-    if unsafe { libc::fcntl(raw, libc::F_SETFD, libc::FD_CLOEXEC) } == -1
-        || unsafe { libc::fcntl(raw, libc::F_SETFL, libc::O_NONBLOCK) } == -1
-    {
+    if unsafe { libc::fcntl(raw, libc::F_SETFD, libc::FD_CLOEXEC) } == -1 {
         return Err(io::Error::last_os_error());
     }
     let event = libc::kevent {
@@ -370,7 +371,9 @@ fn exit_notification(pid: u32) -> io::Result<AsyncFd<OwnedFd>> {
     {
         return Err(io::Error::last_os_error());
     }
-    AsyncFd::new(fd)
+    // Darwin kqueue descriptors support readable readiness, not EVFILT_WRITE.
+    // kevent below is explicitly nonblocking through its zero timeout.
+    AsyncFd::with_interest(fd, tokio::io::Interest::READABLE)
 }
 #[cfg(target_os = "macos")]
 fn consume_exit(fd: &OwnedFd) -> io::Result<()> {

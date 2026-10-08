@@ -64,7 +64,8 @@
     "benchmark:react-framework": "pnpm --filter @swiftuijs/twill-example-react-framework run benchmark",
     "benchmark:runtime": "pnpm --filter @swiftuijs/twill run benchmark:runtime",
     "benchmark:if-bindings": "pnpm --filter @swiftuijs/twill run benchmark:if-bindings",
-    "benchmark:shell": "pnpm --filter @swiftuijs/twill-shell run benchmark"
+    "benchmark:shell": "pnpm --filter @swiftuijs/twill-shell run benchmark",
+    "benchmark:shell-native": "pnpm --filter @swiftuijs/twill-shell-native run benchmark"
   },
   "author": {
     "name": "forth.ink",

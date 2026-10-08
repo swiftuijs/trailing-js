@@ -87,7 +87,9 @@ export function defineProcessContracts(api, moduleURL) {
         const value = JSON.parse(result.standardOutput);
         expect(realpathSync(value.cwd)).toBe(realpathSync(folders[i]));
         expect(value.env.TWILL_CONTRACT).toBe('snapshot');
-        expect(value.env.PATH).toBeUndefined();
+        if (process.platform === 'win32') expect(value.env.PATH).toBe(process.env.PATH);
+        else expect(value.env.PATH).toBeUndefined();
+        expect(value.env.PNPM_HOME).toBeUndefined();
       }
       expect(process.cwd()).toBe(originalCwd);
       expect(process.env.TWILL_CONTRACT).toBe(original);

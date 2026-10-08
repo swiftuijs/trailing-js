@@ -47,7 +47,8 @@
     "test:coverage": "vitest run --coverage",
     "test:native": "node scripts/check.mjs",
     "test:package": "node tests/consumer.mjs",
-    "prepack": "node scripts/verify-binaries.mjs"
+    "prepack": "node scripts/verify-binaries.mjs",
+    "benchmark": "node benchmarks/benchmark.mjs"
   },
   "author": {
     "name": "forth.ink",

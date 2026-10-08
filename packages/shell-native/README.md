@@ -33,3 +33,5 @@ pnpm --filter @swiftuijs/twill-shell-native test:package
 Each native binary has a 2 MiB uncompressed gate; the optional archive has a separate 6 MiB compressed gate. The original SDK's 16 KiB gate stays intact. Platform CI builds and exercises real binaries on Node 22 and minimum Node 20.19.0; release assembly requires every supported target from the same pinned source and verifies their digests. Implementation readiness and npm publication are separate.
 
 See [Twill](https://twill.evecalm.com/), [performance](https://twill.evecalm.com/performance), [RFC 0036](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0036-native-subprocess-backend.md) and the sibling [SwiftUI.js](https://swiftuijs.evecalm.com/) project.
+
+Environment replacement follows native Node boundaries: Windows supplements omitted libuv-required system variables (including PATH, SYSTEMROOT and TEMP) from the parent; explicit empty strings override those defaults. Node coverage output settings propagate when not explicitly supplied. Use a trusted executable path rather than assuming an omitted Windows PATH disables lookup.
