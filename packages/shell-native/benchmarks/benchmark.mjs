@@ -279,9 +279,9 @@ for (const bytes of [size, 8 * size]) {
   save('memory');
 }
 const concurrency = [];
-// Cover all six orders twice. Five samples omitted one permutation and gave
-// unstable short-burst intervals on a CPU-quota-limited host.
-const concurrencySamples = orders.length * 2;
+// Eight complete order cycles for the default-pool acceptance workloads;
+// short initial runs had inconclusive tail intervals even at twelve pairs.
+const concurrencySamples = orders.length * 8;
 checkpoint.concurrency = concurrency;
 for (const [poolSize, children] of [
   ['4', 32],
@@ -289,7 +289,11 @@ for (const [poolSize, children] of [
   ['32', 32],
 ]) {
   const pairs = [];
-  for (let sample = 0; sample < concurrencySamples; sample++) {
+  for (
+    let sample = 0;
+    sample < (poolSize === '4' ? concurrencySamples : orders.length * 2);
+    sample++
+  ) {
     const pair = { order: orders[sample % orders.length] };
     for (const mode of pair.order)
       pair[mode] = JSON.parse(
