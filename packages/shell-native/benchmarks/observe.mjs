@@ -95,7 +95,7 @@ if (measurement === 'memory') {
       const release = resolve(folder, 'release'),
         markers = Array.from({ length: 32 }, (_, i) => resolve(folder, String(i)));
       const code =
-        'const fs=require("node:fs");fs.writeFileSync(process.argv[1],String(process.pid));const timer=setInterval(()=>{if(fs.existsSync(process.argv[2])){clearInterval(timer)}},5)';
+        'const fs=require("node:fs");fs.writeFileSync(process.argv[1]+".tmp",String(process.pid));fs.renameSync(process.argv[1]+".tmp",process.argv[1]);const timer=setInterval(()=>{if(fs.existsSync(process.argv[2])){clearInterval(timer)}},5)';
       const tasks = markers.map((marker) =>
         run(command(process.execPath, ['-e', code, marker, release])),
       );
@@ -105,7 +105,9 @@ if (measurement === 'memory') {
         assert(Date.now() < deadline);
         await new Promise((r) => setTimeout(r, 5));
       }
-      owned.push(...markers.map((marker) => Number(fs.readFileSync(marker, 'utf8'))));
+      const identifiers = markers.map((marker) => Number(fs.readFileSync(marker, 'utf8')));
+      identifiers.forEach((pid) => assert(Number.isSafeInteger(pid) && pid > 0));
+      owned.push(...identifiers);
       const start = performance.now();
       assert((await readFile(import.meta.filename)).length > 0);
       const filesystemWallMs = performance.now() - start;
@@ -124,7 +126,7 @@ if (measurement === 'memory') {
       const controller = new AbortController(),
         marker = resolve(folder, 'pid');
       const code =
-        'const fs=require("node:fs");process.on("SIGTERM",()=>{});fs.writeFileSync(process.argv[1],String(process.pid));setInterval(()=>{},1000)';
+        'const fs=require("node:fs");process.on("SIGTERM",()=>{});fs.writeFileSync(process.argv[1]+".tmp",String(process.pid));fs.renameSync(process.argv[1]+".tmp",process.argv[1]);setInterval(()=>{},1000)';
       const task = run(command(process.execPath, ['-e', code, marker]), {
         signal: controller.signal,
         gracePeriodMs: 20,
@@ -138,6 +140,7 @@ if (measurement === 'memory') {
         await new Promise((r) => setTimeout(r, 5));
       }
       const pid = Number(fs.readFileSync(marker, 'utf8'));
+      assert(Number.isSafeInteger(pid) && pid > 0);
       owned.push(pid);
       const start = performance.now();
       controller.abort('benchmark');
@@ -151,6 +154,7 @@ if (measurement === 'memory') {
     }
   } finally {
     for (const pid of owned) {
+      if (!Number.isSafeInteger(pid) || pid <= 0) continue;
       try {
         process.kill(pid, 'SIGKILL');
       } catch {}

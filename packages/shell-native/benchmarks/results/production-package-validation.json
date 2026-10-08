@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "workflowRun": "https://github.com/swiftuijs/twill/actions/runs/37757684979",
+  "gitHead": "3cb010b43d9c7b2f55bf9c733100c2531d16afef",
+  "verification": "Downloaded the native-assemble artifact and independently verified archive SHA256/bytes, all five binary SHA256/bytes/metadata, identical native source fingerprints, the actual root MIT license, 2 MiB binary and 6 MiB archive gates. Every platform job also passed independently installed Node 20.19 consumers. No publication performed.",
+  "licenseSHA256": "9967ce6bcd2aac70e668e837f7584a90b378f5e9ec5e90b125fef11ff58dad75",
+  "version": "0.1.2",
+  "hashAlgorithm": "sha256",
+  "artifacts": [
+    {
+      "filename": "swiftuijs-twill-shell-native-0.1.2.tgz",
+      "bytes": 1814079,
+      "sha256": "188c7d0949604ebf8c2de01989ff68291388a8e524b175b502eba2eca9b90e69"
+    }
+  ],
+  "binaries": [
+    {
+      "protocol": 1,
+      "version": "0.1.2",
+      "target": "linux-x64",
+      "bytes": 780552,
+      "sha256": "026cd83c86b2691c06aca04f0953e1244924841b6ca7277f8138935b8281b661",
+      "sourceSHA256": "5143e289ad5bda3f1931b129c756083bfc237ff7e8f19ff9b91218d7ec65a886",
+      "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)"
+    },
+    {
+      "protocol": 1,
+      "version": "0.1.2",
+      "target": "linux-arm64",
+      "bytes": 725912,
+      "sha256": "09204dc83e896da4e88cceb9b28e6cd1478514ee972eef6962a82c402c3fb669",
+      "sourceSHA256": "5143e289ad5bda3f1931b129c756083bfc237ff7e8f19ff9b91218d7ec65a886",
+      "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)"
+    },
+    {
+      "protocol": 1,
+      "version": "0.1.2",
+      "target": "darwin-x64",
+      "bytes": 730632,
+      "sha256": "ca4f21c728596975cc094bb5f56f9790a19fe81ab538d23fc42fdbbc786b43d5",
+      "sourceSHA256": "5143e289ad5bda3f1931b129c756083bfc237ff7e8f19ff9b91218d7ec65a886",
+      "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)"
+    },
+    {
+      "protocol": 1,
+      "version": "0.1.2",
+      "target": "darwin-arm64",
+      "bytes": 723920,
+      "sha256": "53c405259b8e7ec494dc9b96bf44cc99b161beea53601eedfb700c5b883ee497",
+      "sourceSHA256": "5143e289ad5bda3f1931b129c756083bfc237ff7e8f19ff9b91218d7ec65a886",
+      "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)"
+    },
+    {
+      "protocol": 1,
+      "version": "0.1.2",
+      "target": "win32-x64",
+      "bytes": 841216,
+      "sha256": "d40fb4a53ef0c4497aad1fef305321d6a4f3c57b2b8400f9f4dc427498073832",
+      "sourceSHA256": "5143e289ad5bda3f1931b129c756083bfc237ff7e8f19ff9b91218d7ec65a886",
+      "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)"
+    }
+  ]
+}

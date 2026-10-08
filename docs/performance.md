@@ -201,6 +201,35 @@ The addon is 495,808 bytes uncompressed, excluded from the SDK's existing 16 KiB
 
 ## Optional Rust backend
 
-The source-only `@swiftuijs/twill-shell-native` package implements the complete direct-child SDK contract with one independent asynchronous reactor per Node environment. It uses Unix readiness notifications and overlapped Windows pipes, without occupying a libuv worker per command. It preserves explicit byte bounds, typed errors, cancellation, bounded join and environment cleanup. Byte input is copied at submission; captures and decoding still allocate. Compiler/source startup and external-command work remain unchanged.
+The source-only `@swiftuijs/twill-shell-native` package implements the complete direct-child SDK contract with one independent asynchronous reactor per Node environment. Native process creation runs synchronously on the calling Node thread, matching Node spawn. Unix readiness notifications and overlapped Windows pipes handle already-started children without a libuv worker per command. It preserves byte bounds, typed errors, cancellation, bounded join and environment cleanup. Byte input is copied at submission; captures and decoding still allocate. Neither shell package is published on npm 0.1.2.
 
-The previous section measures the earlier Linux experiment, not this backend. New complete-contract measurements must include sequential launch/capture/input, default-pool concurrency, filesystem contention, cold import, cancellation and artifact bytes. The full source/build-identified report is recorded with the native package benchmark; performance claims require that evidence. Neither source package is published on npm 0.1.2.
+The [complete-contract report](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/production-linux-node24.json) measures the production implementation on 2026-10-08, Linux x64, Node 24.19.0 and Intel Xeon Platinum 8573C, with Rust 1.90.0. Eleven paired warm samples interleave all six handwritten Node / SDK / Rust orders between individual operations. Sequential work uses CPU 0; concurrency uses CPUs 0–3, matching the host's four-CPU quota. Each backend receives the same workload affinity. Output and termination status are checked outside timing. Parent CPU includes the Rust reactor and excludes child CPU.
+
+| Warm operation                 | SDK median | Rust median | Paired Rust / SDK | Paired Rust / native (95% interval) |
+| ------------------------------ | ---------- | ----------- | ----------------- | ----------------------------------- |
+| `/usr/bin/true`, inherited I/O | 2.99 ms    | 1.95 ms     | 0.648×            | 0.645× (0.620–0.651)                |
+| Empty Node child               | 38.01 ms   | 37.77 ms    | 0.963×            | 0.969× (0.954–0.990)                |
+| Native dual capture, 1 MiB     | 8.33 ms    | 4.88 ms     | 0.575×            | 0.591× (0.552–0.617)                |
+| Native dual capture, 8 MiB     | 30.59 ms   | 22.89 ms    | 0.737×            | 0.731× (0.676–0.744)                |
+| Node dual capture, 1 MiB       | 50.45 ms   | 45.54 ms    | 0.918×            | 0.915× (0.886–0.935)                |
+| Native stdin/text echo, 1 MiB  | 7.50 ms    | 4.98 ms     | 0.675×            | 0.682× (0.650–0.702)                |
+| Native full-duplex I/O, 1 MiB  | 7.95 ms    | 5.05 ms     | 0.629×            | 0.634× (0.623–0.659)                |
+
+Capture sizes are per stream. Wall medians and paired-ratio medians are different statistics; dividing the displayed medians does not reproduce the paired ratios. These native executable launch/capture workloads reduce wall time by about 26–43% against the SDK in this run. Parent CPU ratios are 0.478–0.801 across all seven workloads. The addon accelerates coordination, not the child program's own work.
+
+Default-pool concurrency uses 48 pairs per workload, with each of six orders appearing eight times. Each child runs Node with a 100 ms timer. The earlier experimental 2.5× slowdown is removed without enlarging the shared worker pool:
+
+| Concurrent children | SDK median | Rust median | Paired Rust / native (95% interval) |
+| ------------------- | ---------- | ----------- | ----------------------------------- |
+| 32                  | 572 ms     | 563 ms      | 0.998× (0.974–1.040)                |
+| 128                 | 1850 ms    | 1853 ms     | 1.003× (0.983–1.022)                |
+
+All seven warm workloads and both default-pool concurrency workloads pass the unchanged acceptance target: paired median and upper 95% bootstrap bound at most 1.10× handwritten Node. This is a controlled-host result, not a cross-platform performance guarantee. Five real OS/CPU CI targets separately verify behavior and independently installed Node 20.19 consumers.
+
+Isolated capture RSS-increase medians are SDK/Rust 3.88/2.43 MiB at 1 MiB per stream and 32.38/16.37 MiB at 8 MiB per stream. Sampling at 1 ms plus settlement cannot establish a hard peak bound; native memory is not fully represented by V8 external-memory accounting. With `UV_THREADPOOL_SIZE=1` and 32 live children, unrelated filesystem reads still complete before releasing those children. Forced cancellation with a 20 ms grace period joins the directly owned child; raw latencies are in the report. These lifecycle observations use atomic PID markers and reject nonpositive identifiers before cleanup.
+
+Fresh interpreter/import/one-command medians are handwritten Node 53.9 ms, SDK 56.3 ms and Rust 60.6 ms. Actual Twill runner medians are SDK/Rust 187.3/192.2 ms with cache hits and 543.9/560.9 ms with caching disabled. Their paired ratios are 1.029× and 1.010×; there is no demonstrated source-startup improvement. The compiler and Node interpreter remain on that path.
+
+The measured Linux addon is 781,016 bytes. The separately verified five-target CI archive is 1,814,079 bytes compressed; each binary stays below 2 MiB and the archive below 6 MiB. The Node SDK retains its independent 16 KiB budget. Binary hashes, source fingerprints, archive digest and license verification are retained in the [package evidence](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/production-package-validation.json).
+
+The [measurement history and reproduction instructions](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/README.md) retain every failed review, the interrupted checkpoint and continuation source. The checkpoint already contained all warm, memory and concurrency observations; its continuation completed lifecycle and cold measurements on unchanged sources/builds. Review found a PID-marker race in the benchmark tool; atomic-marker lifecycle measurements were then repeated and recorded separately, preserving the original observations. Earlier foreign-thread cleanup crashes were fixed in the backend and are covered by repeated fresh-process, worker and actual Twill-runner tests. No sample was dropped to pass a performance gate. Process-tree containment, pipelines and unsupported prebuild targets remain outside this direct-child contract.
