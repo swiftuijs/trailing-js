@@ -29,8 +29,8 @@ const samples = 11;
 // Check report dependencies before measuring; a missing tool must not discard
 // a complete run only when the final report is being constructed.
 const rustc = execFileSync('rustc', ['--version'], { encoding: 'utf8' }).trim();
-const cc = mkdirSync(resolve(import.meta.dirname, 'target'), { recursive: true });
-execFileSync('cc', ['--version'], { encoding: 'utf8' }).split('\n')[0];
+mkdirSync(resolve(import.meta.dirname, 'target'), { recursive: true });
+const cc = execFileSync('cc', ['--version'], { encoding: 'utf8' }).split('\n')[0];
 function optionalText(path) {
   try {
     return readFileSync(path, 'utf8').trim();
