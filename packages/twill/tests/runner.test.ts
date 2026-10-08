@@ -136,7 +136,9 @@ it.each([
   const result = execute(cwd, [file]);
   expect(result.status).toBe(1);
   expect(result.stderr).toContain('script failure');
-  expect(result.stderr).toContain(realpathSync(file).replaceAll('\\', '/') + ':3:');
+  expect(result.stderr.replaceAll('\\', '/')).toContain(
+    realpathSync(file).replaceAll('\\', '/') + ':3:',
+  );
 });
 it('does not type-check source or reinterpret script flags', () => {
   const { cwd, file } = fixture('const value: number = "native execution";console.log(value);');
@@ -258,7 +260,7 @@ it.skipIf(process.platform === 'win32')(
   },
 );
 
-it('retains entry URLs while documenting the imported-entry main-module boundary', () => {
+it('documents the imported-entry main-module boundary', () => {
   for (const [name, source] of [
     ['entry.twill', 'console.log(JSON.stringify({main: import.meta.main ?? null}));'],
     ['entry.cjs', 'console.log(JSON.stringify({main: require.main === module}));'],
