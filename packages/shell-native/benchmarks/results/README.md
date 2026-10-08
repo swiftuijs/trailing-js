@@ -22,11 +22,27 @@ Even-sized samples use the upper middle order statistic, including the performan
 - [Final production report](production-linux-node24.json) preserves all warm, memory, concurrency and cold observations from that complete review and repeats only the five filesystem and five cancellation pairs with the corrected observer. [Lifecycle verification source](verify-lifecycle-observations.mjs) revalidates every other measured source/build digest, Node runtime, CPU quota and sequential affinity. The final report identifies both observer versions, its base-report digest and the verification script digest. Every original lifecycle observation remains in the prior report. All seven warm and both default-pool gates pass: 32/128-child Rust/native medians 0.998/1.003, upper bounds 1.040/1.022. Cold startup has no demonstrated gain.
 - [Five-target package validation](production-package-validation.json) identifies the successful CI run and inspected archive. The 1,814,079-byte archive contains all tested targets, identical source fingerprints, exact binary digests and the root MIT license. The Node SDK retains its separate 16 KiB gate. Production implementation readiness is separate from npm publication.
 
+## Expanded-platform validation
+
+- [Eight-target package validation](platform-package-validation.json) identifies implementation `6d4ccfb4925147785a3d8074cb67157c5b68f46a` and the successful complete CI run. Actual Linux glibc/musl x64/arm64, macOS x64/arm64 and Windows x64/arm64 jobs pass real-process contracts, 100% adapter coverage and independently installed Node 20.19 consumers. The inspected 2,891,605-byte archive retains all eight digests, one native source fingerprint and the actual MIT license. Linux glibc builds use glibc 2.28; musl builds use musl 1.2.5; Windows ARM64 uses native ARM64 Node. This is source/archive validation, not npm publication or evidence for other architectures/OS versions.
+- [Expanded-platform complete performance report](platform-linux-node24.json) retains every observation from a clean, uninterrupted run on that implementation. All seven warm and both 48-pair default-pool gates pass unchanged. 32/128-child Rust/native medians are 1.002/0.999, upper bounds 1.023/1.022. This measures the Linux readiness path, not every supported platform or polling path. Cold startup does not show a gain: SDK/Rust direct medians are 63.5/80.7 ms; cached source medians are 202.3/259.6 ms.
+- [Readiness](platform-pidfd-readiness.json) and [denied-pidfd](platform-pidfd-denied.json) focused diagnostics retain twelve pairs per workload on the same source/build. The latter uses the real `tests/fixtures/deny-pidfd.c` launcher, which verifies a seccomp ENOSYS filter before executing Node. All six orders interleave individual operations on CPU 0; every output/status is checked. The [exact diagnostic source](platform-pidfd-diagnostic.mjs.txt) takes the checkout root, notification label and output path as arguments. Short-launch polling Rust/native median is 1.080, interval 1.071–1.106; dual capture is 0.642, interval 0.624–0.681. The short-launch upper bound exceeds 1.10: this focused diagnostic does not pass or replace the complete readiness acceptance run. Retain the observed latency tradeoff; do not infer universal parity or speedup. Diagnostics include parent CPU and source/build/tool identities, with child CPU excluded.
+
 Reproduce from a clean checkout after building the packages:
 
 ```sh
 pnpm --filter @swiftuijs/twill-shell-native... build
+mkdir -p packages/shell-native/benchmarks/target
 taskset -c 0 node packages/shell-native/benchmarks/benchmark.mjs --concurrency-cpus 0-3 --output packages/shell-native/benchmarks/target/production.json --verify-performance
+```
+
+The focused polling diagnostic runs separately after the complete benchmark has built its C producer:
+
+```sh
+cc -O2 -Wall -Wextra -Werror packages/shell-native/tests/fixtures/deny-pidfd.c -o packages/shell-native/benchmarks/target/deny-pidfd
+cp packages/shell-native/benchmarks/results/platform-pidfd-diagnostic.mjs.txt packages/shell-native/benchmarks/target/pidfd-diagnostic.mjs
+taskset -c 0 node packages/shell-native/benchmarks/target/pidfd-diagnostic.mjs "$PWD" readiness packages/shell-native/benchmarks/target/readiness.json
+taskset -c 0 packages/shell-native/benchmarks/target/deny-pidfd enosys node packages/shell-native/benchmarks/target/pidfd-diagnostic.mjs "$PWD" denied-pidfd packages/shell-native/benchmarks/target/denied-pidfd.json
 ```
 
 Run performance measurements without concurrent builds or test suites. On a CPU-quota-limited Linux host, choose allowed CPUs that match the quota (the reviewed host allows CPUs 0–4 but has four CPU equivalents of quota; `taskset -c 0-3` avoids oversubscribing it). The report records affinity, CPU quota and cgroup counters, and concurrency observations retain per-batch counters. Checkpoints go to the ignored `target` directory so a failed run retains completed samples. Preserve failed reports alongside successful reports; do not drop outliers or equate a timing result with cross-platform contract verification or npm publication.
