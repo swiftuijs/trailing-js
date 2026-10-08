@@ -38,6 +38,39 @@ const message = (worker) =>
   });
 test('installed native lifetime and scheduling contracts', { timeout: 60000 }, async (t) => {
   try {
+    await t.test('repeated fresh exits and worker environment disposal remain safe', async () => {
+      const code = `import {Command,Output,Subprocess} from ${JSON.stringify(apiURL)};
+        const results=await Promise.all(Array.from({length:4},()=>Subprocess.run(Command.path(process.execPath,['-e','']),{output:Output.discard()})));
+        if(results.some(r=>r.terminationStatus.code!==0))throw Error('Incorrect result');
+        process.stdout.write('complete');`;
+      for (let i = 0; i < 48; i++) {
+        assert.equal(
+          execFileSync(process.execPath, ['--input-type=module', '-e', code], {
+            timeout: 15000,
+            encoding: 'utf8',
+          }),
+          'complete',
+        );
+      }
+      // Natural worker exit runs environment cleanup after completed promises;
+      // forced worker termination exercises the same hook with active children.
+      for (let i = 0; i < 12; i++) {
+        const worker = new Worker(
+          `const {parentPort,workerData}=require('node:worker_threads');
+          (async()=>{const {Command,Output,Subprocess}=await import(workerData);
+          await Promise.all(Array.from({length:4},()=>Subprocess.run(Command.path(process.execPath,['-e','']),{output:Output.discard()})));
+          parentPort.postMessage('complete')})();`,
+          { eval: true, workerData: apiURL },
+        );
+        workers.push(worker);
+        const exited = new Promise((resolve, reject) => {
+          worker.once('exit', resolve);
+          worker.once('error', reject);
+        });
+        assert.equal(await message(worker), 'complete');
+        assert.equal(await exited, 0);
+      }
+    });
     await t.test('one libuv worker remains free while 32 native children run', async () => {
       const root = folder(),
         controller = new AbortController();

@@ -678,6 +678,15 @@ importers:
         specifier: workspace:*
         version: link:../shell
     devDependencies:
+      '@swiftuijs/twill':
+        specifier: workspace:*
+        version: link:../twill
+      '@swiftuijs/twill-export':
+        specifier: workspace:*
+        version: link:../export
+      '@swiftuijs/twill-formatter':
+        specifier: workspace:*
+        version: link:../formatter
       '@types/node':
         specifier: 'catalog:'
         version: 26.6.4

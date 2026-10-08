@@ -42,7 +42,7 @@ impl Drop for Settlement {
 
 enum Message {
     Run(u32, Box<Options>, watch::Receiver<Control>, Settlement),
-    Shutdown(Option<usize>),
+    Shutdown,
 }
 struct State {
     sender: mpsc::UnboundedSender<Message>,
@@ -50,6 +50,17 @@ struct State {
     sequence: AtomicU32,
     closing: AtomicBool,
     joined: Condvar,
+    stopped: Mutex<bool>,
+    reactor_stopped: Condvar,
+}
+// Declare this before the thread-local runtime so unwinding drops every task
+// and OS reactor handle before notifying the environment's owning thread.
+struct ReactorCompletion(Arc<State>);
+impl Drop for ReactorCompletion {
+    fn drop(&mut self) {
+        *locked(&self.0.stopped) = true;
+        self.0.reactor_stopped.notify_all();
+    }
 }
 struct Registration {
     owner: Arc<State>,
@@ -74,9 +85,11 @@ fn locked<T>(mutex: &Mutex<T>) -> std::sync::MutexGuard<'_, T> {
     mutex.lock().unwrap_or_else(PoisonError::into_inner)
 }
 
-// Node calls this exactly once on the environment's owning thread. The async
-// hook remains registered until all that environment's children have finished
-// bounded teardown; a worker can terminate without leaking a live child.
+// Node calls this exactly once on the environment's owning thread. Only that
+// thread may remove the hook: Node's implementation mutates its environment and
+// schedules an immediate on the owning libuv loop. A foreign-thread removal can
+// corrupt the loop at exit. The independent reactor needs no JS callbacks while
+// this bounded barrier cancels/joins children and releases its OS handles.
 unsafe extern "C" fn cleanup(handle: napi::sys::napi_async_cleanup_hook_handle, data: *mut c_void) {
     // SAFETY: state() hands Node this unique Box, consumed only by this callback.
     let (key, state) = unsafe { *Box::from_raw(data.cast::<(usize, Arc<State>)>()) };
@@ -85,15 +98,16 @@ unsafe extern "C" fn cleanup(handle: napi::sys::napi_async_cleanup_hook_handle, 
     for control in locked(&state.operations).values() {
         control.send_replace(Control::Shutdown);
     }
-    if state
-        .sender
-        .send(Message::Shutdown(Some(handle as usize)))
-        .is_err()
-    {
-        // SAFETY: The reactor is already gone; no commands remain. Node permits
-        // removing an async cleanup hook from any thread, including this one.
-        unsafe { napi::sys::napi_remove_async_cleanup_hook(handle) };
-    }
+    let _ = state.sender.send(Message::Shutdown);
+    let _ = state.reactor_stopped.wait_timeout_while(
+        locked(&state.stopped),
+        std::time::Duration::from_millis(1100),
+        |stopped| !*stopped,
+    );
+    // SAFETY: Node supplied this unique live handle to this callback; remove it
+    // on the same owning thread. If an uninterruptible OS launch exceeds the
+    // barrier, napi's environment-aware deferred cannot enter the disposed env.
+    unsafe { napi::sys::napi_remove_async_cleanup_hook(handle) };
 }
 
 fn state(env: Env) -> Result<Arc<State>> {
@@ -118,15 +132,18 @@ fn state(env: Env) -> Result<Arc<State>> {
         sequence: AtomicU32::new(0),
         closing: AtomicBool::new(false),
         joined: Condvar::new(),
+        stopped: Mutex::new(false),
+        reactor_stopped: Condvar::new(),
     });
     let owner = Arc::clone(&state);
     std::thread::Builder::new()
         .name("twill-subprocess".into())
         .spawn(move || {
-            let cleanup_handle = runtime.block_on(async move {
+            let completion = ReactorCompletion(Arc::clone(&owner));
+            let runtime = runtime;
+            runtime.block_on(async move {
                 let mut tasks = JoinSet::new();
                 let mut shutting_down = false;
-                let mut cleanup_handle = None;
                 loop {
                     if shutting_down && tasks.is_empty() {
                         break;
@@ -141,9 +158,8 @@ fn state(env: Env) -> Result<Arc<State>> {
                                     settlement.complete(outcome);
                                 });
                             }
-                            Some(Message::Shutdown(handle)) => {
+                            Some(Message::Shutdown) => {
                                 shutting_down = true;
-                                cleanup_handle = handle;
                                 for control in locked(&owner.operations).values() {
                                     control.send_replace(Control::Shutdown);
                                 }
@@ -153,16 +169,11 @@ fn state(env: Env) -> Result<Arc<State>> {
                         _ = tasks.join_next(), if !tasks.is_empty() => {}
                     }
                 }
-                cleanup_handle
             });
             // Dropping the idle runtime releases OS reactor handles before Node is
             // told the hook is complete. No per-process blocking waits run here.
             drop(runtime);
-            if let Some(handle) = cleanup_handle {
-                // SAFETY: The live hook handle was passed by Node and uniquely moved
-                // to this reactor. Removal is explicitly valid from any thread.
-                unsafe { napi::sys::napi_remove_async_cleanup_hook(handle as _) };
-            }
+            drop(completion);
         })
         .map_err(|error| Error::from_reason(format!("Native reactor thread failed: {error}")))?;
     let data = Box::into_raw(Box::new((key, Arc::clone(&state))));
@@ -179,7 +190,7 @@ fn state(env: Env) -> Result<Arc<State>> {
     if status != napi::sys::Status::napi_ok {
         // SAFETY: Registration failed, so Node never took ownership of the Box.
         unsafe { drop(Box::from_raw(data)) };
-        let _ = state.sender.send(Message::Shutdown(None));
+        let _ = state.sender.send(Message::Shutdown);
         return Err(Error::from_reason(
             "Native environment cleanup registration failed",
         ));

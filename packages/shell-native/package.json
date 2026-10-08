@@ -35,6 +35,9 @@
     "@swiftuijs/twill-shell": "workspace:*"
   },
   "devDependencies": {
+    "@swiftuijs/twill": "workspace:*",
+    "@swiftuijs/twill-formatter": "workspace:*",
+    "@swiftuijs/twill-export": "workspace:*",
     "typescript": "catalog:",
     "@types/node": "catalog:",
     "vitest": "catalog:",
