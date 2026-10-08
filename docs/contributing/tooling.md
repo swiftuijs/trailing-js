@@ -89,7 +89,9 @@ The canonical site is `https://twill.evecalm.com` with a default base of `/`; se
 
 ## CI workflows
 
-`CI` verifies each push and pull request on Ubuntu 24.04 with Node 22, then checks independently installed packages on Node 20. It runs unit suites with coverage once and retains actual browser/editor tests and deterministic size gates. The `Extended validation` workflow is manual: select compatibility checks for Windows, macOS, Node 24 and the minimum supported editor, or benchmarks for timing reports. Use it before a release and when changing platform-sensitive behavior.
+`CI` uses conservative change selection for ordinary PRs. Documentation/site/skill/report-only PRs run documentation coverage/types/builds, skill/download validation and root/subpath browsers without Rust or unrelated editor/consumer tests. Code PRs retain full Linux verification on Node 22 and independent Node 20 consumers; compiler/runner/export/runtime changes also run Windows/macOS subprocess jobs. Native/shared-shell/dependency/build changes require all eight native targets and complete assembly. Unknown paths or missing history run everything. Scope-selection regression tests run first; failures fail the unchanged required `verify` check. Cargo and native Linux BuildKit caches accelerate compilation, never replace tests. Main, Monday 03:17 UTC, manual `CI` and release runs always validate everything. See [testing](testing.md) for routing and cache boundaries.
+
+The `Extended validation` workflow is manual: select compatibility checks for Windows, macOS, Node 24 and the minimum supported editor, or benchmarks for timing reports. Use it before a release and when changing platform-sensitive behavior.
 
 The optional release workflow is dispatched manually at a release tag, uses the same CI verification, and publishes its tested tarballs and VSIX without another build. Documentation deployment builds independently, triggered only by site content, compiler/formatter/highlighter dependencies, shared dependency manifests or its own workflow; it can also be run manually.
 

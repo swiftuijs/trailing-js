@@ -3,8 +3,14 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 3 * * 1'
   workflow_call:
     inputs:
+      full-validation:
+        type: boolean
+        default: true
       minimum-editor:
         type: boolean
         default: false
@@ -14,10 +20,42 @@ concurrency:
 permissions:
   contents: read
 jobs:
+  changes:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      core: ${{ steps.scope.outputs.core }}
+      native: ${{ steps.scope.outputs.native }}
+      shell: ${{ steps.scope.outputs.shell }}
+      experiment: ${{ steps.scope.outputs.experiment }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+      - name: Test conservative CI scope selection
+        run: node --test packages/shell-native/tests/ci-scope.test.mjs
+      - name: Select checks from the complete PR diff
+        id: scope
+        run: node packages/shell-native/scripts/ci-scope.mjs
+        env:
+          TWILL_CI_FULL: ${{ inputs.full-validation == true }}
+
   verify:
+    needs: changes
+    # Keep the required check name and fail it if scope analysis failed.
+    if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 30
+    env:
+      RUSTUP_TOOLCHAIN: '1.90.0'
     steps:
+      - name: Require successful scope analysis
+        run: test "$SCOPE_RESULT" = success
+        env:
+          SCOPE_RESULT: ${{ needs.changes.result }}
       - uses: actions/checkout@v7.0.1
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7.0.0
@@ -29,36 +67,71 @@ jobs:
         run: pnpm verify:release && pnpm deps:check
         env:
           RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+      - name: Install the pinned Rust toolchain
+        if: needs.changes.outputs.core == 'true'
+        run: rustup toolchain install 1.90.0 --profile minimal --component rustfmt --component clippy
+      - uses: Swatinem/rust-cache@v2.9.2
+        if: needs.changes.outputs.core == 'true'
+        with:
+          workspaces: packages/shell-native/crate -> target
+          shared-key: verify-linux
       - name: Build workspace
+        # Cache compilation inputs only; all selected tests still execute.
+        if: needs.changes.outputs.core == 'true'
         run: pnpm build
       - name: Check types, lint and formatting
+        if: needs.changes.outputs.core == 'true'
         run: pnpm typecheck && pnpm lint && pnpm format:check && pnpm verify:skills
       - name: Unit coverage and grammar tests
+        if: needs.changes.outputs.core == 'true'
         # Coverage runs the unit suites; do not repeat them through pnpm check.
         run: pnpm test:coverage && pnpm --filter twill test:unit
       - name: Validate example behavior and bundle budgets
+        if: needs.changes.outputs.core == 'true'
         run: pnpm test:examples && pnpm --filter @swiftuijs/twill test:size --output ../../bundle-results.json
       - name: Pack the validated build
+        if: needs.changes.outputs.core == 'true'
         run: pnpm package:core && pnpm package:tooling && pnpm --filter twill package:built && pnpm release:manifest
       - name: Packaged editor coverage
+        if: needs.changes.outputs.core == 'true'
         run: xvfb-run -a pnpm editor:coverage
         env:
           TWILL_TEST_VSCODE_VERSION: stable
       - name: Minimum supported editor
-        if: inputs.minimum-editor == true
+        if: inputs.minimum-editor == true && needs.changes.outputs.core == 'true'
         run: xvfb-run -a pnpm editor:test
         env:
           TWILL_TEST_VSCODE_VERSION: '1.95.3'
       - name: Browser integration tests
+        if: needs.changes.outputs.core == 'true'
         run: |
           pnpm --filter @swiftuijs/twill-docs exec playwright install --with-deps chromium
           pnpm test:browser
         env:
           TWILL_BROWSER_OUTPUT: ${{ runner.temp }}/twill-browser-results
+      - name: Documentation and official skill checks
+        if: needs.changes.outputs.core != 'true'
+        run: |
+          pnpm docs:build
+          pnpm --filter @swiftuijs/twill-docs typecheck
+          pnpm --filter @swiftuijs/twill-docs test:coverage
+          pnpm verify:skills
+          pnpm format:check
+      - name: Documentation browsers at root and subpath
+        if: needs.changes.outputs.core != 'true'
+        run: |
+          pnpm --filter @swiftuijs/twill-docs exec playwright install --with-deps chromium
+          pnpm --filter @swiftuijs/twill-docs test:browser
+          TWILL_DOCS_BASE=/twill/ pnpm docs:build
+          TWILL_DOCS_BASE=/twill/ pnpm --filter @swiftuijs/twill-docs test:browser --grep 'official AI guide|shell scripting guide|English documentation navigation'
+        env:
+          TWILL_BROWSER_OUTPUT: ${{ runner.temp }}/twill-browser-results
       - uses: actions/setup-node@v7.0.0
+        if: needs.changes.outputs.core == 'true'
         with:
           node-version: 20
       - name: Independently installed packages on the minimum consumer runtime
+        if: needs.changes.outputs.core == 'true'
         # Repository tools require Node 22; the shipped packages support Node 20.
         run: |
           node packages/twill/tests/consumer.mjs --packed
@@ -69,6 +142,7 @@ jobs:
           node packages/runtime/tests/consumer.mjs
           node packages/shell/tests/consumer.mjs
       - name: Upload validated distributions
+        if: needs.changes.outputs.core == 'true'
         uses: actions/upload-artifact@v7.0.1
         with:
           name: twill-packages
@@ -91,6 +165,8 @@ jobs:
             ${{ runner.temp }}/twill-browser-results/
 
   native-platforms:
+    needs: changes
+    if: needs.changes.outputs.native == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -105,6 +181,8 @@ jobs:
             arch: arm64
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
+    env:
+      RUSTUP_TOOLCHAIN: '1.90.0'
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: pnpm/action-setup@v6
@@ -118,8 +196,14 @@ jobs:
         env:
           TWILL_NATIVE_ARCH: ${{ matrix.arch }}
       - run: pnpm install --frozen-lockfile
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install 1.90.0 --profile minimal --component rustfmt --component clippy
       - if: matrix.os == 'windows-11-arm'
         run: rustup target add aarch64-pc-windows-msvc --toolchain 1.90.0
+      - uses: Swatinem/rust-cache@v2.9.2
+        with:
+          workspaces: packages/shell-native/crate -> target
+          shared-key: native-${{ matrix.os }}-${{ matrix.arch }}
       - run: pnpm --filter @swiftuijs/twill-shell-native... build
       - run: pnpm --filter @swiftuijs/twill-shell-native test:native
       - run: pnpm --filter @swiftuijs/twill-shell-native typecheck
@@ -139,6 +223,8 @@ jobs:
             packages/shell-native/native/*.json
 
   native-linux:
+    needs: changes
+    if: needs.changes.outputs.native == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -148,11 +234,31 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7.0.1
-      - name: Build the native CPU/ABI environment
-        run: docker build -f packages/shell-native/ci/Dockerfile.${{ matrix.libc }} -t twill-native-platform packages/shell-native/ci
+      - uses: docker/setup-buildx-action@v4.4.1
+      - name: Build/cache the native CPU/ABI environment
+        uses: docker/build-push-action@v7.4.0
+        with:
+          context: packages/shell-native/ci
+          file: packages/shell-native/ci/Dockerfile.${{ matrix.libc }}
+          tags: twill-native-platform
+          load: true
+          cache-from: type=gha,scope=twill-native-${{ runner.arch }}-${{ matrix.libc }}
+          cache-to: type=gha,mode=max,scope=twill-native-${{ runner.arch }}-${{ matrix.libc }}
+      - uses: actions/cache@v6.1.0
+        with:
+          path: |
+            packages/shell-native/crate/target
+            ${{ runner.temp }}/twill-cargo/registry
+            ${{ runner.temp }}/twill-cargo/git
+          key: native-linux-${{ runner.arch }}-${{ matrix.libc }}-${{ hashFiles('packages/shell-native/crate/Cargo.*', 'packages/shell-native/crate/rust-toolchain.toml', 'packages/shell-native/ci/Dockerfile.*') }}-${{ hashFiles('packages/shell-native/crate/src/**', 'packages/shell-native/crate/build.rs') }}
+          restore-keys: |
+            native-linux-${{ runner.arch }}-${{ matrix.libc }}-${{ hashFiles('packages/shell-native/crate/Cargo.*', 'packages/shell-native/crate/rust-toolchain.toml', 'packages/shell-native/ci/Dockerfile.*') }}-
       - name: Build and verify real native contracts
         run: |
-          docker run --rm -v "$GITHUB_WORKSPACE:/workspace" twill-native-platform sh -ec '
+          mkdir -p "$RUNNER_TEMP/twill-cargo/registry" "$RUNNER_TEMP/twill-cargo/git"
+          docker run --rm -v "$GITHUB_WORKSPACE:/workspace" \
+            -v "$RUNNER_TEMP/twill-cargo/registry:/usr/local/cargo/registry" \
+            -v "$RUNNER_TEMP/twill-cargo/git:/usr/local/cargo/git" twill-native-platform sh -ec '
             pnpm install --frozen-lockfile
             pnpm --filter @swiftuijs/twill-shell-native... build
             pnpm --filter @swiftuijs/twill-shell-native test:native
@@ -180,7 +286,8 @@ jobs:
             packages/shell-native/native/*.json
 
   native-assemble:
-    needs: [native-platforms, native-linux]
+    needs: [changes, native-platforms, native-linux]
+    if: needs.changes.outputs.native == 'true'
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -213,9 +320,13 @@ jobs:
             native-release-manifest.json
 
   rust-experiment:
+    needs: changes
+    if: needs.changes.outputs.experiment == 'true'
     # This explicitly selected Linux prototype is outside published package files.
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    env:
+      RUSTUP_TOOLCHAIN: '1.90.0'
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: pnpm/action-setup@v6
@@ -224,6 +335,12 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install 1.90.0 --profile minimal --component rustfmt --component clippy
+      - uses: Swatinem/rust-cache@v2.9.2
+        with:
+          workspaces: packages/shell/experiments/rust-native -> target
+          shared-key: historical-experiment
       - run: pnpm --filter @swiftuijs/twill-shell... build
       - name: Build and check the isolated Rust experiment
         working-directory: packages/shell/experiments/rust-native
@@ -240,6 +357,8 @@ jobs:
         run: node --expose-gc --test test.mjs
 
   shell-platforms:
+    needs: changes
+    if: needs.changes.outputs.shell == 'true'
     strategy:
       fail-fast: false
       matrix:

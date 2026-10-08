@@ -16,6 +16,8 @@ Retain Linux pidfd readiness when available. Older Node-supported kernels or con
 
 32-bit targets and other operating systems are outside this amendment and need their own tested implementation and artifact strategy. Published support status follows completed platform validation rather than the presence of a Rust target or CI matrix entry.
 
+Ordinary PRs may select checks from the complete base-to-head diff: native/backend/shared-contract/dependency/build changes require all eight targets; compiler/runner changes retain Linux native contracts and Windows/macOS runner checks; documentation-only PRs validate documentation, skill downloads and subpath hosting. Main, scheduled, manual and release verification always run the full matrix. Unknown paths or an unavailable diff select full validation. Cache build inputs/dependencies by OS/CPU/libc/toolchain, but rerun the selected real-process tests and independent consumers; a cache hit is not validation evidence. Scope selection itself has regression tests and a failure must fail the stable required `verify` check.
+
 ## Problem and native baseline
 
 The current shell SDK calls native Node spawn/libuv with literal argv. Its Linux/Node 24 warm wall ratios were 1.003–1.013 against equivalent handwritten Node coordination; dual capture consumed about 10% more parent CPU. This leaves limited evidence for replacing ordinary command launches. Existing ownership covers the directly launched child; robust pipelines and operating-system containment require new lifecycle contracts.

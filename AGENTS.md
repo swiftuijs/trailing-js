@@ -32,6 +32,8 @@ Shell changes also review literal argv/PATH, cwd/environment snapshots, stdin an
 
 Keep the Node SDK's dependency and archive budgets independent from optional runtime/native costs. Preserve deterministic correctness, coverage and size gates. Follow the [testing](docs/contributing/testing.md) and [release](docs/contributing/releasing.md) guides for applicable commands; record unsupported or deferred behavior rather than implying support in documentation or the official skill.
 
+CI may omit unaffected platform jobs for ordinary PRs using the complete base-to-head diff. Native/shared-shell/dependency/build changes require all eight targets; unknown paths or unavailable history select full validation. Main, scheduled, manual and release runs remain full. Documentation-only checks still validate skill/downloads, coverage and root/subpath browsers. Cache compilation inputs by OS/CPU/libc/toolchain, never use a cache hit as a passed test, and preserve the required `verify` check when changing CI routing.
+
 ## Official skill synchronization
 
 `skills/twill/SKILL.md` is the canonical portable application-development skill. Root `AGENTS.md` governs development of Twill itself; do not package repository-maintenance instructions as application requirements.
