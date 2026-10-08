@@ -30,19 +30,6 @@ pub struct Pipes {
     pub output: Option<ReadPipe>,
     pub error: Option<ReadPipe>,
 }
-pub fn available() -> io::Result<()> {
-    #[cfg(target_os = "linux")]
-    {
-        // SAFETY: Probe pidfd support on this process before any child launch.
-        let fd = unsafe { libc::syscall(libc::SYS_pidfd_open, std::process::id(), 0) };
-        if fd == -1 {
-            return Err(io::Error::last_os_error());
-        }
-        // SAFETY: This successful syscall returned a uniquely owned descriptor.
-        drop(unsafe { OwnedFd::from_raw_fd(fd as i32) });
-    }
-    Ok(())
-}
 #[cfg(windows)]
 pub fn executable(options: &crate::process::Options) -> io::Result<std::ffi::OsString> {
     use std::path::PathBuf;
@@ -383,7 +370,7 @@ impl Child {
         // Establish the kill/reap Drop guard before notifier registration, so
         // an unexpected registration panic cannot abandon the spawned child.
         match exit_notification(child.id().expect("owned child")) {
-            Ok(fd) => child.notification = Some(fd),
+            Ok(fd) => child.notification = fd,
             Err(error) => child.notification_error = Some(error),
         }
         Ok(child)
@@ -424,8 +411,10 @@ impl Child {
                 #[cfg(target_os = "linux")]
                 ready.clear_ready();
             } else {
-                // Only notification-failure teardown uses polling; normal waits
-                // use pidfd/kqueue readiness without replacing SIGCHLD handlers.
+                // Older Linux kernels and denied pidfds use the same reactor;
+                // resource errors are still failures. No SIGCHLD handler or
+                // per-child worker is installed. Failed-notifier teardown and
+                // already-consumed Darwin events also retain owned polling.
                 tokio::time::sleep(std::time::Duration::from_millis(1)).await;
             }
             if let Some(status) = self.try_wait()? {
@@ -463,20 +452,28 @@ impl Drop for Child {
 }
 
 #[cfg(target_os = "linux")]
-fn exit_notification(pid: u32) -> io::Result<AsyncFd<OwnedFd>> {
+fn exit_notification(pid: u32) -> io::Result<Option<AsyncFd<OwnedFd>>> {
     // SAFETY: pidfd_open creates a new owned descriptor, with no borrowed memory.
     let fd = unsafe { libc::syscall(libc::SYS_pidfd_open, pid, 0) };
     if fd == -1 {
-        return Err(io::Error::last_os_error());
+        let error = io::Error::last_os_error();
+        if matches!(
+            error.raw_os_error(),
+            Some(libc::ENOSYS | libc::EPERM | libc::EACCES)
+        ) {
+            return Ok(None);
+        }
+        return Err(error);
     }
     // SAFETY: This successful syscall returns a uniquely owned descriptor.
     AsyncFd::with_interest(
         unsafe { OwnedFd::from_raw_fd(fd as i32) },
         tokio::io::Interest::READABLE,
     )
+    .map(Some)
 }
 #[cfg(target_os = "macos")]
-fn exit_notification(pid: u32) -> io::Result<AsyncFd<OwnedFd>> {
+fn exit_notification(pid: u32) -> io::Result<Option<AsyncFd<OwnedFd>>> {
     // SAFETY: kqueue creates a new descriptor; the event targets our unreaped PID.
     let raw = unsafe { libc::kqueue() };
     if raw == -1 {
@@ -512,7 +509,7 @@ fn exit_notification(pid: u32) -> io::Result<AsyncFd<OwnedFd>> {
     }
     // Darwin kqueue descriptors support readable readiness, not EVFILT_WRITE.
     // kevent below is explicitly nonblocking through its zero timeout.
-    AsyncFd::with_interest(fd, tokio::io::Interest::READABLE)
+    AsyncFd::with_interest(fd, tokio::io::Interest::READABLE).map(Some)
 }
 #[cfg(target_os = "macos")]
 fn consume_exit(fd: &OwnedFd) -> io::Result<()> {

@@ -72,7 +72,7 @@ The same import works in a Twill shebang script. One Rust async reactor per Node
 
 Native execution snapshots cwd/environment and copies byte input before returning to JS. Captured bytes transfer native storage through N-API where supported, followed by one UTF-8 decode for text. Allocation/copy costs still apply; output byte bounds do not cap total RSS. Missing or incompatible native binaries reject before launch: there is no automatic fallback, installation-time Rust build, runtime download or library path override.
 
-Prebuilds target Linux glibc x64/arm64, macOS x64/arm64 and Windows x64. Linux needs kernel 5.3+ with `pidfd_open` permitted; the initial Linux builds target Ubuntu 24.04/glibc 2.39+. Other platforms, including musl and Windows ARM, need separate validated builds. Source development requires the pinned Rust 1.90.0 toolchain. Platform CI tests real children on Node 22 and independently installed archives on Node 20.19.0; release assembly verifies all five binaries from one pinned source. The original SDK retains its 16 KiB compressed budget; native has separate 2 MiB-per-binary and 6 MiB compressed-archive gates.
+The expanded source build targets eight prebuilds: Linux glibc x64/arm64 (glibc 2.28+), Linux musl x64/arm64 (musl 1.2.5+), macOS x64/arm64 and Windows x64/arm64. Linux uses pidfd readiness when available; older Node-supported kernels or denied pidfds use owned-child polling on the Rust reactor without a libuv worker or SIGCHLD replacement. This fallback can add timer/wakeup costs. Linux ABI selection follows the running Node process. Other architectures and operating systems are explicit unsupported targets. Source development requires the pinned Rust 1.90.0 toolchain. Platform CI tests real children on Node 22 and independently installed archives on Node 20.19.0; release assembly requires all eight validated binaries from one pinned source. The original SDK retains its 16 KiB compressed budget; native has separate 2 MiB-per-binary and 6 MiB compressed-archive gates.
 
 For a deliberate source installation:
 
@@ -84,7 +84,7 @@ pnpm package:native
 npm install /path/to/swiftuijs-twill-shell-0.1.2.tgz /path/to/swiftuijs-twill-shell-native-0.1.2.tgz
 ```
 
-A local archive contains the host binary; coordinated release assembly requires all five validated targets. Neither archive is currently an npm release. [Performance](performance.md#optional-rust-backend) separates backend measurements from external-command work and source/compiler startup.
+A local archive contains the host binary; coordinated release assembly requires all eight validated targets. Neither archive is currently an npm release. [Performance](performance.md#optional-rust-backend) separates backend measurements from external-command work and source/compiler startup.
 
 ## Run a command
 

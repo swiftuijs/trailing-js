@@ -8,6 +8,8 @@ import { performance } from 'node:perf_hooks';
 import { Command, Output, Subprocess } from '../../shell/dist/index.js';
 import { nativeRun } from '../../shell/benchmarks/native.mjs';
 import { Subprocess as NativeSubprocess } from '../dist/index.js';
+import { nativeTarget } from '../dist/platform.js';
+const nativeImage = nativeTarget();
 const rustRun = NativeSubprocess.run;
 
 assert.equal(
@@ -156,14 +158,16 @@ for (const file of [
   '../src/bindings.ts',
   '../src/environment.ts',
   '../src/cwd.ts',
+  '../src/platform.ts',
+  '../dist/platform.js',
   '../dist/environment.js',
   '../dist/cwd.js',
   '../dist/index.js',
   '../dist/bindings.js',
   '../scripts/build.mjs',
   '../scripts/identity.mjs',
-  '../native/linux-x64.node',
-  '../native/linux-x64.json',
+  `../native/${nativeImage}.node`,
+  `../native/${nativeImage}.json`,
   'fixture.c',
   'target/fixture',
   'benchmark.mjs',
@@ -410,7 +414,7 @@ const report = {
   gitHead,
   gitStatus,
   sourceAndBuildSHA256: identities,
-  nativeArtifactBytes: statSync(resolve(import.meta.dirname, '../native/linux-x64.node')).size,
+  nativeArtifactBytes: statSync(resolve(import.meta.dirname, `../native/${nativeImage}.node`)).size,
   samples,
   concurrencySamples,
   concurrencyCPUs,

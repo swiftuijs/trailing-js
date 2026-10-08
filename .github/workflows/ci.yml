@@ -94,7 +94,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-latest, macos-15-intel, windows-latest]
+        include:
+          - os: macos-latest
+            arch: arm64
+          - os: macos-15-intel
+            arch: x64
+          - os: windows-latest
+            arch: x64
+          - os: windows-11-arm
+            arch: arm64
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
@@ -103,8 +111,15 @@ jobs:
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: 22
+          architecture: ${{ matrix.arch }}
           cache: pnpm
+      - name: Verify the native Node architecture
+        run: node -e "if(process.arch!==process.env.TWILL_NATIVE_ARCH)throw Error('Expected native Node architecture')"
+        env:
+          TWILL_NATIVE_ARCH: ${{ matrix.arch }}
       - run: pnpm install --frozen-lockfile
+      - if: matrix.os == 'windows-11-arm'
+        run: rustup target add aarch64-pc-windows-msvc --toolchain 1.90.0
       - run: pnpm --filter @swiftuijs/twill-shell-native... build
       - run: pnpm --filter @swiftuijs/twill-shell-native test:native
       - run: pnpm --filter @swiftuijs/twill-shell-native typecheck
@@ -113,6 +128,7 @@ jobs:
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: 20.19.0
+          architecture: ${{ matrix.arch }}
       - run: node packages/shell-native/tests/consumer.mjs
       - uses: actions/upload-artifact@v7.0.1
         with:
@@ -122,8 +138,49 @@ jobs:
             packages/shell-native/native/*.node
             packages/shell-native/native/*.json
 
+  native-linux:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm]
+        libc: [glibc, musl]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Build the native CPU/ABI environment
+        run: docker build -f packages/shell-native/ci/Dockerfile.${{ matrix.libc }} -t twill-native-platform packages/shell-native/ci
+      - name: Build and verify real native contracts
+        run: |
+          docker run --rm -v "$GITHUB_WORKSPACE:/workspace" twill-native-platform sh -ec '
+            pnpm install --frozen-lockfile
+            pnpm --filter @swiftuijs/twill-shell-native... build
+            pnpm --filter @swiftuijs/twill-shell-native test:native
+            pnpm --filter @swiftuijs/twill-shell-native typecheck
+            pnpm --filter @swiftuijs/twill-shell-native test:coverage
+            pnpm package:native
+          '
+      - name: Independently installed glibc archives on Node 20.19
+        if: matrix.libc == 'glibc'
+        run: |
+          docker run --rm -v "$GITHUB_WORKSPACE:/workspace" twill-native-platform sh -ec '
+            export PATH=/opt/node20/bin:$PATH
+            node packages/shell-native/tests/consumer.mjs
+          '
+      - name: Independently installed musl archives on Alpine and Node 20.19
+        if: matrix.libc == 'musl'
+        run: |
+          docker run --rm -v "$GITHUB_WORKSPACE:/workspace" -w /workspace node:20.19.0-alpine3.21 node packages/shell-native/tests/consumer.mjs
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: native-binary-${{ matrix.os }}-${{ matrix.libc }}
+          if-no-files-found: error
+          path: |
+            packages/shell-native/native/*.node
+            packages/shell-native/native/*.json
+
   native-assemble:
-    needs: native-platforms
+    needs: [native-platforms, native-linux]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
