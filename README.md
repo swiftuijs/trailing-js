@@ -22,7 +22,7 @@ async function readOwned(acquire: () => Promise<TextDocument>) {
 
 The successful path stays in view; release sits next to acquisition. Registration is block-scoped, cleanup is awaited explicitly, and `return await` keeps an owned resource alive until its work finishes. The output uses ordinary JS control flow.
 
-**Release line:** 0.1. Twill is an experimental language with a tested compiler, editor and build workflow. Start with one module and evaluate it against your application’s requirements. See [support and compatibility](https://twill.evecalm.com/readiness).
+**Release line:** 0.2. Twill is an experimental language with a tested compiler, editor and build workflow. Start with one module and evaluate it against your application’s requirements. See [support and compatibility](https://twill.evecalm.com/readiness).
 
 ## Why use Twill?
 
@@ -68,11 +68,11 @@ Twill and native files can import each other through the build adapters, virtual
 
 The [playground](https://twill.evecalm.com/playground) runs the actual compiler locally, with live highlighting and generated-source inspection. It does not execute your code or type-check project imports.
 
-Install the compiler as a development dependency in your application. It supports Node 20.19+ or 22.12+. Default inline emission introduces no language runtime dependency into your application bundle. The [optional runtime](https://twill.evecalm.com/runtime) in 0.2.0 shares dynamic synchronous cleanup when explicitly selected.
+Install the compiler as a development dependency in your application. Use Node 24 LTS for a new setup; the package supports `^20.19.0 || >=22.12.0`. Run from the directory containing your `package.json` (run `npm init -y` first for a new project). Default inline emission introduces no language runtime dependency into your application bundle. The [optional runtime](https://twill.evecalm.com/runtime) in 0.2.0 shares dynamic synchronous cleanup when explicitly selected.
 
 ```sh
-pnpm add -D @swiftuijs/twill
-# npm install --save-dev @swiftuijs/twill
+pnpm add -D @swiftuijs/twill@0.2.0
+# npm install --save-dev @swiftuijs/twill@0.2.0
 ```
 
 Add the Vite adapter to your existing configuration:
@@ -91,6 +91,19 @@ pnpm exec twill check -p tsconfig.json
 ```
 
 Follow [getting started](https://twill.evecalm.com/getting-started) to complete the editor, formatter and linter setup. For React, use the [React Vite adapter](https://twill.evecalm.com/frameworks#react-with-vite-8) to keep Fast Refresh working.
+
+## Run a script
+
+For a project-local command, install the compiler above, save this as `hello.twill` and run `npm exec -- twill hello.twill 'hello world'` (or `pnpm exec twill hello.twill 'hello world'`):
+
+```typescript
+#!/usr/bin/env twill
+console.log(process.argv.slice(2));
+```
+
+Expected output is `[ 'hello world' ]`. On Linux/macOS, use `chmod +x hello.twill` then `npm exec --call './hello.twill "hello world"'` or `pnpm exec ./hello.twill 'hello world'` for a local shebang. For direct `./hello.twill` execution, install `@swiftuijs/twill` globally with `npm install --global @swiftuijs/twill@0.2.0` and keep `twill` on PATH. Windows uses the explicit CLI.
+
+Install `@swiftuijs/twill-shell` in the script's project only when using its subprocess API; a global compiler does not install project imports. Follow [shell scripting](https://twill.evecalm.com/scripting) for complete installation, a portable subprocess example, Node type checking and troubleshooting. Native JS/TS consumers need only the SDK.
 
 ## A complete working loop
 

@@ -69,7 +69,7 @@ function navigateTabs(event: KeyboardEvent) {
           <a class="home-button primary" :href="withBase('/playground')">Try the playground</a>
           <a class="home-button secondary" :href="withBase('/getting-started')">Get started</a>
         </div>
-        <p class="hero-status">TypeScript types · No language runtime · Experimental 0.1</p>
+        <p class="hero-status">TypeScript types · No language runtime · Experimental 0.2</p>
       </div>
       <figure class="hero-example">
         <div class="home-code-frame">
@@ -203,7 +203,7 @@ function navigateTabs(event: KeyboardEvent) {
         <aside class="adoption-status" aria-labelledby="status-heading">
           <h3 id="status-heading">Built for evaluation.</h3>
           <p>
-            Twill 0.1 is experimental. The supported workflow is tested, but broad production
+            Twill 0.2 is experimental. The supported workflow is tested, but broad production
             readiness still needs real project pilots and stable releases.
           </p>
           <a class="home-link" :href="withBase('/readiness')">Compatibility &amp; limitations</a>

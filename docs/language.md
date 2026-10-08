@@ -2,6 +2,8 @@
 
 Twill is a TypeScript-based language with Swift-inspired syntax extensions. It extends TypeScript and TSX with guards, `defer`, trailing closures and checked switch expressions, using TypeScript's type system and compiling to ordinary JavaScript. Install `@swiftuijs/twill` as a development dependency; the CLI is `twill`. `.twill` / `.twillx` use TypeScript / TSX, including JavaScript syntax with optional types. Native JS remains a native source format.
 
+Follow [getting started](./getting-started.md) for installation and your first runnable module, or [shell scripting](./scripting.md) for local/global script setup.
+
 The callback shorthand `users.filter { .active }` reads a member of the first argument without naming it. Nested callbacks bind independently, and TypeScript still checks the property. See [implicit member callbacks](./syntax.md#implicit-member-callbacks).
 
 ## Relationship to TypeScript
@@ -33,7 +35,8 @@ The compiler is a build dependency. Production bundles contain the lowered code 
 | UI child collection                                        | Implemented in `.twillx`                              | A local array and ordered pushes through control flow; inside natural component closures                                                                        |
 | `defer`                                                    | Supported                                             | One callback or a lazy stack with finally; reverse cleanup order, explicit async await, all cleanups run, lexical captures and function-body hoisting preserved |
 | Optional chaining, nullish fallback, async/await, generics | Use existing JS/TS                                    | Avoid duplicate syntax for capabilities already present                                                                                                         |
-| Associated-value enums and immutable data                  | Use existing TS                                       | Discriminated unions and readonly types; no wrapper runtime, hidden freezing or value copying                                                                   |
+| Associated-value enums and match                           | Implemented in 0.2.0                                  | Native tagged unions/factories and checked case descriptors; payload references retained, no runtime wrapper                                                    |
+| Immutable/value data                                       | Use existing TS readonly types                        | No hidden freezing or value copying                                                                                                                             |
 | Switch expressions and object patterns                     | Implemented                                           | Native switches over TS discriminated unions; direct returns avoid an extra function, other expression positions use a synchronous IIFE                         |
 | Exhaustive switches                                        | Checker for expressions; optional lint for statements | `twill check` proves expression exhaustiveness; `recommendedTypeChecked` also checks native switches and missing variants even with `default`                   |
 | SwiftUI state/property wrappers, observation               | Use normal framework APIs                             | Hidden state insertion could violate React hooks or Vue tracking; native JSX preserves the framework's lifecycle                                                |
