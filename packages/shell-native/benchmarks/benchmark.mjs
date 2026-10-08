@@ -20,6 +20,18 @@ const samples = 11;
 // a complete run only when the final report is being constructed.
 const rustc = execFileSync('rustc', ['--version'], { encoding: 'utf8' }).trim();
 const cc = execFileSync('cc', ['--version'], { encoding: 'utf8' }).split('\n')[0];
+function optionalText(path) {
+  try {
+    return readFileSync(path, 'utf8').trim();
+  } catch {
+    return undefined;
+  }
+}
+const cpuConstraints = {
+  allowedCPUList: optionalText('/proc/self/status')?.match(/^Cpus_allowed_list:\s*(.*)$/m)?.[1],
+  cgroupV2Quota: optionalText('/sys/fs/cgroup/cpu.max'),
+  cgroupV2Before: optionalText('/sys/fs/cgroup/cpu.stat'),
+};
 const size = 1024 * 1024;
 const nativeFixture = resolve(import.meta.dirname, 'target/fixture');
 const nodeFixture = resolve(import.meta.dirname, '../../shell/tests/fixtures/child.mjs');
@@ -170,7 +182,7 @@ for (const file of [
 const gitHead = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 const gitStatus = execFileSync('git', ['status', '--short'], { encoding: 'utf8' }).trim();
 assert.equal(gitStatus, '', 'Commit the measured sources before timing');
-const checkpoint = { gitHead, gitStatus };
+const checkpoint = { gitHead, gitStatus, cpuConstraints };
 function save(stage) {
   writeFileSync(
     resolve(import.meta.dirname, 'target/benchmark-partial.json'),
@@ -257,6 +269,9 @@ for (const bytes of [size, 8 * size]) {
   save('memory');
 }
 const concurrency = [];
+// Cover all six orders twice. Five samples omitted one permutation and gave
+// unstable short-burst intervals on a CPU-quota-limited host.
+const concurrencySamples = orders.length * 2;
 checkpoint.concurrency = concurrency;
 for (const [poolSize, children] of [
   ['4', 32],
@@ -264,7 +279,7 @@ for (const [poolSize, children] of [
   ['32', 32],
 ]) {
   const pairs = [];
-  for (let sample = 0; sample < 5; sample++) {
+  for (let sample = 0; sample < concurrencySamples; sample++) {
     const pair = { order: orders[sample % orders.length] };
     for (const mode of pair.order)
       pair[mode] = JSON.parse(
@@ -369,6 +384,7 @@ const report = {
   arch: arch(),
   kernel: release(),
   cpu: cpus()[0]?.model,
+  cpuConstraints: { ...cpuConstraints, cgroupV2After: optionalText('/sys/fs/cgroup/cpu.stat') },
   rustc,
   cc,
   gitHead,
@@ -376,6 +392,7 @@ const report = {
   sourceAndBuildSHA256: identities,
   nativeArtifactBytes: statSync(resolve(import.meta.dirname, '../native/linux-x64.node')).size,
   samples,
+  concurrencySamples,
   orderPermutations: orders,
   scope:
     'Linux production-contract direct-child backend; success workloads interleaved/checked against natural handwritten Node and the SDK. Parent CPU includes Rust reactor, excludes child CPU. Native copies input/snapshots cwd/environment and performs the full shared SDK contract. Independent async scheduling; no libuv worker per child. Failure ownership/cancellation is measured separately; no child acceleration, compiler port, containment, pipeline or cross-platform performance claim.',

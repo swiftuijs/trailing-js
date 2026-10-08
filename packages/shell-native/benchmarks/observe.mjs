@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import { performance } from 'node:perf_hooks';
 import { resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
+function cpuState() {
+  try {
+    return readFileSync('/sys/fs/cgroup/cpu.stat', 'utf8').trim();
+  } catch {
+    return undefined;
+  }
+}
 
 const [mode, measurement, count] = process.argv.slice(2);
 const sdk = mode === 'native' ? undefined : await import('../../shell/dist/index.js');
@@ -52,6 +60,7 @@ if (measurement === 'memory') {
   );
 } else if (measurement === 'concurrency') {
   const countValue = Number(count);
+  const cgroupV2Before = cpuState();
   const cpu = process.cpuUsage(),
     start = performance.now();
   await Promise.all(
@@ -67,6 +76,8 @@ if (measurement === 'memory') {
       wallMs: performance.now() - start,
       parentCPUMs: (usage.user + usage.system) / 1000,
       uvThreadpoolSize: process.env.UV_THREADPOOL_SIZE ?? 'default (4)',
+      cgroupV2Before,
+      cgroupV2After: cpuState(),
     }),
   );
 } else if (measurement === 'contention' || measurement === 'cancellation') {
