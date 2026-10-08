@@ -2,15 +2,15 @@
 
 Install `@swiftuijs/twill` as a development dependency in your application. Select the adapter for your existing bundler. Native TS/JS and Twill can share the graph; no component lists, wrapping APIs or Twill config file are needed.
 
-The unreleased [optional runtime](./runtime.md) prototype reads `runtime` from the common project configuration, or from the adapter options. External cleanup requires the runtime as a production dependency; inline remains the default.
+The [optional runtime](./runtime.md) in 0.2.0 reads `runtime` from the common project configuration, or from the adapter options. External cleanup requires the runtime as a production dependency; inline remains the default.
 
-For Node automation, see [shell scripting](scripting.md): the published loader executes Twill sources; the optional subprocess SDK is an unreleased source prototype.
+For Node automation, see [shell scripting](scripting.md): the published loader executes Twill sources; 0.2.0 adds the optional Rust-backed subprocess SDK and executable-script runner.
 
 Run `twill check` separately before production builds. Adapters emit code and source maps; they do not perform project type checking.
 
 ## Adapter support
 
-All five adapters are exported by `@swiftuijs/twill` 0.1.2. Use the adapter for your host; installing another bundler is unnecessary.
+All five adapters are exported by `@swiftuijs/twill` 0.2.0. Use the adapter for your host; installing another bundler is unnecessary.
 
 | Host         | Import                     | Native TS/JSX emission   | Development validation in this checkout                    |
 | ------------ | -------------------------- | ------------------------ | ---------------------------------------------------------- |
@@ -22,7 +22,7 @@ All five adapters are exported by `@swiftuijs/twill` 0.1.2. Use the adapter for 
 
 These are the tested host lines, not a guarantee for every host version or framework plugin combination. All adapters produce original-source maps and have real production-build coverage. See [tested versions](./readiness.md#tested-tool-versions).
 
-**Unreleased watch fix:** This source checkout also refreshes configuration at each build and invalidates transformed modules when project or inherited JSX settings change, including optional config creation/deletion and recovery from invalid language config. npm 0.1.2 exports the adapters but does not contain this fix. Restart the published host after changing configuration. Explicit adapter options override project settings.
+**Configuration refresh in 0.2.0:** Twill refreshes configuration at each build and invalidates transformed modules when project or inherited JSX settings change, including optional config creation/deletion and recovery from invalid language config. Keep compiler and tooling on 0.2.0 or newer for this behavior. Explicit adapter options override project settings.
 
 Watch rebuilds produce updated code. React/Vue state preservation requires the framework's own HMR integration; only the Vite React adapter's Fast Refresh is tested here. Run a separate `twill check` for type errors: source watch builds remain transpile-only.
 

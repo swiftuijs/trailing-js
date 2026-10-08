@@ -1,10 +1,19 @@
 # RFC 0036: Optional native subprocess backend evaluation
 
-**Status:** Accepted for an optional direct-child production backend; implementation and release are separate.
+**Release reference:** 0.2.0 implements the accepted scope; broader/deferred items below remain proposals.
+**Status:** Implemented in 0.2.0 for the accepted scope; deferred capabilities remain proposals.
 **Kind:** Runtime/tooling.
-**Release:** Optional production direct-child backend implemented in source; cross-platform/readiness verification is separate from npm publication. The earlier Linux experiment is retained.
+**Release:** 0.2.0.
 **Dependencies:** RFC 0034, with separate scoped-stream/pipeline ownership acceptance.
 **Review:** Evaluation authorized following PR #20; implementation of the measured scheduling, cancellation, cleanup and platform blockers subsequently authorized by the maintainer. This does not authorize npm publication or process-tree/pipeline semantics.
+
+### Rust-only SDK amendment (0.2.0)
+
+The maintainer authorized replacing the two backend choices with one public SDK and a coordinated release. `@swiftuijs/twill-shell` retains commands, policies, result types and error identities, and always executes through Rust. Remove its Node/libuv execution implementation. `@swiftuijs/twill-shell-native` becomes an implementation dependency containing the loader and eight validated binaries, without a second `Subprocess` API or a dependency back to the SDK. Applications install/import only the SDK; the compiler remains optional for native JS/TS. Keep the 16 KiB SDK archive and separate 2 MiB binary / 6 MiB native archive gates unchanged.
+
+This changes backend selection, input snapshot ownership and package dependency direction, not language syntax or direct-child guarantees. Move adapter/error-boundary tests to the SDK and run its real process contracts, Twill scripts/export, worker/exit cleanup and independently installed consumers on all eight targets. Keep loader/protocol/platform tests with the binary package. Missing/unsupported binaries fail before launch, without a Node fallback, install-time Rust build or download. Publish the tested binary package before the SDK.
+
+Retain the previous Node SDK and optional-native measurements as historical evidence. Recheck the public entry against equivalent handwritten Node; do not compare two aliases of the same Rust SDK as separate backends. Warm Linux readiness measurements do not establish universal performance: cold startup and denied-pidfd polling retain their documented costs. The release must state those limits and must not claim the SDK speeds up the executable it runs. Existing historical experiments are not production backends.
 
 ### Platform coverage amendment
 
@@ -18,13 +27,13 @@ Retain Linux pidfd readiness when available. Older Node-supported kernels or con
 
 Ordinary PRs may select checks from the complete base-to-head diff: native/backend/shared-contract/dependency/build changes require all eight targets; compiler/runner changes retain Linux native contracts and Windows/macOS runner checks; documentation-only PRs validate documentation, skill downloads and subpath hosting. Main, scheduled, manual and release verification always run the full matrix. Unknown paths or an unavailable diff select full validation. Cache build inputs/dependencies by OS/CPU/libc/toolchain, but rerun the selected real-process tests and independent consumers; a cache hit is not validation evidence. Scope selection itself has regression tests and a failure must fail the stable required `verify` check.
 
-## Problem and native baseline
+## Historical evaluation and native baseline
 
 The current shell SDK calls native Node spawn/libuv with literal argv. Its Linux/Node 24 warm wall ratios were 1.003–1.013 against equivalent handwritten Node coordination; dual capture consumed about 10% more parent CPU. This leaves limited evidence for replacing ordinary command launches. Existing ownership covers the directly launched child; robust pipelines and operating-system containment require new lifecycle contracts.
 
 Evaluate Rust when it can provide a concrete capability or measured improvement: owning Unix process groups/sessions, Windows Job Objects, pipe descriptors, bounded capture and coordinated pipeline cleanup. Script compiler startup is a different path covered by RFC 0035.
 
-## Proposed design and boundaries
+## Historical design and boundaries (superseded by the Rust-only amendment)
 
 Keep the JavaScript API, TypeScript declarations and Node/npm interoperability. An optional N-API addon is the candidate boundary: one native operation owns an entire command or pipeline through settlement. Prefer existing maintained platform primitives where possible. Do not introduce one Rust helper process per command, per-chunk JS/native promise crossings or implicit alternate backend selection.
 
@@ -66,7 +75,7 @@ Before a production implementation, choose one target workload/capability and co
 
 Performance acceptance retains RFC 0034's wall-time tolerance and requires a reproducible improvement in the chosen bottleneck, or a demonstrated capability unavailable through the existing backend at justified overhead. An inconclusive result is not adoption evidence. Run real Linux/macOS/Windows ownership tests: partial launch, pipeline failures/SIGPIPE, concurrent streams, cancellation races, descriptor-retaining descendants, group escape, Job Object restrictions, deadlines and unreaped handles. Preserve exactly-once settlement and primary/secondary errors. Existing JS/TS/Twill and independently installed Node 20 consumers must use the same contract suite.
 
-## Decision and next milestone
+## Historical adoption decision (superseded in 0.2.0)
 
 The [isolated experiment](../../packages/shell/experiments/rust-native/README.md) and [complete Linux/Node 24 report](../../packages/shell/benchmarks/results/rust-native-linux-node24.json) demonstrate sequential benefits: paired Rust/SDK wall ratios of 0.581 for a short native launch, 0.582 for dual 1 MiB capture and 0.852 for dual 8 MiB capture. Corresponding handwritten Node comparisons also improve. Capture RSS-increase medians approximately halve. This establishes gains for the measured successful subset, not the SDK's complete contract or external-command execution.
 

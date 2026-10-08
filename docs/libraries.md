@@ -36,7 +36,7 @@ export default defineConfig({
 });
 ```
 
-The unreleased [external runtime mode](./runtime.md) requires `@swiftuijs/twill-runtime` in a compiled library's production dependencies. Native public declarations do not expose the cleanup helper; type-only consumers need no runtime. Inline emission remains self-contained.
+The [external runtime mode](./runtime.md) requires `@swiftuijs/twill-runtime` in a compiled library's production dependencies. Native public declarations do not expose the cleanup helper; type-only consumers need no runtime. Inline emission remains self-contained.
 
 Choose your normal externals and peer dependencies for framework or application libraries. Twill does not introduce a framework dependency into an ordinary callback library.
 

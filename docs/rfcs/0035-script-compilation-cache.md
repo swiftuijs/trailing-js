@@ -1,8 +1,9 @@
 # RFC 0035: Script compilation cache
 
-**Status:** Proposed, authorized implementation prototype.
+**Release reference:** 0.2.0 implements the accepted scope; broader/deferred items below remain proposals.
+**Status:** Implemented in 0.2.0 for the accepted scope; deferred capabilities remain proposals.
 **Kind:** Tooling.
-**Release:** Not released; published 0.1.2 is unchanged.
+**Release:** 0.2.0.
 **Dependencies:** RFC 0026 and RFC 0034 executable-script amendment.
 **Review:** Separate startup follow-up to PR #20. Prototype authorization does not imply acceptance, merging or publication.
 
@@ -14,7 +15,7 @@ Cache successful emitted modules for subsequent fresh interpreter launches. Keep
 
 ## Design
 
-Enable a disk compilation cache only for the source-only executable runner. The advanced `@swiftuijs/twill/register` loader remains uncached by default. `TWILL_CACHE=0` disables the runner cache. `TWILL_CACHE_DIR` selects an absolute private cache directory; otherwise use a dedicated directory in the current user's home. Invalid, inaccessible or unsafe cache locations silently fall back to compilation. Flags after a script filename remain script arguments, not cache options.
+Enable a disk compilation cache only for the executable runner. The advanced `@swiftuijs/twill/register` loader remains uncached by default. `TWILL_CACHE=0` disables the runner cache. `TWILL_CACHE_DIR` selects an absolute private cache directory; otherwise use a dedicated directory in the current user's home. Invalid, inaccessible or unsafe cache locations silently fall back to compilation. Flags after a script filename remain script arguments, not cache options.
 
 Load the compiler/configuration implementation lazily on the first actual miss. Native JavaScript, CommonJS, dependencies and non-file URLs retain their host paths. Cache only modules the existing loader transforms: Twill entries/imports and local native TS/JSX. Explicit extensionless entries retain their dialect treatment. Node remains the module resolver and executor; no daemon, interpreter, script result cache or global cleanup policy is introduced.
 

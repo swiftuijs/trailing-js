@@ -1,6 +1,6 @@
 # Optional runtime helpers
 
-**Unreleased RFC 0032 prototype.** Released Twill 0.1.2 does not support these options yet. Inline emission remains the default; no runtime package is required by ordinary compiled programs.
+**Available in Twill 0.2.0.** Inline emission remains the default; no runtime package is required by ordinary compiled programs.
 
 The optional `@swiftuijs/twill-runtime` package shares dynamic synchronous cleanup algorithms across modules. It contains no compiler, TypeScript engine, framework, Node-only API or global registry. Native guards, arrows, enum factories/matching and component output retain their existing lowering.
 

@@ -1,8 +1,7 @@
-import { nativeTarget } from '../src/platform.js';
 import { afterEach, expect, it, vi } from 'vitest';
 import { getEventListeners } from 'node:events';
-import { createRequire } from 'node:module';
-import * as bindings from '../src/bindings.js';
+import childProcess from 'node:child_process';
+import * as bindings from '@swiftuijs/twill-shell-native';
 import {
   Command,
   Output,
@@ -12,10 +11,21 @@ import {
   ProcessIOError,
   ProcessTeardownError,
 } from '../src/index.js';
-import type { NativeBindings, NativeFailure, NativeOutcome } from '../src/bindings.js';
+import type { NativeBindings, NativeFailure, NativeOutcome } from '@swiftuijs/twill-shell-native';
 
 afterEach(() => vi.restoreAllMocks());
 const command = Command.path(process.execPath);
+it('executes the public SDK through Rust even when Node spawn is unavailable', async () => {
+  vi.spyOn(childProcess, 'spawn').mockImplementation(() => {
+    throw new Error('Node execution must not be selected');
+  });
+  const result = await Subprocess.run(
+    Command.path(process.execPath, ['-e', 'process.stdout.write("rust")']),
+    { output: Output.text({ limit: 4 }) },
+  );
+  expect(result.standardOutput).toBe('rust');
+  expect(result.terminationStatus).toEqual({ kind: 'exited', code: 0 });
+});
 function backend(outcome: Partial<NativeOutcome> = {}) {
   const native: NativeBindings = {
     protocol: () => 1,
@@ -190,20 +200,4 @@ it('rejects a malformed native success report rather than returning invalid chec
     name: 'ProcessError',
     message: 'Native subprocess operation failed',
   });
-});
-it('checks the prebuild protocol, caches a valid addon, and forwards the exit barrier', async () => {
-  vi.resetModules();
-  const fresh = await import('../src/bindings.js');
-  expect(() => fresh.shutdownBackend()).not.toThrow();
-  const native = createRequire(import.meta.url)(
-    `../native/${nativeTarget()}.node`,
-  ) as NativeBindings;
-  vi.spyOn(native, 'protocol').mockReturnValue(0);
-  expect(() => fresh.loadBackend()).toThrow('expected protocol 1');
-  vi.restoreAllMocks();
-  expect(fresh.loadBackend()).toBe(native);
-  expect(fresh.loadBackend()).toBe(native);
-  const shutdown = vi.spyOn(native, 'shutdown').mockImplementation(() => {});
-  fresh.shutdownBackend();
-  expect(shutdown).toHaveBeenCalledOnce();
 });

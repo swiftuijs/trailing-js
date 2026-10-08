@@ -1,42 +1,17 @@
 # Changelog
 
-## Unreleased
+## 0.2.0
 
-- Expand the source Rust backend prebuild matrix to eight 64-bit OS/CPU/libc targets, including Linux musl and Windows ARM64. Build glibc artifacts against 2.28, select Linux ABI from Node and retain reactor-owned child waiting when pidfds are unavailable or denied. Require actual target contract/installed-package validation and complete verified release assembly; keep performance and publication scope explicit.
-
-- Implement the optional `@swiftuijs/twill-shell-native` Rust backend with caller-thread native launch, an independent async I/O reactor, the shared subprocess API/errors, bounded cancellation/teardown and owner-thread environment cleanup. Preserve Windows exit-code width and eliminate queued inherited-descriptor copies. Add real five-target platform CI, independent Node 20 consumers, validated prebuild assembly and separate native artifact budgets; keep the Node SDK dependency-free. Retain complete performance history: measured warm launch/capture improves and default-pool concurrency matches native Node on the reviewed Linux host; source startup has no demonstrated gain. This source implementation is not an npm publication.
-
-- Implement the isolated RFC 0036 Linux Rust/N-API direct-child experiment outside published SDK files: literal argv, call-time input/environment snapshots, nonblocking bounded dual capture, deadlines and direct-child reaping. Record complete paired Node/SDK/Rust measurements, lower observed capture RSS, default-pool concurrency regression and no demonstrated source-startup gain. Validate real native calls on Node 20.19/24; keep the SDK's Node backend, dependencies and archive gate unchanged.
-
-- Prototype RFC 0035 executable-script startup caching: lazy compiler initialization, content/configuration/toolchain invalidation, original source maps, private bounded atomic storage and an environment opt-out. Advanced Node registration stays uncached by default. Record the independent RFC 0036 Rust/N-API backend evaluation; that startup prototype adds no native backend and does not publish packages.
-
-- Implement RFC 0034 first-stage `@swiftuijs/twill-shell` source prototype: direct native argv execution, explicit bounded text/bytes, stdin, isolated cwd/environment, typed status/errors and joined abort/timeout teardown. No compiler runtime dependency or new language syntax.
-- Add real subprocess and Twill/export tests, independent Node 20 consumers, Windows/macOS CI, native performance comparisons, scripting documentation and official skill guidance. Add an executable-script runner: `#!/usr/bin/env twill`, `twill script.twill` and `twill run script.twill`, with literal arguments, extensionless entries, source maps and native process behavior. Scoped streaming, pipelines and shell templates remain deferred; no npm publication. Keep documentation canonical URLs current during client navigation.
-
-- Refresh build-adapter configuration at build boundaries and track project/inherited JSX config dependencies for real Rollup, Webpack, Rspack and esbuild watch/incremental workflows. Preserve host-native emission and adapter-option precedence; verify failed builds recover with original-source maps.
-- Document the five published adapter imports, tested host versions and development-mode boundaries in READMEs, the website and the official AI skill. The configuration-refresh fix is not published in 0.1.2.
-
-- Prototype accepted RFC 0018 `if const` nullish branch bindings with one evaluation, native object/array destructuring and success-only immutable scope. Follow Swift's condition boundary, retaining grouped/nested trailing closures and unchanged native `if (...)` behavior.
-- Lower branch bindings to native scoped const/if code without a wrapper, closure, promise or runtime import. Synchronize mapped checking/editing, formatter/standalone, ESLint, TS/TSX grammars, declarations/export, build/loader/browser consumers, packaged editor, playground, documentation and the official AI skill.
-
-- Add the official portable Twill AI skill, published-feature guidance and executable examples; generate website downloads and discovery metadata from one canonical source.
-- Add repository `AGENTS.md` conventions and skill synchronization requirements, with release/example checks in CI and website installation/use documentation. No language output or npm/Marketplace version changes.
-
-- Add accepted, unreleased `match` expressions with qualified enum-case descriptors and named payload bindings. Keep ordinary switch calls, native statement fallthrough and the earlier explicit-marker spelling compatible; match and switch expressions never fall through.
-
-- Prototype RFC 0032 optional versioned runtime helpers: default inline emission and explicit external sharing for dynamic synchronous defer. Generate the inline algorithm from the canonical zero-dependency runtime source; preserve async scheduling and native fast paths.
-- Keep external helper imports before complete adjacent declaration documentation and suppression blocks, preserving file pragmas and native checkJs annotations.
-- Synchronize compiler/config schemas, CLI, build/loader/editor projects, native export/declarations, documentation and package/release verification. Fix compact final-defer insertion order and preserve headers/directives when inserting helper imports.
-
-- Lower standalone switch-expression identifier initializers to native branches without an IIFE, retaining binding semantics, result inference and mapped editor operations. Add semantic regression tests and an 8-byte checked application budget.
-
-- Prototype RFC 0016 explicit enum-case patterns: `case enum State.loaded({ value })`. Check qualified local/imported/native descriptors and narrowed bindings; retain native call-value cases and exhaustiveness. The preferred syntax is now an accepted `match` expression; the explicit marker stays compatible and release remains pending.
-- Select enum patterns with one subject/tag read, native scoped destructuring and no factory lookup or matching runtime. Preserve native defaults/rest, throw, await/defer and nested switch behavior; enforce a 2-byte direct bundle budget against handwritten JS.
-- Synchronize formatter, typed linting, shared TS/TSX highlighting, source maps, native export/declarations, builds/loader, playground and packaged editor. Withhold unsafe descriptor method rename and native statement-case lint suggestions in switch expressions.
-
-- Implement accepted associated-value enums with named typed payloads, generic factory inference and native readonly tagged-union types. Preserve ordinary TypeScript enums and reuse existing checked object-pattern switches.
-- Preserve copied enum type annotations in source/declaration maps; support original-source formatting, mapped linting, shared TS/TSX highlighting, constructor completion, native declarations, Node/build integration and checked source export.
-- Withhold enum declaration/case/payload/type-parameter rename until edits to generated types and discriminator tags can be proven complete. Explicit enum patterns are prototyped separately under RFC 0016.
+- Add associated-value enums, exhaustive `match` expressions and branch-local `if const` nullish bindings, with synchronized checking, source maps, formatter, lint, highlighting, declarations/export and editor support.
+- Lower standalone switch/match identifier initializers to native branches without an IIFE. Keep native JS switch statement fallthrough and existing expression-context limits.
+- Add optional versioned synchronous cleanup helpers through `@swiftuijs/twill-runtime`; inline output remains the default and native fast paths remain inline.
+- Refresh Vite/Rollup/Webpack/Rspack/esbuild build configuration and inherited JSX dependencies during watch/rebuild, including creation/deletion and recovery from invalid configuration.
+- Add `twill script.twill`, `twill run script.twill` and POSIX `#!/usr/bin/env twill`, literal script arguments, source maps and bounded content-validated compilation caching.
+- Release `@swiftuijs/twill-shell` with one Rust execution backend: literal argv, bounded I/O, isolated cwd/environment, typed errors, cancellation and direct-child ownership. Its prebuilt implementation dependency installs automatically; no Rust toolchain or compiler is required for native JS/TS consumers.
+- Include eight validated Linux glibc/musl, macOS and Windows x64/ARM64 prebuilds. Keep independent SDK/binary/archive budgets and installed Node 20.19 consumers. Unsupported platforms reject explicitly.
+- Preserve measured limits: warm Linux launch/capture and default-pool concurrency improve or match equivalent handwritten Node on the reviewed host; cold startup and denied-pidfd polling have separate costs. No external-command or universal speedup is claimed.
+- Publish the official portable AI skill with current syntax, script/backend ownership, integrations and release guidance; generate website downloads from the canonical source.
+- Select affected PR checks conservatively and cache native build inputs. Main, scheduled, manual and release verification retain complete platform checks; release tags package the exact tested artifacts.
 
 ## 0.1.2
 

@@ -1,8 +1,9 @@
 # RFC 0034: Swift-inspired shell scripting toolkit
 
-**Status:** Accepted for the argv-backed first stage; implementation source prototype in PR #20. Later milestones remain proposed.
+**Release reference:** 0.2.0 implements the accepted scope; broader/deferred items below remain proposals.
+**Status:** Implemented in 0.2.0 for the accepted scope; deferred capabilities remain proposals.
 **Kind:** Tooling / optional Node SDK.
-**Release:** Not released.
+**Release:** 0.2.0.
 **Dependencies:** RFC 0026 for executing Twill sources; RFCs 0002, 0007 and 0009 supply optional application syntax. No dependency on proposed typed throws, argument labels or structured-concurrency syntax.
 
 ## Problem and native baseline
@@ -13,7 +14,7 @@ Twill already runs scripts using its published Node ESM loader:
 node --enable-source-maps --import @swiftuijs/twill/register scripts/build.twill
 ```
 
-Top-level await, Node modules, process arguments and native promises remain normal JS/TS. The published compiler's CLI compiles/checks/exports; it has no `twill run` command. This source prototype adds a reusable process toolkit and the accepted executable-script amendment below; installing the SDK is not a requirement to run a script.
+Top-level await, Node modules, process arguments and native promises remain normal JS/TS. The 0.1.x compiler CLI compiled/checked/exported; 0.2.0 adds a reusable process toolkit and the accepted executable-script amendment below; installing the SDK is not a requirement to run a script.
 
 Native `child_process.spawn` preserves arguments without a shell and offers streams, but each script must coordinate errors, exit status, output limits, cancellation, pipes and cleanup. `execFile` with promisify is a useful baseline for small captured commands; it rejects on unsuccessful exits and buffers output with a maximum size. A toolkit should reduce repeated coordination while keeping those native facilities available.
 
@@ -65,7 +66,7 @@ const result = await Subprocess.run(status, {
 console.log(result.standardOutput);
 ```
 
-The first-stage API below is implemented in the unreleased source prototype. Later scoped/pipeline/shell examples remain proposals. Command construction does not spawn, execute callbacks or schedule work. `Command.name` uses the platform's normal executable search; `Command.path` requires an absolute executable path. Arguments are strings, in order, and are passed to `spawn` with `shell: false`. Reject invalid argument/options values and NUL characters before launch; do not coerce arbitrary objects into command text.
+The first-stage API below is implemented in 0.2.0. Later scoped/pipeline/shell examples remain proposals. Command construction does not spawn, execute callbacks or schedule work. `Command.name` uses the platform's normal executable search; `Command.path` requires an absolute executable path. Arguments are strings, in order, and go directly to the Rust process engine without a shell. Reject invalid argument/options values and NUL characters before launch; do not coerce arbitrary objects into command text.
 
 Treat a command as a reusable, readonly SDK value: snapshot the argv array once on construction, without claiming deep value semantics for JS objects. Each run creates a distinct child. `cwd` belongs to that child. Never call global `process.chdir`, modify `process.env`, patch prototypes or inject global `$` names.
 
@@ -157,4 +158,4 @@ A standalone library maintains browser/compiler isolation and reusable types. Re
 
 ## Open questions and decision history
 
-The argv-backed first stage and checked-exit default were accepted for implementation in PR #20. The execution core is a native OS-process coordinator rather than a compiler lowering: no command-to-TS conversion, per-command compilation or compiler production dependency. JS/TS declarations describe its API. A different native backend requires measured benefits that justify its maintenance/portability cost. The executable-script amendment was subsequently accepted for the same PR: a standard `#!/usr/bin/env twill` entry and literal-argv CLI dispatch. Interactive execution, pipelines and explicit shells remain separately reviewable milestones. Implementation, merge and publication stay distinct; the package is unreleased.
+The argv-backed first stage and checked-exit default were accepted for implementation in PR #20. The execution core is a native OS-process coordinator rather than a compiler lowering: no command-to-TS conversion, per-command compilation or compiler production dependency. JS/TS declarations describe its API. A different native backend requires measured benefits that justify its maintenance/portability cost. The executable-script amendment was subsequently accepted for the same PR: a standard `#!/usr/bin/env twill` entry and literal-argv CLI dispatch. Interactive execution, pipelines and explicit shells remain separately reviewable milestones. Implementation, merge and publication stay distinct; the accepted SDK and runner ship in 0.2.0.

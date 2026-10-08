@@ -6,11 +6,11 @@ The locally installed `@swiftuijs/twill` package provides the `twill` command. R
 pnpm exec twill --help
 ```
 
-Your normal `tsconfig.json` supplies project types and JSX settings. Commands work without `twill.config.json`; its optional `implicitReturn` setting changes that language behavior. The unreleased [runtime helper option](./runtime.md) also selects inline or external cleanup emission.
+Your normal `tsconfig.json` supplies project types and JSX settings. Commands work without `twill.config.json`; its optional `implicitReturn` setting changes that language behavior. The [runtime helper option] in 0.2.0(./runtime.md) also selects inline or external cleanup emission.
 
-## Run an executable script (unreleased)
+## Run an executable script
 
-The source prototype accepts both direct and explicit script invocation:
+Twill 0.2.0 accepts both direct and explicit script invocation:
 
 ```sh
 pnpm exec twill scripts/build.twill 'app, tests'
@@ -23,7 +23,7 @@ Arguments after the file are script arguments, never compiler options. `twill ru
 
 The source runner caches compiled modules across launches. Set `TWILL_CACHE=0` to disable it, or `TWILL_CACHE_DIR` to select an absolute private directory. These are environment settings; arguments after the filename remain script arguments. See the scripting guide for source privacy, bounds and invalidation.
 
-This runner is unreleased; npm 0.1.2 supports the explicit Node loader instead. See [shell scripting](./scripting.md) for the complete example and version boundary.
+The runner is included in 0.2.0; the explicit Node loader remains available. See [shell scripting](./scripting.md) for the complete example and version boundary.
 
 ## Check types
 
@@ -59,7 +59,7 @@ The default preserves TS types and lowers Twill syntax to native TS/TSX. `--js` 
 
 `-p` / `--project` can select a tsconfig for the compilation's project/JSX settings. Without it, configuration is read from the current directory. This command performs syntax emission, not project type checking.
 
-The unreleased prototype accepts `--runtime inline|external` for this command only, overriding project configuration. Check/declarations/export and editor projects use `twill.config.json` so their types and emitted imports agree.
+Twill 0.2.0 accepts `--runtime inline|external` for this command only, overriding project configuration. Check/declarations/export and editor projects use `twill.config.json` so their types and emitted imports agree.
 
 Single-file compilation preserves import specifiers. Use a [build adapter](./build-tools.md) for an application's module graph, or [source export](./adoption.md#export-back-to-native-ts) when converting the project to native TS/TSX.
 

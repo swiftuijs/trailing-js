@@ -43,13 +43,13 @@ test('official AI guide serves the canonical skill and verifiable discovery unde
   );
 });
 
-test('shell scripting guide exposes source-only boundaries and preserves site navigation', async ({
+test('shell scripting guide exposes released Rust ownership boundaries and preserves site navigation', async ({
   page,
 }) => {
   await page.goto('build-tools');
   await page.locator('.vp-doc').getByRole('link', { name: 'shell scripting', exact: true }).click();
   await expect(page.locator('h1')).toHaveText('Shell scripting');
-  await expect(page.locator('.vp-doc')).toContainText('source prototype, not an npm release');
+  await expect(page.locator('.vp-doc')).toContainText('Use compiler and SDK 0.2.0 or newer');
   const exampleCode = page.locator('.language-twill code').filter({ hasText: 'Subprocess.run' });
   await expect(exampleCode).toContainText('Subprocess.run');
   await expect(exampleCode).toContainText('guard const');

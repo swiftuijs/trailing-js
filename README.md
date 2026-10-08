@@ -52,7 +52,7 @@ function describe(outcome: Outcome): string {
 }
 ```
 
-Ordinary closures become arrows; guards become branches. Direct-return switch expressions become native switches. The unreleased prototype also removes the IIFE from standalone identifier initializers; other expression contexts retain it. Inline emission introduces no runtime library. `defer` allocates callbacks and dynamic registrations use a local stack; general component child collection uses arrays. These costs are [documented and measured](https://twill.evecalm.com/performance).
+Ordinary closures become arrows; guards become branches. Direct-return switch expressions become native switches. Twill 0.2.0 also removes the IIFE from standalone identifier initializers; other expression contexts retain it. Inline emission introduces no runtime library. `defer` allocates callbacks and dynamic registrations use a local stack; general component child collection uses arrays. These costs are [documented and measured](https://twill.evecalm.com/performance).
 
 | File                         | Use                                                         |
 | ---------------------------- | ----------------------------------------------------------- |
@@ -68,7 +68,7 @@ Twill and native files can import each other through the build adapters, virtual
 
 The [playground](https://twill.evecalm.com/playground) runs the actual compiler locally, with live highlighting and generated-source inspection. It does not execute your code or type-check project imports.
 
-Install the compiler as a development dependency in your application. It supports Node 20.19+ or 22.12+. Default inline emission introduces no language runtime dependency into your application bundle. The unreleased [optional runtime](https://twill.evecalm.com/runtime) prototype shares dynamic synchronous cleanup when explicitly selected.
+Install the compiler as a development dependency in your application. It supports Node 20.19+ or 22.12+. Default inline emission introduces no language runtime dependency into your application bundle. The [optional runtime](https://twill.evecalm.com/runtime) in 0.2.0 shares dynamic synchronous cleanup when explicitly selected.
 
 ```sh
 pnpm add -D @swiftuijs/twill
@@ -122,7 +122,7 @@ The compiler includes adapters for your existing bundler:
 | Rspack  | `@swiftuijs/twill/rspack`  | Twill adapter by default |
 | esbuild | `@swiftuijs/twill/esbuild` | esbuild                  |
 
-Use `@swiftuijs/twill/vite-react` for React Fast Refresh. The [build guide](https://twill.evecalm.com/build-tools#adapter-support) records tested host versions, watch/incremental workflows and the unreleased configuration-refresh fix. Builds remain transpile-only; run `twill check` separately.
+Use `@swiftuijs/twill/vite-react` for React Fast Refresh. The [build guide](https://twill.evecalm.com/build-tools#adapter-support) records tested host versions, watch/incremental workflows and the 0.2.0 configuration-refresh behavior. Builds remain transpile-only; run `twill check` separately.
 
 Install only the tools your project needs. Keep Twill packages on the same release version.
 
@@ -133,10 +133,10 @@ Install only the tools your project needs. Keep Twill packages on the same relea
 | [`@swiftuijs/twill-linter`](https://www.npmjs.com/package/@swiftuijs/twill-linter)       | ESLint flat configurations and source-mapped fixes               |
 | [`@swiftuijs/twill-export`](https://www.npmjs.com/package/@swiftuijs/twill-export)       | Optional `twill export` command for native TS/TSX output         |
 | [`@swiftuijs/twill-highlight`](https://www.npmjs.com/package/@swiftuijs/twill-highlight) | Browser/SSR Shiki integration and TextMate grammars              |
-| `@swiftuijs/twill-shell` (unreleased prototype)                                          | Native argv execution, bounded output and owned process teardown |
-| `@swiftuijs/twill-runtime` (unreleased prototype)                                        | Optional, versioned synchronous cleanup helpers                  |
+| `@swiftuijs/twill-shell`                                                                 | Native argv execution, bounded output and owned process teardown |
+| `@swiftuijs/twill-runtime`                                                               | Optional, versioned synchronous cleanup helpers                  |
 
-The unreleased [shell scripting](https://twill.evecalm.com/scripting) prototype adds `#!/usr/bin/env twill` executable scripts and content-validated startup caching. Cache settings, source privacy and published-version boundaries are documented in that guide. The SDK remains independent of the compiler and uses Node/libuv. The separate, unpublished `@swiftuijs/twill-shell-native` source package provides explicitly selected Rust async execution with the same direct-child contract and independent scheduling; see [scripting](https://twill.evecalm.com/scripting#optional-rust-backend-unreleased) and [performance](https://twill.evecalm.com/performance#optional-rust-backend).
+The [shell scripting](https://twill.evecalm.com/scripting) toolkit adds `#!/usr/bin/env twill` executable scripts and content-validated startup caching in 0.2.0. Install/import `@swiftuijs/twill-shell` for subprocesses; its Rust engine and eight-platform prebuilds install automatically. Native JS/TS consumers need no compiler. See [performance](https://twill.evecalm.com/performance#rust-shell-backend) for measured warm gains and cold/polling limits.
 
 Install the [Twill VS Code extension](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill) from Marketplace, or run `code --install-extension forth-ink.twill`. The extension bundles its editing tools. Your application installs the compiler for builds and whole-project checks. See the [editor guide](https://twill.evecalm.com/tooling) for configuration.
 
@@ -163,10 +163,10 @@ pnpm docs:dev
 
 See [contributing](https://github.com/swiftuijs/twill/blob/main/CONTRIBUTING.md), [architecture](https://github.com/swiftuijs/twill/blob/main/docs/contributing/architecture.md), [language design](https://twill.evecalm.com/language) and [release instructions](https://github.com/swiftuijs/twill/blob/main/docs/contributing/releasing.md). MIT licensed.
 
-## Unreleased language work
+## Added in 0.2.0
 
-The RFC 0018 source prototype adds `if const value = lookup() { use(value); }` with branch-local nullish bindings and native destructuring. Group trailing calls in initializers, following Swift’s condition boundary. It emits native branches without a helper, closure or optional wrapper. This is unreleased; see [syntax](https://twill.evecalm.com/syntax#branch-nullish-bindings-unreleased) and [RFC 0018](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0018-optional-branch-bindings.md).
+Twill 0.2.0 adds `if const value = lookup() { use(value); }` with branch-local nullish bindings and native destructuring. Group trailing calls in initializers, following Swift’s condition boundary. It emits native branches without a helper, closure or optional wrapper. See [syntax](https://twill.evecalm.com/syntax#branch-nullish-bindings) and [RFC 0018](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0018-optional-branch-bindings.md).
 
-Unreleased source work includes associated-value enums and accepted `match` expressions: `match (state) { case State.loaded({ value }): value; default: 0; }`. Named payload bindings and erased factory descriptors compile to native switches without calling factories. Native switch statements retain JS fallthrough; match and switch expressions return one result without fallthrough. These additions are not included in npm/Marketplace 0.1.2. Compiler, formatter, linter, highlighter, export and editor changes are validated together. See [syntax and compatibility](https://twill.evecalm.com/syntax#match-expressions-unreleased) and [RFC 0016](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0016-pattern-matching.md).
+Twill 0.2.0 includes associated-value enums and `match` expressions: `match (state) { case State.loaded({ value }): value; default: 0; }`. Named payload bindings and erased factory descriptors compile to native switches without calling factories. Native switch statements retain JS fallthrough; match and switch expressions return one result without fallthrough. Use the coordinated 0.2.0 packages and extension. Compiler, formatter, linter, highlighter, export and editor changes are validated together. See [syntax and compatibility](https://twill.evecalm.com/syntax#match-expressions) and [RFC 0016](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0016-pattern-matching.md).
 
-For Node scripts, the unreleased source runner supports `#!/usr/bin/env twill`, `twill script.twill` and `twill run script.twill`, with Swift-inspired guards, callbacks and cleanup. The published 0.1.2 loader remains available through `node --import @swiftuijs/twill/register`. The unreleased [shell SDK](https://twill.evecalm.com/scripting) source prototype adds native argv execution, bounded output and process ownership without command compilation. It works independently with ordinary JS/TS; scoped streams, pipelines and shell templates remain deferred.
+For Node scripts, Twill 0.2.0 supports `#!/usr/bin/env twill`, `twill script.twill` and `twill run script.twill`, with Swift-inspired guards, callbacks and cleanup. The Node ESM loader remains available through `node --import @swiftuijs/twill/register`. The [shell SDK](https://twill.evecalm.com/scripting) adds native argv execution, bounded output and process ownership without command compilation. It works independently with ordinary JS/TS; scoped streams, pipelines and shell templates remain deferred.

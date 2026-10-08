@@ -37,9 +37,7 @@ try {
     `
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
-import {Command,Output,Subprocess,ProcessExitError,ProcessAbortError,ProcessTimeoutError,OutputLimitError} from '@swiftuijs/twill-shell-native';
-import {ProcessExitError as SharedError} from '@swiftuijs/twill-shell';
-assert.equal(ProcessExitError,SharedError);
+import {Command,Output,Subprocess,ProcessExitError,ProcessAbortError,ProcessTimeoutError,OutputLimitError} from '@swiftuijs/twill-shell';
 const args=['','a b','$(echo injected); & |','中文🪶'];
 const result=await Subprocess.run(Command.path(process.execPath,['-e','process.stdout.write(JSON.stringify(process.argv.slice(1)))','--',...args]),{output:Output.text({limit:4096})});
 assert.deepEqual(JSON.parse(result.standardOutput),args);
@@ -76,9 +74,8 @@ const require=createRequire(import.meta.url);assert.throws(()=>require.resolve('
   writeFileSync(
     resolve(directory, 'types.ts'),
     `
-import {Command,Output,Subprocess,type RunOptions} from '@swiftuijs/twill-shell-native';
-import {Command as SharedCommand} from '@swiftuijs/twill-shell';
-const command=SharedCommand.path(process.execPath);
+import {Command,Output,Subprocess,type RunOptions} from '@swiftuijs/twill-shell';
+const command=Command.path(process.execPath);
 const text:string=(await Subprocess.run(command,{output:Output.text({limit:1})})).standardOutput;
 const bytes:Buffer=(await Subprocess.run(command,{output:Output.bytes({limit:1})})).standardOutput;
 const inherited:undefined=(await Subprocess.run(command)).standardOutput;
@@ -109,7 +106,7 @@ Output.text();
     options,
   );
   console.log(
-    `Independent native consumer on ${process.platform}/${process.arch}, ${process.version}: real prebuilt, shared errors/types, literal argv, input, failures and no Rust/compiler installation verified.`,
+    `Independent native consumer on ${process.platform}/${process.arch}, ${process.version}: real prebuilt, single public SDK, errors/types, literal argv, input, failures and no Rust/compiler installation verified.`,
   );
 } finally {
   rmSync(directory, { recursive: true, force: true });

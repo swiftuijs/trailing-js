@@ -1,6 +1,7 @@
 # RFC 0016: Match expressions and enum-case patterns
 
-**Status:** Accepted (unreleased). **Kind:** Language. **Release:** Not released.
+**Release reference:** 0.2.0 implements the accepted scope; broader/deferred items below remain proposals.
+**Status:** Implemented in 0.2.0 for the accepted scope; deferred capabilities remain proposals.
 **Dependencies:** 0010, 0011, 0015. **Review:** The maintainer approved the `match` expression direction on 2026-10-07; implementation review is pending.
 **Implementation:** The earlier explicit-marker prototype merged in [#14](https://github.com/swiftuijs/twill/pull/14). This amendment introduces the preferred `match` spelling.
 
@@ -24,7 +25,7 @@ return match (state) {
 
 `match` is contextual: an unescaped, unqualified `match(subject)` followed by a brace whose first non-comment token is `case` or `default` introduces the expression. The subject is one argument expression; parenthesize comma expressions. Native identifiers, calls, methods, optional/generic calls and trailing closures named `match` keep their contracts. In particular `match(subject) { return subject; }` and `match(subject) {}` remain ordinary trailing-closure calls. Recognition inspects only the brace's first token after the normal subject parser, preserving native TS/TSX subject syntax without module resolution or a second subject parse.
 
-The unreleased `switch (...) { case enum ... }` prototype stays supported as a compatibility spelling. New examples use `match`; existing value/object switch expressions and native switch statements do not change.
+The compatibility `switch (...) { case enum ... }` prototype stays supported as a compatibility spelling. New examples use `match`; existing value/object switch expressions and native switch statements do not change.
 
 A case reference is a qualified identifier chain, including imported aliases and namespaces. Parentheses are mandatory; they contain either nothing or one native object binding pattern. An empty pattern selects the variant without binding its fields, including variants that have payloads. The object pattern destructures the selected variant record: aliases, defaults, nested bindings and rest retain native semantics. It is not a nested shape predicate. Rest includes kind unless the binding explicitly mentions it. Bindings are immutable, independently scoped to each arm and do not escape. Destructuring is evaluated only in the selected arm; exceptions propagate normally.
 

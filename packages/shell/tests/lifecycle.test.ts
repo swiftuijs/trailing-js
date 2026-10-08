@@ -12,13 +12,12 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawn } from 'node:child_process';
 import { setMaxListeners } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { Command, Output, Subprocess, ProcessAbortError } from '../src/index.js';
-import { Subprocess as NodeSubprocess } from '@swiftuijs/twill-shell';
 const apiURL = new URL('../dist/index.js', import.meta.url).href;
-const fixture = fileURLToPath(new URL('../../shell/tests/fixtures/child.mjs', import.meta.url));
+const fixture = fileURLToPath(new URL('./fixtures/child.mjs', import.meta.url));
 const roots: string[] = [],
   workers: Worker[] = [],
   pids: number[] = [];
@@ -69,13 +68,31 @@ it('snapshots default and relative cwd before asynchronous launch without normal
   );
 });
 
-it('coexists with Node spawn completion and signal handling across concurrent commands', async () => {
+it('coexists with handwritten Node spawn completion across concurrent commands', async () => {
+  const native = (i: number) =>
+    new Promise<{ processIdentifier: number; standardOutput: string }>((resolve, reject) => {
+      const child = spawn(process.execPath, [fixture, 'argv', String(i)], {
+        stdio: ['ignore', 'pipe', 'ignore'],
+      });
+      const chunks: Buffer[] = [];
+      child.stdout.on('data', (chunk) => chunks.push(chunk));
+      child.once('error', reject);
+      child.once('close', (code) =>
+        code === 0
+          ? resolve({
+              processIdentifier: child.pid!,
+              standardOutput: Buffer.concat(chunks).toString(),
+            })
+          : reject(Error('Node child failed')),
+      );
+    });
   const results = await Promise.all(
     Array.from({ length: 48 }, (_, i) =>
-      (i % 2 ? NodeSubprocess : Subprocess).run(
-        Command.path(process.execPath, [fixture, 'argv', String(i)]),
-        { output: Output.text({ limit: 1024 }) },
-      ),
+      i % 2
+        ? native(i)
+        : Subprocess.run(Command.path(process.execPath, [fixture, 'argv', String(i)]), {
+            output: Output.text({ limit: 1024 }),
+          }),
     ),
   );
   results.forEach((result, i) => {

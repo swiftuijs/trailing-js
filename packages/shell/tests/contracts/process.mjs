@@ -16,7 +16,7 @@ import { join, dirname, basename } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // Shared observable contracts exercised with real processes, not a replacement
-// implementation. Each backend supplies its own public API/error constructors.
+// implementation. The public SDK supplies its API/error constructors.
 export function defineProcessContracts(api, moduleURL) {
   const { Command, Environment, Input, Output, Subprocess } = api;
   const fixture = fileURLToPath(new URL('../fixtures/child.mjs', import.meta.url));

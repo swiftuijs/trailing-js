@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { Environment } from '@swiftuijs/twill-shell';
+import { Environment } from '../src/index.js';
 import { environmentSnapshot } from '../src/environment.js';
 it('snapshots the complete inherited environment and follows Node coverage propagation', () => {
   const parent = { PATH: '/path', CUSTOM: 'before', NODE_V8_COVERAGE: '/coverage' };

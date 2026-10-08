@@ -39,9 +39,9 @@ function accountLabel(find: () => { name?: string } | undefined): string {
 
 Only the whole result is checked. Defaults and getters keep native behavior; the pattern names are unavailable in the failure branch. Use ordinary validation libraries for complex schemas. Twill does not synthesize validators from TypeScript annotations.
 
-## Optional success branches (unreleased)
+## Optional success branches
 
-For an optional success branch that should not introduce a binding into the rest of the function, the unreleased [RFC 0018 prototype](syntax.md#branch-nullish-bindings-unreleased) provides:
+For an optional success branch that should not introduce a binding into the rest of the function, the [RFC 0018 binding in 0.2.0](syntax.md#branch-nullish-bindings) provides:
 
 ```twill
 function displayAmount(input: unknown): string {
@@ -53,7 +53,7 @@ function displayAmount(input: unknown): string {
 }
 ```
 
-Zero remains valid, and `amount` exists only in the success branch. This source feature is not in npm/Marketplace 0.1.2; it does not replace native conditionals.
+Zero remains valid, and `amount` exists only in the success branch. Available in 0.2.0; it does not replace native conditionals.
 
 ## Separate expected outcomes from exceptions
 
@@ -135,9 +135,9 @@ Use the [ledger workflow](https://github.com/swiftuijs/twill/tree/main/examples/
 
 The example verifies empty and valid ledgers, malformed input, invalid rows, integer overflow, acquisition/read/cleanup failures and cancellation before and after acquisition. It also reads a real temporary file and verifies that its owned handle is closed before the result resolves. The Vite build includes the workflow in the normal SSR bundle.
 
-## Match associated values (unreleased prototype)
+## Match associated values
 
-Accepted associated-value enums describe tagged records once. RFC 0016 additionally prototypes explicit case descriptors with named payload bindings:
+Accepted associated-value enums describe tagged records once. RFC 0016 implements explicit case descriptors with named payload bindings:
 
 ```twill
 enum FetchState<T> {
@@ -153,4 +153,4 @@ function length(state: FetchState<string>) {
 }
 ```
 
-This replaces repeated tag literals with checked factory references. Run `twill check` to catch omitted variants and invalid fields. Selection adds no factory call or matching runtime; direct-return output uses a native switch and destructuring. Structural records still need normal boundary validation. Match expressions are not in npm/Marketplace 0.1.2; [the syntax guide](syntax.md#match-expressions-unreleased) describes review status, compatibility and allocation costs.
+This replaces repeated tag literals with checked factory references. Run `twill check` to catch omitted variants and invalid fields. Selection adds no factory call or matching runtime; direct-return output uses a native switch and destructuring. Structural records still need normal boundary validation. Match expressions are available in 0.2.0; [the syntax guide](syntax.md#match-expressions) describes review status, compatibility and allocation costs.

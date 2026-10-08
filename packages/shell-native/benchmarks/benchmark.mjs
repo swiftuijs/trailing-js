@@ -1,5 +1,13 @@
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync, statSync, mkdtempSync, rmSync, readdirSync } from 'node:fs';
+import {
+  readFileSync,
+  writeFileSync,
+  statSync,
+  mkdtempSync,
+  rmSync,
+  readdirSync,
+  mkdirSync,
+} from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
@@ -7,10 +15,10 @@ import { cpus, platform, arch, release, tmpdir } from 'node:os';
 import { performance } from 'node:perf_hooks';
 import { Command, Output, Subprocess } from '../../shell/dist/index.js';
 import { nativeRun } from '../../shell/benchmarks/native.mjs';
-import { Subprocess as NativeSubprocess } from '../dist/index.js';
+
 import { nativeTarget } from '../dist/platform.js';
 const nativeImage = nativeTarget();
-const rustRun = NativeSubprocess.run;
+const rustRun = Subprocess.run;
 
 assert.equal(
   process.platform,
@@ -21,7 +29,8 @@ const samples = 11;
 // Check report dependencies before measuring; a missing tool must not discard
 // a complete run only when the final report is being constructed.
 const rustc = execFileSync('rustc', ['--version'], { encoding: 'utf8' }).trim();
-const cc = execFileSync('cc', ['--version'], { encoding: 'utf8' }).split('\n')[0];
+const cc = mkdirSync(resolve(import.meta.dirname, 'target'), { recursive: true });
+execFileSync('cc', ['--version'], { encoding: 'utf8' }).split('\n')[0];
 function optionalText(path) {
   try {
     return readFileSync(path, 'utf8').trim();
@@ -102,14 +111,10 @@ const workloads = [
     expectedError: Buffer.alloc(size, 255),
   },
 ];
-const runs = { native: nativeRun, sdk: Subprocess.run, rust: rustRun };
+const runs = { native: nativeRun, rust: rustRun };
 const orders = [
-  ['native', 'sdk', 'rust'],
-  ['rust', 'sdk', 'native'],
-  ['sdk', 'rust', 'native'],
-  ['native', 'rust', 'sdk'],
-  ['rust', 'native', 'sdk'],
-  ['sdk', 'native', 'rust'],
+  ['native', 'rust'],
+  ['rust', 'native'],
 ];
 const median = (values) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
 function confidence(ratios) {
@@ -154,14 +159,14 @@ for (const file of [
   '../crate/src/lib.rs',
   '../crate/src/process.rs',
   '../crate/src/platform.rs',
-  '../src/index.ts',
+  '../../shell/src/index.ts',
   '../src/bindings.ts',
-  '../src/environment.ts',
-  '../src/cwd.ts',
+  '../../shell/src/environment.ts',
+  '../../shell/src/cwd.ts',
   '../src/platform.ts',
   '../dist/platform.js',
-  '../dist/environment.js',
-  '../dist/cwd.js',
+  '../../shell/dist/environment.js',
+  '../../shell/dist/cwd.js',
   '../dist/index.js',
   '../dist/bindings.js',
   '../scripts/build.mjs',
@@ -172,7 +177,7 @@ for (const file of [
   'target/fixture',
   'benchmark.mjs',
   'observe.mjs',
-  'cold-sdk.twill',
+  'cold-native.twill',
   'cold-rust.twill',
   '../../shell/src/index.ts',
   '../../shell/src/values.ts',
@@ -180,7 +185,6 @@ for (const file of [
   '../../shell/dist/index.js',
   '../../shell/dist/values.js',
   '../../shell/dist/errors.js',
-  '../../shell/dist/backend.js',
   '../../shell/benchmarks/native.mjs',
   '../../shell/tests/fixtures/child.mjs',
   '../../twill/bin/twill.mjs',
@@ -211,7 +215,6 @@ for (const workload of workloads) {
   for (let sample = 0; sample < samples; sample++) {
     const pair = {
       native: { wallMs: 0, parentCPUMs: 0 },
-      sdk: { wallMs: 0, parentCPUMs: 0 },
       rust: { wallMs: 0, parentCPUMs: 0 },
       operations: workload.count,
       sample,
@@ -239,21 +242,16 @@ for (const workload of workloads) {
         median(pairs.map((pair) => pair[mode].wallMs / workload.count)),
       ]),
     ),
-    rustVersusSDK: {
-      wall: comparison(pairs, 'rust', 'sdk', 'wallMs'),
-      parentCPU: comparison(pairs, 'rust', 'sdk', 'parentCPUMs'),
-    },
     rustVersusNative: {
       wall: comparison(pairs, 'rust', 'native', 'wallMs'),
       parentCPU: comparison(pairs, 'rust', 'native', 'parentCPUMs'),
     },
-    sdkVersusNative: { wall: comparison(pairs, 'sdk', 'native', 'wallMs') },
   };
   results.push(result);
   delete checkpoint.activeWorkload;
   save('warm');
   console.error(
-    `${result.name}: Rust/SDK wall ${result.rustVersusSDK.wall.medianRatio.toFixed(3)}, parent CPU ${result.rustVersusSDK.parentCPU.medianRatio.toFixed(3)}`,
+    `${result.name}: Rust/Node wall ${result.rustVersusNative.wall.medianRatio.toFixed(3)}, parent CPU ${result.rustVersusNative.parentCPU.medianRatio.toFixed(3)}`,
   );
 }
 
@@ -283,9 +281,9 @@ for (const bytes of [size, 8 * size]) {
   save('memory');
 }
 const concurrency = [];
-// Eight complete order cycles for the default-pool acceptance workloads;
+// Forty-eight paired samples for the default-pool acceptance workloads;
 // short initial runs had inconclusive tail intervals even at twelve pairs.
-const concurrencySamples = orders.length * 8;
+const concurrencySamples = 48;
 checkpoint.concurrency = concurrency;
 for (const [poolSize, children] of [
   ['4', 32],
@@ -319,7 +317,6 @@ for (const [poolSize, children] of [
     poolSize,
     children,
     pairs,
-    rustVersusSDK: { wall: comparison(pairs, 'rust', 'sdk', 'wallMs') },
     rustVersusNative: { wall: comparison(pairs, 'rust', 'native', 'wallMs') },
   });
   save('concurrency');
@@ -340,7 +337,7 @@ for (let sample = 0; sample < 5; sample++) {
     );
   contention.push(pair);
   save('filesystem');
-  const cancelPair = { order: sample % 2 ? ['rust', 'sdk'] : ['sdk', 'rust'] };
+  const cancelPair = { order: sample % 2 ? ['rust', 'native'] : ['native', 'rust'] };
   for (const mode of cancelPair.order)
     cancelPair[mode] = JSON.parse(
       execFileSync(
@@ -355,11 +352,10 @@ for (let sample = 0; sample < 5; sample++) {
 const cache = mkdtempSync(resolve(tmpdir(), 'twill-rust-cold-'));
 const coldModes = [
   'native',
-  'sdk',
   'rust',
-  'source-sdk-cached',
+  'source-native-cached',
   'source-rust-cached',
-  'source-sdk-uncached',
+  'source-native-uncached',
   'source-rust-uncached',
 ];
 function cold(mode) {
@@ -368,7 +364,7 @@ function cold(mode) {
   const command = isSource
     ? [
         resolve(import.meta.dirname, '../../twill/bin/twill.mjs'),
-        resolve(import.meta.dirname, rust ? 'cold-rust.twill' : 'cold-sdk.twill'),
+        resolve(import.meta.dirname, rust ? 'cold-rust.twill' : 'cold-native.twill'),
       ]
     : [resolve(import.meta.dirname, 'observe.mjs'), mode, 'cold'];
   const start = performance.now();
@@ -402,7 +398,7 @@ try {
 const report = {
   schemaVersion: 1,
   dateUTC: new Date().toISOString(),
-  backend: '@swiftuijs/twill-shell-native production-contract source implementation',
+  backend: '@swiftuijs/twill-shell Rust-only SDK',
   node: process.version,
   platform: platform(),
   arch: arch(),
@@ -420,7 +416,7 @@ const report = {
   concurrencyCPUs,
   orderPermutations: orders,
   scope:
-    'Linux production-contract direct-child backend; success workloads interleaved/checked against natural handwritten Node and the SDK. Parent CPU includes Rust reactor, excludes child CPU. Native copies input/snapshots cwd/environment and performs the full shared SDK contract. Independent async scheduling; no libuv worker per child. Failure ownership/cancellation is measured separately; no child acceleration, compiler port, containment, pipeline or cross-platform performance claim.',
+    'Linux production-contract direct-child backend; success workloads interleaved/checked against natural handwritten Node. Parent CPU includes Rust reactor, excludes child CPU. Native copies input/snapshots cwd/environment and performs the full shared SDK contract. Independent async scheduling; no libuv worker per child. Failure ownership/cancellation is measured separately; no child acceleration, compiler port, containment, pipeline or cross-platform performance claim.',
   results,
   memory,
   concurrency,
@@ -431,16 +427,16 @@ const report = {
     medianWallMs: Object.fromEntries(
       coldModes.map((mode) => [mode, median(coldPairs.map((pair) => pair[mode].wallMs))]),
     ),
-    sourceRustVersusSDKCached: comparison(
+    sourceRustVersusNativeCached: comparison(
       coldPairs,
       'source-rust-cached',
-      'source-sdk-cached',
+      'source-native-cached',
       'wallMs',
     ),
-    sourceRustVersusSDKUncached: comparison(
+    sourceRustVersusNativeUncached: comparison(
       coldPairs,
       'source-rust-uncached',
-      'source-sdk-uncached',
+      'source-native-uncached',
       'wallMs',
     ),
     scope:

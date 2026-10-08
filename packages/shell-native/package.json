@@ -1,7 +1,7 @@
 {
   "name": "@swiftuijs/twill-shell-native",
-  "version": "0.1.2",
-  "description": "Optional Rust asynchronous subprocess backend for Twill shell scripts and Node.",
+  "version": "0.2.0",
+  "description": "Prebuilt Rust process engine for @swiftuijs/twill-shell; installed automatically with the SDK.",
   "type": "module",
   "license": "MIT",
   "repository": {
@@ -31,20 +31,14 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {
-    "@swiftuijs/twill-shell": "workspace:*"
-  },
   "devDependencies": {
-    "@swiftuijs/twill": "workspace:*",
-    "@swiftuijs/twill-formatter": "workspace:*",
-    "@swiftuijs/twill-export": "workspace:*",
     "typescript": "catalog:",
     "@types/node": "catalog:",
     "vitest": "catalog:",
     "@vitest/coverage-v8": "catalog:"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json && node scripts/build.mjs",
+    "build": "node -e \"require('node:fs').rmSync('dist', {recursive: true, force: true})\" && tsc -p tsconfig.build.json && node scripts/build.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",

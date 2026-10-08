@@ -10,7 +10,7 @@ Each RFC must identify the Twill addition: its new syntax, semantics, checking g
 
 ## Status and review process
 
-- **Implemented** records behavior already shipped in 0.1.2. These are retrospective specifications, not claims that an earlier RFC review happened.
+- **Implemented** records behavior shipped in its recorded release. These are retrospective specifications, not claims that an earlier RFC review happened.
 - **Proposed** describes behavior awaiting design acceptance, which may have an implementation prototype. Syntax examples in a proposed RFC are design examples and are not accepted by released compilers.
 - **Accepted** records a maintainer's design decision and links the review. Acceptance does not mean the feature is available.
 - **Implementing** links an implementation PR and its remaining acceptance work.
@@ -48,22 +48,22 @@ The language may introduce its own semantics. Changes to existing JS/TS spelling
 
 ## Accepted and proposed language features
 
-Associated-value enums are accepted and merged, but unreleased. RFC 0016 accepts dedicated match expressions with named enum-case bindings; predicates and broader matching remain deferred. Error propagation follows after those foundations; structured concurrency needs its own runtime design.
+Associated-value enums, match expressions and branch bindings ship in 0.2.0. RFC 0016 accepts dedicated match expressions with named enum-case bindings; predicates and broader matching remain deferred. Error propagation follows after those foundations; structured concurrency needs its own runtime design.
 
 RFC 0018 accepts branch-local nullish bindings that reuse the guard/destructuring foundation and Swift's condition-expression boundary, with native branch lowering. [PR #17](https://github.com/swiftuijs/twill/pull/17) provides the source implementation; release remains pending. RFC 0019 still needs its error representation and effect metadata contracts before implementation.
 
-| RFC                                      | Feature                               | Status   | Dependencies                                |
-| ---------------------------------------- | ------------------------------------- | -------- | ------------------------------------------- |
-| [0015](0015-associated-value-enums.md)   | Associated-value enums                | Accepted | 0010, 0011                                  |
-| [0016](0016-pattern-matching.md)         | Match expressions and enum patterns   | Accepted | 0010, 0011, 0015                            |
-| [0017](0017-if-expressions.md)           | If expressions                        | Proposed | None                                        |
-| [0018](0018-optional-branch-bindings.md) | Nullish bindings in if branches       | Accepted | 0007, 0008                                  |
-| [0019](0019-typed-error-propagation.md)  | Explicit typed error propagation      | Proposed | 0015 for the optional result representation |
-| [0020](0020-structured-concurrency.md)   | Structured concurrency                | Proposed | Error/cleanup contracts; runtime prototype  |
-| [0021](0021-immutable-values.md)         | Immutable records and value semantics | Proposed | None                                        |
-| [0022](0022-argument-labels.md)          | Function argument labels              | Proposed | Declaration/editor metadata design          |
-| [0023](0023-boolean-conditions.md)       | Boolean condition checking            | Proposed | Checker extension                           |
-| [0024](0024-exact-numeric-types.md)      | Exact numeric and domain types        | Proposed | Explicit runtime and operator design        |
+| RFC                                      | Feature                               | Status             | Dependencies                                |
+| ---------------------------------------- | ------------------------------------- | ------------------ | ------------------------------------------- |
+| [0015](0015-associated-value-enums.md)   | Associated-value enums                | Implemented: 0.2.0 | 0010, 0011                                  |
+| [0016](0016-pattern-matching.md)         | Match expressions and enum patterns   | Implemented: 0.2.0 | 0010, 0011, 0015                            |
+| [0017](0017-if-expressions.md)           | If expressions                        | Proposed           | None                                        |
+| [0018](0018-optional-branch-bindings.md) | Nullish bindings in if branches       | Implemented: 0.2.0 | 0007, 0008                                  |
+| [0019](0019-typed-error-propagation.md)  | Explicit typed error propagation      | Proposed           | 0015 for the optional result representation |
+| [0020](0020-structured-concurrency.md)   | Structured concurrency                | Proposed           | Error/cleanup contracts; runtime prototype  |
+| [0021](0021-immutable-values.md)         | Immutable records and value semantics | Proposed           | None                                        |
+| [0022](0022-argument-labels.md)          | Function argument labels              | Proposed           | Declaration/editor metadata design          |
+| [0023](0023-boolean-conditions.md)       | Boolean condition checking            | Proposed           | Checker extension                           |
+| [0024](0024-exact-numeric-types.md)      | Exact numeric and domain types        | Proposed           | Explicit runtime and operator design        |
 
 ## Released tooling capabilities
 
@@ -79,15 +79,15 @@ RFC 0018 accepts branch-local nullish bindings that reuse the guard/destructurin
 
 ## Proposed runtime/tooling capabilities
 
-| RFC                                      | Capability                                       | Status         | Dependencies                           |
-| ---------------------------------------- | ------------------------------------------------ | -------------- | -------------------------------------- |
-| [0032](0032-optional-runtime-helpers.md) | Optional versioned runtime helpers               | Proposed       | 0009, 0026, 0027, 0028                 |
-| [0033](0033-official-ai-skill.md)        | Official portable AI skill and website discovery | Proposed       | 0025, 0026, 0029                       |
-| [0034](0034-shell-scripting-toolkit.md)  | Swift-inspired shell scripting toolkit           | Accepted (MVP) | 0026; optional 0002, 0007, 0009 syntax |
+| RFC                                      | Capability                                       | Status             | Dependencies                           |
+| ---------------------------------------- | ------------------------------------------------ | ------------------ | -------------------------------------- |
+| [0032](0032-optional-runtime-helpers.md) | Optional versioned runtime helpers               | Proposed           | 0009, 0026, 0027, 0028                 |
+| [0033](0033-official-ai-skill.md)        | Official portable AI skill and website discovery | Proposed           | 0025, 0026, 0029                       |
+| [0034](0034-shell-scripting-toolkit.md)  | Swift-inspired shell scripting toolkit           | Implemented: 0.2.0 | 0026; optional 0002, 0007, 0009 syntax |
 
-[RFC 0034](0034-shell-scripting-toolkit.md) accepts the first stage of an optional Node shell toolkit based on Swift Subprocess: argv-backed execution, explicit output policies, typed status/errors and owned process teardown. Existing Node loader execution is already available; the SDK is an unreleased source prototype. The accepted executable-script amendment adds a source-only `#!/usr/bin/env twill` runner with direct/explicit CLI invocation and native argv/process behavior. Scoped streaming, pipelines and explicit shells are later milestones, without new language syntax.
+[RFC 0034](0034-shell-scripting-toolkit.md) accepts the first stage of an optional Node shell toolkit based on Swift Subprocess: argv-backed execution, explicit output policies, typed status/errors and owned process teardown. Existing Node loader execution is already available; the SDK ships in 0.2.0. The accepted executable-script amendment adds a `#!/usr/bin/env twill` runner with direct/explicit CLI invocation and native argv/process behavior. Scoped streaming, pipelines and explicit shells are later milestones, without new language syntax.
 
-[RFC 0035](0035-script-compilation-cache.md) proposes a content-validated compilation cache and lazy compiler initialization for executable scripts, with an authorized source prototype. [RFC 0036](0036-native-subprocess-backend.md) accepts a separate, explicitly imported Rust production direct-child backend. The source implementation has independent async scheduling, the shared SDK contract, bounded cancellation/environment cleanup and five-platform prebuild validation. Readiness requires complete-contract performance/platform evidence; the earlier Linux experiment is preserved. Containment and pipelines remain proposed. Neither proposal is published.
+[RFC 0035](0035-script-compilation-cache.md) proposes a content-validated compilation cache and lazy compiler initialization for executable scripts, implemented in 0.2.0. [RFC 0036](0036-native-subprocess-backend.md) implements the SDK's sole Rust process engine in 0.2.0. The source implementation has independent async scheduling, the shared SDK contract, bounded cancellation/environment cleanup and eight-platform prebuild validation. Readiness requires complete-contract performance/platform evidence; the earlier Linux experiment is preserved. Containment and pipelines remain proposed. Both accepted scopes ship in 0.2.0.
 
 ## Implementation checklist
 

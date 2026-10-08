@@ -46,3 +46,9 @@ taskset -c 0 packages/shell-native/benchmarks/target/deny-pidfd enosys node pack
 ```
 
 Run performance measurements without concurrent builds or test suites. On a CPU-quota-limited Linux host, choose allowed CPUs that match the quota (the reviewed host allows CPUs 0–4 but has four CPU equivalents of quota; `taskset -c 0-3` avoids oversubscribing it). The report records affinity, CPU quota and cgroup counters, and concurrency observations retain per-batch counters. Checkpoints go to the ignored `target` directory so a failed run retains completed samples. Preserve failed reports alongside successful reports; do not drop outliers or equate a timing result with cross-platform contract verification or npm publication.
+
+## Rust-only SDK release
+
+0.2.0 keeps one public `@swiftuijs/twill-shell` entry and uses the native package only as its automatic implementation dependency. Earlier three-way reports below retain the old Node SDK as historical evidence. The current harness compares Rust with handwritten Node in both alternating orders, retaining eleven warm samples and 48 pairs for each default-pool concurrency workload. It also records memory, filesystem work, cancellation and native/Twill cold starts; a handwritten cancellation baseline uses Node spawn and the same grace/forced-close observation.
+
+The unchanged warm/default-pool gate checks both the paired median and upper 95% bound against 1.10. Cold startup and unavailable/denied-pidfd polling remain separately scoped; no universal speedup follows. Run from a clean, fully built checkout without other local builds/tests. New reports must include the public SDK, loader, Rust, emitted-build and measurement-source fingerprints; retain failures rather than replacing them.

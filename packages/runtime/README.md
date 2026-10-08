@@ -1,8 +1,8 @@
 # <img src="https://twill.evecalm.com/logo.png" alt="Twill hummingbird" align="right" width="40" height="40" /> Twill runtime
 
-Optional, zero-dependency helpers for Twill, a TypeScript-based language with Swift-inspired syntax. This package is an unreleased RFC 0032 prototype. Released Twill 0.1.2 does not support the external runtime option yet.
+Optional, zero-dependency helpers for Twill, a TypeScript-based language with Swift-inspired syntax. Available in 0.2.0 for explicitly selected external cleanup helpers.
 
-The compiler defaults to self-contained inline code. The prototype's external mode shares dynamic synchronous `defer` draining across modules:
+The compiler defaults to self-contained inline code. External mode shares dynamic synchronous `defer` draining across modules:
 
 ```sh
 pnpm add @swiftuijs/twill-runtime

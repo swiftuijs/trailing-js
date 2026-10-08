@@ -91,7 +91,7 @@ jobs:
         run: pnpm test:examples && pnpm --filter @swiftuijs/twill test:size --output ../../bundle-results.json
       - name: Pack the validated build
         if: needs.changes.outputs.core == 'true'
-        run: pnpm package:core && pnpm package:tooling && pnpm --filter twill package:built && pnpm release:manifest
+        run: pnpm package:core && pnpm package:tooling && pnpm --filter @swiftuijs/twill-shell-native pack --out swiftuijs-twill-shell-native-%v.tgz && pnpm --filter twill package:built && pnpm release:manifest
       - name: Packaged editor coverage
         if: needs.changes.outputs.core == 'true'
         run: xvfb-run -a pnpm editor:coverage
@@ -149,6 +149,7 @@ jobs:
           if-no-files-found: error
           path: |
             *.tgz
+            !swiftuijs-twill-shell-native-*.tgz
             dist/twill.vsix
             release-manifest.json
             bundle-results.json
@@ -204,10 +205,12 @@ jobs:
         with:
           workspaces: packages/shell-native/crate -> target
           shared-key: native-${{ matrix.os }}-${{ matrix.arch }}
-      - run: pnpm --filter @swiftuijs/twill-shell-native... build
+      - run: pnpm --filter @swiftuijs/twill-shell... build
       - run: pnpm --filter @swiftuijs/twill-shell-native test:native
       - run: pnpm --filter @swiftuijs/twill-shell-native typecheck
       - run: pnpm --filter @swiftuijs/twill-shell-native test:coverage
+      - run: pnpm --filter @swiftuijs/twill-shell typecheck
+      - run: pnpm --filter @swiftuijs/twill-shell test:coverage
       - run: pnpm package:native
       - uses: actions/setup-node@v7.0.0
         with:
@@ -260,10 +263,12 @@ jobs:
             -v "$RUNNER_TEMP/twill-cargo/registry:/usr/local/cargo/registry" \
             -v "$RUNNER_TEMP/twill-cargo/git:/usr/local/cargo/git" twill-native-platform sh -ec '
             pnpm install --frozen-lockfile
-            pnpm --filter @swiftuijs/twill-shell-native... build
+            pnpm --filter @swiftuijs/twill-shell... build
             pnpm --filter @swiftuijs/twill-shell-native test:native
             pnpm --filter @swiftuijs/twill-shell-native typecheck
             pnpm --filter @swiftuijs/twill-shell-native test:coverage
+            pnpm --filter @swiftuijs/twill-shell typecheck
+            pnpm --filter @swiftuijs/twill-shell test:coverage
             pnpm package:native
           '
       - name: Independently installed glibc archives on Node 20.19
@@ -298,8 +303,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @swiftuijs/twill-shell... build
       - run: pnpm --filter @swiftuijs/twill-shell-native exec tsc -p tsconfig.build.json
+      - run: pnpm --filter @swiftuijs/twill-shell exec tsc -p tsconfig.build.json
       - uses: actions/download-artifact@v8.0.1
         with:
           pattern: native-binary-*
@@ -365,6 +370,8 @@ jobs:
         os: [windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
+    env:
+      RUSTUP_TOOLCHAIN: '1.90.0'
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: pnpm/action-setup@v6
@@ -373,12 +380,18 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Install the pinned Rust toolchain
+        run: rustup toolchain install 1.90.0 --profile minimal
+      - uses: Swatinem/rust-cache@v2.9.2
+        with:
+          workspaces: packages/shell-native/crate -> target
+          shared-key: shell-runner-${{ matrix.os }}
       - run: pnpm --filter @swiftuijs/twill-shell... build
       - run: pnpm --filter @swiftuijs/twill exec vitest run tests/runner.test.ts tests/runner-cache.test.ts tests/compilation-cache.test.ts tests/config.test.ts
       - run: pnpm --filter @swiftuijs/twill-shell typecheck
       - run: pnpm --filter @swiftuijs/twill-shell test:unit
       - run: pnpm --filter @swiftuijs/twill --config.ignore-scripts=true pack --out swiftuijs-twill-%v.tgz
-      - run: pnpm --filter @swiftuijs/twill-shell pack --out swiftuijs-twill-shell-%v.tgz
+      - run: pnpm package:native
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: 20

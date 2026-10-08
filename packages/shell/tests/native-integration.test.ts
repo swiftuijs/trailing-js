@@ -34,7 +34,7 @@ function fixture() {
   writeFileSync(join(root, 'package.json'), JSON.stringify({ type: 'module', private: true }));
   const source = join(root, 'source');
   mkdirSync(source);
-  const original = `import {Command,Output,Subprocess} from '@swiftuijs/twill-shell-native';
+  const original = `import {Command,Output,Subprocess} from '@swiftuijs/twill-shell';
 import {writeFile} from 'node:fs/promises';
 export async function run(value: string | undefined): Promise<string> {
   guard const input = value else { throw new TypeError('Missing input'); }
@@ -119,9 +119,7 @@ it('exports a native-backed Twill script to checked JS that needs no compiler lo
   const exported = await exportProject(config, { outDir: join(root, 'native') });
   expect(exported.diagnostics).toEqual([]);
   expect(exported.written).toBe(true);
-  expect(readFileSync(join(root, 'native', 'run.ts'), 'utf8')).toContain(
-    '@swiftuijs/twill-shell-native',
-  );
+  expect(readFileSync(join(root, 'native', 'run.ts'), 'utf8')).toContain('@swiftuijs/twill-shell');
   const parsed = ts.getParsedCommandLineOfConfigFile(
     exported.tsconfig,
     { noEmit: false, rewriteRelativeImportExtensions: true, outDir: join(root, 'dist') },

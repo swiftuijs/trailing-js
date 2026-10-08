@@ -8,8 +8,8 @@ import { join } from 'node:path';
 import { getEventListeners, setMaxListeners } from 'node:events';
 import { Worker } from 'node:worker_threads';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { Command, Output, Subprocess, ProcessAbortError } from '@swiftuijs/twill-shell-native';
-const apiURL = import.meta.resolve('@swiftuijs/twill-shell-native');
+import { Command, Output, Subprocess, ProcessAbortError } from '@swiftuijs/twill-shell';
+const apiURL = import.meta.resolve('@swiftuijs/twill-shell');
 const childCode =
   'const fs=require("node:fs"),tmp=process.argv[1]+"."+process.pid+".tmp";fs.writeFileSync(tmp,String(process.pid));fs.renameSync(tmp,process.argv[1]);process.on("SIGTERM",()=>{});setInterval(()=>{},1000)';
 const roots = [],
