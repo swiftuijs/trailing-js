@@ -43,7 +43,7 @@
     "vite": "catalog:"
   },
   "scripts": {
-    "build": "vite build && twill declarations -p tsconfig.build.json -o dist",
+    "build": "vite build && twill declarations -p tsconfig.build.json -o dist && node scripts/compact-maps.mjs",
     "typecheck": "twill check -p tsconfig.json",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",

@@ -16,7 +16,7 @@ pnpm build
 pnpm check
 ```
 
-`pnpm build` orders workspace dependencies automatically. The shell's source build requires the pinned Rust toolchain; see [tooling](./tooling.md) and [releasing](./releasing.md). Artifact assembly uses the native wrapper's `build:js` to avoid recompiling already tested Rust binaries.
+`pnpm build` orders workspace dependencies automatically. The shell's source build requires the pinned Rust toolchain; see [tooling](./tooling.md) and [releasing](./releasing.md). Artifact assembly uses the native wrapper's `build:js` to avoid recompiling already tested Rust binaries. The SDK retains source paths and position mappings but removes repeated embedded source text from its build maps, matching its former native build and preserving the 16 KiB archive budget. This does not change the test adapter's original-source coverage maps.
 
 Vite configurations use `@swiftuijs/twill/vite`. Public packages emit declarations with `twill declarations -p tsconfig.build.json -o dist`; use `rootDir: "src"` so exported types stay at their established `dist` paths. Type checks use `twill check`, including native test files importing Twill. Plain `tsc` cannot parse implementation sources directly.
 
