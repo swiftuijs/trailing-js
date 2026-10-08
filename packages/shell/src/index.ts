@@ -46,7 +46,7 @@ export {
 
 export type TerminationStatus =
   | { readonly kind: 'exited'; readonly code: number }
-  | { readonly kind: 'signaled'; readonly signal: NodeJS.Signals };
+  | { readonly kind: 'signaled'; readonly signal: NodeJS.Signals | number };
 export interface ExecutionResult<
   O extends OutputPolicy = OutputPolicy,
   E extends OutputPolicy = OutputPolicy,
@@ -164,9 +164,10 @@ function run<Options extends RunOptions = RunOptions<InheritedOutput, InheritedO
           : outcome.signal !== undefined
             ? Object.freeze({
                 kind: 'signaled',
-                signal: Object.keys(constants.signals).find(
-                  (key) => constants.signals[key as NodeJS.Signals] === outcome.signal,
-                ) as NodeJS.Signals,
+                signal:
+                  (Object.keys(constants.signals).find(
+                    (key) => constants.signals[key as NodeJS.Signals] === outcome.signal,
+                  ) as NodeJS.Signals | undefined) ?? outcome.signal,
               })
             : outcome.code !== undefined
               ? Object.freeze({ kind: 'exited', code: outcome.code })

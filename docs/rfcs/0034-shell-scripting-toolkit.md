@@ -80,7 +80,7 @@ Return a typed result with `processIdentifier`, `terminationStatus`, `standardOu
 
 ```ts
 type TerminationStatus =
-  { kind: 'exited'; code: number } | { kind: 'signaled'; signal: NodeJS.Signals };
+  { kind: 'exited'; code: number } | { kind: 'signaled'; signal: NodeJS.Signals | number };
 ```
 
 `check` defaults to true for build-script ergonomics: a nonzero exit or signal rejects with a `ProcessExitError` carrying the status and bounded captured output. `check: false` returns that status as data. This differs deliberately from Swift's status-first default. A launch/I/O failure, abort, timeout or output-limit failure always rejects regardless of `check`; it is not a fabricated numeric exit status. Use native try/catch and TypeScript error guards, not an unimplemented Swift `throws` contract. Logs must not automatically include command arguments, environment values or captured output; callers can choose what to print.

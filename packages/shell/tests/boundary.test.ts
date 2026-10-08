@@ -86,6 +86,15 @@ it('maps Windows and Unix signals independently of the host platform', async () 
     signal: 'SIGTERM',
   });
 });
+it('retains unnamed native signal numbers in unchecked results and checked errors', async () => {
+  backend({ code: undefined, signal: 32767 });
+  const result = await Subprocess.run(command, { check: false });
+  expect(result.terminationStatus).toEqual({ kind: 'signaled', signal: 32767 });
+  await expect(Subprocess.run(command)).rejects.toMatchObject({
+    name: 'ProcessExitError',
+    result: { terminationStatus: { kind: 'signaled', signal: 32767 } },
+  });
+});
 it('preserves primary failure, secondary I/O/reaping errors, partial captures and the unresolved PID', async () => {
   const failure: NativeFailure = {
     kind: 'io',

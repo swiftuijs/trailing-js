@@ -31,6 +31,8 @@ Each native binary has a 2 MiB uncompressed gate; the implementation archive has
 
 The 0.2.0 public SDK's controlled Linux/Node 24 report passes all seven warm and both default-pool gates. Warm native launch/capture/input time is about 35–44% lower than equivalent handwritten Node; Node interpreter launch and 32/128-child concurrency are comparable. Fresh native/SDK startup medians are 62.9/70.0 ms; cached Twill source is 207.3/223.8 ms, without established cold-source parity. Historical denied-pidfd polling adds short-command latency: about 8% higher median time, with a 95% interval of 7–11%. These results do not predict external-command speed or other platforms. See the [complete reports, eight-target package evidence and retained review history](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/README.md).
 
+Darwin registration races for already exiting owned children retain polling and reaping instead of reporting a process failure; other notification errors remain failures.
+
 See [Twill](https://twill.evecalm.com/), [performance](https://twill.evecalm.com/performance), [RFC 0036](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0036-native-subprocess-backend.md) and the sibling [SwiftUI.js](https://swiftuijs.evecalm.com/) project.
 
 Environment replacement follows native Node boundaries: Windows supplements omitted libuv-required system variables (including PATH, SYSTEMROOT and TEMP) from the parent; explicit empty strings override those defaults. Node coverage output settings propagate when not explicitly supplied. Use a trusted executable path rather than assuming an omitted Windows PATH disables lookup.

@@ -505,7 +505,15 @@ fn exit_notification(pid: u32) -> io::Result<Option<AsyncFd<OwnedFd>>> {
         )
     } == -1
     {
-        return Err(io::Error::last_os_error());
+        let error = io::Error::last_os_error();
+        // Darwin can stop accepting NOTE_EXIT before waitpid exposes the
+        // exiting child's status. Retain ownership and poll this PID rather
+        // than rejecting a successful short command. Resource failures still
+        // propagate; no process-wide SIGCHLD handler is installed.
+        if error.raw_os_error() == Some(libc::ESRCH) {
+            return Ok(None);
+        }
+        return Err(error);
     }
     // Darwin kqueue descriptors support readable readiness, not EVFILT_WRITE.
     // kevent below is explicitly nonblocking through its zero timeout.

@@ -9,6 +9,7 @@
 - Add `twill script.twill`, `twill run script.twill` and POSIX `#!/usr/bin/env twill`, literal script arguments, source maps and bounded content-validated compilation caching.
 - Release `@swiftuijs/twill-shell` with one Rust execution backend: literal argv, bounded I/O, isolated cwd/environment, typed errors, cancellation and direct-child ownership. Its prebuilt implementation dependency installs automatically; no Rust toolchain or compiler is required for native JS/TS consumers.
 - Avoid complete Node diagnostic-report construction during ordinary Linux native startup by inspecting the running ELF interpreter with bounded reads; unknown/static layouts retain the conservative report fallback.
+- Preserve successful immediate Mac exits when notification registration races with process completion, and retain numeric values for unnamed Unix termination signals.
 - Include eight validated Linux glibc/musl, macOS and Windows x64/ARM64 prebuilds. Keep independent SDK/binary/archive budgets and installed Node 20.19 consumers. Unsupported platforms reject explicitly.
 - Preserve measured limits: warm Linux launch/capture and default-pool concurrency improve or match equivalent handwritten Node on the reviewed host; cold startup and denied-pidfd polling have separate costs. No external-command or universal speedup is claimed.
 - Publish the official portable AI skill with current syntax, script/backend ownership, integrations and release guidance; generate website downloads from the canonical source.

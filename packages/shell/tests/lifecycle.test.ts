@@ -101,6 +101,47 @@ it('coexists with handwritten Node spawn completion across concurrent commands',
   });
 });
 
+it.skipIf(process.platform !== 'darwin')(
+  'reaps immediate native exits across concurrent batches',
+  async () => {
+    for (let batch = 0; batch < 8; batch++) {
+      const results = await Promise.all(
+        Array.from({ length: 32 }, () =>
+          Subprocess.run(Command.path('/usr/bin/true'), {
+            output: Output.discard(),
+            error: Output.discard(),
+          }),
+        ).concat([
+          Subprocess.run(Command.path(process.execPath, ['-e', '']), {
+            output: Output.discard(),
+            error: Output.discard(),
+          }),
+        ]),
+      );
+      for (const result of results) {
+        expect(result.terminationStatus).toEqual({ kind: 'exited', code: 0 });
+        gone(result.processIdentifier);
+      }
+    }
+  },
+);
+
+it.skipIf(process.platform !== 'linux')(
+  'preserves a real unnamed realtime signal in results and errors',
+  async () => {
+    const command = Command.path(process.execPath, ['-e', 'process.kill(process.pid,34)']);
+    const result = await Subprocess.run(command, { check: false });
+    expect(result.terminationStatus).toEqual({ kind: 'signaled', signal: 34 });
+    gone(result.processIdentifier);
+    const error = await Subprocess.run(command).catch((error) => error);
+    expect(error).toMatchObject({
+      name: 'ProcessExitError',
+      result: { terminationStatus: { kind: 'signaled', signal: 34 } },
+    });
+    gone(error.result.processIdentifier);
+  },
+);
+
 it('terminates a worker even when an unowned descendant keeps its capture pipes open', async () => {
   const marker = join(root(), 'descendant');
   const worker = new Worker(

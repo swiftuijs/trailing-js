@@ -127,10 +127,10 @@ Results expose `processIdentifier`, `standardOutput`, `standardError` and an ord
 ```ts
 type TerminationStatus =
   | { readonly kind: 'exited'; readonly code: number }
-  | { readonly kind: 'signaled'; readonly signal: NodeJS.Signals };
+  | { readonly kind: 'signaled'; readonly signal: NodeJS.Signals | number };
 ```
 
-`check` defaults to true. Nonzero/signal exits throw `ProcessExitError`, whose `result` contains status and captured output. `check: false` returns status for native `switch`/`if` handling; it does not hide launch, I/O, abort, timeout or output-limit failures. Exported classes distinguish `ProcessLaunchError`, `ProcessIOError`, `ProcessAbortError`, `ProcessTimeoutError`, `OutputLimitError` and `ProcessTeardownError`. They extend `ProcessError`; use native `try/catch` and `instanceof` rather than proposed typed-throws syntax.
+`check` defaults to true. Nonzero/signal exits throw `ProcessExitError`, whose `result` contains status and captured output. Named Unix signals use Node's signal names; signals absent from that table retain their numeric OS value. `check: false` returns status for native `switch`/`if` handling; it does not hide launch, I/O, abort, timeout or output-limit failures. Exported classes distinguish `ProcessLaunchError`, `ProcessIOError`, `ProcessAbortError`, `ProcessTimeoutError`, `OutputLimitError` and `ProcessTeardownError`. They extend `ProcessError`; use native `try/catch` and `instanceof` rather than proposed typed-throws syntax.
 
 Pass `signal` and/or `timeoutMs` to bound execution. An already-aborted signal starts nothing. On failure, the SDK requests SIGTERM, then SIGKILL after `gracePeriodMs` (default 250 ms). It waits for the directly owned child and I/O to close; `killTimeoutMs` bounds the join after forced termination (default 1000 ms). Reactor timers are scheduling bounds, not real-time deadlines. Windows termination uses the native process handle and cannot promise POSIX graceful handling. Owned listeners/timers are removed on settlement.
 
