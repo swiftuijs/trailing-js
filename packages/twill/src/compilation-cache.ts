@@ -58,9 +58,11 @@ export function toolchainIdentity(
 ): string | undefined {
   try {
     const hash = createHash('sha256').update('twill-loader-cache-v1\0' + process.version);
+    const add = (path: string, bytes: Uint8Array) =>
+      hash.update(JSON.stringify([path, digest(bytes)]));
     const directory = dirname(fileURLToPath(location));
     for (const file of readdirSync(directory).sort())
-      if (file.endsWith('.js')) hash.update(file).update(readFileSync(join(directory, file)));
+      if (file.endsWith('.js')) add(file, readFileSync(join(directory, file)));
     const seen = new Set<string>();
     const visit = (name: string, from: string) => {
       const require = createRequire(from);
@@ -75,7 +77,7 @@ export function toolchainIdentity(
       seen.add(root);
       const metadata = join(root, 'package.json');
       const value = JSON.parse(readFileSync(metadata, 'utf8'));
-      hash.update(name).update(readFileSync(metadata));
+      add(name, readFileSync(metadata));
       const walk = (folder: string) => {
         for (const entry of readdirSync(folder, { withFileTypes: true }).sort((a, b) =>
           a.name.localeCompare(b.name),
@@ -83,12 +85,13 @@ export function toolchainIdentity(
           const path = join(folder, entry.name);
           if (entry.isDirectory() && entry.name !== 'node_modules') walk(path);
           else if (/\.(?:[cm]?js|json)$/.test(entry.name))
-            hash.update(path.slice(root.length)).update(readFileSync(path));
+            add(path.slice(root.length), readFileSync(path));
         }
       };
       // TypeScript emission/configuration executes this single compiler bundle;
       // hashing its CLI/server copies would add unrelated cold-start work.
-      if (name === 'typescript') hash.update(readFileSync(require.resolve(name)));
+      if (name === 'typescript')
+        add('typescript/lib/typescript.js', readFileSync(require.resolve(name)));
       else walk(root);
       for (const dependency of Object.keys(value.dependencies ?? {}).sort())
         visit(dependency, metadata);
@@ -133,7 +136,7 @@ export class CompilationCache {
   ) {}
 
   private key(url: string, source: string, dialect: boolean) {
-    return digest(JSON.stringify([this.identity, url, source, dialect, 'ES2022']));
+    return digest(JSON.stringify([this.identity, url, digest(source), dialect, 'ES2022']));
   }
   private slot(url: string) {
     return join(this.directory, (parseInt(digest(url).slice(0, 2), 16) % 128) + '.json');

@@ -24,8 +24,8 @@ try {
     `import {performance} from 'node:perf_hooks';import {writeFileSync} from 'node:fs';
 let hooks;let phases;
 export async function initialize(data){const start=performance.now();hooks=await import(${JSON.stringify(pathToFileURL(loader).href)});hooks.initialize(data);phases={loaderImportMs:performance.now()-start,loads:[]};}
-export async function resolve(...args){return hooks.resolve(...args);}
-export async function load(...args){const start=performance.now();const result=await hooks.load(...args);phases.loads.push({url:args[0],ms:performance.now()-start});writeFileSync(${JSON.stringify(report)},JSON.stringify(phases));return result;}`,
+export async function resolve(...args){return hooks ? hooks.resolve(...args) : args[2](args[0],args[1]);}
+export async function load(...args){if(!hooks)return args[2](args[0],args[1]);const start=performance.now();const result=await hooks.load(...args);phases.loads.push({url:args[0],ms:performance.now()-start});writeFileSync(${JSON.stringify(report)},JSON.stringify(phases));return result;}`,
   );
   writeFileSync(
     launch,

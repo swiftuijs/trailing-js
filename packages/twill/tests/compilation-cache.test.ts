@@ -263,3 +263,14 @@ it('records inherited config and missing package/config probes for subsequent in
   fs.writeFileSync(inherited, '{"compilerOptions":{"jsxImportSource":"react"}}');
   expect(observationsMatch(missing.observations)).toBe(false);
 });
+
+it('keeps file boundaries in fingerprints when code bytes move between artifacts', () => {
+  const { root } = fixture();
+  const location = pathToFileURL(join(root, 'loader.js')).href;
+  fs.writeFileSync(join(root, 'a.js'), '//');
+  fs.writeFileSync(join(root, 'b.js'), '//b.jsz\n');
+  const first = toolchainIdentity(location, []);
+  fs.writeFileSync(join(root, 'a.js'), '//b.js//');
+  fs.writeFileSync(join(root, 'b.js'), 'z\n');
+  expect(toolchainIdentity(location, [])).not.toBe(first);
+});

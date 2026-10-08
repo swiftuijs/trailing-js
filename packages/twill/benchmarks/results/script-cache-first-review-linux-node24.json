@@ -1,0 +1,610 @@
+{
+  "workload": "Fresh Node processes: tiny typed Twill callback vs equivalent native JS. No SDK or child commands. Hit entries persist between launches; miss cache removal is outside timing.",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "arch": "x64",
+    "os": "6.18.44",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C"
+  },
+  "gitHead": "de301976d93e5baad31ff756c88a42302def8433",
+  "sourceSHA256": "00a8bf175aa93f428d6eef25c5bdc7c3b9fd1656367d2d30045253e7d94b4efd",
+  "nativeSourceSHA256": "c1fa2bafba51c5dec4350b331aad572727a1bd77fa9803d83ecffeef1abcdcce",
+  "identities": {
+    "packages/twill/src/branches.ts": "59061b3029c5f1b5da1f55974999378bdef3b97498762442bc3e3cba7fac6c8c",
+    "packages/twill/src/cli.ts": "7ad80bfceda58dbac6348581865e5a4fa0eca5d05401d7eb863f8cb9b4744a7e",
+    "packages/twill/src/compilation-cache.ts": "31f862a6a7955701c970213f4b4909f484f78022e468062edd0ce418e22f23f9",
+    "packages/twill/src/compiler.ts": "281f4da341782165e66785f4f7fbc857397a63f6f0c21f2969357b65c6192e66",
+    "packages/twill/src/config.ts": "631dde9ac578fd9afc038a828b000aea042fd43e172c0546b773c188906b02f7",
+    "packages/twill/src/configuration.ts": "41f9bde8e1241ef11c63f36df68bf9da51524439271020e3cd24abd671f9451c",
+    "packages/twill/src/declarations.ts": "6120e7dc2af5919a80afbf85c03763f5fd1295b17a49a3e4a8aa44b2e2d37843",
+    "packages/twill/src/defer-helper.ts": "4972d12ad5cb6aaacf4dc583ebfdd35a772e8df8a97e157583b301312ad09e3a",
+    "packages/twill/src/defer.ts": "a6445ece42a06a91d2fa3134fdb26f190eb1e9e358a15e1eee1ab5bb58011910",
+    "packages/twill/src/doctor.ts": "a21185b20c61a68f1a9140dc5aa0960b010bb33dbe2bb069b22bff40b50c1cce",
+    "packages/twill/src/editor.ts": "30659d06cacbe251b65770355f15d70d4f32b8e2996c716f10f80528efbd2530",
+    "packages/twill/src/enums.ts": "45e8efefb395fed0f95d5caeb9f1a3a995b4a2d20c3190add449eb3099e2ab8e",
+    "packages/twill/src/esbuild.ts": "5adb9f9bc3ebe16ea80d86f040fb142339dc5be271a6088cc8dbec6f2634bd7e",
+    "packages/twill/src/extensions.ts": "03efe37390f1208ad876f3f60cc3f1602731b1e3dbfe9f638e723e125da4d8ef",
+    "packages/twill/src/files.ts": "bff8ae2c93e3159e9b5e6adf496404fd1709dc749bba934880c6caad7b845bcb",
+    "packages/twill/src/index.ts": "98dd55b2bc15cdbcb33ae31e36b449894c20d0253ee1b022bb3b3e3712de203f",
+    "packages/twill/src/loader-compiler.ts": "fc8b14dbec679fb8417ec8c6452f1eba93170c8afb549ab45b0219376a605756",
+    "packages/twill/src/loader.ts": "243b0e7efd4435ae142188ac925182e874761d23501c20afcc98a61ea85694a3",
+    "packages/twill/src/parser.js": "3597d16ad09b4fedddc3859fef3091e58e9feb9fe01737770d472c94d478febd",
+    "packages/twill/src/plugin.ts": "3c1272cfcb9f7800e8223acc46ab3c22a455d3fadd9192a6a36556f9572c84a8",
+    "packages/twill/src/project.ts": "d12c7b444f9ba83954674f82a0754e6a66013fb1aa6da8eb2bbc3f50eb856273",
+    "packages/twill/src/recovery.ts": "1f86fe82fea07b1922a51dac7d6e8767024238201ac74a6d7b3120b78a7127af",
+    "packages/twill/src/register.ts": "0706f30243123a53fcf746682a768e4b0f6d8eabacbc088d1b021b89db402823",
+    "packages/twill/src/rollup.ts": "a434469a9921e80d6ec97fa14a53bb857a0091d5ff1eb1a2264cc1f102ffe56f",
+    "packages/twill/src/rspack.ts": "a548accf291069b21e7016d16d4c3c8f6bdcd75c364d111dee786ea81a081228",
+    "packages/twill/src/syntax.ts": "f2a6ad51493a43cede1ca458c7d8864780cd5008d8e96bfd3d23082220d6b79a",
+    "packages/twill/src/transpile.ts": "6628731ab1aefde9dfea10d84d749f358c7a2ac40c1fb504b25fcfe73816378d",
+    "packages/twill/src/typescript-plugin.ts": "ec57fdf4e2f043baabe395b48b85f82b453369b042f33df703460b0eb2709345",
+    "packages/twill/src/vite-react.ts": "4ba92653311330183553948fea56bb9c1ce73d46d55563b65af81a1b0a12b567",
+    "packages/twill/src/vite.ts": "42c73ea11a6483c3dbaa1ab8d2b2cf4bc0b3d0eb577a274d63cd1bf3f5b1d575",
+    "packages/twill/src/webpack.ts": "0ab1828a725b61d5cdc55c4b4dc48a7aea96286018647ed4d457b0d57de61cac",
+    "packages/twill/dist/branches.d.ts": "c8792d89c93dbc8511f8c56ba863e102dafbb0dfcd62c292ea6c1af66700cc60",
+    "packages/twill/dist/cli.d.ts": "ede822d870c6be332a9624ebfbaf8ad3a064208f5ba86865669426f991b4d9ac",
+    "packages/twill/dist/cli.js": "68da77915f5d7ba29e66f1499f9ace00b27672dc072df06e2903df7775b59cc2",
+    "packages/twill/dist/compilation-cache-Dr1w5XPD.js": "c150b9ac9d48c8a1f1f345cc131ae5d9ef1741c25d157508fd6724d092bc500e",
+    "packages/twill/dist/compilation-cache.d.ts": "1dc9a355fb2108a2b3e958944749a58ac5d48280ec17d60ff8313900b8d849a2",
+    "packages/twill/dist/compiler-DY1N07np.js": "36a91858c1522adefc4db3ca361ddfaa5ef0c53a587b9f7bd9eadeb045d5bfe1",
+    "packages/twill/dist/compiler.d.ts": "ccf49cf28ccc02db4b63cdaf50ef22133525284a4b227a3a98cb9e63b078f496",
+    "packages/twill/dist/config.d.ts": "631dde9ac578fd9afc038a828b000aea042fd43e172c0546b773c188906b02f7",
+    "packages/twill/dist/config.js": "ca0c7385f972c460e67a0744b92793c957e52e9b30f50feee4b71bcdbb897f93",
+    "packages/twill/dist/configuration-vrnZ3har.js": "f5f0952a95121629482b76b6a3042739686cd7a035301edf503df130861085b4",
+    "packages/twill/dist/configuration.d.ts": "a44e0481646eb454c4f4d5a00b5b04e4edb62f7a1f943bb01db1bbe7e5bc7069",
+    "packages/twill/dist/declarations.d.ts": "10118c959fb573492b38cd51712ba56c20050776670a4e60badd7664d52fae86",
+    "packages/twill/dist/declarations.js": "1779cbba4d7835363f04b641cc97001eb003981e697a1254a2b15acd6f6fff55",
+    "packages/twill/dist/defer-helper.d.ts": "cab8b93e9bb403dd479c1b89c7a3b1ed2fa3ad87a59ce9877e3e690f9b5ab939",
+    "packages/twill/dist/defer.d.ts": "d028469b6ec5349fd6e65e842b57a7bbfb0ff0e472d4f57eefc35ed0229f8678",
+    "packages/twill/dist/doctor.d.ts": "8997c0bf5cea5a9defa3a8f306412941094facccbdf4ae2c49aaa42c3fa6520b",
+    "packages/twill/dist/doctor.js": "e0a2459a11e5a332df2100e323da5b3d01d690e63c9aca5bb5caa0d62830ac5a",
+    "packages/twill/dist/editor.d.ts": "6acd620cee4d2a237b28341c55195e0a76059ba67a17a80c9b859e347dbd877d",
+    "packages/twill/dist/editor.js": "39f5968afabb957f9753552a88857f567301cf84a724ccd3af9ace407fa21ed9",
+    "packages/twill/dist/enums.d.ts": "7235703ba7ce5b9f14ff2b46e9d4f8a569785b977b404321bf86270a35896790",
+    "packages/twill/dist/esbuild.d.ts": "5fe992ac1992f5718a2db0b82b74913a4c271aa7e6d4a60479dbb2a0d1411d11",
+    "packages/twill/dist/esbuild.js": "bb0a38e852af760ed41ed022dc3d2ba99a017ccb57f7e7774ebaa98c6dff2ab3",
+    "packages/twill/dist/extensions-B1xTkoYP.js": "aacd7b769c102fb1bbb05f9aeefae08e5fe90e06a7dedd98959c9a0bae22f302",
+    "packages/twill/dist/extensions.d.ts": "c41d02ea4d10088e5625ee5f03477424aa5d69f04045885d7fa043fafa3c6a88",
+    "packages/twill/dist/files-BW9geU0_.js": "96b175bbac921d9357e9d8d5524e2c3d34ab398153d927994bc2c8261e7fcafb",
+    "packages/twill/dist/files.d.ts": "8bc5626bc6ff566524866aa4db031e3543d936fadaff083bbac1e021c732c3c6",
+    "packages/twill/dist/index.d.ts": "f133a27c5097da03d9c06d70bcc3bd52d19fb18d9799016fd74051b0477dec3a",
+    "packages/twill/dist/index.js": "cb6c24e5d64d665618efd8418d265cb9c61f6ab24501b12afddb93afa6066879",
+    "packages/twill/dist/loader-compiler-DJL6_M4H.js": "70a16cec97e05dd6db305e03f3f9a69e57345415742ee476d8e3160b223b1883",
+    "packages/twill/dist/loader-compiler.d.ts": "a73213c09794dfa2bd581a5bdccd377d3f2d4ef7ff866c1797a76e12ff5cf760",
+    "packages/twill/dist/loader.d.ts": "9dd575461822038adfc8609f563718e5d168894852c98aeee4365423c53956c6",
+    "packages/twill/dist/loader.js": "7f11d624e28cb7de0404f0c9fa63da72406fe75a17677db5a4ff4b30b84f77b5",
+    "packages/twill/dist/parser.d.ts": "dedcd27c7267e3bec25bbb0fce876b92d7126cafbdf3bda8625470f640399641",
+    "packages/twill/dist/plugin-AImzVk93.js": "83c1d08e2c86e1c5ec70887f8a19b0ac7ecd463b0e39a9edf9fd8e6941ac9d09",
+    "packages/twill/dist/plugin.d.ts": "e849ffcae3c6f97df563868c7d2f422154cc57fc8618611833015ac2509b5cd6",
+    "packages/twill/dist/project.d.ts": "58338d55acc2cb0647b8ea3a951cd5729d0c3320fc93d48800283c84a54045cd",
+    "packages/twill/dist/project.js": "b81aa3b50470f06997ca165a4c54f673fd1ce71fbf501370623e16286b4783da",
+    "packages/twill/dist/recovery.d.ts": "c4f3faeb499ac4d8e3e4e3306fce8931fae955627a86a4f18f047905b33c3ba2",
+    "packages/twill/dist/register.d.ts": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+    "packages/twill/dist/register.js": "039fb5d5276aaa5d4ec3a2518e5408a0b27a950dac1f02f52254e99da2450cf9",
+    "packages/twill/dist/rollup.d.ts": "30dfa7098ec8287ef67918e3d4d7bc27a31853045b4ff557d1a365901e688162",
+    "packages/twill/dist/rollup.js": "4c0f0f8766c38b262636098a5703f4c0774961f953e31c2275ded9be3d61987b",
+    "packages/twill/dist/rspack.d.ts": "05649307e25cdc260bdd92aac480e68d0cb300c38ddb8b36a868f1c9dc16f097",
+    "packages/twill/dist/rspack.js": "0f62ad0c398db7aa1ae46e41eea611031eeb5e324a43e2174348500eaa8665f9",
+    "packages/twill/dist/syntax.d.ts": "c59bfbc57699deadf052ddd85eb4ee865c98f9af30591c80c9161652245ca895",
+    "packages/twill/dist/syntax.js": "576a7183ace9acda786df27dabbe665d05db1afcbd579f5a31511300700249e8",
+    "packages/twill/dist/transpile-DG81yfVs.js": "efafe479db1deeb99ea4f7598f87ef5388ffa631190f6c9a3492a57ccc4f683e",
+    "packages/twill/dist/transpile.d.ts": "e3fdb17485a4c9841c27a6d07f12514b0e906e1f62766366186aeba1ce4c65c9",
+    "packages/twill/dist/typescript-plugin.d.ts": "1a796c79b84e55d1579dc33eded1991599945f52c03907e70fcf1901e6c945f3",
+    "packages/twill/dist/vite-react.d.ts": "6e90ec42a0eefee5bbc561d4500c324099be7bfa7c7727588ecf0a507bd40d53",
+    "packages/twill/dist/vite-react.js": "68ef09c437384cb3b0326974feb3209b80396f81a92176fd2f9323fbe6619f48",
+    "packages/twill/dist/vite.d.ts": "dada697525a3100e9a85eba8e2c4f6d3bd6e62efbeb5bcb5acafe6a3dd33400a",
+    "packages/twill/dist/vite.js": "c2bd675943ce52e63df6ddce0d14aac7a17325feea5c99efd4713c6900c2e216",
+    "packages/twill/dist/webpack.d.ts": "2fac947fa53cb4843e8e82007c55d22536ea00ce4df7186106b861526a00fda8",
+    "packages/twill/dist/webpack.js": "298fddab81764a8b69fefa7b25280f920dcff9f49b6f45fe6c7620c3a3bcf397",
+    "packages/twill/bin/run.mjs": "9e3f6d4bf7f1c0e8354e9c33bf6ad06eb9ed376adddef5f44596cb42380bed3a",
+    "packages/twill/bin/twill.mjs": "86b6b582a0157a25ef56af131217171cf1ccd76b9714b9e5e2951891c7b8b8ee"
+  },
+  "commands": {
+    "native": ["/tmp/twill-script-startup-pBGNTL/native.mjs"],
+    "uncached": [
+      "/workspace/twill-shell-startup/packages/twill/bin/twill.mjs",
+      "/tmp/twill-script-startup-pBGNTL/script.twill"
+    ],
+    "miss": [
+      "/workspace/twill-shell-startup/packages/twill/bin/twill.mjs",
+      "/tmp/twill-script-startup-pBGNTL/script.twill"
+    ],
+    "hit": [
+      "/workspace/twill-shell-startup/packages/twill/bin/twill.mjs",
+      "/tmp/twill-script-startup-pBGNTL/script.twill"
+    ]
+  },
+  "samples": 21,
+  "pairs": [
+    {
+      "native": {
+        "wallMs": 41.824419000000034,
+        "interpreterCpuMs": 35.378,
+        "peakRssKiB": 26236
+      },
+      "uncached": {
+        "wallMs": 512.2623329999999,
+        "interpreterCpuMs": 550.986,
+        "peakRssKiB": 117764
+      },
+      "miss": {
+        "wallMs": 567.9602110000001,
+        "interpreterCpuMs": 627.589,
+        "peakRssKiB": 130156
+      },
+      "hit": {
+        "wallMs": 150.9166220000002,
+        "interpreterCpuMs": 156.671,
+        "peakRssKiB": 66040
+      }
+    },
+    {
+      "hit": {
+        "wallMs": 161.0411049999998,
+        "interpreterCpuMs": 163.143,
+        "peakRssKiB": 65640
+      },
+      "miss": {
+        "wallMs": 556.7756770000001,
+        "interpreterCpuMs": 621.422,
+        "peakRssKiB": 130328
+      },
+      "uncached": {
+        "wallMs": 559.752442,
+        "interpreterCpuMs": 620.268,
+        "peakRssKiB": 118064
+      },
+      "native": {
+        "wallMs": 43.95939300000009,
+        "interpreterCpuMs": 36.745,
+        "peakRssKiB": 26104
+      }
+    },
+    {
+      "native": {
+        "wallMs": 40.76554299999998,
+        "interpreterCpuMs": 33.707,
+        "peakRssKiB": 26232
+      },
+      "uncached": {
+        "wallMs": 539.1050110000001,
+        "interpreterCpuMs": 604.722,
+        "peakRssKiB": 118000
+      },
+      "miss": {
+        "wallMs": 548.2893549999999,
+        "interpreterCpuMs": 611.048,
+        "peakRssKiB": 130192
+      },
+      "hit": {
+        "wallMs": 161.52501800000027,
+        "interpreterCpuMs": 158.071,
+        "peakRssKiB": 65668
+      }
+    },
+    {
+      "hit": {
+        "wallMs": 159.67008799999985,
+        "interpreterCpuMs": 164.382,
+        "peakRssKiB": 65472
+      },
+      "miss": {
+        "wallMs": 562.2613840000004,
+        "interpreterCpuMs": 617.979,
+        "peakRssKiB": 130356
+      },
+      "uncached": {
+        "wallMs": 563.396197,
+        "interpreterCpuMs": 622.206,
+        "peakRssKiB": 118412
+      },
+      "native": {
+        "wallMs": 41.17191400000047,
+        "interpreterCpuMs": 33.194,
+        "peakRssKiB": 26104
+      }
+    },
+    {
+      "native": {
+        "wallMs": 44.813356999999996,
+        "interpreterCpuMs": 37.609,
+        "peakRssKiB": 26104
+      },
+      "uncached": {
+        "wallMs": 565.330637,
+        "interpreterCpuMs": 620.99,
+        "peakRssKiB": 118244
+      },
+      "miss": {
+        "wallMs": 647.573848,
+        "interpreterCpuMs": 708.016,
+        "peakRssKiB": 130092
+      },
+      "hit": {
+        "wallMs": 156.62513899999976,
+        "interpreterCpuMs": 159.508,
+        "peakRssKiB": 65444
+      }
+    },
+    {
+      "hit": {
+        "wallMs": 148.96828499999992,
+        "interpreterCpuMs": 149.314,
+        "peakRssKiB": 65912
+      },
+      "miss": {
+        "wallMs": 561.1333620000005,
+        "interpreterCpuMs": 605.476,
+        "peakRssKiB": 130196
+      },
+      "uncached": {
+        "wallMs": 496.63121599999977,
+        "interpreterCpuMs": 557.734,
+        "peakRssKiB": 118188
+      },
+      "native": {
+        "wallMs": 37.328645999999935,
+        "interpreterCpuMs": 31.108,
+        "peakRssKiB": 26104
+      }
+    },
+    {
+      "native": {
+        "wallMs": 38.74600199999986,
+        "interpreterCpuMs": 31.752,
+        "peakRssKiB": 26232
+      },
+      "uncached": {
+        "wallMs": 548.5749269999997,
+        "interpreterCpuMs": 609.798,
+        "peakRssKiB": 117800
+      },
+      "miss": {
+        "wallMs": 560.0675819999997,
+        "interpreterCpuMs": 624.299,
+        "peakRssKiB": 130228
+      },
+      "hit": {
+        "wallMs": 148.7508940000007,
+        "interpreterCpuMs": 150.898,
+        "peakRssKiB": 65556
+      }
+    },
+    {
+      "hit": {
+        "wallMs": 153.83345000000008,
+        "interpreterCpuMs": 171.369,
+        "peakRssKiB": 63228
+      },
+      "miss": {
+        "wallMs": 527.3195450000003,
+        "interpreterCpuMs": 591.825,
+        "peakRssKiB": 130212
+      },
+      "uncached": {
+        "wallMs": 497.520489999999,
+        "interpreterCpuMs": 559.459,
+        "peakRssKiB": 117772
+      },
+      "native": {
+        "wallMs": 43.40335899999991,
+        "interpreterCpuMs": 36.003,
+        "peakRssKiB": 26104
+      }
+    },
+    {
+      "native": {
+        "wallMs": 41.904162000000724,
+        "interpreterCpuMs": 32.567,
+        "peakRssKiB": 26232
+      },
+      "uncached": {
+        "wallMs": 516.8523060000007,
+        "interpreterCpuMs": 560.094,
+        "peakRssKiB": 118540
+      },
+      "miss": {
+        "wallMs": 540.8214239999998,
+        "interpreterCpuMs": 602.891,
+        "peakRssKiB": 129856
+      },
+      "hit": {
+        "wallMs": 151.7908520000001,
+        "interpreterCpuMs": 156.482,
+        "peakRssKiB": 65784
+      }
+    },
+    {
+      "hit": {
+        "wallMs": 154.07443500000045,
+        "interpreterCpuMs": 163.143,
+        "peakRssKiB": 66040
+      },
+      "miss": {
+        "wallMs": 539.2030130000003,
+        "interpreterCpuMs": 587.805,
+        "peakRssKiB": 130560
+      },
+      "uncached": {
+        "wallMs": 500.65805199999886,
+        "interpreterCpuMs": 557.81,
+        "peakRssKiB": 118252
+      },
+      "native": {
+        "wallMs": 41.06350399999974,
+        "interpreterCpuMs": 34.236,
+        "peakRssKiB": 26108
+      }
+    },
+    {
+      "native": {
+        "wallMs": 38.16360500000155,
+        "interpreterCpuMs": 31.918,
+        "peakRssKiB": 26104
+      },
+      "uncached": {
+        "wallMs": 496.0238550000013,
+        "interpreterCpuMs": 551.782,
+        "peakRssKiB": 118408
+      },
+      "miss": {
+        "wallMs": 521.5809800000006,
+        "interpreterCpuMs": 579.588,
+        "peakRssKiB": 130256
+      },
+      "hit": {
+        "wallMs": 150.12883000000147,
+        "interpreterCpuMs": 152.889,
+        "peakRssKiB": 66044
+      }
+    },
+    {
+      "hit": {
+        "wallMs": 142.19790999999896,
+        "interpreterCpuMs": 147.725,
+        "peakRssKiB": 65788
+      },
+      "miss": {
+        "wallMs": 551.5029979999999,
+        "interpreterCpuMs": 622.519,
+        "peakRssKiB": 131912
+      },
+      "uncached": {
+        "wallMs": 520.875125999999,
+        "interpreterCpuMs": 565.944,
+        "peakRssKiB": 117736
+      },
+      "native": {
+        "wallMs": 47.215768999998545,
+        "interpreterCpuMs": 38.826,
+        "peakRssKiB": 26232
+      }
+    },
+    {
+      "native": {
+        "wallMs": 39.07572599999912,
+        "interpreterCpuMs": 31.049,
+        "peakRssKiB": 26104
+      },
+      "uncached": {
+        "wallMs": 823.1986870000001,
+        "interpreterCpuMs": 895.69,
+        "peakRssKiB": 117724
+      },
+      "miss": {
+        "wallMs": 572.4665339999992,
+        "interpreterCpuMs": 604.399,
+        "peakRssKiB": 138924
+      },
+      "hit": {
+        "wallMs": 155.61921900000016,
+        "interpreterCpuMs": 156.865,
+        "peakRssKiB": 65588
+      }
+    },
+    {
+      "hit": {
+        "wallMs": 176.90021799999886,
+        "interpreterCpuMs": 179.254,
+        "peakRssKiB": 65356
+      },
+      "miss": {
+        "wallMs": 786.5901320000012,
+        "interpreterCpuMs": 850.437,
+        "peakRssKiB": 129892
+      },
+      "uncached": {
+        "wallMs": 499.0735079999977,
+        "interpreterCpuMs": 560.158,
+        "peakRssKiB": 117768
+      },
+      "native": {
+        "wallMs": 43.44096100000024,
+        "interpreterCpuMs": 31.718,
+        "peakRssKiB": 26104
+      }
+    },
+    {
+      "native": {
+        "wallMs": 39.55297299999802,
+        "interpreterCpuMs": 34.209,
+        "peakRssKiB": 26232
+      },
+      "uncached": {
+        "wallMs": 911.8240250000017,
+        "interpreterCpuMs": 958.308,
+        "peakRssKiB": 118476
+      },
+      "miss": {
+        "wallMs": 617.6002980000012,
+        "interpreterCpuMs": 682.774,
+        "peakRssKiB": 130460
+      },
+      "hit": {
+        "wallMs": 152.09982600000149,
+        "interpreterCpuMs": 155.217,
+        "peakRssKiB": 64884
+      }
+    },
+    {
+      "hit": {
+        "wallMs": 138.08225499999753,
+        "interpreterCpuMs": 143.046,
+        "peakRssKiB": 65788
+      },
+      "miss": {
+        "wallMs": 547.6869530000004,
+        "interpreterCpuMs": 615.428,
+        "peakRssKiB": 129940
+      },
+      "uncached": {
+        "wallMs": 494.1580810000014,
+        "interpreterCpuMs": 563.8,
+        "peakRssKiB": 117832
+      },
+      "native": {
+        "wallMs": 45.3723030000001,
+        "interpreterCpuMs": 38.644,
+        "peakRssKiB": 26232
+      }
+    },
+    {
+      "native": {
+        "wallMs": 41.38253699999768,
+        "interpreterCpuMs": 30.929,
+        "peakRssKiB": 26232
+      },
+      "uncached": {
+        "wallMs": 490.46350600000005,
+        "interpreterCpuMs": 556.704,
+        "peakRssKiB": 117724
+      },
+      "miss": {
+        "wallMs": 529.2356780000009,
+        "interpreterCpuMs": 589.557,
+        "peakRssKiB": 130148
+      },
+      "hit": {
+        "wallMs": 143.0321010000007,
+        "interpreterCpuMs": 154.68,
+        "peakRssKiB": 65144
+      }
+    },
+    {
+      "hit": {
+        "wallMs": 149.62468900000022,
+        "interpreterCpuMs": 145.23,
+        "peakRssKiB": 65784
+      },
+      "miss": {
+        "wallMs": 533.4918800000014,
+        "interpreterCpuMs": 613.291,
+        "peakRssKiB": 130212
+      },
+      "uncached": {
+        "wallMs": 478.9750160000003,
+        "interpreterCpuMs": 544.731,
+        "peakRssKiB": 117744
+      },
+      "native": {
+        "wallMs": 42.959334000002855,
+        "interpreterCpuMs": 34.973,
+        "peakRssKiB": 26232
+      }
+    },
+    {
+      "native": {
+        "wallMs": 39.61453800000163,
+        "interpreterCpuMs": 32.241,
+        "peakRssKiB": 26108
+      },
+      "uncached": {
+        "wallMs": 790.9095340000022,
+        "interpreterCpuMs": 851.986,
+        "peakRssKiB": 118296
+      },
+      "miss": {
+        "wallMs": 529.3347600000016,
+        "interpreterCpuMs": 596.815,
+        "peakRssKiB": 130272
+      },
+      "hit": {
+        "wallMs": 154.01730600000155,
+        "interpreterCpuMs": 163.677,
+        "peakRssKiB": 65172
+      }
+    },
+    {
+      "hit": {
+        "wallMs": 150.70100900000034,
+        "interpreterCpuMs": 158.678,
+        "peakRssKiB": 65912
+      },
+      "miss": {
+        "wallMs": 757.833627,
+        "interpreterCpuMs": 820.83,
+        "peakRssKiB": 130148
+      },
+      "uncached": {
+        "wallMs": 505.9482599999974,
+        "interpreterCpuMs": 571.643,
+        "peakRssKiB": 117836
+      },
+      "native": {
+        "wallMs": 37.63889500000005,
+        "interpreterCpuMs": 30.814,
+        "peakRssKiB": 26108
+      }
+    },
+    {
+      "native": {
+        "wallMs": 39.77712600000086,
+        "interpreterCpuMs": 32.888,
+        "peakRssKiB": 26108
+      },
+      "uncached": {
+        "wallMs": 533.1849570000013,
+        "interpreterCpuMs": 596.676,
+        "peakRssKiB": 117748
+      },
+      "miss": {
+        "wallMs": 540.7731770000028,
+        "interpreterCpuMs": 608.081,
+        "peakRssKiB": 129728
+      },
+      "hit": {
+        "wallMs": 156.48799000000145,
+        "interpreterCpuMs": 159.344,
+        "peakRssKiB": 65448
+      }
+    }
+  ],
+  "medians": {
+    "native": {
+      "wallMs": 41.17191400000047,
+      "interpreterCpuMs": 33.194,
+      "peakRssKiB": 26108
+    },
+    "uncached": {
+      "wallMs": 516.8523060000007,
+      "interpreterCpuMs": 565.944,
+      "peakRssKiB": 117836
+    },
+    "miss": {
+      "wallMs": 551.5029979999999,
+      "interpreterCpuMs": 613.291,
+      "peakRssKiB": 130212
+    },
+    "hit": {
+      "wallMs": 152.09982600000149,
+      "interpreterCpuMs": 156.865,
+      "peakRssKiB": 65640
+    }
+  },
+  "pairedHitUncachedMedianRatio": 0.293496633664406,
+  "paired95PercentInterval": [0.27942931687076294, 0.2996169850107371],
+  "pairedMissUncachedMedianRatio": 1.0588007959512373,
+  "completedCacheBytes": 1607,
+  "limitations": "All samples retained. Filesystem/OS caches are warm, interpreters are fresh. CPU is the entire interpreter including compiler/hook worker, not external commands. maxRSS is an OS observation, not a cap. This is one Linux/Node workload; hit improvement is not native startup parity or a Rust measurement."
+}
