@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { getEventListeners } from 'node:events';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import {
   mkdtempSync,
   readFileSync,
@@ -252,6 +252,21 @@ export function defineProcessContracts(api, moduleURL) {
       gone(error.processIdentifier);
       const result = await Subprocess.run(command('exit', '23'), { ...options, check: false });
       expect(result.terminationStatus).toEqual({ kind: 'exited', code: 23 });
+    });
+    it('matches Node exit-code width for negative and large native values', async () => {
+      for (const code of [-1, -2147483648, 2147483647]) {
+        const arguments_ = ['-e', `process.exit(${code})`];
+        const expected = spawnSync(process.execPath, arguments_);
+        expect(expected.error).toBeUndefined();
+        expect(expected.signal).toBeNull();
+        const result = await Subprocess.run(Command.path(process.execPath, arguments_), {
+          check: false,
+          output: Output.discard(),
+          error: Output.discard(),
+        });
+        expect(result.terminationStatus).toEqual({ kind: 'exited', code: expected.status });
+        gone(result.processIdentifier);
+      }
     });
     it('preserves native signal statuses', async () => {
       const result = await Subprocess.run(command('signal'), { check: false });

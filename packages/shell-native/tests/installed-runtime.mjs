@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { getEventListeners, setMaxListeners } from 'node:events';
 import { Worker } from 'node:worker_threads';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { Command, Output, Subprocess, ProcessAbortError } from '@swiftuijs/twill-shell-native';
 const apiURL = import.meta.resolve('@swiftuijs/twill-shell-native');
 const childCode =
@@ -38,6 +38,21 @@ const message = (worker) =>
   });
 test('installed native lifetime and scheduling contracts', { timeout: 60000 }, async (t) => {
   try {
+    await t.test('native exit-code width matches the installed Node runtime', async () => {
+      for (const code of [-1, -2147483648, 2147483647]) {
+        const args = ['-e', `process.exit(${code})`];
+        const expected = spawnSync(process.execPath, args);
+        assert.equal(expected.error, undefined);
+        assert.equal(expected.signal, null);
+        const result = await Subprocess.run(Command.path(process.execPath, args), {
+          check: false,
+          output: Output.discard(),
+          error: Output.discard(),
+        });
+        assert.deepEqual(result.terminationStatus, { kind: 'exited', code: expected.status });
+        gone(result.processIdentifier);
+      }
+    });
     await t.test('repeated fresh exits and worker environment disposal remain safe', async () => {
       const code = `import {Command,Output,Subprocess} from ${JSON.stringify(apiURL)};
         const results=await Promise.all(Array.from({length:4},()=>Subprocess.run(Command.path(process.execPath,['-e','']),{output:Output.discard()})));

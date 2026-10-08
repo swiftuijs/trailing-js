@@ -197,10 +197,18 @@ impl Failure {
         }
     }
 }
+// Node/libuv reports the complete Windows DWORD, while Rust's ExitStatus::code
+// exposes that bit pattern as i32. Keep Unix's existing representation and
+// reinterpret Windows values as u32, never a negative JS termination code.
+#[cfg(unix)]
+type ExitCode = i32;
+#[cfg(windows)]
+type ExitCode = u32;
+
 #[napi(object)]
 pub struct NativeOutcome {
     pub process_identifier: Option<u32>,
-    pub code: Option<i32>,
+    pub code: Option<ExitCode>,
     pub signal: Option<i32>,
     pub windows_signal: Option<String>,
     pub standard_output: Option<Buffer>,
@@ -224,10 +232,14 @@ impl NativeOutcome {
         }
     }
     fn status(&mut self, status: ExitStatus) {
-        self.code = status.code();
         #[cfg(unix)]
         {
+            self.code = status.code();
             self.signal = status.signal();
+        }
+        #[cfg(windows)]
+        {
+            self.code = status.code().map(|code| code as u32);
         }
     }
 }

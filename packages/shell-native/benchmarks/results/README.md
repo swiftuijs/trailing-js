@@ -6,6 +6,7 @@ The harness alternates all six native Node / SDK / Rust orders across eleven pai
 
 - [First review run](production-first-review-linux-node24.json), implementation `c0bf98ace682817e3ff2f0a3af31650d03b69900`: all measured warm/default-pool performance checks passed. Subsequent review found unsafe foreign-thread Node cleanup, so this is historical performance evidence, not readiness evidence.
 - [Exit-race checkpoint](production-exit-race-linux-node24.partial.json) and [failure log](production-exit-race-linux-node24.log), implementation `53225edbd9fa54a6c8fd82f296f36ca0e7476b21`: sequential, memory, concurrency, filesystem and cancellation observations completed, but a fresh Twill/native invocation crashed with SIGSEGV during the cold stage. The partial run does not pass acceptance. It motivated moving cleanup-hook removal back to the owning Node thread and adding repeated fresh-process/worker/Twill disposal tests.
+- [Post-cleanup checkpoint](production-cleanup-report-failure-linux-node24.partial.json) and [report-construction failure log](production-cleanup-report-failure-linux-node24.log), implementation `a125145e10d5ab54f3759def748b499bceea1a97`: every measurement completed, including all eleven cold-start pairs without a crash, but `rustc` was absent from the benchmark shell's PATH when constructing the report. This diagnostic is retained separately; the corrected harness checks both toolchain commands before any timing, and the complete acceptance command must be rerun.
 
 Reproduce from a clean checkout after building the packages:
 

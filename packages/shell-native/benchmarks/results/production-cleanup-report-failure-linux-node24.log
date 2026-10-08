@@ -1,0 +1,32 @@
+native-executable-inherit: Rust/SDK wall 0.613, parent CPU 0.511
+node-inherit: Rust/SDK wall 0.955, parent CPU 0.461
+native-dual-capture-1048576: Rust/SDK wall 0.574, parent CPU 0.607
+native-dual-capture-8388608: Rust/SDK wall 0.715, parent CPU 0.735
+node-dual-capture-1048576: Rust/SDK wall 0.911, parent CPU 0.551
+native-stdin-text-1048576: Rust/SDK wall 0.652, parent CPU 0.757
+native-duplex-1048576: Rust/SDK wall 0.633, parent CPU 0.713
+node:internal/child_process:1160
+    result.error = new ErrnoException(result.error, 'spawnSync ' + options.file);
+                   ^
+
+<ref *1> Error: spawnSync rustc ENOENT
+    at Object.spawnSync (node:internal/child_process:1160:20)
+    at spawnSync (node:child_process:928:24)
+    at execFileSync (node:child_process:971:15)
+    at file:///workspace/twill-shell-native/packages/shell-native/benchmarks/benchmark.mjs:368:10
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'spawnSync rustc',
+  path: 'rustc',
+  spawnargs: [ '--version' ],
+  error: [Circular *1],
+  status: null,
+  signal: null,
+  output: null,
+  pid: 0,
+  stdout: undefined,
+  stderr: undefined
+}
+
+Node.js v24.19.0

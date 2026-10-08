@@ -68,8 +68,8 @@ export async function run(value: string | undefined): Promise<string> {
   return { root, source, config, original };
 }
 
-it('checks native imports, formats, declares, maps failures and exports executable JS', async () => {
-  const { root, source, config, original } = fixture();
+it('checks native imports, formats and emits ordinary TypeScript declarations', async () => {
+  const { root, config, original } = fixture();
   const project = new TwillProject(config);
   try {
     expect(project.diagnostics()).toEqual([]);
@@ -78,54 +78,56 @@ it('checks native imports, formats, declares, maps failures and exports executab
     const declarations = emitDeclarations(config, { outDir: join(root, 'types') });
     expect(declarations.diagnostics).toEqual([]);
     expect(readFileSync(join(root, 'types', 'run.d.ts'), 'utf8')).toContain('Promise<string>');
-    expect(
-      execFileSync(process.execPath, [cli, join(source, 'main.twill'), ' a,中文;$(echo nope) '], {
-        cwd: root,
-        encoding: 'utf8',
-      }).trim(),
-    ).toBe('a|中文;$(echo nope)');
-    expect(readFileSync(join(root, 'cleanup'), 'utf8')).toBe('cleaned');
-    expect(() =>
-      execFileSync(process.execPath, [cli, join(source, 'main.twill')], {
-        cwd: root,
-        encoding: 'utf8',
-        stdio: 'pipe',
-      }),
-    ).toThrow();
-    try {
-      execFileSync(process.execPath, [cli, join(source, 'main.twill')], {
-        cwd: root,
-        encoding: 'utf8',
-        stdio: 'pipe',
-      });
-    } catch (error) {
-      const failure = error as Error & { stderr: string };
-      expect(failure.stderr).toContain('TypeError: Missing input');
-      expect(failure.stderr).toContain('run.twill:4:');
-    }
-    const exported = await exportProject(config, { outDir: join(root, 'native') });
-    expect(exported.diagnostics).toEqual([]);
-    expect(exported.written).toBe(true);
-    expect(readFileSync(join(root, 'native', 'run.ts'), 'utf8')).toContain(
-      '@swiftuijs/twill-shell-native',
-    );
-    const parsed = ts.getParsedCommandLineOfConfigFile(
-      exported.tsconfig,
-      { noEmit: false, rewriteRelativeImportExtensions: true, outDir: join(root, 'dist') },
-      { ...ts.sys, onUnRecoverableConfigFileDiagnostic() {} },
-    )!;
-    const program = ts.createProgram(parsed.fileNames, parsed.options);
-    expect(ts.getPreEmitDiagnostics(program)).toEqual([]);
-    expect(program.emit().emitSkipped).toBe(false);
-    expect(
-      execFileSync(process.execPath, [join(root, 'dist', 'main.js'), ' a,b '], {
-        cwd: root,
-        encoding: 'utf8',
-      }).trim(),
-    ).toBe('a|b');
   } finally {
     project.dispose();
   }
+});
+
+it('executes native-backed Twill guards/defer and maps original source failures', () => {
+  const { root, source } = fixture();
+  expect(
+    execFileSync(process.execPath, [cli, join(source, 'main.twill'), ' a,中文;$(echo nope) '], {
+      cwd: root,
+      encoding: 'utf8',
+    }).trim(),
+  ).toBe('a|中文;$(echo nope)');
+  expect(readFileSync(join(root, 'cleanup'), 'utf8')).toBe('cleaned');
+  try {
+    execFileSync(process.execPath, [cli, join(source, 'main.twill')], {
+      cwd: root,
+      encoding: 'utf8',
+      stdio: 'pipe',
+    });
+    throw new Error('Expected missing-input failure');
+  } catch (error) {
+    const failure = error as Error & { stderr: string };
+    expect(failure.stderr).toContain('TypeError: Missing input');
+    expect(failure.stderr).toContain('run.twill:4:');
+  }
+});
+
+it('exports a native-backed Twill script to checked JS that needs no compiler loader', async () => {
+  const { root, config } = fixture();
+  const exported = await exportProject(config, { outDir: join(root, 'native') });
+  expect(exported.diagnostics).toEqual([]);
+  expect(exported.written).toBe(true);
+  expect(readFileSync(join(root, 'native', 'run.ts'), 'utf8')).toContain(
+    '@swiftuijs/twill-shell-native',
+  );
+  const parsed = ts.getParsedCommandLineOfConfigFile(
+    exported.tsconfig,
+    { noEmit: false, rewriteRelativeImportExtensions: true, outDir: join(root, 'dist') },
+    { ...ts.sys, onUnRecoverableConfigFileDiagnostic() {} },
+  )!;
+  const program = ts.createProgram(parsed.fileNames, parsed.options);
+  expect(ts.getPreEmitDiagnostics(program)).toEqual([]);
+  expect(program.emit().emitSkipped).toBe(false);
+  expect(
+    execFileSync(process.execPath, [join(root, 'dist', 'main.js'), ' a,b '], {
+      cwd: root,
+      encoding: 'utf8',
+    }).trim(),
+  ).toBe('a|b');
 });
 
 it('repeated cached and uncached Twill runner exits safely dispose the native reactor', () => {

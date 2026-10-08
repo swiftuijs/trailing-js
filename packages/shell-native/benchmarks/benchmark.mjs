@@ -16,6 +16,10 @@ assert.equal(
   'This benchmark currently requires Linux and cc; platform correctness is checked separately',
 );
 const samples = 11;
+// Check report dependencies before measuring; a missing tool must not discard
+// a complete run only when the final report is being constructed.
+const rustc = execFileSync('rustc', ['--version'], { encoding: 'utf8' }).trim();
+const cc = execFileSync('cc', ['--version'], { encoding: 'utf8' }).split('\n')[0];
 const size = 1024 * 1024;
 const nativeFixture = resolve(import.meta.dirname, 'target/fixture');
 const nodeFixture = resolve(import.meta.dirname, '../../shell/tests/fixtures/child.mjs');
@@ -365,8 +369,8 @@ const report = {
   arch: arch(),
   kernel: release(),
   cpu: cpus()[0]?.model,
-  rustc: execFileSync('rustc', ['--version'], { encoding: 'utf8' }).trim(),
-  cc: execFileSync('cc', ['--version'], { encoding: 'utf8' }).split('\n')[0],
+  rustc,
+  cc,
   gitHead,
   gitStatus,
   sourceAndBuildSHA256: identities,
