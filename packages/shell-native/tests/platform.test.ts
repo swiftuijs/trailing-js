@@ -16,6 +16,17 @@ it.each(['darwin', 'win32'])('selects both %s architectures without a Linux repo
     expect(nativeTarget(platform, arch, report)).toBe(`${platform}-${arch}`);
   expect(report).not.toHaveBeenCalled();
 });
+it('uses the Node process report when the Linux report provider is omitted', () => {
+  const report = vi.spyOn(process.report, 'getReport').mockReturnValue({
+    header: { glibcVersionRuntime: '2.28' },
+  });
+  try {
+    expect(nativeTarget('linux', 'x64')).toBe('linux-x64');
+    expect(report).toHaveBeenCalledOnce();
+  } finally {
+    report.mockRestore();
+  }
+});
 it.each([
   null,
   undefined,
