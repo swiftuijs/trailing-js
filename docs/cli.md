@@ -8,6 +8,21 @@ pnpm exec twill --help
 
 Your normal `tsconfig.json` supplies project types and JSX settings. Commands work without `twill.config.json`; its optional `implicitReturn` setting changes that language behavior. The unreleased [runtime helper option](./runtime.md) also selects inline or external cleanup emission.
 
+## Run an executable script (unreleased)
+
+The source prototype accepts both direct and explicit script invocation:
+
+```sh
+pnpm exec twill scripts/build.twill 'app, tests'
+pnpm exec twill run scripts/build.twill 'app, tests'
+```
+
+On Linux/macOS, start the file with `#!/usr/bin/env twill`, grant executable permission and use `./scripts/build.twill` when `twill` is on PATH. `pnpm exec ./scripts/build.twill` supplies a project-local binary. Windows uses the explicit CLI forms. Entry filenames may be extensionless.
+
+Arguments after the file are script arguments, never compiler options. `twill run -- <file>` handles dash-prefixed filenames; `twill run check` disambiguates a filename from a compiler command. The script sees standard Node argv, cwd, environment and descriptors. It executes in the current process, with source maps enabled and native exit/signal behavior. Packages resolve from the script's location, independently of the installed CLI. There is no automatic package installation or type checking.
+
+This runner is unreleased; npm 0.1.2 supports the explicit Node loader instead. See [shell scripting](./scripting.md) for the complete example and version boundary.
+
 ## Check types
 
 ```sh

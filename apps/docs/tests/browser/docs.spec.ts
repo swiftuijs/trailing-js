@@ -50,9 +50,12 @@ test('shell scripting guide exposes source-only boundaries and preserves site na
   await page.locator('.vp-doc').getByRole('link', { name: 'shell scripting', exact: true }).click();
   await expect(page.locator('h1')).toHaveText('Shell scripting');
   await expect(page.locator('.vp-doc')).toContainText('source prototype, not an npm release');
-  await expect(page.locator('.language-twill code')).toContainText('Subprocess.run');
-  await expect(page.locator('.language-twill code')).toContainText('guard const');
+  const exampleCode = page.locator('.language-twill code').filter({ hasText: 'Subprocess.run' });
+  await expect(exampleCode).toContainText('Subprocess.run');
+  await expect(exampleCode).toContainText('guard const');
   await expect(page.locator('.vp-doc')).toContainText('shell: false');
+  await expect(page.locator('.vp-doc')).toContainText('#!/usr/bin/env twill');
+  await expect(page.locator('.vp-doc')).toContainText('twill run hello.twill');
   await expect(page.locator('.vp-doc')).toContainText('not implemented');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     'href',

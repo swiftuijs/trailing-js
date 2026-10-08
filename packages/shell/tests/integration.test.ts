@@ -151,13 +151,14 @@ it('checks, formats, declares and executes the real Twill script with source-map
         { cwd: root, encoding: 'utf8', stdio: 'pipe' },
       );
       throw Error('Expected failure');
-    } catch (error: any) {
-      expect(error.stderr).toContain(
+    } catch (error) {
+      const failure = error as Error & { stderr: string };
+      expect(failure.stderr).toContain(
         'build.twill:' +
           original.slice(0, original.indexOf('throw new TypeError')).split('\n').length +
           ':',
       );
-      expect(error.stderr).toMatch(/throw\.twill:2:/);
+      expect(failure.stderr).toMatch(/throw\.twill:2:/);
     }
   } finally {
     project.dispose();
@@ -201,4 +202,20 @@ it('exports the script and mixed TS graph for native execution without a compile
       .items,
   ).toEqual(['a', 'b']);
   expect(readFileSync(join(source, 'build.twill'), 'utf8')).toContain('guard const');
+});
+
+it('executes the real SDK example through direct and explicit runner commands', () => {
+  const { root, source } = fixture();
+  const cli = resolve(import.meta.dirname, '../../twill/bin/twill.mjs');
+  for (const prefix of [[], ['run']]) {
+    const scripted = JSON.parse(
+      execFileSync(process.execPath, [cli, ...prefix, join(source, 'main.twill'), ' a, b '], {
+        cwd: root,
+        encoding: 'utf8',
+      }),
+    );
+    expect(scripted.items).toEqual(['a', 'b']);
+    expect(scripted.tag).toBe('isolated');
+    expect(existsSync(scripted.cwd)).toBe(false);
+  }
 });

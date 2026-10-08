@@ -8,6 +8,11 @@ import { loadConfig } from './config.js';
 import { isDependency, needsTypeEmission, resolveSourceFile } from './files.js';
 import ts from 'typescript';
 
+let entries = new Set<string>();
+export function initialize(data: { entries?: string[] } | undefined) {
+  entries = new Set(data?.entries);
+}
+
 function configuration(filename: string) {
   let root = dirname(filename);
   for (;;) {
@@ -49,7 +54,7 @@ export const resolve: ResolveHook = async (specifier, context, nextResolve) => {
 export const load: LoadHook = async (url, context, nextLoad) => {
   if (!url.startsWith('file:')) return nextLoad(url, context);
   const filename = fileURLToPath(url);
-  const dialect = isTwillFile(filename);
+  const dialect = isTwillFile(filename) || entries.has(url);
   if (!dialect && (isDependency(filename) || !needsTypeEmission(filename)))
     return nextLoad(url, context);
   const source = readFileSync(filename, 'utf8');

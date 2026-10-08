@@ -1,12 +1,38 @@
 # Shell scripting
 
-Twill scripts can combine native Node APIs with Swift-inspired `guard`, trailing closures and `defer`. The existing Node loader is published in `@swiftuijs/twill` 0.1.2:
+Twill scripts combine native Node APIs with Swift-inspired `guard`, trailing closures and `defer`. The unreleased source runner supports a standard executable script:
+
+```twill
+#!/usr/bin/env twill
+console.log(process.argv.slice(2));
+```
+
+Save it as `hello.twill`, give it executable permission and run it with `twill` on PATH:
+
+```sh
+chmod +x hello.twill
+./hello.twill 'hello world'
+```
+
+With a project-local compiler, the package manager supplies PATH:
+
+```sh
+pnpm exec ./hello.twill 'hello world'
+pnpm exec twill hello.twill 'hello world'
+pnpm exec twill run hello.twill 'hello world'
+```
+
+The explicit `twill` forms work on Windows too. POSIX executable permission and shebang execution apply to Linux/macOS. Extensionless entry scripts work as well. The runner is supplied by `@swiftuijs/twill`; the subprocess SDK is optional. **The runner and SDK are source prototypes, not npm 0.1.2 features.** Use the deliberately built source packages until a coordinated release is published.
+
+All arguments after the script path are forwarded unchanged, including `--help`, `-p`, `--` and shell metacharacters. Use `twill run -- <file>` for a filename beginning with a dash, or `twill run check` for a filename matching a compiler subcommand. `process.argv` has the normal Node shape: executable, absolute script path, then arguments.
+
+Execution uses the current Node process, native stdin/stdout/stderr, unchanged cwd/environment and the script's own exit status and signal behavior. Imports resolve from the script's location, so making `twill` available globally does not install its application dependencies globally. Configuration still comes from the nearest source project. Source maps are enabled; native `.ts`/`.js` imports and top-level await keep their normal loader meaning. Run `twill check` separately: running a script does not perform type checking.
+
+The published 0.1.2 loader remains available for advanced Node integration:
 
 ```sh
 node --enable-source-maps --import @swiftuijs/twill/register scripts/build.twill
 ```
-
-Native `.ts`/`.js` imports and top-level await keep their normal meaning. Run `twill check` separately: loading a script does not perform type checking.
 
 ## Optional subprocess SDK (unreleased)
 
@@ -15,6 +41,7 @@ Native `.ts`/`.js` imports and top-level await keep their normal meaning. Run `t
 The SDK takes its API direction from [Swift Subprocess](https://github.com/swiftlang/swift-subprocess): immutable commands, explicit input/output policies, typed status and owned process teardown. The execution backend calls native Node `spawn` / libuv directly with `shell: false`. It never translates a command into TypeScript or loads the Twill compiler. Native JS/TS can use it independently; Twill's loader only compiles the surrounding script when loaded.
 
 ```twill
+#!/usr/bin/env twill
 import { Command, Output, Subprocess } from '@swiftuijs/twill-shell';
 
 guard const input = process.argv[2] else {
@@ -78,13 +105,15 @@ For a source checkout:
 ```sh
 pnpm install --frozen-lockfile
 pnpm --filter @swiftuijs/twill-shell... build
-pnpm --filter @swiftuijs/twill-shell exec node --enable-source-maps --import @swiftuijs/twill/register examples/main.twill 'app, tests'
+pnpm --filter @swiftuijs/twill-shell exec twill examples/main.twill 'app, tests'
+# POSIX: examples/main.twill has an executable shebang.
+pnpm --filter @swiftuijs/twill-shell exec ./examples/main.twill 'app, tests'
 pnpm --filter @swiftuijs/twill-shell test:coverage
 ```
 
 A distributed JS application importing the SDK needs it as a production dependency. The compiler is only needed to load `.twill` source or build/export it. [Native source export](libraries.md) retains the ordinary SDK import, and the emitted JS runs without a compiler loader.
 
-The first stage contains argv execution, bounded collection, status/errors, input, environment/cwd and cancellation. `withProcess`, `Output.stream`, pipelines, shell-tagged templates and `twill run` are not implemented. Continue using native Node APIs for those needs.
+The first stage contains argv execution, bounded collection, status/errors, input, environment/cwd and cancellation. `withProcess`, `Output.stream`, pipelines and shell-tagged templates are not implemented. Continue using native Node APIs for those needs.
 
 ## Performance boundaries
 

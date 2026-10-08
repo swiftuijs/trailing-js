@@ -106,10 +106,13 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @swiftuijs/twill-shell... build
+      - run: pnpm --filter @swiftuijs/twill exec vitest run tests/runner.test.ts
       - run: pnpm --filter @swiftuijs/twill-shell typecheck
       - run: pnpm --filter @swiftuijs/twill-shell test:unit
+      - run: pnpm --filter @swiftuijs/twill --config.ignore-scripts=true pack --out swiftuijs-twill-%v.tgz
       - run: pnpm --filter @swiftuijs/twill-shell pack --out swiftuijs-twill-shell-%v.tgz
       - uses: actions/setup-node@v7.0.0
         with:
           node-version: 20
       - run: node packages/shell/tests/consumer.mjs
+      - run: node packages/twill/tests/runner-consumer.mjs

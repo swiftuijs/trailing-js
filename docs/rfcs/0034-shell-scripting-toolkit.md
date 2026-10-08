@@ -13,7 +13,7 @@ Twill already runs scripts using its published Node ESM loader:
 node --enable-source-maps --import @swiftuijs/twill/register scripts/build.twill
 ```
 
-Top-level await, Node modules, process arguments and native promises remain normal JS/TS. The compiler's CLI currently compiles/checks/exports; it has no `twill run` command. This proposal adds a reusable process toolkit, not a requirement to run a script.
+Top-level await, Node modules, process arguments and native promises remain normal JS/TS. The published compiler's CLI compiles/checks/exports; it has no `twill run` command. This source prototype adds a reusable process toolkit and the accepted executable-script amendment below; installing the SDK is not a requirement to run a script.
 
 Native `child_process.spawn` preserves arguments without a shell and offers streams, but each script must coordinate errors, exit status, output limits, cancellation, pipes and cleanup. `execFile` with promisify is a useful baseline for small captured commands; it rejects on unsuccessful exits and buffers output with a maximum size. A toolkit should reduce repeated coordination while keeping those native facilities available.
 
@@ -115,7 +115,17 @@ An explicit `Shell.run(commandText, { executable, arguments, ... })` may provide
 
 The first-stage source implementation provides the SDK's argv-backed `run`, bounded capture, status/error types, environment/cwd isolation and cancellation. Validate an actual `.twill` script through the existing loader, plus native JS/TS consumers. Document Node versions based on the tested SDK manifest; the compiler's Node support does not automatically validate this SDK.
 
-Keep the existing Node invocation as the initial entry point. A future `twill run`/dedicated runner needs its own tooling amendment specifying argv forwarding, cwd, nearest project/package resolution, config selection, source maps, error/exit codes and Node/Windows behavior. Do not introduce a second compiler or transpile once per command. Shebangs are optional POSIX packaging conveniences, not a Windows support contract. No watch/server daemon or global installation is required.
+### Accepted amendment: executable scripts
+
+The user-facing entry is `twill script.twill [args...]`, with `twill run script.twill [args...]` as an explicit equivalent. On POSIX systems, `#!/usr/bin/env twill` plus executable permission enables `./script.twill`; `twill` must be on PATH. A local package-manager invocation also works without a global installation. This runner is part of the compiler's existing binary, not a second binary supplied by the optional SDK. The SDK remains compiler-independent.
+
+Dispatch script execution before loading compile/check/export tooling or parsing compiler flags. Once the script path is selected, forward all remaining arguments literally, including `--help`, `-p`, `--runtime`, `--` and shell metacharacters. `run -- <file>` and `twill -- <file>` disambiguate filenames beginning with a dash. Compiler subcommand names remain reserved; `./check` or `run check` selects a file with that name. Execution does not type-check; `twill check` remains a separate step.
+
+Run in the current Node process with inherited descriptors, unchanged cwd/environment and no intermediary child process. Before importing, set `process.argv` to `[process.execPath, absoluteScriptPath, ...scriptArguments]` and enable source maps. Preserve the script's own exit code, `process.exit`, uncaught exceptions/rejections and native signal behavior; do not replace a successful import with exit status zero, install global cleanup/signal handlers, or claim descendant ownership. Windows supports the explicit CLI forms; POSIX executable permission and shebang interpretation are not a Windows contract.
+
+Register the existing loader relative to the installed binary, independent of cwd and project dependencies. Packages imported by the script resolve from the script's own location using Node's normal package rules, so a globally available compiler does not imply a globally available SDK. The loader selects the nearest Twill/TS configuration for each source file as before. An extensionless or otherwise non-native entry filename is explicitly identified to the loader as Twill; this affects only that entry, not native imports. Known native JS/TS extensions retain their existing loader/Node treatment. Do not scan for or silently download missing packages.
+
+Retain the explicit Node loader form as an advanced integration interface. Compilation happens when loading source modules, never once per subprocess command. Measure the runner's cold startup separately against the existing loader and native Node; source execution still has compilation startup costs. Watch, caching, daemon execution, stdin/eval and shell text execution are not added by this amendment.
 
 The SDK is a production dependency when distributed JS imports it. Source-only scripts also need the Twill compiler/loader available when invoked. Native-source export retains the ordinary SDK import and produces normal JS/types; do not bundle SDK internals or pretend this is a compiler-generated runtime dependency.
 
@@ -147,4 +157,4 @@ A standalone library maintains browser/compiler isolation and reusable types. Re
 
 ## Open questions and decision history
 
-The argv-backed first stage and checked-exit default were accepted for implementation in PR #20. The execution core is a native OS-process coordinator rather than a compiler lowering: no command-to-TS conversion, per-command compilation or compiler production dependency. JS/TS declarations describe its API. A different native backend requires measured benefits that justify its maintenance/portability cost. Interactive execution, pipelines, explicit shells and a runner remain separately reviewable milestones. Implementation, merge and publication stay distinct; the package is unreleased.
+The argv-backed first stage and checked-exit default were accepted for implementation in PR #20. The execution core is a native OS-process coordinator rather than a compiler lowering: no command-to-TS conversion, per-command compilation or compiler production dependency. JS/TS declarations describe its API. A different native backend requires measured benefits that justify its maintenance/portability cost. The executable-script amendment was subsequently accepted for the same PR: a standard `#!/usr/bin/env twill` entry and literal-argv CLI dispatch. Interactive execution, pipelines and explicit shells remain separately reviewable milestones. Implementation, merge and publication stay distinct; the package is unreleased.
