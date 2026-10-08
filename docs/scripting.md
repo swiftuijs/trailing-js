@@ -55,6 +55,8 @@ Completed storage uses 128 slots of at most 512 KiB each (64 MiB total, excludin
 
 The SDK takes its API direction from [Swift Subprocess](https://github.com/swiftlang/swift-subprocess): immutable commands, explicit input/output policies, typed status and owned process teardown. The execution backend calls native Node `spawn` / libuv directly with `shell: false`. It never translates a command into TypeScript or loads the Twill compiler. Native JS/TS can use it independently; Twill's loader only compiles the surrounding script when loaded.
 
+This checkout also has a separate Linux Rust/N-API experiment for process launch and bounded capture. It cannot be selected through this SDK or installed from npm. [Measured results](performance.md#rust-subprocess-experiment) show gains for sequential launches/capture and lower observed capture RSS, alongside a default-thread-pool concurrency regression and no demonstrated source-startup gain. Adoption requires independent asynchronous scheduling, the full cancellation/ownership contract and platform support.
+
 ```twill
 #!/usr/bin/env twill
 import { Command, Output, Subprocess } from '@swiftuijs/twill-shell';

@@ -1,0 +1,22 @@
+native-executable-inherit: Rust/SDK wall 0.479, parent CPU 0.202
+node-inherit: Rust/SDK wall 0.925, parent CPU 0.204
+native-dual-capture-1048576: Rust/SDK wall 0.615, parent CPU 0.638
+native-dual-capture-8388608: Rust/SDK wall 0.977, parent CPU 0.991
+node-dual-capture-1048576: Rust/SDK wall 0.913, parent CPU 0.409
+native-stdin-text-1048576: Rust/SDK wall 0.497, parent CPU 0.583
+native-duplex-1048576: Rust/SDK wall 0.442, parent CPU 0.465
+node:fs:622
+  return binding.open(
+                 ^
+
+Error: ENOENT: no such file or directory, open '/workspace/twill-shell-rust/packages/twill/dist/compilation-cache.js'
+    at Object.openSync (node:fs:622:18)
+    at readFileSync (node:fs:488:35)
+    at file:///workspace/twill-shell-rust/packages/shell/experiments/rust-native/benchmark.mjs:273:13 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/workspace/twill-shell-rust/packages/twill/dist/compilation-cache.js'
+}
+
+Node.js v24.19.0

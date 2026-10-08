@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Implement the isolated RFC 0036 Linux Rust/N-API direct-child experiment outside published SDK files: literal argv, call-time input/environment snapshots, nonblocking bounded dual capture, deadlines and direct-child reaping. Record complete paired Node/SDK/Rust measurements, lower observed capture RSS, default-pool concurrency regression and no demonstrated source-startup gain. Validate real native calls on Node 20.19/24; keep the SDK's Node backend, dependencies and archive gate unchanged.
+
 - Prototype RFC 0035 executable-script startup caching: lazy compiler initialization, content/configuration/toolchain invalidation, original source maps, private bounded atomic storage and an environment opt-out. Advanced Node registration stays uncached by default. Record the independent RFC 0036 Rust/N-API backend evaluation; no native backend or publication.
 
 - Implement RFC 0034 first-stage `@swiftuijs/twill-shell` source prototype: direct native argv execution, explicit bounded text/bytes, stdin, isolated cwd/environment, typed status/errors and joined abort/timeout teardown. No compiler runtime dependency or new language syntax.

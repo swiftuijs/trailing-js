@@ -68,4 +68,6 @@ node packages/twill/benchmarks/startup-profile.mjs > startup-profile-results.jso
 pnpm --filter @swiftuijs/twill test:size --output ../../bundle-results.json
 ```
 
+The isolated Linux [Rust subprocess experiment](../../packages/shell/experiments/rust-native/README.md) has its own pinned native build, real child-process/addon tests and paired benchmark. It is excluded from published SDK files. Its CI job repeats tests on Node 22 and Node 20.19.0; benchmark reports preserve sequential wall/parent CPU, isolated RSS, source startup and default/expanded-pool concurrency separately. It does not replace the SDK's cross-platform contract suite or authorize a production backend.
+
 Compiler benchmarks include implicit member callbacks and check minified-code identity against native arrows. Project benchmarks include partial-member completion, warm/changed hover, checking and formatting. Size checks enforce deterministic bundle/artifact budgets and native behavior parity. Reports retain environment/workload information; absolute timing thresholds would be unreliable across CI machines. Measure representative application hot paths before making a performance claim. Keep worker input/retry limits and cache bounds covered as functional contracts.

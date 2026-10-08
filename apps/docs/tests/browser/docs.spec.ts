@@ -60,6 +60,8 @@ test('shell scripting guide exposes source-only boundaries and preserves site na
   await expect(page.locator('.vp-doc')).toContainText('TWILL_CACHE=0');
   await expect(page.locator('.vp-doc')).toContainText('64 MiB');
   await expect(page.locator('.vp-doc')).toContainText('original source');
+  await expect(page.locator('.vp-doc')).toContainText('separate Linux Rust/N-API experiment');
+  await expect(page.locator('.vp-doc')).toContainText('cannot be selected through this SDK');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     'href',
     'https://twill.evecalm.com/scripting',

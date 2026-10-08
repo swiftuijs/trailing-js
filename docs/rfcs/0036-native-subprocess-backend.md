@@ -2,9 +2,9 @@
 
 **Status:** Proposed; evaluation only.
 **Kind:** Runtime/tooling.
-**Release:** Not implemented or released.
+**Release:** Isolated Linux direct-child experiment implemented and measured; not a production backend or release.
 **Dependencies:** RFC 0034, with separate scoped-stream/pipeline ownership acceptance.
-**Review:** Authorized evaluation following PR #20; no native-backend acceptance or Rust performance claim.
+**Review:** Authorized evaluation following PR #20, including a direct-child Rust experiment after the startup-cache measurements; no production-backend acceptance.
 
 ## Problem and native baseline
 
@@ -17,6 +17,12 @@ Evaluate Rust when it can provide a concrete capability or measured improvement:
 Keep the JavaScript API, TypeScript declarations and Node/npm interoperability. An optional N-API addon is the candidate boundary: one native operation owns an entire command or pipeline through settlement. Prefer existing maintained platform primitives where possible. Do not introduce one Rust helper process per command, per-chunk JS/native promise crossings or implicit alternate backend selection.
 
 Specify backend choice before implementation. Initially benchmark in an isolated, explicitly selected prototype; the existing Node backend remains the implementation and published behavior. A native backend must not silently claim stronger cleanup than an available fallback. Absence of a prebuilt binary is an explicit unavailable-backend condition, not an automatic install-time compiler or download.
+
+### First experiment
+
+The authorized first experiment lives under `packages/shell/experiments/rust-native`, outside published package files and workspace dependencies. It is Linux-only and explicitly loaded by its benchmark/test adapter. One N-API asynchronous task owns a direct child, nonblocking stdin/stdout/stderr and a Linux pidfd. One `poll` loop drains both streams with finite byte limits and closes stdin after writing. Inherited/discarded output uses native descriptors. Input and environment are snapshotted before the worker starts; a read buffer is reused and returned byte buffers transfer Rust storage through N-API where supported. Measure these costs rather than asserting zero copies.
+
+This narrower experiment needs no new pipeline/scoped-stream contract. It tests literal argv, child-local cwd/environment, EOF/binary input, simultaneous capture, statuses, launch/I/O failures, overflow and an experimental deadline. It uses immediate direct-child termination on failure, generic experimental errors and a libuv worker per active command. The deadline includes queue delay and rejects expired work before launch; blocking OS launch/reap can exceed it, so it is not a bounded-join guarantee. It does not implement the SDK's graceful cancellation/error contract, process containment, pipelines, Windows or macOS. It cannot be selected through the public SDK. Pool contention and Node ABI/lifecycle costs are evaluation limits, not production guarantees.
 
 Native owned resources include child handles, pipe descriptors, containment handles, timers and readers. Success/rejection occurs after ownership is released and the specified join completes. Partial pipeline launch or connection failure tears down every launched stage. Preserve first failure, attach structured cleanup failures, and report unresolved owned children. A group/job is an ownership boundary, not a security sandbox: detached/escaped Unix descendants may leave a group; Windows restrictions and breakaway policy must be specified and tested. Rust ownership alone cannot establish cancellation correctness.
 
@@ -36,4 +42,8 @@ Performance acceptance retains RFC 0034's wall-time tolerance and requires a rep
 
 ## Decision and next milestone
 
-Proceed with startup profiling/cache first. Keep the current SDK backend. The next native milestone is an isolated ownership/pipeline experiment after the public scoped/pipeline contract is accepted; do not add Rust to production dependencies on the basis of language preference or the current small warm-wall differences. Synchronize docs and the official skill only with capabilities actually implemented and tested. No Rust improvement has been measured.
+The [isolated experiment](../../packages/shell/experiments/rust-native/README.md) and [complete Linux/Node 24 report](../../packages/shell/benchmarks/results/rust-native-linux-node24.json) demonstrate sequential benefits: paired Rust/SDK wall ratios of 0.581 for a short native launch, 0.582 for dual 1 MiB capture and 0.852 for dual 8 MiB capture. Corresponding handwritten Node comparisons also improve. Capture RSS-increase medians approximately halve. This establishes gains for the measured successful subset, not the SDK's complete contract or external-command execution.
+
+Default-pool concurrency fails adoption requirements: 32 parallel Node children take median 1,185 ms versus SDK 473 ms. A 32-worker configuration measures 456 versus 477 ms, without eliminating shared-pool ownership/contention costs. Source startup has no demonstrated improvement; the compiler/Node initialization remains. The 495,808-byte native artifact needs its own package/budget. Keep the SDK backend and proceed toward independent asynchronous native scheduling, full graceful cancellation/join/error/environment-shutdown ownership and platform tests before proposing adoption. Raising the global pool alone is not that implementation.
+
+The initial diagnostic run failed while constructing build fingerprints and lost its in-memory samples; its log and failure/source/artifact metadata are retained and are not acceptance evidence. The corrected harness validates fingerprints before timing and checkpoints raw samples. The final report retains every completed sample from the reviewed implementation. A later ownership/pipeline experiment depends on the public scoped/pipeline contract; this narrower evaluation does not accept that contract or authorize publication.
