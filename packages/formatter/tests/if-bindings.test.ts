@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { transform } from '@swiftuijs/twill';
-import { format } from '../src/index.js';
-import { format as standalone } from '../src/standalone.js';
+import { format } from '../src/index.twill';
+import { format as standalone } from '../src/standalone.twill';
 import * as prettier from 'prettier';
 
 const sources = [

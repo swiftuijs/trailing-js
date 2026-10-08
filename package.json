@@ -53,7 +53,7 @@
     "docs:build": "pnpm --filter @swiftuijs/twill-docs... run build",
     "docs:preview": "pnpm --filter @swiftuijs/twill-docs preview",
     "test:browser": "pnpm -r --workspace-concurrency=1 --if-present run test:browser",
-    "verify:release": "node scripts/verify-release.mjs && node scripts/generate-runtime-helper.mjs --check",
+    "verify:release": "node scripts/verify-release.mjs && node scripts/generate-runtime-helper.mjs --check && node scripts/verify-dogfood.mjs",
     "test:packed": "node packages/twill/tests/consumer.mjs --packed && node packages/formatter/tests/consumer.mjs && node packages/linter/tests/consumer.mjs && node packages/export/tests/consumer.mjs && node packages/highlight/tests/consumer.mjs && node packages/runtime/tests/consumer.mjs && node packages/shell/tests/consumer.mjs",
     "release:manifest": "node scripts/verify-release.mjs --artifacts --manifest",
     "test:examples": "pnpm --filter './examples/*' --workspace-concurrency=1 --if-present run test:example",
@@ -65,7 +65,8 @@
     "benchmark:runtime": "pnpm --filter @swiftuijs/twill run benchmark:runtime",
     "benchmark:if-bindings": "pnpm --filter @swiftuijs/twill run benchmark:if-bindings",
     "benchmark:shell": "pnpm --filter @swiftuijs/twill-shell run benchmark",
-    "benchmark:shell-native": "pnpm --filter @swiftuijs/twill-shell-native run benchmark"
+    "benchmark:shell-native": "pnpm --filter @swiftuijs/twill-shell-native run benchmark",
+    "verify:dogfood": "node scripts/verify-dogfood.mjs"
   },
   "author": {
     "name": "forth.ink",

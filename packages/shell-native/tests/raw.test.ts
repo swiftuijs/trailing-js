@@ -1,7 +1,7 @@
-import { nativeTarget } from '../src/platform.js';
+import { nativeTarget } from '../src/platform.twill';
 import { expect, it } from 'vitest';
 import { createRequire } from 'node:module';
-import type { NativeBindings, NativeOptions } from '../src/bindings.js';
+import type { NativeBindings, NativeOptions } from '../src/bindings.twill';
 const native = createRequire(import.meta.url)(`../native/${nativeTarget()}.node`) as NativeBindings;
 const valid: NativeOptions = {
   executable: process.execPath,

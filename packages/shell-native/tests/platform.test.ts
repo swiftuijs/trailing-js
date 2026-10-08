@@ -1,6 +1,6 @@
 import { expect, it, vi } from 'vitest';
-import { nativeTarget } from '../src/platform.js';
-import * as executable from '../src/libc.js';
+import { nativeTarget } from '../src/platform.twill';
+import * as executable from '../src/libc.twill';
 import { targets, rustTargets } from '../scripts/identity.mjs';
 
 it.each(['x64', 'arm64'])('selects each Linux ABI for %s without probing libraries', (arch) => {

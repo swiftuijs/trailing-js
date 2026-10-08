@@ -36,3 +36,7 @@ Named Unix signals use Node names; unnamed signals retain their numeric OS value
 This first stage does not implement scoped streaming, pipelines, shell templates or shell-text execution. Node ESM is required (`^20.19.0 || >=22.12.0`). Twill source execution uses its existing loader; exported/native JS only needs this SDK. See the [scripting guide](https://twill.evecalm.com/scripting), [RFC 0034](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0034-shell-scripting-toolkit.md) and [official AI skill](https://twill.evecalm.com/ai). Twill's sibling UI project is [SwiftUI.js](https://swiftuijs.evecalm.com/).
 
 Worker termination cancels that environment's children. Explicit `process.exit()` and environment teardown use a native cleanup barrier bounded to 1.1 seconds; JS callbacks do not run during exit. OS creation/uninterruptible kernel waits are not hard real-time guarantees, and SIGKILL/native faults cannot run cleanup handlers.
+
+## Development
+
+This package's implementation uses Twill and emits ordinary JavaScript. Build and check a checkout with the workspace tools; see [developing tooling in Twill](https://github.com/swiftuijs/twill/blob/main/docs/contributing/dogfooding.md) for bootstrap and contribution instructions.

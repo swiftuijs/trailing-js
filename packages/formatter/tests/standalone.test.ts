@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
-import { format, formatGenerated } from '../src/index';
-import { format as standalone, formatGenerated as generated } from '../src/standalone';
+import { format, formatGenerated } from '../src/index.twill';
+import { format as standalone, formatGenerated as generated } from '../src/standalone.twill';
 import { transform } from '@swiftuijs/twill';
 
 it.each([

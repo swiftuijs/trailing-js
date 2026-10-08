@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Develop the formatter, linter, export, highlight, shell JS wrappers and editor integrations in Twill through the public adapter, checker and declaration emitter. Keep ordinary JS/types for consumers, native bootstrap boundaries and existing coverage/size gates; enforce the source policy in release verification.
+- Preserve TypeScript's separate type/value namespaces for same-name aliases/interfaces and runtime declarations, including checked declarations usable by native TS consumers.
+
 ## 0.2.0
 
 - Add associated-value enums, exhaustive `match` expressions and branch-local `if const` nullish bindings, with synchronized checking, source maps, formatter, lint, highlighting, declarations/export and editor support.

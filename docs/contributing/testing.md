@@ -14,7 +14,7 @@ Install Playwright Chromium before browser tests. On headless Linux, prefix edit
 
 ## Coverage gates
 
-Vitest uses V8 coverage remapped to source ASTs. Reports include statements, branches, functions and lines. Every public package has a gate; the compiler and parser have additional file gates. Build adapter entry points are included rather than excluded from the compiler report.
+Vitest uses V8 coverage remapped to source ASTs, including original `.twill` sources through the public Vite adapter. The packaged-editor collector includes `extension.twill` and rejects missing/incomplete source reports. Source migration must preserve every production module and the existing coverage thresholds. `pnpm verify:dogfood` checks the production-source policy before release validation. Native test harnesses intentionally exercise Twill imports and ordinary JS/TS consumers. Reports include statements, branches, functions and lines. Every public package has a gate; the compiler and parser have additional file gates. Build adapter entry points are included rather than excluded from the compiler report.
 
 | Scope                                    | Statements | Branches | Functions | Lines |
 | ---------------------------------------- | ---------: | -------: | --------: | ----: |

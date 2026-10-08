@@ -36,3 +36,7 @@ Darwin registration races for already exiting owned children retain polling and 
 See [Twill](https://twill.evecalm.com/), [performance](https://twill.evecalm.com/performance), [RFC 0036](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0036-native-subprocess-backend.md) and the sibling [SwiftUI.js](https://swiftuijs.evecalm.com/) project.
 
 Environment replacement follows native Node boundaries: Windows supplements omitted libuv-required system variables (including PATH, SYSTEMROOT and TEMP) from the parent; explicit empty strings override those defaults. Node coverage output settings propagate when not explicitly supplied. Use a trusted executable path rather than assuming an omitted Windows PATH disables lookup.
+
+## Development
+
+This package's implementation uses Twill and emits ordinary JavaScript. Build and check a checkout with the workspace tools; see [developing tooling in Twill](https://github.com/swiftuijs/twill/blob/main/docs/contributing/dogfooding.md) for bootstrap and contribution instructions.

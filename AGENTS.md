@@ -8,6 +8,14 @@ Follow root `package.json` engines and `packageManager`, and install with `pnpm 
 
 Tests, fixtures and test dependencies belong to the owning package. Shared TextMate sources belong to `packages/highlight/grammars`; keep the shipped copies in `editors/vscode/syntaxes` identical. Preserve unrelated working-tree changes and keep PRs focused.
 
+## Develop tooling in Twill
+
+Use `.twill` / `.twillx` for handwritten production sources in packages and editor integrations outside `packages/twill`. Native TypeScript is valid Twill; prefer extensions only when they clarify code and preserve efficient native output. Fix compatibility problems in the compiler with regression tests rather than renaming public APIs or weakening checks. Update source imports to the actual `.twill` / `.twillx` paths.
+
+Build through public Twill adapters, check with `twill check`, and emit ordinary consumer declarations with `twill declarations`. Keep compiler dependencies development-only where consumers do not need them. Preserve public JS exports, source maps, complete original-source coverage, independent consumers and existing performance/size gates. `pnpm verify:dogfood` rejects native implementation files in package/editor `src` directories, including new packages; release verification runs it before builds.
+
+Bootstrap exceptions are explicit: the compiler/parser remain JS/TS; `packages/runtime` keeps the canonical JS helper used before compiler build; Rust keeps the native subprocess engine. Build/configuration/release/install scripts and native interoperability test harnesses stay in host-supported formats. Vue SFCs and their documentation-app support code retain native sources until Twill integrates with that host's type checker. Tests may mix native and Twill inputs to exercise both boundaries. Document a concrete host/bootstrap reason when adding an exception, and update the verification policy with it; do not silently skip a package.
+
 ## Language and tooling changes
 
 Write or amend an independent RFC before introducing Twill syntax, semantics or a public tooling capability. Existing native JS/TS behavior needs no new RFC. Record the native baseline, evaluation order, binding/control-flow ownership, errors, suspension, interoperability and generated costs. Acceptance, implementation, merging and publication are separate statuses; keep the guides honest about shipped versions and source prototypes.

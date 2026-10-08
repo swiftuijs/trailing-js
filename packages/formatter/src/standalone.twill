@@ -1,7 +1,7 @@
 import * as prettier from 'prettier/standalone';
 import * as estree from 'prettier/plugins/estree';
 import * as typescript from 'prettier/plugins/typescript';
-import { plugin } from './plugin.js';
+import { plugin } from './plugin.twill';
 import type { Options } from 'prettier';
 
 /** Browser/editor entry: plugins are loaded objects, never filesystem paths. */

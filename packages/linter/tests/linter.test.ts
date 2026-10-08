@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { ESLint } from 'eslint';
-import twill, { disposeProjects } from '../src/index.js';
+import twill, { disposeProjects } from '../src/index.twill';
 import { mkdtempSync, rmSync, writeFileSync, mkdirSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';

@@ -1,14 +1,14 @@
 import { defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
+import twill from '@swiftuijs/twill/vite';
 import { builtinModules } from 'node:module';
 import metadata from './package.json' with { type: 'json' };
 
 export default defineConfig({
-  plugins: [dts({ tsconfigPath: 'tsconfig.build.json', entryRoot: 'src', outDirs: ['dist'] })],
+  plugins: [twill()],
   build: {
     ssr: true,
     lib: {
-      entry: { index: 'src/index.ts', standalone: 'src/standalone.ts' },
+      entry: { index: 'src/index.twill', standalone: 'src/standalone.twill' },
       formats: ['es'],
       fileName: (_format, name) => name + '.js',
     },

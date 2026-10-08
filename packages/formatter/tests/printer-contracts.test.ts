@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { doc } from 'prettier';
-import { plugin } from '../src/plugin';
-import { parse } from '../src/parser';
+import { plugin } from '../src/plugin.twill';
+import { parse } from '../src/parser.twill';
 import type { AstPath, Doc, ParserOptions } from 'prettier';
 
 it('prints a typed closure with an empty body and retains document commands before its block', () => {

@@ -4,6 +4,8 @@ Build a Twill library as ordinary JavaScript with standard TypeScript declaratio
 
 Install the reviewed compiler in your library project following [getting started](./getting-started.md), alongside Vite. The examples below describe **your library's configuration**, not Twill's repository build.
 
+Twill's own tooling packages use this workflow: their repository sources are `.twill`, while consumers load ordinary JavaScript and `.d.ts` declarations. Writing a library in Twill does not require its consumers to install the compiler. The shell SDK similarly keeps Twill as a development dependency; its Rust implementation dependency is installed normally.
+
 ## Write the public API
 
 `src/index.twill`:

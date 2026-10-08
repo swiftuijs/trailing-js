@@ -1,11 +1,11 @@
 import { defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
+import twill from '@swiftuijs/twill/vite';
 
 export default defineConfig({
-  plugins: [dts({ tsconfigPath: 'tsconfig.build.json', entryRoot: 'src' })],
+  plugins: [twill()],
   build: {
     lib: {
-      entry: { index: 'src/index.ts', shiki: 'src/shiki.ts' },
+      entry: { index: 'src/index.twill', shiki: 'src/shiki.twill' },
       formats: ['es'],
       fileName: (_format, name) => name + '.js',
     },

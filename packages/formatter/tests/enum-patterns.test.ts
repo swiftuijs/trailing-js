@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
-import { format } from '../src/index';
-import { format as standalone } from '../src/standalone';
+import { format } from '../src/index.twill';
+import { format as standalone } from '../src/standalone.twill';
 import { transform } from '@swiftuijs/twill';
 import { format as nativeFormat } from 'prettier';
 import ts from 'typescript';

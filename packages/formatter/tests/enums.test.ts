@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { format } from '../src/index';
+import { format } from '../src/index.twill';
 import { transform } from '@swiftuijs/twill';
 
 it.each([true, false])('formats associated enums without lowering, with semi=%s', async (semi) => {
