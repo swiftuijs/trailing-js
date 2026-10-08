@@ -13,6 +13,9 @@ import ts from 'typescript';
 const roots: string[] = [];
 afterEach(() => roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })));
 function compile(body: string, runtime: 'inline' | 'external' = 'external') {
+  // The helper contract needs dynamic registration. Statically owned cleanup
+  // is deliberately covered by the dependency-free native-path cases below.
+  body = body.replace(/\bdefer\s*\{/, 'if(true) defer {');
   const result = transform(`function run(input,events,problem){${body}}`, {
     language: 'js',
     runtime,
@@ -102,6 +105,7 @@ it('imports one hygienic helper per module across multiple dynamic scopes', () =
 it.each([
   'function run(){return 1;}',
   'function run(){defer {release();}return 1;}',
+  'function run(){defer {release(1);}defer {release(2);}return 1;}',
   'async function run(){defer {await release();}defer {await release();}return 1;}',
   'async function run(){defer {await release();}defer {release();}return 1;}',
   'function run(input){guard input else{return 0;}return switch(input){default:1;};}',
@@ -114,7 +118,7 @@ it.each([
 });
 it('does not add an await turn for dynamic synchronous cleanup inside async functions', async () => {
   const source =
-    'async function run(events){defer {events.push(1);} defer {events.push(2);}events.push(3);return 4;}';
+    'async function run(events){if(true)defer {events.push(1);} defer {events.push(2);}events.push(3);return 4;}';
   const result = transform(source, { language: 'js', runtime: 'external' });
   const imported = result.code.match(/import \{ runDefers as (\w+) \} from [^;]+;\s*/)!;
   const run = Function(
@@ -144,7 +148,7 @@ it('keeps mixed/unreached async cleanup and its microtask order unchanged', asyn
 });
 it('runs reached registrations on generator close without reaching later ones', () => {
   const source =
-    'function* run(events){defer {events.push(1);}defer {events.push(2);}yield 3;defer {events.push(4);}}';
+    'function* run(events){if(true)defer {events.push(1);}defer {events.push(2);}yield 3;defer {events.push(4);}}';
   const result = transform(source, { language: 'js', runtime: 'external' });
   const imported = result.code.match(/import \{ runDefers as (\w+) \} from [^;]+;\s*/)!;
   const run = Function(
@@ -177,7 +181,7 @@ it('keeps lexical this, arguments, super, new.target and function hoisting in sc
 });
 it('preserves shebangs and directives before its import', () => {
   const source =
-    '#!/usr/bin/env node\n"use client";\nfunction run(){defer {release(1);}defer {release(2);}}';
+    '#!/usr/bin/env node\n"use client";\nfunction run(){if(true)defer {release(1);}defer {release(2);}}';
   const result = transform(source, { language: 'js', runtime: 'external' });
   parse(result.code, 'js');
   expect(result.code).toMatch(/^#![^\n]+\n"use client";\s*import/);
@@ -188,7 +192,7 @@ it('rejects invalid options and only diagnoses script mode when an import is nee
       'runtime must be',
     );
   expect(() =>
-    transform('function run(){defer {release();}defer {release();}}', {
+    transform('function run(){if(true)defer {release();}defer {release();}}', {
       runtime: 'external',
       sourceType: 'script',
     }),
@@ -204,7 +208,7 @@ it('checks external helper types, maps diagnostics/rename and emits dependency-f
   const filename = join(root, 'main.twill'),
     config = join(root, 'tsconfig.json');
   const source =
-    'export function run(input:number,events:number[]){\ndefer {events.push(input);}\ndefer {events.push(input+1);}\nreturn input;}';
+    'export function run(input:number,events:number[]){\nif(true)defer {events.push(input);}\ndefer {events.push(input+1);}\nreturn input;}';
   writeFileSync(filename, source);
   writeFileSync(join(root, 'twill.config.json'), '{"runtime":"external"}');
   writeFileSync(
@@ -258,7 +262,7 @@ it('runs external cleanup through the actual Node loader using project configura
   writeFileSync(join(root, 'twill.config.json'), '{"runtime":"external"}');
   writeFileSync(
     join(root, 'main.twill'),
-    'const events:number[]=[];function run(){defer {events.push(1);}defer {events.push(2);}return 3;}console.log(JSON.stringify([run(),events]));',
+    'const events:number[]=[];function run(){if(true)defer {events.push(1);}defer {events.push(2);}return 3;}console.log(JSON.stringify([run(),events]));',
   );
   const output = execFileSync(
     process.execPath,
@@ -270,7 +274,7 @@ it('runs external cleanup through the actual Node loader using project configura
 });
 it('keeps file pragmas and declaration documentation before/after the import respectively', () => {
   const source =
-    '// @ts-nocheck\n/// <reference path="./types.d.ts" />\n/** @jsxImportSource custom */\n/** Cleanup API. */\nexport function run(events){defer {events.push(1);}defer {events.push(2);}}';
+    '// @ts-nocheck\n/// <reference path="./types.d.ts" />\n/** @jsxImportSource custom */\n/** Cleanup API. */\nexport function run(events){if(true)defer {events.push(1);}defer {events.push(2);}}';
   const result = transform(source, { language: 'js', runtime: 'external' });
   parse(result.code, 'js');
   expect(result.code.indexOf('@ts-nocheck')).toBeLessThan(result.code.indexOf('import {'));
@@ -282,7 +286,7 @@ it('keeps adjacent declaration documentation with native generic checkJs annotat
   roots.push(root);
   const filename = join(root, 'main.js');
   const source =
-    '// @ts-check\n/** Cleanup API description. */\n/** @template T\n * @param {T} input\n * @param {T[]} events\n * @returns {T} */\nexport function work(input,events){defer {events.push(input);}defer {events.push(input);}return input;}';
+    '// @ts-check\n/** Cleanup API description. */\n/** @template T\n * @param {T} input\n * @param {T[]} events\n * @returns {T} */\nexport function work(input,events){if(true)defer {events.push(input);}defer {events.push(input);}return input;}';
   const result = transform(source, { language: 'js', runtime: 'external' });
   expect(result.code).toMatch(
     /import[^;]+;\s*\/\*\* Cleanup API description\. \*\/\s*\/\*\* @template T/,
@@ -314,7 +318,7 @@ it('keeps suppression comments before the documented source declaration under na
   roots.push(root);
   const filename = join(root, 'main.js');
   const source =
-    '// @ts-check\n/** Source API. */\n// @ts-expect-error intentional implicit-any parameter\nexport function run(events){defer {events.push(1);}defer {events.push(2);}}';
+    '// @ts-check\n/** Source API. */\n// @ts-expect-error intentional implicit-any parameter\nexport function run(events){if(true)defer {events.push(1);}defer {events.push(2);}}';
   const result = transform(source, { language: 'js', runtime: 'external' });
   expect(result.code.indexOf('@ts-check')).toBeLessThan(result.code.indexOf('import {'));
   expect(result.code.indexOf('import {')).toBeLessThan(result.code.indexOf('Source API.'));
@@ -339,14 +343,14 @@ it('keeps suppression comments before the documented source declaration under na
 });
 it('inserts imports before a lowered first initializer rather than inside its control flow', () => {
   const source =
-    '/** Result documentation. */\nexport const result=switch(1){default:2;};\nexport function run(events){defer {events.push(1);}defer {events.push(2);}}';
+    '/** Result documentation. */\nexport const result=switch(1){default:2;};\nexport function run(events){if(true)defer {events.push(1);}defer {events.push(2);}}';
   const result = transform(source, { language: 'ts', runtime: 'external' });
   parse(result.code, 'ts');
   expect(result.code.indexOf('import {')).toBeLessThan(result.code.indexOf('let __twillResult'));
 });
 it('avoids capturing ambient JSX-only component names with its import alias', () => {
   const result = transform(
-    'export function run(events:number[]){defer {events.push(1);}defer {events.push(2);}return <__twillRunDefers5/>;}',
+    'export function run(events:number[]){if(true)defer {events.push(1);}defer {events.push(2);}return <__twillRunDefers5/>;}',
     { language: 'tsx', runtime: 'external' },
   );
   parse(result.code, 'tsx');
@@ -359,7 +363,7 @@ it.each([
   '// @ts-expect-error source suppression',
 ])('preserves the placement of the leading pragma %s', (pragma) => {
   const result = transform(
-    `${pragma}\nexport function run(){defer {release(1);}defer {release(2);}}`,
+    `${pragma}\nexport function run(){if(true)defer {release(1);}defer {release(2);}}`,
     { language: 'js', runtime: 'external' },
   );
   parse(result.code, 'js');

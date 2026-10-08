@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+- Emit native nested `try/finally` for eligible direct synchronous `defer` registrations, eliminating callbacks, registration arrays and helper imports. Retain existing lowering for dynamic/async cleanup and observable lexical, hoisting, disposal or strict-mode boundaries.
+- Reduce temporary allocations during compiler AST traversal.
+- Reuse parsed runner configuration in a bounded session cache while validating exact dependency contents and optional-file probes.
+- Reuse recovered editor transforms and their original strict syntax errors instead of recompiling unchanged source for diagnostics.
+- Reuse open-document text by VS Code document version while preserving immediate full-snapshot synchronization with native TS-server projects.
+
 ## 0.2.0
 
 - Add associated-value enums, exhaustive `match` expressions and branch-local `if const` nullish bindings, with synchronized checking, source maps, formatter, lint, highlighting, declarations/export and editor support.

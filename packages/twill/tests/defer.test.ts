@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { transform, originalPosition, TwillSyntaxError } from '../src/compiler';
 import { parse } from '../src/parser.js';
+import ts from 'typescript';
 
 function compile(source: string, sourceType: 'script' | 'module' = 'module') {
   const result = transform(source, { filename: 'cleanup.twill', language: 'js', sourceType });
@@ -216,17 +217,98 @@ describe('contextual defer', () => {
     compile('function run(e){ defer /* same line */ { e.push(1); } }')(events);
     expect(events).toEqual([1]);
   });
-  it('uses one callback for a single direct cleanup without allocating a stack', () => {
+  it('uses native finally for direct synchronous cleanups without callbacks or storage', () => {
     const source =
       'function run(events, early) { if(early) return 1; defer { events.push("cleanup"); } events.push("body"); return 2; }';
     const result = transform(source, { filename: 'single.twill', language: 'js' });
-    expect(result.code).not.toMatch(/__twillDefers|\.push\(\(|\.pop\(|while\s*\(|catch\s*\(/);
+    expect(result.code).not.toMatch(/__twill|=>|\.pop\(|while\s*\(|catch\s*\(/);
     const run = compile(source);
     const events: string[] = [];
     expect(run(events, true)).toBe(1);
     expect(events).toEqual([]);
     expect(run(events, false)).toBe(2);
     expect(events).toEqual(['body', 'cleanup']);
+    const multiple = transform('function run(e) { defer { e.push(1); } defer { e.push(2); } }', {
+      language: 'js',
+    });
+    expect(multiple.code).not.toMatch(/__twill|=>/);
+    expect(multiple.code.match(/finally/g)).toHaveLength(2);
+    expect(compile('function run(){defer{}}')()).toBeUndefined();
+    for (const source of [
+      'function run(e){defer{};defer{e.push(1);}return 2;}',
+      'function run(e){defer{e.push(1);}defer{};return 2;}',
+      'function run(e){defer{};defer{};return 2;}',
+      'function run(e){defer{/* retain cleanup note */};return 2;}',
+    ]) {
+      const events: number[] = [];
+      expect(compile(source)(events)).toBe(2);
+      expect(transform(source).code).not.toContain('__twill');
+    }
+    expect(transform('function run(){defer{/* retain cleanup note */}}').code).toContain(
+      '/* retain cleanup note */',
+    );
+  });
+  it('retains cleanup-local var bindings and strict directives', () => {
+    const events: unknown[] = [];
+    compile(
+      'function run(e) { var value = 1; defer { var value = 2; e.push(value); } defer { e.push(value); } }',
+    )(events);
+    expect(events).toEqual([1, 2]);
+    expect(() =>
+      compile('function run() { defer { "use strict"; missingCleanupBinding = 1; } }', 'script')(),
+    ).toThrow(ReferenceError);
+    expect(Object.hasOwn(globalThis, 'missingCleanupBinding')).toBe(false);
+    const declaration =
+      'function run(e) { defer { function local(){return 1;} e.push(local()); } defer { e.push(typeof local); } }';
+    compile(declaration, 'script')(events);
+    expect(events.slice(-2)).toEqual(['undefined', 1]);
+  });
+  it('keeps native using disposal at its existing boundary before enclosing defer', () => {
+    const source =
+      'function run(e) { using resource={ [Symbol.dispose](){e.push("dispose");} }; defer {e.push("defer");} e.push("body"); }';
+    const result = transform(source);
+    expect(result.code).toContain('__twillCleanup');
+    const compiled = ts.transpileModule(result.code, {
+      compilerOptions: { target: ts.ScriptTarget.ES2022 },
+    }).outputText;
+    const events: string[] = [];
+    Function(compiled + ';return run;')()(events);
+    expect(events).toEqual(['body', 'dispose', 'defer']);
+  });
+  it('preserves later lexical and type scopes, eval and native cleanup mappings', () => {
+    const sources = [
+      'function run(e) { e.push(typeof later); defer {} class later {} }',
+      'function run(e) { defer { e.push(later); } const later=4; }',
+      'function run(e) { defer { e.push(eval("later")); } let later=4; }',
+      'function run(e) { defer { e.push(eval("1")); } }',
+      'function run(e) { defer { e.push(later); } guard const later=4 else {return;} }',
+      'function run(e) { defer {} type Later = number; const value: Later=1; }',
+      'function run(e) { defer {} interface Later {value: number} }',
+      'function run(e) { defer {} enum Later { a=1 } }',
+      'function run(e) { defer {} namespace Later { export const a=1; } }',
+    ];
+    for (const source of sources) expect(transform(source).code).toContain('__twillCleanup');
+    const events: unknown[] = [];
+    compile(sources[4]!)(events);
+    expect(events).toEqual([4]);
+    const withSource = 'function run(e) { defer { e.push(1); } with({}) {e.push(2);} }';
+    expect(transform(withSource, { sourceType: 'script', language: 'js' }).code).toContain(
+      '__twillCleanup',
+    );
+    compile(withSource, 'script')(events);
+    expect(events.slice(-2)).toEqual([2, 1]);
+    expect(() => compile(sources[0]!)([])).toThrow(ReferenceError);
+    const source =
+      'function run(e) { const value=1; defer { e.push(value); } defer { e.push(2); } e.push(3); }';
+    const result = transform(source);
+    for (const token of ['e.push(value)', 'e.push(2)', 'e.push(3)']) {
+      const index = result.code.indexOf(token);
+      const before = result.code.slice(0, index).split('\n');
+      expect(originalPosition(result, before.length, before.at(-1)!.length)).toMatchObject({
+        line: 1,
+        column: source.indexOf(token),
+      });
+    }
   });
   it('retains the dynamic stack when one statement can register repeatedly', () => {
     const source = 'function run(events) { for(let i=0;i<3;i++) defer { events.push(i); } }';

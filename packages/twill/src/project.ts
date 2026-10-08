@@ -71,7 +71,10 @@ export class TwillProject {
   readonly configFiles: readonly string[];
   private files: string[];
   private overlays = new Map<string, string>();
-  private results = new Map<string, { source: string; result: TransformResult }>();
+  private results = new Map<
+    string,
+    { source: string; result: TransformResult; syntaxError?: Error }
+  >();
   private lineMaps = new WeakMap<TransformResult, { original: number[]; generated: number[] }>();
   private version = 0;
   private invalidation = 0;
@@ -297,11 +300,14 @@ export class TwillProject {
   private result(filename: string, source: string): TransformResult {
     const cached = this.results.get(filename);
     if (cached?.source === source) return cached.result;
-    const result = (this.recover ? recoverTransform : transform)(source, {
-      ...this.options,
-      filename,
-    });
-    this.results.set(filename, { source, result });
+    const options = { ...this.options, filename };
+    let syntaxError: Error | undefined;
+    const result = this.recover
+      ? recoverTransform(source, options, (error) => {
+          syntaxError = error;
+        })
+      : transform(source, options);
+    this.results.set(filename, { source, result, syntaxError });
     return result;
   }
 
@@ -431,9 +437,9 @@ export class TwillProject {
     for (const file of files) {
       if (/\.d\.[cm]?ts$/.test(file)) continue;
       try {
-        if (this.recover && isTwillFile(sourceFilename(file)))
-          transform(this.text(file) ?? '', { ...this.options, filename: sourceFilename(file) });
         this.transformed(file);
+        const syntaxError = this.results.get(sourceFilename(file))?.syntaxError;
+        if (syntaxError) throw syntaxError;
         result.push(
           ...[
             ...this.service.getSyntacticDiagnostics(file),

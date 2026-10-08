@@ -54,6 +54,8 @@ function describe(outcome: Outcome): string {
 
 Ordinary closures become arrows; guards become branches. Direct-return switch expressions become native switches. Twill 0.2.0 also removes the IIFE from standalone identifier initializers; other expression contexts retain it. Inline emission introduces no runtime library. `defer` allocates callbacks and dynamic registrations use a local stack; general component child collection uses arrays. These costs are [documented and measured](https://twill.evecalm.com/performance).
 
+Unreleased source refinements emit native `try/finally` for eligible direct synchronous cleanup and reduce repeated editor/configuration work. Published 0.2.0 retains the behavior above. Dynamic registration, general expression lowering and cold initialization still have measured costs; use the [performance guide](https://twill.evecalm.com/performance) to choose and profile hot paths.
+
 | File                         | Use                                                         |
 | ---------------------------- | ----------------------------------------------------------- |
 | `.twill`                     | TypeScript, including JavaScript syntax with optional types |

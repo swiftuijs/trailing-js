@@ -87,6 +87,8 @@ export async function readOwned(acquire: () => Promise<Resource | null>): Promis
 
 Every reached cleanup runs even if another cleanup fails; the last executed cleanup failure replaces an earlier/body failure. Synchronous cleanup does not await returned promises. Cleanup cannot jump out of its own defer block. For allocation-sensitive hot paths, consider native `try/finally`: defer callbacks and dynamic registration stacks have real costs.
 
+Unreleased source work lowers eligible direct synchronous cleanups to native nested `try/finally` without callbacks or stacks. Published 0.2.0 still uses its existing callback lowering. Dynamic/async registrations and observable scope/disposal boundaries retain their costs; inspect the installed compiler's output before relying on this optimization. Editor/configuration reuse improves specific tool workloads, not the speed of external commands or every cold script. See the measured scope and remaining bottlenecks in [performance](https://twill.evecalm.com/performance).
+
 ### Exhaustive outcomes
 
 Prefer ordinary TS discriminated unions for business outcomes. A switch expression produces one arm value and never falls through. Object arms use one common literal discriminator and native destructuring; each arm has its own binding scope. An arm contains one expression or `throw`, not a statement list.

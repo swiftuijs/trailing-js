@@ -97,7 +97,7 @@ test('external synchronous cleanup runs in the browser and config reload returns
   page.on('pageerror', (error) => errors.push(error.message));
   writeFileSync(
     source,
-    'export function run(events:number[],fail:boolean){defer {events.push(1);if(fail)throw undefined;}defer {events.push(2);}return 3;}',
+    'export function run(events:number[],fail:boolean){if(true)defer {events.push(1);if(fail)throw undefined;}defer {events.push(2);}return 3;}',
   );
   try {
     writeFileSync(config, '{"runtime":"external"}');

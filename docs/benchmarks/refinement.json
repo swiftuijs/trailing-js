@@ -1,0 +1,895 @@
+{
+  "timestamp": "2026-10-08T20:07:44.048Z",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "arch": "x64",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C"
+  },
+  "currentCommit": "a8db852e1718f8b78dbb26af4377a8d39e7f2381",
+  "currentDiffDigest": "818a772413a98ea3f79861ac1feadae504d92266ec7b08ca7b85b1a4233650c6",
+  "baseline": {
+    "directory": "/workspace/.twill-performance/baseline-dist",
+    "buildDigest": "407259b61842bb451de17aca6b2a4d76e8a3e43e81df0773d9a052f3bfaf09ac"
+  },
+  "current": {
+    "directory": "/workspace/twill-performance/packages/twill/dist",
+    "buildDigest": "f2407e48c4e2ff6911ffc0d9a5f24e0bae73e4dee301a79bdf20e9476db1203d"
+  },
+  "methodology": {
+    "samples": 15,
+    "warmups": 5,
+    "cleanupWarmups": 50,
+    "pairedWorkers": 3,
+    "alternatingOrder": true,
+    "sourceMaps": "high-resolution with embedded source",
+    "coldProcessPairs": 9,
+    "scope": "shared-host synthetic fixtures; not universal speedups"
+  },
+  "results": [
+    {
+      "name": "transform-1000",
+      "currentToBaselineRatio": 0.9701757987738989,
+      "pairs": [
+        {
+          "order": ["baseline", "current"],
+          "baseline": {
+            "samplesMs": [
+              198.78808400000003, 139.34682799999996, 146.33139600000004, 165.73987300000022,
+              141.257335, 166.43452100000013, 133.8662690000001, 155.48253499999964,
+              181.9260079999999, 129.00014999999985, 153.5008459999999, 139.5915560000003,
+              139.3189480000001, 206.20095700000002, 130.7402219999999
+            ],
+            "medianMs": 146.33139600000004,
+            "p95Ms": 206.20095700000002,
+            "sourceDigest": "a87394fd11cd0fe32978fe5bb0f91cba51e1b57cb3febae9ddbb01a62273fccf",
+            "generatedDigest": "2bf318541fe2e61d5e969a3faf052ee0508cc51abf4d3e51808b988d6d02d809"
+          },
+          "current": {
+            "samplesMs": [
+              189.23767899999984, 130.97221999999988, 145.43883600000004, 140.5879799999998,
+              141.96717899999976, 133.40064500000017, 155.7254579999999, 141.01885999999968,
+              133.70992699999988, 146.12814200000003, 148.6454789999998, 156.68583100000023,
+              116.10681400000021, 131.36046699999997, 150.4195679999998
+            ],
+            "medianMs": 141.96717899999976,
+            "p95Ms": 189.23767899999984,
+            "sourceDigest": "a87394fd11cd0fe32978fe5bb0f91cba51e1b57cb3febae9ddbb01a62273fccf",
+            "generatedDigest": "2bf318541fe2e61d5e969a3faf052ee0508cc51abf4d3e51808b988d6d02d809"
+          }
+        },
+        {
+          "order": ["current", "baseline"],
+          "current": {
+            "samplesMs": [
+              162.8085729999998, 140.6059110000001, 140.88845300000003, 162.9322400000001,
+              160.31678199999988, 130.1856170000001, 148.37793800000009, 165.05791999999974,
+              140.75487500000008, 136.75676599999997, 169.59981500000004, 171.38794899999994,
+              174.464876, 131.67804999999998, 144.40976100000034
+            ],
+            "medianMs": 148.37793800000009,
+            "p95Ms": 174.464876,
+            "sourceDigest": "a87394fd11cd0fe32978fe5bb0f91cba51e1b57cb3febae9ddbb01a62273fccf",
+            "generatedDigest": "2bf318541fe2e61d5e969a3faf052ee0508cc51abf4d3e51808b988d6d02d809"
+          },
+          "baseline": {
+            "samplesMs": [
+              174.40046499999994, 138.28217499999982, 152.64942900000005, 140.87929600000007,
+              144.21235000000001, 151.96859799999993, 143.26332300000013, 173.62005599999975,
+              155.420529, 142.20237399999996, 156.96140699999978, 134.88365999999996,
+              150.62565300000006, 145.70410200000015, 226.9381010000002
+            ],
+            "medianMs": 150.62565300000006,
+            "p95Ms": 226.9381010000002,
+            "sourceDigest": "a87394fd11cd0fe32978fe5bb0f91cba51e1b57cb3febae9ddbb01a62273fccf",
+            "generatedDigest": "2bf318541fe2e61d5e969a3faf052ee0508cc51abf4d3e51808b988d6d02d809"
+          }
+        },
+        {
+          "order": ["baseline", "current"],
+          "baseline": {
+            "samplesMs": [
+              178.37726700000007, 140.76899200000003, 155.5234690000002, 137.05318599999987,
+              146.81784500000003, 162.9235960000001, 144.01117599999998, 167.346634,
+              151.02938800000038, 133.736222, 149.56500400000004, 131.5278629999998,
+              141.78430200000003, 138.55791800000043, 128.18660099999988
+            ],
+            "medianMs": 144.01117599999998,
+            "p95Ms": 178.37726700000007,
+            "sourceDigest": "a87394fd11cd0fe32978fe5bb0f91cba51e1b57cb3febae9ddbb01a62273fccf",
+            "generatedDigest": "2bf318541fe2e61d5e969a3faf052ee0508cc51abf4d3e51808b988d6d02d809"
+          },
+          "current": {
+            "samplesMs": [
+              151.25916000000007, 139.08448299999986, 136.52663200000006, 146.78420900000015,
+              155.60671700000012, 141.98431200000005, 138.66513399999985, 153.07355700000016,
+              136.26397099999986, 138.9604949999998, 146.42861099999982, 182.6425379999996,
+              134.88208200000008, 130.36290599999984, 135.17490899999984
+            ],
+            "medianMs": 139.08448299999986,
+            "p95Ms": 182.6425379999996,
+            "sourceDigest": "a87394fd11cd0fe32978fe5bb0f91cba51e1b57cb3febae9ddbb01a62273fccf",
+            "generatedDigest": "2bf318541fe2e61d5e969a3faf052ee0508cc51abf4d3e51808b988d6d02d809"
+          }
+        }
+      ]
+    },
+    {
+      "name": "editor-diagnostics-500",
+      "currentToBaselineRatio": 0.0007384108325193623,
+      "pairs": [
+        {
+          "order": ["baseline", "current"],
+          "baseline": {
+            "samplesMs": [
+              73.76128499999982, 83.27611800000022, 83.47336499999983, 69.51759400000037,
+              83.88759800000025, 82.060293, 76.23153600000023, 74.91797999999972, 83.0820289999997,
+              69.52543200000036, 70.29941899999994, 84.75029499999982, 67.77853400000004,
+              74.99354800000037, 81.80611399999998
+            ],
+            "medianMs": 76.23153600000023,
+            "p95Ms": 84.75029499999982,
+            "sourceDigest": "157a14377e51e8fc4d0d3eaeae54a75aec00d3c0816ec625b5280a69fc84b023"
+          },
+          "current": {
+            "samplesMs": [
+              0.12721800000008443, 0.08339700000010453, 0.06134099999985665, 0.07544799999982388,
+              0.09461299999998118, 0.050844999999981155, 0.04620599999998376, 0.049102000000175394,
+              0.24556500000016968, 0.09320899999988796, 0.048512999999957174, 0.04591699999991761,
+              0.04092100000002574, 0.03800900000010188, 0.04101300000002084
+            ],
+            "medianMs": 0.050844999999981155,
+            "p95Ms": 0.24556500000016968,
+            "sourceDigest": "157a14377e51e8fc4d0d3eaeae54a75aec00d3c0816ec625b5280a69fc84b023"
+          }
+        },
+        {
+          "order": ["current", "baseline"],
+          "current": {
+            "samplesMs": [
+              0.08669099999997343, 0.05142499999988104, 0.04924000000005435, 1.7951599999998962,
+              0.3971550000001116, 1.1034510000001774, 0.13047200000005432, 0.05499199999985649,
+              0.08901200000013887, 0.04363100000000486, 0.0422160000000531, 0.03899399999977504,
+              0.18661999999994805, 0.048273999999992157, 0.04709299999990435
+            ],
+            "medianMs": 0.05499199999985649,
+            "p95Ms": 1.7951599999998962,
+            "sourceDigest": "157a14377e51e8fc4d0d3eaeae54a75aec00d3c0816ec625b5280a69fc84b023"
+          },
+          "baseline": {
+            "samplesMs": [
+              77.82178700000009, 80.88798300000008, 67.91747700000019, 77.69729899999993,
+              76.90392100000008, 73.78523900000027, 70.57187999999996, 67.32800599999973,
+              81.33098999999993, 62.90811299999996, 77.9753139999998, 74.47344699999985,
+              62.6763219999998, 71.68206999999984, 79.41973800000005
+            ],
+            "medianMs": 74.47344699999985,
+            "p95Ms": 81.33098999999993,
+            "sourceDigest": "157a14377e51e8fc4d0d3eaeae54a75aec00d3c0816ec625b5280a69fc84b023"
+          }
+        },
+        {
+          "order": ["baseline", "current"],
+          "baseline": {
+            "samplesMs": [
+              85.28356200000007, 96.75531899999987, 92.93163700000014, 81.39862399999993,
+              83.20742900000005, 76.22683099999995, 70.95002599999998, 87.30398800000012,
+              72.5646929999998, 84.75586099999964, 73.77562899999975, 67.74779600000011,
+              70.14633300000014, 67.96349199999986, 78.59553099999994
+            ],
+            "medianMs": 78.59553099999994,
+            "p95Ms": 96.75531899999987,
+            "sourceDigest": "157a14377e51e8fc4d0d3eaeae54a75aec00d3c0816ec625b5280a69fc84b023"
+          },
+          "current": {
+            "samplesMs": [
+              0.1758310000000165, 0.12290299999995113, 0.08551399999987552, 0.11759200000005876,
+              0.1643380000000434, 0.09802200000012817, 0.12211900000011155, 0.06131900000013957,
+              0.057927000000063344, 0.05140099999994163, 0.06615599999986443, 0.05707199999983459,
+              0.1211639999999079, 0.06540100000006532, 0.0651580000001104
+            ],
+            "medianMs": 0.08551399999987552,
+            "p95Ms": 0.1758310000000165,
+            "sourceDigest": "157a14377e51e8fc4d0d3eaeae54a75aec00d3c0816ec625b5280a69fc84b023"
+          }
+        }
+      ]
+    },
+    {
+      "name": "editor-edited-diagnostics-500",
+      "currentToBaselineRatio": 0.6434837441963259,
+      "pairs": [
+        {
+          "order": ["baseline", "current"],
+          "baseline": {
+            "samplesMs": [
+              247.53807499999994, 216.57941600000004, 222.202401, 223.40564399999994,
+              218.04514300000028, 238.1768790000001, 252.4034160000001, 234.72839000000022,
+              245.87597800000003, 218.16804300000058, 223.13329599999997, 200.87407299999995,
+              209.12008400000013, 204.7004280000001, 199.73379300000033
+            ],
+            "medianMs": 222.202401,
+            "p95Ms": 252.4034160000001,
+            "sourceDigest": "157a14377e51e8fc4d0d3eaeae54a75aec00d3c0816ec625b5280a69fc84b023"
+          },
+          "current": {
+            "samplesMs": [
+              165.27007400000002, 146.82616999999982, 143.13860499999964, 141.70504399999982,
+              193.65194100000008, 160.08366700000033, 167.4937319999999, 207.97658,
+              137.17226600000004, 122.38440999999966, 140.46632599999975, 125.92550100000062,
+              141.41511900000023, 168.3844680000002, 129.26839100000052
+            ],
+            "medianMs": 143.13860499999964,
+            "p95Ms": 207.97658,
+            "sourceDigest": "157a14377e51e8fc4d0d3eaeae54a75aec00d3c0816ec625b5280a69fc84b023"
+          }
+        },
+        {
+          "order": ["current", "baseline"],
+          "current": {
+            "samplesMs": [
+              149.52094100000022, 151.30184899999995, 155.39464599999974, 134.0203650000003,
+              144.5194620000002, 146.56313499999987, 164.92226800000026, 145.1714149999998,
+              124.25491600000032, 137.20601299999998, 123.11314099999981, 136.28089,
+              136.97082600000022, 155.61664800000017, 135.1350140000004
+            ],
+            "medianMs": 144.5194620000002,
+            "p95Ms": 164.92226800000026,
+            "sourceDigest": "157a14377e51e8fc4d0d3eaeae54a75aec00d3c0816ec625b5280a69fc84b023"
+          },
+          "baseline": {
+            "samplesMs": [
+              244.60364600000003, 224.5891419999998, 218.64702100000022, 216.0681709999999,
+              230.28868599999987, 260.32295800000065, 262.6099570000006, 251.54502300000058,
+              266.334159, 213.2830189999995, 195.56071900000006, 228.83504400000038,
+              211.41993100000036, 207.2450259999996, 205.14149899999938
+            ],
+            "medianMs": 224.5891419999998,
+            "p95Ms": 266.334159,
+            "sourceDigest": "157a14377e51e8fc4d0d3eaeae54a75aec00d3c0816ec625b5280a69fc84b023"
+          }
+        },
+        {
+          "order": ["baseline", "current"],
+          "baseline": {
+            "samplesMs": [
+              241.9408309999999, 217.85004400000025, 213.50426199999993, 217.1546360000002,
+              214.29229799999985, 226.28511600000002, 284.58078199999954, 234.91776500000014,
+              247.685246, 221.1746890000004, 199.62074399999983, 194.36252799999966,
+              210.62770900000032, 235.42802099999972, 195.00505299999986
+            ],
+            "medianMs": 217.85004400000025,
+            "p95Ms": 284.58078199999954,
+            "sourceDigest": "157a14377e51e8fc4d0d3eaeae54a75aec00d3c0816ec625b5280a69fc84b023"
+          },
+          "current": {
+            "samplesMs": [
+              145.68261399999983, 158.7332019999999, 154.56889600000022, 132.08982300000025,
+              143.74557600000026, 146.65852499999983, 172.772473, 133.6091489999999,
+              125.57766600000014, 138.9814849999998, 124.5840760000001, 133.54470500000025,
+              130.08457400000043, 147.7289609999998, 129.71588900000006
+            ],
+            "medianMs": 138.9814849999998,
+            "p95Ms": 172.772473,
+            "sourceDigest": "157a14377e51e8fc4d0d3eaeae54a75aec00d3c0816ec625b5280a69fc84b023"
+          }
+        }
+      ]
+    },
+    {
+      "name": "compile-100-modules",
+      "currentToBaselineRatio": 0.8201020055099253,
+      "pairs": [
+        {
+          "order": ["baseline", "current"],
+          "baseline": {
+            "samplesMs": [
+              225.4268730000001, 192.19678299999987, 175.54276500000014, 197.61927100000003,
+              192.31786299999976, 181.09143300000005, 198.3658049999999, 169.33563800000002,
+              194.02436099999977, 184.36909800000012, 170.4833880000001, 171.11671100000012,
+              180.00154399999974, 185.81590399999914, 170.21888599999966
+            ],
+            "medianMs": 184.36909800000012,
+            "p95Ms": 225.4268730000001,
+            "sourceDigest": "db09612355740a370f643a4de6aaaa6f5c07c1c8bc351c795f79700d73a7b648",
+            "includesStartup": false
+          },
+          "current": {
+            "samplesMs": [
+              182.85920299999998, 171.56554199999982, 156.66597000000002, 176.32490599999983,
+              142.8351520000001, 148.45860700000003, 140.15352299999995, 161.02051200000005,
+              154.47728499999994, 167.22292000000016, 144.1021569999998, 155.5787449999998,
+              140.22707600000012, 143.24748999999974, 146.58333100000027
+            ],
+            "medianMs": 154.47728499999994,
+            "p95Ms": 182.85920299999998,
+            "sourceDigest": "db09612355740a370f643a4de6aaaa6f5c07c1c8bc351c795f79700d73a7b648",
+            "includesStartup": false
+          }
+        },
+        {
+          "order": ["current", "baseline"],
+          "current": {
+            "samplesMs": [
+              196.01496100000008, 175.99776499999984, 146.54162099999985, 178.89799600000015,
+              153.27608299999974, 157.17628000000013, 145.49483400000008, 169.17297800000006,
+              155.26996400000007, 173.81342499999982, 150.23518599999989, 149.5644309999998,
+              163.81565, 141.54254999999966, 166.46670600000016
+            ],
+            "medianMs": 157.17628000000013,
+            "p95Ms": 196.01496100000008,
+            "sourceDigest": "db09612355740a370f643a4de6aaaa6f5c07c1c8bc351c795f79700d73a7b648",
+            "includesStartup": false
+          },
+          "baseline": {
+            "samplesMs": [
+              413.1375519999997, 202.15876899999967, 184.98391300000003, 206.13569600000028,
+              190.98844599999984, 171.5684000000001, 177.62303100000008, 171.9505650000001,
+              222.92176500000005, 197.72760000000017, 178.01115299999947, 254.51557400000002,
+              191.65454899999986, 191.97855199999958, 166.9678469999999
+            ],
+            "medianMs": 191.65454899999986,
+            "p95Ms": 413.1375519999997,
+            "sourceDigest": "db09612355740a370f643a4de6aaaa6f5c07c1c8bc351c795f79700d73a7b648",
+            "includesStartup": false
+          }
+        },
+        {
+          "order": ["baseline", "current"],
+          "baseline": {
+            "samplesMs": [
+              366.5703089999997, 303.5121690000001, 254.24579099999983, 727.6182729999996,
+              225.00683200000003, 191.43060199999945, 173.7887010000004, 194.5058050000007,
+              199.22738899999968, 195.35956299999998, 192.840099, 211.96558900000036,
+              186.71888099999978, 202.34382200000073, 175.40705900000012
+            ],
+            "medianMs": 199.22738899999968,
+            "p95Ms": 727.6182729999996,
+            "sourceDigest": "db09612355740a370f643a4de6aaaa6f5c07c1c8bc351c795f79700d73a7b648",
+            "includesStartup": false
+          },
+          "current": {
+            "samplesMs": [
+              180.87015999999994, 175.53286799999978, 151.16123300000027, 168.89476699999977,
+              165.38149999999996, 161.92626100000007, 152.67478800000026, 174.20608300000004,
+              153.46865000000025, 155.19022600000017, 152.4222460000001, 155.46160099999997,
+              154.28247599999986, 147.05291199999965, 156.80648699999983
+            ],
+            "medianMs": 155.46160099999997,
+            "p95Ms": 180.87015999999994,
+            "sourceDigest": "db09612355740a370f643a4de6aaaa6f5c07c1c8bc351c795f79700d73a7b648",
+            "includesStartup": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "defer-direct-1",
+      "currentToBaselineRatio": 1.0169397614003945,
+      "pairs": [
+        {
+          "order": ["baseline", "current", "native"],
+          "baseline": {
+            "samplesMs": [
+              0.17532399999998916, 0.20244599999998059, 0.17795700000002057, 0.17306899999999814,
+              0.17636999999999148, 0.17435400000002232, 0.19149400000000583, 0.17306899999999814,
+              0.17753400000000852, 0.17512300000001346, 0.17847299999999677, 0.17307900000000132,
+              0.190291000000002, 0.21060600000001273, 0.18548300000000495
+            ],
+            "medianMs": 0.17753400000000852,
+            "p95Ms": 0.21060600000001273,
+            "iterations": 100000,
+            "sourceDigest": "6aba0f189b2d584cc3e76478577eeef54d942b7183ec201b873dfccfa45d76c7",
+            "generatedCode": "function run(state) {;\n/** @type {(() => unknown) | undefined} */\nlet __twillCleanup0;try {\n __twillCleanup0 = () => { state.cleanup+=1; }; state.body++; return state.body; \n} finally { __twillCleanup0?.(); }\n}",
+            "minifiedBytes": 86,
+            "nativeMinifiedBytes": 66,
+            "matchesNativeCode": false
+          },
+          "current": {
+            "samplesMs": [
+              0.20769999999998845, 0.41188499999998385, 0.17485700000000293, 0.22641199999998207,
+              0.19965899999999692, 0.17723299999997266, 0.1746729999999843, 0.24261699999999564,
+              0.17304999999998927, 0.19943100000000413, 0.17302099999997722, 0.3055009999999925,
+              0.1736530000000016, 0.17318800000001033, 0.33147699999997826
+            ],
+            "medianMs": 0.19943100000000413,
+            "p95Ms": 0.41188499999998385,
+            "iterations": 100000,
+            "sourceDigest": "6aba0f189b2d584cc3e76478577eeef54d942b7183ec201b873dfccfa45d76c7",
+            "generatedCode": "function run(state) { ;try { state.body++; return state.body; \n} finally { state.cleanup+=1; }\n}",
+            "minifiedBytes": 66,
+            "nativeMinifiedBytes": 66,
+            "matchesNativeCode": true
+          },
+          "native": {
+            "samplesMs": [
+              0.2751480000000015, 0.17483899999999153, 0.17522300000000257, 0.24822699999999998,
+              0.17281800000000658, 0.17208899999999971, 0.17147300000000598, 0.23717499999999347,
+              0.9823390000000103, 0.19857999999999265, 0.3518179999999944, 0.22818200000000388,
+              0.18283699999999214, 0.21541299999999808, 0.2548709999999943
+            ],
+            "medianMs": 0.21541299999999808,
+            "p95Ms": 0.9823390000000103,
+            "iterations": 100000,
+            "sourceDigest": "6aba0f189b2d584cc3e76478577eeef54d942b7183ec201b873dfccfa45d76c7",
+            "generatedCode": "function run(state) { try {state.body++; return state.body;} finally {state.cleanup+=1;} }",
+            "minifiedBytes": 66,
+            "nativeMinifiedBytes": 66,
+            "matchesNativeCode": true
+          }
+        },
+        {
+          "order": ["native", "current", "baseline"],
+          "native": {
+            "samplesMs": [
+              0.32908600000000376, 0.29440600000000927, 0.17349799999999505, 0.19162699999999688,
+              0.17439199999999744, 0.17322100000001228, 0.17310100000000261, 0.17315700000000334,
+              0.1950390000000084, 0.1732239999999905, 0.17605599999998844, 0.4180539999999979,
+              0.20293600000000822, 0.17649699999999768, 0.17295599999999922
+            ],
+            "medianMs": 0.17605599999998844,
+            "p95Ms": 0.4180539999999979,
+            "iterations": 100000,
+            "sourceDigest": "6aba0f189b2d584cc3e76478577eeef54d942b7183ec201b873dfccfa45d76c7",
+            "generatedCode": "function run(state) { try {state.body++; return state.body;} finally {state.cleanup+=1;} }",
+            "minifiedBytes": 66,
+            "nativeMinifiedBytes": 66,
+            "matchesNativeCode": true
+          },
+          "current": {
+            "samplesMs": [
+              0.17619599999999025, 0.3094700000000046, 0.2600100000000083, 0.20938999999999908,
+              0.1800269999999955, 0.17295500000000175, 0.1730760000000089, 0.20687200000000416,
+              0.1736659999999972, 0.17336099999999988, 0.17284600000000694, 0.17321300000000406,
+              0.23624399999999923, 0.3204060000000055, 0.1735440000000068
+            ],
+            "medianMs": 0.17619599999999025,
+            "p95Ms": 0.3204060000000055,
+            "iterations": 100000,
+            "sourceDigest": "6aba0f189b2d584cc3e76478577eeef54d942b7183ec201b873dfccfa45d76c7",
+            "generatedCode": "function run(state) { ;try { state.body++; return state.body; \n} finally { state.cleanup+=1; }\n}",
+            "minifiedBytes": 66,
+            "nativeMinifiedBytes": 66,
+            "matchesNativeCode": true
+          },
+          "baseline": {
+            "samplesMs": [
+              0.17600299999998015, 0.1747429999999781, 0.17326099999999656, 0.1731359999999995,
+              0.19360399999999345, 0.22373699999999985, 0.1731489999999951, 0.1776490000000024,
+              0.1730359999999962, 0.20269500000000562, 0.17293300000000045, 0.17315999999999576,
+              0.17271700000000578, 0.17751000000001227, 0.17300900000000752
+            ],
+            "medianMs": 0.17326099999999656,
+            "p95Ms": 0.22373699999999985,
+            "iterations": 100000,
+            "sourceDigest": "6aba0f189b2d584cc3e76478577eeef54d942b7183ec201b873dfccfa45d76c7",
+            "generatedCode": "function run(state) {;\n/** @type {(() => unknown) | undefined} */\nlet __twillCleanup0;try {\n __twillCleanup0 = () => { state.cleanup+=1; }; state.body++; return state.body; \n} finally { __twillCleanup0?.(); }\n}",
+            "minifiedBytes": 86,
+            "nativeMinifiedBytes": 66,
+            "matchesNativeCode": false
+          }
+        },
+        {
+          "order": ["baseline", "current", "native"],
+          "baseline": {
+            "samplesMs": [
+              0.1798430000000053, 0.19695200000001023, 0.2722689999999943, 0.18144800000001737,
+              0.1730879999999786, 0.171906000000007, 0.20218700000000922, 0.1720809999999915,
+              0.16784799999999223, 0.17029200000001765, 0.17600300000000857, 0.1875,
+              0.19638599999998974, 0.2826609999999903, 0.17070799999999053
+            ],
+            "medianMs": 0.1798430000000053,
+            "p95Ms": 0.2826609999999903,
+            "iterations": 100000,
+            "sourceDigest": "6aba0f189b2d584cc3e76478577eeef54d942b7183ec201b873dfccfa45d76c7",
+            "generatedCode": "function run(state) {;\n/** @type {(() => unknown) | undefined} */\nlet __twillCleanup0;try {\n __twillCleanup0 = () => { state.cleanup+=1; }; state.body++; return state.body; \n} finally { __twillCleanup0?.(); }\n}",
+            "minifiedBytes": 86,
+            "nativeMinifiedBytes": 66,
+            "matchesNativeCode": false
+          },
+          "current": {
+            "samplesMs": [
+              0.2955739999999878, 0.18012999999999124, 0.1738059999999848, 0.17319600000001856,
+              0.17442700000000855, 0.3294349999999895, 0.17359899999999584, 0.1747010000000273,
+              0.17321200000000658, 0.17298099999999295, 0.26996900000000323, 0.1732020000000034,
+              0.2006110000000092, 0.17329599999999346, 0.1731359999999995
+            ],
+            "medianMs": 0.1738059999999848,
+            "p95Ms": 0.3294349999999895,
+            "iterations": 100000,
+            "sourceDigest": "6aba0f189b2d584cc3e76478577eeef54d942b7183ec201b873dfccfa45d76c7",
+            "generatedCode": "function run(state) { ;try { state.body++; return state.body; \n} finally { state.cleanup+=1; }\n}",
+            "minifiedBytes": 66,
+            "nativeMinifiedBytes": 66,
+            "matchesNativeCode": true
+          },
+          "native": {
+            "samplesMs": [
+              0.17641999999999314, 0.17540800000000445, 0.24269099999999355, 0.3950880000000012,
+              0.23756199999999694, 0.17349700000001178, 0.17298999999999864, 0.2737459999999885,
+              0.17321400000000153, 0.17312099999999475, 0.3038190000000043, 0.1739120000000014,
+              0.21210399999999652, 0.18996399999998914, 0.17346999999999468
+            ],
+            "medianMs": 0.17641999999999314,
+            "p95Ms": 0.3950880000000012,
+            "iterations": 100000,
+            "sourceDigest": "6aba0f189b2d584cc3e76478577eeef54d942b7183ec201b873dfccfa45d76c7",
+            "generatedCode": "function run(state) { try {state.body++; return state.body;} finally {state.cleanup+=1;} }",
+            "minifiedBytes": 66,
+            "nativeMinifiedBytes": 66,
+            "matchesNativeCode": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "defer-direct-4",
+      "currentToBaselineRatio": 0.047671388380750024,
+      "pairs": [
+        {
+          "order": ["baseline", "current", "native"],
+          "baseline": {
+            "samplesMs": [
+              8.385317999999984, 13.188829999999996, 6.901856000000009, 8.508920999999987,
+              7.658319000000006, 6.828876000000037, 5.787951000000021, 6.319565000000011,
+              6.7288970000000745, 6.855009999999993, 6.503199000000109, 6.3117750000000115,
+              6.106924000000049, 6.4348549999999705, 7.2608379999999215
+            ],
+            "medianMs": 6.828876000000037,
+            "p95Ms": 13.188829999999996,
+            "iterations": 100000,
+            "sourceDigest": "91a06b830aa9473e874e9aa49867ce11d6c74cd06b2cfb1d8095e7af4263a7ab",
+            "generatedCode": "function run(state) {;\n/** @type {Array<() => unknown> | undefined} */\nlet __twillDefers0;try {\n (__twillDefers0 ??= []).push(() => { state.cleanup+=1; });(__twillDefers0 ??= []).push(() => { state.cleanup+=2; });(__twillDefers0 ??= []).push(() => { state.cleanup+=3; });(__twillDefers0 ??= []).push(() => { state.cleanup+=4; }); state.body++; return state.body; } finally { \n  let __twillFailed2 = false,\n    __twillFailure1;\n  while (__twillDefers0?.length) {\n    const __twillCleanup3 = __twillDefers0.pop();\n    if (__twillCleanup3) {\n      try {\n        __twillCleanup3();\n      } catch (__twillError4) {\n        __twillFailed2 = true;\n        __twillFailure1 = __twillError4;\n      }\n    }\n  }\n  if (__twillFailed2) throw __twillFailure1;\n }}",
+            "minifiedBytes": 283,
+            "nativeMinifiedBytes": 144,
+            "matchesNativeCode": false
+          },
+          "current": {
+            "samplesMs": [
+              1.0605639999999994, 1.166244000000006, 0.30424999999999613, 0.28704700000000116,
+              0.27033199999999624, 0.28662800000000743, 0.4213799999999992, 0.3205690000000061,
+              0.3583590000000072, 0.3936499999999796, 0.30077499999998736, 0.3932010000000048,
+              0.7352619999999774, 0.32554199999998445, 0.27761200000000485
+            ],
+            "medianMs": 0.32554199999998445,
+            "p95Ms": 1.166244000000006,
+            "iterations": 100000,
+            "sourceDigest": "91a06b830aa9473e874e9aa49867ce11d6c74cd06b2cfb1d8095e7af4263a7ab",
+            "generatedCode": "function run(state) { ;try {;try {;try {;try { state.body++; return state.body; \n} finally { state.cleanup+=4; }\n\n} finally { state.cleanup+=3; }\n\n} finally { state.cleanup+=2; }\n\n} finally { state.cleanup+=1; }\n}",
+            "minifiedBytes": 144,
+            "nativeMinifiedBytes": 144,
+            "matchesNativeCode": true
+          },
+          "native": {
+            "samplesMs": [
+              0.3518370000000033, 0.35736999999998886, 0.4062320000000028, 0.2780120000000039,
+              0.35643699999999967, 0.28962800000000755, 0.2714030000000065, 0.2695360000000022,
+              0.3137100000000004, 0.4361460000000079, 0.2708499999999958, 0.3131659999999954,
+              0.33990099999999757, 0.4966610000000031, 0.3335710000000063
+            ],
+            "medianMs": 0.3335710000000063,
+            "p95Ms": 0.4966610000000031,
+            "iterations": 100000,
+            "sourceDigest": "91a06b830aa9473e874e9aa49867ce11d6c74cd06b2cfb1d8095e7af4263a7ab",
+            "generatedCode": "function run(state) { try {try {try {try {state.body++; return state.body;} finally {state.cleanup+=4;}} finally {state.cleanup+=3;}} finally {state.cleanup+=2;}} finally {state.cleanup+=1;} }",
+            "minifiedBytes": 144,
+            "nativeMinifiedBytes": 144,
+            "matchesNativeCode": true
+          }
+        },
+        {
+          "order": ["native", "current", "baseline"],
+          "native": {
+            "samplesMs": [
+              0.325041000000013, 0.4519849999999934, 0.9200680000000006, 0.41433900000001245,
+              0.9759019999999907, 0.4927549999999883, 0.46279799999999227, 0.43893500000001495,
+              0.4303790000000163, 0.43108499999999594, 0.4369170000000224, 0.4151999999999987,
+              0.5435559999999953, 0.2993929999999807, 0.289512000000002
+            ],
+            "medianMs": 0.4369170000000224,
+            "p95Ms": 0.9759019999999907,
+            "iterations": 100000,
+            "sourceDigest": "91a06b830aa9473e874e9aa49867ce11d6c74cd06b2cfb1d8095e7af4263a7ab",
+            "generatedCode": "function run(state) { try {try {try {try {state.body++; return state.body;} finally {state.cleanup+=4;}} finally {state.cleanup+=3;}} finally {state.cleanup+=2;}} finally {state.cleanup+=1;} }",
+            "minifiedBytes": 144,
+            "nativeMinifiedBytes": 144,
+            "matchesNativeCode": true
+          },
+          "current": {
+            "samplesMs": [
+              0.5765619999999956, 0.3528340000000014, 0.29171700000000556, 0.28869499999998993,
+              0.3075709999999958, 0.29134899999999675, 0.3668140000000051, 0.3869460000000231,
+              0.28882600000000025, 0.2882560000000183, 0.3751150000000223, 0.3252159999999833,
+              0.28871999999998366, 0.42508300000000077, 0.2876630000000091
+            ],
+            "medianMs": 0.3075709999999958,
+            "p95Ms": 0.5765619999999956,
+            "iterations": 100000,
+            "sourceDigest": "91a06b830aa9473e874e9aa49867ce11d6c74cd06b2cfb1d8095e7af4263a7ab",
+            "generatedCode": "function run(state) { ;try {;try {;try {;try { state.body++; return state.body; \n} finally { state.cleanup+=4; }\n\n} finally { state.cleanup+=3; }\n\n} finally { state.cleanup+=2; }\n\n} finally { state.cleanup+=1; }\n}",
+            "minifiedBytes": 144,
+            "nativeMinifiedBytes": 144,
+            "matchesNativeCode": true
+          },
+          "baseline": {
+            "samplesMs": [
+              12.826252999999951, 15.454664999999977, 13.878340999999978, 7.354100000000017,
+              6.840337999999974, 6.452902999999992, 6.324993000000063, 6.679312999999979,
+              7.240321999999992, 6.77175299999999, 7.674099000000069, 7.106943999999999,
+              7.298321999999985, 7.06886899999995, 6.20648499999993
+            ],
+            "medianMs": 7.106943999999999,
+            "p95Ms": 15.454664999999977,
+            "iterations": 100000,
+            "sourceDigest": "91a06b830aa9473e874e9aa49867ce11d6c74cd06b2cfb1d8095e7af4263a7ab",
+            "generatedCode": "function run(state) {;\n/** @type {Array<() => unknown> | undefined} */\nlet __twillDefers0;try {\n (__twillDefers0 ??= []).push(() => { state.cleanup+=1; });(__twillDefers0 ??= []).push(() => { state.cleanup+=2; });(__twillDefers0 ??= []).push(() => { state.cleanup+=3; });(__twillDefers0 ??= []).push(() => { state.cleanup+=4; }); state.body++; return state.body; } finally { \n  let __twillFailed2 = false,\n    __twillFailure1;\n  while (__twillDefers0?.length) {\n    const __twillCleanup3 = __twillDefers0.pop();\n    if (__twillCleanup3) {\n      try {\n        __twillCleanup3();\n      } catch (__twillError4) {\n        __twillFailed2 = true;\n        __twillFailure1 = __twillError4;\n      }\n    }\n  }\n  if (__twillFailed2) throw __twillFailure1;\n }}",
+            "minifiedBytes": 283,
+            "nativeMinifiedBytes": 144,
+            "matchesNativeCode": false
+          }
+        },
+        {
+          "order": ["baseline", "current", "native"],
+          "baseline": {
+            "samplesMs": [
+              6.726337000000001, 6.7042749999999955, 6.649562000000003, 6.777453000000037,
+              6.60669200000001, 6.3232929999999214, 6.5401489999999285, 6.066402000000039,
+              6.491956000000073, 7.095667999999932, 6.690916000000016, 6.877523999999994,
+              7.143379999999979, 7.875342000000046, 6.993549999999914
+            ],
+            "medianMs": 6.7042749999999955,
+            "p95Ms": 7.875342000000046,
+            "iterations": 100000,
+            "sourceDigest": "91a06b830aa9473e874e9aa49867ce11d6c74cd06b2cfb1d8095e7af4263a7ab",
+            "generatedCode": "function run(state) {;\n/** @type {Array<() => unknown> | undefined} */\nlet __twillDefers0;try {\n (__twillDefers0 ??= []).push(() => { state.cleanup+=1; });(__twillDefers0 ??= []).push(() => { state.cleanup+=2; });(__twillDefers0 ??= []).push(() => { state.cleanup+=3; });(__twillDefers0 ??= []).push(() => { state.cleanup+=4; }); state.body++; return state.body; } finally { \n  let __twillFailed2 = false,\n    __twillFailure1;\n  while (__twillDefers0?.length) {\n    const __twillCleanup3 = __twillDefers0.pop();\n    if (__twillCleanup3) {\n      try {\n        __twillCleanup3();\n      } catch (__twillError4) {\n        __twillFailed2 = true;\n        __twillFailure1 = __twillError4;\n      }\n    }\n  }\n  if (__twillFailed2) throw __twillFailure1;\n }}",
+            "minifiedBytes": 283,
+            "nativeMinifiedBytes": 144,
+            "matchesNativeCode": false
+          },
+          "current": {
+            "samplesMs": [
+              0.3294779999999946, 0.332115999999985, 0.29618899999999826, 0.3239729999999952,
+              0.28922799999998006, 0.3745169999999973, 0.3175969999999779, 0.36147099999999455,
+              0.3677500000000009, 0.40414200000000733, 0.3416600000000187, 0.28874799999999823,
+              0.4099420000000009, 0.3642729999999972, 0.288755000000009
+            ],
+            "medianMs": 0.332115999999985,
+            "p95Ms": 0.4099420000000009,
+            "iterations": 100000,
+            "sourceDigest": "91a06b830aa9473e874e9aa49867ce11d6c74cd06b2cfb1d8095e7af4263a7ab",
+            "generatedCode": "function run(state) { ;try {;try {;try {;try { state.body++; return state.body; \n} finally { state.cleanup+=4; }\n\n} finally { state.cleanup+=3; }\n\n} finally { state.cleanup+=2; }\n\n} finally { state.cleanup+=1; }\n}",
+            "minifiedBytes": 144,
+            "nativeMinifiedBytes": 144,
+            "matchesNativeCode": true
+          },
+          "native": {
+            "samplesMs": [
+              0.29102999999999213, 0.2932660000000027, 0.3436579999999907, 0.2887369999999976,
+              0.2921089999999964, 0.8054149999999964, 0.3169500000000056, 0.36151399999999967,
+              0.34144799999999975, 0.48742199999999514, 0.4357380000000006, 0.4650489999999934,
+              0.3226140000000015, 0.2885569999999973, 0.306705000000008
+            ],
+            "medianMs": 0.3226140000000015,
+            "p95Ms": 0.8054149999999964,
+            "iterations": 100000,
+            "sourceDigest": "91a06b830aa9473e874e9aa49867ce11d6c74cd06b2cfb1d8095e7af4263a7ab",
+            "generatedCode": "function run(state) { try {try {try {try {state.body++; return state.body;} finally {state.cleanup+=4;}} finally {state.cleanup+=3;}} finally {state.cleanup+=2;}} finally {state.cleanup+=1;} }",
+            "minifiedBytes": 144,
+            "nativeMinifiedBytes": 144,
+            "matchesNativeCode": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "defer-dynamic-100",
+      "currentToBaselineRatio": 0.97367048823674,
+      "pairs": [
+        {
+          "order": ["baseline", "current", "native"],
+          "baseline": {
+            "samplesMs": [
+              20.76939799999991, 19.688832000000048, 19.376650000000154, 21.476478999999927,
+              21.028381999999965, 18.90224000000012, 19.262968999999885, 19.923749000000043,
+              22.628893000000062, 21.98384400000009, 25.343282000000045, 20.50428399999987,
+              22.81483000000003, 25.252506999999923, 19.842922000000044
+            ],
+            "medianMs": 20.76939799999991,
+            "p95Ms": 25.343282000000045,
+            "iterations": 10000,
+            "sourceDigest": "9562970226d13348158fb4304d4816a01199483a40283e6b384f72aafc9075da",
+            "generatedCode": "function run(state) {;\n/** @type {Array<() => unknown> | undefined} */\nlet __twillDefers0;try {\n for(let i=0;i<100;i++) (__twillDefers0 ??= []).push(() => { state.cleanup+=i+1; }); state.body++; return state.body; } finally { \n  let __twillFailed2 = false,\n    __twillFailure1;\n  while (__twillDefers0?.length) {\n    const __twillCleanup3 = __twillDefers0.pop();\n    if (__twillCleanup3) {\n      try {\n        __twillCleanup3();\n      } catch (__twillError4) {\n        __twillFailed2 = true;\n        __twillFailure1 = __twillError4;\n      }\n    }\n  }\n  if (__twillFailed2) throw __twillFailure1;\n }}",
+            "minifiedBytes": 206,
+            "nativeMinifiedBytes": 90,
+            "matchesNativeCode": false
+          },
+          "current": {
+            "samplesMs": [
+              22.28432799999996, 22.757319999999936, 20.531979000000092, 20.622319999999945,
+              22.072709999999915, 23.72721700000011, 22.03728799999999, 25.303719,
+              21.58225399999992, 19.566951000000017, 19.504680000000008, 20.21133000000009,
+              21.774008999999978, 21.518012, 20.652848999999833
+            ],
+            "medianMs": 21.58225399999992,
+            "p95Ms": 25.303719,
+            "iterations": 10000,
+            "sourceDigest": "9562970226d13348158fb4304d4816a01199483a40283e6b384f72aafc9075da",
+            "generatedCode": "function run(state) {;\n/** @type {Array<() => unknown> | undefined} */\nlet __twillDefers0;try {\n for(let i=0;i<100;i++) (__twillDefers0 ??= []).push(() => { state.cleanup+=i+1; }); state.body++; return state.body; } finally { \n  let __twillFailed2 = false,\n    __twillFailure1;\n  while (__twillDefers0?.length) {\n    const __twillCleanup3 = __twillDefers0.pop();\n    if (__twillCleanup3) {\n      try {\n        __twillCleanup3();\n      } catch (__twillError4) {\n        __twillFailed2 = true;\n        __twillFailure1 = __twillError4;\n      }\n    }\n  }\n  if (__twillFailed2) throw __twillFailure1;\n }}",
+            "minifiedBytes": 206,
+            "nativeMinifiedBytes": 90,
+            "matchesNativeCode": false
+          },
+          "native": {
+            "samplesMs": [
+              1.5355089999999905, 1.5159869999999955, 1.5463979999999822, 1.8629280000000108,
+              1.6951559999999972, 1.5300259999999923, 1.6390360000000044, 1.6173189999999806,
+              1.7355420000000095, 1.8860950000000116, 1.5929920000000095, 1.862304000000023,
+              3.161687999999998, 1.7868010000000254, 2.407713000000001
+            ],
+            "medianMs": 1.6951559999999972,
+            "p95Ms": 3.161687999999998,
+            "iterations": 10000,
+            "sourceDigest": "9562970226d13348158fb4304d4816a01199483a40283e6b384f72aafc9075da",
+            "generatedCode": "function run(state) { try {state.body++; return state.body;} finally {for(let i=100-1;i>=0;i--) state.cleanup+=i+1;} }",
+            "minifiedBytes": 90,
+            "nativeMinifiedBytes": 90,
+            "matchesNativeCode": true
+          }
+        },
+        {
+          "order": ["native", "current", "baseline"],
+          "native": {
+            "samplesMs": [
+              1.8938220000000001, 2.051330000000007, 1.7687870000000032, 1.8352390000000014,
+              2.608452000000028, 1.89452, 1.8098899999999958, 1.8232010000000116,
+              1.6524780000000021, 1.9708219999999983, 1.674426000000011, 1.730542999999983,
+              1.6746239999999943, 1.9826970000000017, 1.831863999999996
+            ],
+            "medianMs": 1.831863999999996,
+            "p95Ms": 2.608452000000028,
+            "iterations": 10000,
+            "sourceDigest": "9562970226d13348158fb4304d4816a01199483a40283e6b384f72aafc9075da",
+            "generatedCode": "function run(state) { try {state.body++; return state.body;} finally {for(let i=100-1;i>=0;i--) state.cleanup+=i+1;} }",
+            "minifiedBytes": 90,
+            "nativeMinifiedBytes": 90,
+            "matchesNativeCode": true
+          },
+          "current": {
+            "samplesMs": [
+              20.533869000000095, 24.09283900000014, 20.752541000000065, 21.512871000000132,
+              19.4341730000001, 21.03832999999986, 19.613996000000043, 20.88450499999999,
+              20.838452999999845, 20.342214999999896, 22.25459600000022, 20.22763800000007,
+              20.791848000000073, 30.184668999999985, 20.839757999999847
+            ],
+            "medianMs": 20.838452999999845,
+            "p95Ms": 30.184668999999985,
+            "iterations": 10000,
+            "sourceDigest": "9562970226d13348158fb4304d4816a01199483a40283e6b384f72aafc9075da",
+            "generatedCode": "function run(state) {;\n/** @type {Array<() => unknown> | undefined} */\nlet __twillDefers0;try {\n for(let i=0;i<100;i++) (__twillDefers0 ??= []).push(() => { state.cleanup+=i+1; }); state.body++; return state.body; } finally { \n  let __twillFailed2 = false,\n    __twillFailure1;\n  while (__twillDefers0?.length) {\n    const __twillCleanup3 = __twillDefers0.pop();\n    if (__twillCleanup3) {\n      try {\n        __twillCleanup3();\n      } catch (__twillError4) {\n        __twillFailed2 = true;\n        __twillFailure1 = __twillError4;\n      }\n    }\n  }\n  if (__twillFailed2) throw __twillFailure1;\n }}",
+            "minifiedBytes": 206,
+            "nativeMinifiedBytes": 90,
+            "matchesNativeCode": false
+          },
+          "baseline": {
+            "samplesMs": [
+              21.80519900000013, 19.224584999999934, 19.52484100000015, 25.621863000000076,
+              22.154463000000078, 21.440376000000015, 21.550227000000177, 21.62764100000004,
+              28.864041000000043, 21.488759999999957, 19.351241000000073, 19.590609000000086,
+              20.803183999999874, 20.29392299999995, 21.908040999999912
+            ],
+            "medianMs": 21.488759999999957,
+            "p95Ms": 28.864041000000043,
+            "iterations": 10000,
+            "sourceDigest": "9562970226d13348158fb4304d4816a01199483a40283e6b384f72aafc9075da",
+            "generatedCode": "function run(state) {;\n/** @type {Array<() => unknown> | undefined} */\nlet __twillDefers0;try {\n for(let i=0;i<100;i++) (__twillDefers0 ??= []).push(() => { state.cleanup+=i+1; }); state.body++; return state.body; } finally { \n  let __twillFailed2 = false,\n    __twillFailure1;\n  while (__twillDefers0?.length) {\n    const __twillCleanup3 = __twillDefers0.pop();\n    if (__twillCleanup3) {\n      try {\n        __twillCleanup3();\n      } catch (__twillError4) {\n        __twillFailed2 = true;\n        __twillFailure1 = __twillError4;\n      }\n    }\n  }\n  if (__twillFailed2) throw __twillFailure1;\n }}",
+            "minifiedBytes": 206,
+            "nativeMinifiedBytes": 90,
+            "matchesNativeCode": false
+          }
+        },
+        {
+          "order": ["baseline", "current", "native"],
+          "baseline": {
+            "samplesMs": [
+              22.29906200000005, 19.21268299999997, 20.827284999999847, 25.44314600000007,
+              23.683524000000034, 21.462460000000192, 20.33034900000007, 20.59638700000005,
+              22.689427000000023, 21.33678000000009, 19.544176000000107, 21.083169000000225,
+              22.901072999999997, 20.38782399999991, 26.587963000000173
+            ],
+            "medianMs": 21.33678000000009,
+            "p95Ms": 26.587963000000173,
+            "iterations": 10000,
+            "sourceDigest": "9562970226d13348158fb4304d4816a01199483a40283e6b384f72aafc9075da",
+            "generatedCode": "function run(state) {;\n/** @type {Array<() => unknown> | undefined} */\nlet __twillDefers0;try {\n for(let i=0;i<100;i++) (__twillDefers0 ??= []).push(() => { state.cleanup+=i+1; }); state.body++; return state.body; } finally { \n  let __twillFailed2 = false,\n    __twillFailure1;\n  while (__twillDefers0?.length) {\n    const __twillCleanup3 = __twillDefers0.pop();\n    if (__twillCleanup3) {\n      try {\n        __twillCleanup3();\n      } catch (__twillError4) {\n        __twillFailed2 = true;\n        __twillFailure1 = __twillError4;\n      }\n    }\n  }\n  if (__twillFailed2) throw __twillFailure1;\n }}",
+            "minifiedBytes": 206,
+            "nativeMinifiedBytes": 90,
+            "matchesNativeCode": false
+          },
+          "current": {
+            "samplesMs": [
+              21.40031799999997, 19.74622999999997, 20.117819000000054, 21.851417000000083,
+              20.627103000000034, 21.472882000000027, 19.357766999999967, 19.79404700000009,
+              21.534798000000137, 21.443894, 20.92251199999987, 24.991250000000036,
+              20.66200300000014, 20.66079999999988, 20.774992999999995
+            ],
+            "medianMs": 20.774992999999995,
+            "p95Ms": 24.991250000000036,
+            "iterations": 10000,
+            "sourceDigest": "9562970226d13348158fb4304d4816a01199483a40283e6b384f72aafc9075da",
+            "generatedCode": "function run(state) {;\n/** @type {Array<() => unknown> | undefined} */\nlet __twillDefers0;try {\n for(let i=0;i<100;i++) (__twillDefers0 ??= []).push(() => { state.cleanup+=i+1; }); state.body++; return state.body; } finally { \n  let __twillFailed2 = false,\n    __twillFailure1;\n  while (__twillDefers0?.length) {\n    const __twillCleanup3 = __twillDefers0.pop();\n    if (__twillCleanup3) {\n      try {\n        __twillCleanup3();\n      } catch (__twillError4) {\n        __twillFailed2 = true;\n        __twillFailure1 = __twillError4;\n      }\n    }\n  }\n  if (__twillFailed2) throw __twillFailure1;\n }}",
+            "minifiedBytes": 206,
+            "nativeMinifiedBytes": 90,
+            "matchesNativeCode": false
+          },
+          "native": {
+            "samplesMs": [
+              1.6148120000000006, 1.5148090000000138, 1.552234999999996, 1.6542969999999855,
+              1.6041440000000193, 1.5411720000000173, 1.657227000000006, 1.5519579999999848,
+              1.5107710000000054, 1.6033270000000073, 1.533350999999982, 1.6575730000000135,
+              1.63673399999999, 1.710599000000002, 1.6061519999999803
+            ],
+            "medianMs": 1.6041440000000193,
+            "p95Ms": 1.710599000000002,
+            "iterations": 10000,
+            "sourceDigest": "9562970226d13348158fb4304d4816a01199483a40283e6b384f72aafc9075da",
+            "generatedCode": "function run(state) { try {state.body++; return state.body;} finally {for(let i=100-1;i>=0;i--) state.cleanup+=i+1;} }",
+            "minifiedBytes": 90,
+            "nativeMinifiedBytes": 90,
+            "matchesNativeCode": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "cold-script-100-imports",
+      "pairs": [
+        {
+          "order": ["baseline", "current"],
+          "baseline": 1179.1830019999907,
+          "current": 1124.6131900000037
+        },
+        {
+          "order": ["current", "baseline"],
+          "current": 1083.2111140000052,
+          "baseline": 1212.9595499999996
+        },
+        {
+          "order": ["baseline", "current"],
+          "baseline": 1179.9196799999918,
+          "current": 1126.9421300000104
+        },
+        {
+          "order": ["current", "baseline"],
+          "current": 1164.5421540000098,
+          "baseline": 1226.1828189999942
+        },
+        {
+          "order": ["baseline", "current"],
+          "baseline": 1143.9664239999984,
+          "current": 1042.0288940000028
+        },
+        {
+          "order": ["current", "baseline"],
+          "current": 1067.2806160000036,
+          "baseline": 1054.2644300000102
+        },
+        {
+          "order": ["baseline", "current"],
+          "baseline": 1111.2271279999986,
+          "current": 992.5633559999987
+        },
+        {
+          "order": ["current", "baseline"],
+          "current": 1109.7186380000057,
+          "baseline": 1258.5576969999966
+        },
+        {
+          "order": ["baseline", "current"],
+          "baseline": 1225.664438000007,
+          "current": 1186.6978360000066
+        }
+      ],
+      "currentToBaselineRatio": 0.9497296291834727
+    }
+  ]
+}

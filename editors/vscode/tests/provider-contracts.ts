@@ -89,6 +89,41 @@ export async function checkProviderContracts(extension: vscode.Extension<unknown
   const signatures = providers.registerSignatureHelpProvider as vscode.SignatureHelpProvider;
   const rename = providers.registerRenameProvider as vscode.RenameProvider;
   try {
+    // Exercise shipped providers against the host's document and actual edits.
+    // Count source reads without replacing text, positions or version behavior.
+    let reads = 0;
+    // The host freezes method properties. An inherited facade keeps proxy
+    // invariants intact while delegating every operation to that real document.
+    const observed = new Proxy(Object.create(document) as vscode.TextDocument, {
+      get(_target, key) {
+        return key === 'getText'
+          ? (...args: Parameters<vscode.TextDocument['getText']>) => {
+              reads++;
+              return document.getText(...args);
+            }
+          : Reflect.get(document, key);
+      },
+    });
+    for (let index = 0; index < 5; index++)
+      assert.ok(await hover.provideHover(observed, at, live.token));
+    assert.equal(reads, 1, 'unchanged provider requests reuse the document version');
+    const originalText = document.getText();
+    const changed = new vscode.WorkspaceEdit();
+    changed.insert(document.uri, new vscode.Position(0, 0), '// actual unsaved change\n');
+    assert.equal(await vscode.workspace.applyEdit(changed), true);
+    await hover.provideHover(
+      observed,
+      document.positionAt(document.getText().lastIndexOf('users') + 1),
+      live.token,
+    );
+    assert.equal(reads, 2, 'a changed version refreshes the source immediately');
+    const restore = new vscode.WorkspaceEdit();
+    restore.replace(
+      document.uri,
+      new vscode.Range(new vscode.Position(0, 0), document.positionAt(document.getText().length)),
+      originalText,
+    );
+    assert.equal(await vscode.workspace.applyEdit(restore), true);
     assert.deepEqual(
       await formatter.provideDocumentFormattingEdits(
         document,

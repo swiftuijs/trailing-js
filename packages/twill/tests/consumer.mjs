@@ -536,7 +536,7 @@ import { createRequire } from 'node:module';
   });
   writeFileSync(
     join(root, 'runtime.twill'),
-    'export function run(events:number[]){defer {events.push(1);}defer {events.push(2);}return 3;}const events:number[]=[];console.log(JSON.stringify([run(events),events]));',
+    'export function run(events:number[]){if(true)defer {events.push(1);}defer {events.push(2);}return 3;}const events:number[]=[];console.log(JSON.stringify([run(events),events]));',
   );
   writeFileSync(join(root, 'twill.config.json'), '{"runtime":"external"}');
   const runtimeResult = execFileSync(

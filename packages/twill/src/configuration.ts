@@ -2,11 +2,20 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import ts from 'typescript';
 import type { TransformOptions } from './compiler.js';
-import { digest, observe, type ConfigurationObservation } from './compilation-cache.js';
+import {
+  digest,
+  observe,
+  observationsMatch,
+  type ConfigurationObservation,
+} from './compilation-cache.js';
 
 type Config = Pick<TransformOptions, 'implicitReturn' | 'jsxImportSource' | 'runtime'>;
 type Observations = Map<string, ConfigurationObservation>;
 const jsxConfigs = new Map<string, { files: Map<string, number>; source?: string }>();
+const loaderConfigs = new Map<
+  string,
+  { config: Config; observations: ConfigurationObservation[] }
+>();
 
 function record(observations: Observations, path: string, kind: ConfigurationObservation['kind']) {
   path = resolve(path);
@@ -137,18 +146,28 @@ export function loaderConfiguration(filename: string): {
   config: Config;
   observations: ConfigurationObservation[];
 } {
+  const directory = resolve(dirname(filename));
+  const cached = loaderConfigs.get(directory);
+  // Still hash every observed dependency and missing-file probe. Reusing only
+  // the parsed configuration cannot hide same-mtime edits or nearer configs.
+  if (cached && observationsMatch(cached.observations)) return cached;
   const observations: Observations = new Map();
-  let root = dirname(filename);
+  let root = directory;
   for (;;) {
     const twill = resolve(root, 'twill.config.json');
     const typescript = resolve(root, 'tsconfig.json');
     record(observations, twill, 'file');
     record(observations, typescript, 'file');
-    if (existsSync(twill) || existsSync(typescript))
-      return {
+    if (existsSync(twill) || existsSync(typescript)) {
+      const result = {
         config: readConfig(root, undefined, observations),
         observations: [...observations.values()],
       };
+      loaderConfigs.delete(directory);
+      if (loaderConfigs.size >= 64) loaderConfigs.delete(loaderConfigs.keys().next().value!);
+      loaderConfigs.set(directory, result);
+      return result;
+    }
     const parent = dirname(root);
     if (parent === root) return { config: {}, observations: [...observations.values()] };
     root = parent;
