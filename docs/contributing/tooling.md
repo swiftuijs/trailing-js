@@ -93,6 +93,8 @@ The canonical site is `https://twill.evecalm.com` with a default base of `/`; se
 
 The `Extended validation` workflow is manual: select compatibility checks for Windows, macOS, Node 24 and the minimum supported editor, or benchmarks for timing reports. Use it before a release and when changing platform-sensitive behavior.
 
+Core/release macOS validation pins `macos-15` for actual ARM64 execution and `macos-15-intel` for x64. Floating `macos-latest` can migrate between image generations; pinned labels keep the official build environment reproducible. The ARM64 Node architecture check, real process suite and installed consumers remain required.
+
 Pushing a reviewed `v*.*.*` release tag launches full platform/minimum-editor validation and uploads its exact tested tarballs and VSIX to GitHub Release without another build. The workflow can also be dispatched manually at the tag; npm and Marketplace publication remain separate authorized actions. Documentation deployment builds independently, triggered by site content, compiler/formatter/highlighter dependencies, shared dependency manifests or its own workflow; it can also be run manually.
 
 The shell SDK is a separate Node-only package backed exclusively by its matching prebuilt Rust implementation dependency. Its archive has a 16 KiB compressed gate and independent native JS/TS consumer tests on Node 20. Include its exact tarball and manifest entry in coordinated releases; implementing/merging does not publish it. Run all eight actual platform/ABI contracts and the complete public-SDK comparison described in [release validation](releasing.md), retaining all seven warm and both default-pool gates. `benchmark:shell` remains an additional cross-platform diagnostic.
