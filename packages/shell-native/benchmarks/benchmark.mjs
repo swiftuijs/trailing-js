@@ -32,6 +32,16 @@ const cpuConstraints = {
   cgroupV2Quota: optionalText('/sys/fs/cgroup/cpu.max'),
   cgroupV2Before: optionalText('/sys/fs/cgroup/cpu.stat'),
 };
+const concurrencyCPUIndex = process.argv.indexOf('--concurrency-cpus');
+const concurrencyCPUs =
+  concurrencyCPUIndex === -1 ? undefined : process.argv[concurrencyCPUIndex + 1];
+if (concurrencyCPUIndex !== -1) {
+  assert(
+    concurrencyCPUs && /^[0-9,-]+$/.test(concurrencyCPUs),
+    'Expected --concurrency-cpus CPU list',
+  );
+  execFileSync('taskset', ['-c', concurrencyCPUs, '/usr/bin/true']);
+}
 const size = 1024 * 1024;
 const nativeFixture = resolve(import.meta.dirname, 'target/fixture');
 const nodeFixture = resolve(import.meta.dirname, '../../shell/tests/fixtures/child.mjs');
@@ -56,7 +66,7 @@ const workloads = [
     name: 'node-inherit',
     command: Command.path(process.execPath, ['-e', '']),
     options: {},
-    count: 24,
+    count: 96,
   },
   ...[size, 8 * size].map((bytes) => ({
     name: `native-dual-capture-${bytes}`,
@@ -284,8 +294,14 @@ for (const [poolSize, children] of [
     for (const mode of pair.order)
       pair[mode] = JSON.parse(
         execFileSync(
-          process.execPath,
-          [resolve(import.meta.dirname, 'observe.mjs'), mode, 'concurrency', String(children)],
+          concurrencyCPUs ? 'taskset' : process.execPath,
+          [
+            ...(concurrencyCPUs ? ['-c', concurrencyCPUs, process.execPath] : []),
+            resolve(import.meta.dirname, 'observe.mjs'),
+            mode,
+            'concurrency',
+            String(children),
+          ],
           { encoding: 'utf8', env: { ...process.env, UV_THREADPOOL_SIZE: poolSize } },
         ),
       );
@@ -393,6 +409,7 @@ const report = {
   nativeArtifactBytes: statSync(resolve(import.meta.dirname, '../native/linux-x64.node')).size,
   samples,
   concurrencySamples,
+  concurrencyCPUs,
   orderPermutations: orders,
   scope:
     'Linux production-contract direct-child backend; success workloads interleaved/checked against natural handwritten Node and the SDK. Parent CPU includes Rust reactor, excludes child CPU. Native copies input/snapshots cwd/environment and performs the full shared SDK contract. Independent async scheduling; no libuv worker per child. Failure ownership/cancellation is measured separately; no child acceleration, compiler port, containment, pipeline or cross-platform performance claim.',

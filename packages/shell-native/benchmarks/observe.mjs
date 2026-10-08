@@ -61,6 +61,9 @@ if (measurement === 'memory') {
 } else if (measurement === 'concurrency') {
   const countValue = Number(count);
   const cgroupV2Before = cpuState();
+  const allowedCPUList = readFileSync('/proc/self/status', 'utf8').match(
+    /^Cpus_allowed_list:\s*(.*)$/m,
+  )?.[1];
   const cpu = process.cpuUsage(),
     start = performance.now();
   await Promise.all(
@@ -77,6 +80,7 @@ if (measurement === 'memory') {
       parentCPUMs: (usage.user + usage.system) / 1000,
       uvThreadpoolSize: process.env.UV_THREADPOOL_SIZE ?? 'default (4)',
       cgroupV2Before,
+      allowedCPUList,
       cgroupV2After: cpuState(),
     }),
   );

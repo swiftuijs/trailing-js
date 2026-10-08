@@ -68,19 +68,27 @@ export async function run(value: string | undefined): Promise<string> {
   return { root, source, config, original };
 }
 
-it('checks native imports, formats and emits ordinary TypeScript declarations', async () => {
-  const { root, config, original } = fixture();
+it('formats native-backed Twill source idempotently', async () => {
+  const { original } = fixture();
+  const formatted = await format(original);
+  expect(await format(formatted)).toBe(formatted);
+});
+
+it('checks the native package through original Twill types', () => {
+  const { config } = fixture();
   const project = new TwillProject(config);
   try {
     expect(project.diagnostics()).toEqual([]);
-    const formatted = await format(original);
-    expect(await format(formatted)).toBe(formatted);
-    const declarations = emitDeclarations(config, { outDir: join(root, 'types') });
-    expect(declarations.diagnostics).toEqual([]);
-    expect(readFileSync(join(root, 'types', 'run.d.ts'), 'utf8')).toContain('Promise<string>');
   } finally {
     project.dispose();
   }
+});
+
+it('emits ordinary TypeScript declarations for the native-backed script', () => {
+  const { root, config } = fixture();
+  const declarations = emitDeclarations(config, { outDir: join(root, 'types') });
+  expect(declarations.diagnostics).toEqual([]);
+  expect(readFileSync(join(root, 'types', 'run.d.ts'), 'utf8')).toContain('Promise<string>');
 });
 
 it('executes native-backed Twill guards/defer and maps original source failures', () => {
