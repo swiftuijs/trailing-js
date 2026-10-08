@@ -25,6 +25,7 @@ Vitest uses V8 coverage remapped to source ASTs. Reports include statements, bra
 | Formatter                                |        98% |      97% |      100% |  100% |
 | Linter                                   |       100% |      98% |      100% |  100% |
 | Browser highlighter                      |       100% |     100% |      100% |  100% |
+| Shell SDK                                |        98% |      95% |      100% |   99% |
 | Source export                            |        99% |      96% |      100% |  100% |
 | Playground scheduler and compiler worker |       100% |     100% |      100% |  100% |
 | Packaged VS Code extension               |        98% |      95% |      100% |   98% |
@@ -35,7 +36,7 @@ Provider boundary tests capture registrations from the same cached, shipped exte
 
 Playground control-flow coverage covers its scheduler and worker, including bounded input, stale responses, retries, failures and cancellation on disposal. Vue rendering, CodeMirror editing, accessibility and responsive behavior are validated by Chromium integration tests rather than included in that unit percentage. Third-party engines, Electron and VS Code's own implementation are outside Twill's source coverage.
 
-JSON summaries and HTML reports are generated under each workspace's `coverage/`. The regular CI workflow runs one Linux job: build, typecheck, unit coverage, grammar tests, examples, lint/format, output budgets, five independent package installations, packaged stable VS Code coverage and browser integration tests. Coverage replaces the ordinary unit run rather than repeating it. Public package consumers run on Node 20 after building with Node 22. Reports and validated distributions are uploaded separately.
+JSON summaries and HTML reports are generated under each workspace's `coverage/`. The regular CI workflow runs the main Linux job: build, typecheck, unit coverage, grammar tests, examples, lint/format, output budgets, seven independent package installations, packaged stable VS Code coverage and browser integration tests. Coverage replaces the ordinary unit run rather than repeating it. Public package consumers run on Node 20 after building with Node 22. Reports and validated distributions are uploaded separately. Focused Windows/macOS jobs exercise the shell SDK with real processes, checked Twill/native export, declarations and independent Node 20 installation.
 
 `Extended validation` is manual: enable `compatibility` for Windows/macOS and Node 24 checks plus the minimum VS Code host, or enable `benchmarks` to collect timing reports. Run compatibility checks before release and after changes to paths, file resolution, CLI processes, Node APIs or editor support. A release reuses the regular verification workflow, also checks the minimum editor host, and publishes its exact tested artifacts. Deterministic size budgets and behavioral comparisons remain required on every change; noisy timing measurements are not a merge gate.
 
@@ -45,6 +46,8 @@ JSON summaries and HTML reports are generated under each workspace's `coverage/`
 - Semantics: native-JavaScript differential execution, guard narrowing and exits, cleanup ordering and failures, hoisted declarations and JSDoc, asynchronous cleanup, switch exhaustiveness, native React/Vue rendering and component identity.
 - Hosts: actual Vite, Rollup, esbuild, webpack and Rspack builds; mixed native/dialect imports; Node loader resolution, host error forwarding, inherited JSX settings and original-source debugging.
 - Editor: partial and unsaved inputs, source-safe edits, auto-imports, references, cross-file rename, definitions, signatures, formatting, configuration reloads and native TS-server consumers. Highlighting uses real TS/TSX grammars in both unit tests and packaged extension hosts, including strings, comments, regexps, templates and JSX nesting.
+- Executable runner: actual direct/explicit invocation and POSIX shebangs, literal arguments including CLI flags, standard argv/I/O/cwd/environment, script-local dependencies/configuration, extensionless entries and native imports, original error positions, native exit codes/signals and independent installed binaries.
+- Shell SDK: literal argv, NUL/invalid options, immutable values, concurrent cwd/environment isolation, binary and multi-byte input/output, byte overflow, both output pipes, exit/signal/launch/write/read failures, cancellation races, graceful/forced teardown, unresolved PID reporting, descriptor-owning descendants, actual Twill scripts/defer cleanup, declarations and native exported execution. Native backend faults are injected at Node API boundaries only; real children are joined/cleaned.
 - Tooling: formatter idempotence and compiled AST preservation, type-aware linting with cache refresh/eviction, withheld unsafe fixes, declarations, export preflight, imported assets and rollback on disk failure.
 - Framework pilot: pinned React core source integrity, compilation, formatted AST preservation, dev/prod APIs and lazy/transition/act behavior; native/dialect ReactDOM rendering and output budgets. This is not the full upstream React test suite.
 - Web highlighting: shared TextMate JSON, real Shiki scopes, standalone/custom-theme rendering, public types on Shiki 2.5/3/4, engine-free grammar import and actual browser WASM loading.
@@ -58,6 +61,8 @@ A gate measures executed source, not correctness of every input. Remaining uncov
 pnpm benchmark --output compiler-results.json
 pnpm benchmark:project --output project-results.json
 pnpm benchmark:branching --output branching-results.json
+pnpm benchmark:shell --output ../../shell-results.json --verify-performance
+node packages/twill/benchmarks/runner.mjs > runner-results.json
 pnpm --filter @swiftuijs/twill test:size --output ../../bundle-results.json
 ```
 

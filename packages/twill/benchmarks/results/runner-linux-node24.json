@@ -1,0 +1,101 @@
+{
+  "workload": "Fresh Node processes executing identical Twill source; existing loader vs direct twill binary, no subprocess SDK or command execution.",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "arch": "x64",
+    "os": "6.18.44",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C"
+  },
+  "gitHead": "e25166574e22b8a1c2a415876185712e590847a9",
+  "sourceSHA256": "2584540710064406581ceae9b9ac3e551eec3958a17c5d5f56c62e49f1870743",
+  "identities": {
+    "packages/twill/bin/twill.mjs": "86b6b582a0157a25ef56af131217171cf1ccd76b9714b9e5e2951891c7b8b8ee",
+    "packages/twill/bin/run.mjs": "ecba3f9f5d5c81ad1e6757a85192593e22a0ce7a0e5e1ab195dd7f73b1d5c183",
+    "packages/twill/src/loader.ts": "607ad8c87324d66520bf71adf1102a573c1691d872cac1f27a801cad485a86d1",
+    "packages/twill/dist/loader.js": "888f8dca309ea31e04f996600392df315e18468e61fb55181502ec9576856c6f",
+    "packages/twill/dist/register.js": "039fb5d5276aaa5d4ec3a2518e5408a0b27a950dac1f02f52254e99da2450cf9"
+  },
+  "commands": {
+    "loader": [
+      "--enable-source-maps",
+      "--import",
+      "/workspace/twill-shell-rfc/packages/twill/dist/register.js",
+      "/tmp/twill-runner-benchmark-nm3Uk3/script.twill"
+    ],
+    "runner": [
+      "/workspace/twill-shell-rfc/packages/twill/bin/twill.mjs",
+      "/tmp/twill-runner-benchmark-nm3Uk3/script.twill"
+    ]
+  },
+  "samples": 15,
+  "pairs": [
+    {
+      "loader": 504.378837,
+      "runner": 462.829168
+    },
+    {
+      "runner": 459.32045199999993,
+      "loader": 625.7453880000003
+    },
+    {
+      "loader": 628.610537,
+      "runner": 461.5083719999998
+    },
+    {
+      "runner": 477.5093989999996,
+      "loader": 524.2023079999999
+    },
+    {
+      "loader": 505.11402799999996,
+      "runner": 476.37815000000046
+    },
+    {
+      "runner": 493.68889300000046,
+      "loader": 500.10983899999974
+    },
+    {
+      "loader": 508.14785200000006,
+      "runner": 440.8481100000008
+    },
+    {
+      "runner": 468.2447540000003,
+      "loader": 511.7099109999999
+    },
+    {
+      "loader": 505.5352590000002,
+      "runner": 469.8732749999999
+    },
+    {
+      "runner": 475.01284699999997,
+      "loader": 688.2728829999996
+    },
+    {
+      "loader": 744.4950169999993,
+      "runner": 511.06505000000107
+    },
+    {
+      "runner": 505.13328399999955,
+      "loader": 523.803156
+    },
+    {
+      "loader": 504.80743900000016,
+      "runner": 480.85576199999923
+    },
+    {
+      "runner": 471.1118200000001,
+      "loader": 520.8318870000003
+    },
+    {
+      "loader": 601.4592510000002,
+      "runner": 1054.7870730000013
+    }
+  ],
+  "mediansMs": {
+    "loader": 520.8318870000003,
+    "runner": 475.01284699999997
+  },
+  "pairedMedianRatio": 0.9150589893499256,
+  "paired95PercentInterval": [0.7341721858537662, 0.9525528446105151],
+  "limitations": "Includes OS launch and source compilation; a local cold-start observation, not native-Node parity or a general speedup. No samples removed. Source and built entry identities identify this worktree."
+}

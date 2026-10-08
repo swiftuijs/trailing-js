@@ -33,6 +33,7 @@ const pages = [
       { text: 'AI assistance', link: '/ai' },
       { text: 'Web highlighting', link: '/highlighting' },
       { text: 'Build tools', link: '/build-tools' },
+      { text: 'Shell scripting', link: '/scripting' },
       { text: 'Optional runtime', link: '/runtime' },
       { text: 'React and Vue', link: '/frameworks' },
       { text: 'Mixed TS / JS', link: '/interoperability' },
@@ -72,9 +73,14 @@ export default defineConfig({
     ['meta', { name: 'theme-color', content: '#6d5ce8' }],
   ],
   sitemap: { hostname: site },
-  transformHead({ pageData }) {
+  transformPageData(pageData) {
     const path = pageData.relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '');
-    return [['link', { rel: 'canonical', href: new URL(path, site + '/').href }]];
+    // Frontmatter head participates in client navigation as well as static HTML.
+    pageData.frontmatter.head ??= [];
+    pageData.frontmatter.head.push([
+      'link',
+      { rel: 'canonical', href: new URL(path, site + '/').href },
+    ]);
   },
   lang: 'en',
   themeConfig: {

@@ -1,0 +1,63 @@
+import type { ExecutionResult, TerminationStatus } from './index.js';
+
+export class ProcessError extends Error {
+  readonly processIdentifier?: number;
+  readonly terminationStatus?: TerminationStatus;
+  readonly standardOutput?: string | Buffer;
+  readonly standardError?: string | Buffer;
+  readonly unresolvedProcessIdentifier?: number;
+  readonly cleanupErrors: readonly Error[] = [];
+  constructor(message: string, processIdentifier?: number, options?: ErrorOptions) {
+    super(message, options);
+    this.name = new.target.name;
+    this.processIdentifier = processIdentifier;
+  }
+}
+export class ProcessLaunchError extends ProcessError {
+  constructor(cause: unknown) {
+    super('Subprocess could not start', undefined, { cause });
+  }
+}
+export class ProcessIOError extends ProcessError {
+  constructor(
+    readonly stream: 'stdin' | 'stdout' | 'stderr',
+    processIdentifier: number | undefined,
+    cause: unknown,
+  ) {
+    super(`Subprocess ${stream} failed`, processIdentifier, { cause });
+  }
+}
+export class ProcessAbortError extends ProcessError {
+  constructor(processIdentifier: number | undefined, reason: unknown) {
+    super('Subprocess aborted', processIdentifier, { cause: reason });
+  }
+}
+export class ProcessTimeoutError extends ProcessError {
+  constructor(
+    readonly timeoutMs: number,
+    processIdentifier: number | undefined,
+  ) {
+    super('Subprocess timed out', processIdentifier);
+  }
+}
+export class OutputLimitError extends ProcessError {
+  constructor(
+    readonly stream: 'stdout' | 'stderr',
+    readonly limit: number,
+    processIdentifier: number | undefined,
+  ) {
+    super(`Subprocess ${stream} exceeded its byte limit`, processIdentifier);
+  }
+}
+export class ProcessTeardownError extends ProcessError {
+  constructor(processIdentifier: number, cause?: unknown) {
+    super('Owned subprocess could not be terminated', processIdentifier, { cause });
+    Object.assign(this, { unresolvedProcessIdentifier: processIdentifier });
+  }
+}
+export class ProcessExitError extends ProcessError {
+  constructor(readonly result: ExecutionResult) {
+    super('Subprocess exited unsuccessfully', result.processIdentifier);
+    Object.assign(this, result);
+  }
+}

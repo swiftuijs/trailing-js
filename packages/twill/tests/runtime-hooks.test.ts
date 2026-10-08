@@ -3,14 +3,17 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { resolve, load } from '../src/loader';
+import { resolve, load, initialize } from '../src/loader';
 import { transpile, transpileNative } from '../src/transpile';
 import { parseSyntax } from '../src/syntax';
 import { inferLanguage, transform } from '../src/compiler';
 import { fixtureRoot } from './helpers/fixture';
 
 const roots: string[] = [];
-afterEach(() => roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true })));
+afterEach(() => {
+  initialize(undefined);
+  roots.splice(0).forEach((root) => rmSync(root, { recursive: true, force: true }));
+});
 function fixture() {
   const root = fixtureRoot('runtime-hooks-');
   roots.push(root);
@@ -18,10 +21,31 @@ function fixture() {
 }
 const context = { conditions: ['node'], importAttributes: {}, parentURL: undefined };
 
+it('marks only the explicit non-native entry as Twill and resets on ordinary registration', async () => {
+  const root = fixture();
+  const filename = join(root, 'deploy');
+  writeFileSync(
+    filename,
+    '#!/usr/bin/env twill\nexport const value: number[] = [1].map { .toFixed(); };',
+  );
+  const url = pathToFileURL(filename).href;
+  const next = vi.fn(async () => ({ format: 'module', source: 'host' }));
+  const host = { format: 'module', importAttributes: {}, conditions: ['node'] };
+  initialize({ entries: [url] });
+  expect(String((await load(url, host, next)).source)).toContain('return (');
+  expect(next).not.toHaveBeenCalled();
+  expect(await load(pathToFileURL(join(root, 'other')).href, host, next)).toEqual({
+    format: 'module',
+    source: 'host',
+  });
+  initialize({});
+  expect(await load(url, host, next)).toEqual({ format: 'module', source: 'host' });
+});
+
 it('defers successful, bare, non-file and unrelated failing resolutions to Node', async () => {
-  const success = { url: 'node:fs', format: 'builtin' };
+  const success = { url: 'node:fs', format: 'builtin' as const };
   const next = vi.fn(async () => success);
-  expect(await resolve('node:fs', context, next as any)).toBe(success);
+  expect(await resolve('node:fs', context, next)).toBe(success);
   const failure = Object.assign(new Error('host failed'), { code: 'ERR_ACCESS_DENIED' });
   const failed = vi.fn(async () => {
     throw failure;

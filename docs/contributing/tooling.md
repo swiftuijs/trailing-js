@@ -57,7 +57,7 @@ pnpm test:packed
 pnpm release:manifest
 ```
 
-The six tarballs, including the optional runtime prototype, and `dist/twill.vsix` can be installed into an independent application. Public package consumer tests must pass without workspace symlinks or hoisted development dependencies. See [releasing](./releasing.md) for review and publication.
+The seven tarballs, including the optional runtime and shell prototypes, and `dist/twill.vsix` can be installed into an independent application. Public package consumer tests must pass without workspace symlinks or hoisted development dependencies. See [releasing](./releasing.md) for review and publication.
 
 ## Benchmark changes
 
@@ -92,3 +92,5 @@ The canonical site is `https://twill.evecalm.com` with a default base of `/`; se
 `CI` verifies each push and pull request on Ubuntu 24.04 with Node 22, then checks independently installed packages on Node 20. It runs unit suites with coverage once and retains actual browser/editor tests and deterministic size gates. The `Extended validation` workflow is manual: select compatibility checks for Windows, macOS, Node 24 and the minimum supported editor, or benchmarks for timing reports. Use it before a release and when changing platform-sensitive behavior.
 
 The optional release workflow is dispatched manually at a release tag, uses the same CI verification, and publishes its tested tarballs and VSIX without another build. Documentation deployment builds independently, triggered only by site content, compiler/formatter/highlighter dependencies, shared dependency manifests or its own workflow; it can also be run manually.
+
+The unreleased shell SDK is a separate Node-only, zero-production-dependency package. Its archive has a 16 KiB compressed gate and independent native JS/TS consumer tests on Node 20. Add its exact tarball and manifest entry to the next coordinated release; implementing/merging the prototype does not publish it. Run the focused Windows/macOS subprocess CI and the native comparison `pnpm benchmark:shell --output ../../shell-results.json --verify-performance` before release.

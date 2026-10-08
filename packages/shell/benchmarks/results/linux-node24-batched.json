@@ -1,0 +1,1201 @@
+{
+  "schemaVersion": 1,
+  "node": "v24.19.0",
+  "platform": "linux",
+  "arch": "x64",
+  "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+  "gitHead": "7c9cfd9af8a03300acd8ce443a942889b2a55fb4",
+  "sourceAndBuildSHA256": {
+    "src/index.ts": "831b6b4285be1c35a2da67d436fe1fdaf1a8c26933845f024e47b5141e023ead",
+    "src/values.ts": "c129ef2e5e68e730db44d318e899ef86d26a0ac85cec50194e1796932187b6c9",
+    "src/errors.ts": "607b2246b07f472bbe9157c3caa0c59f9f363d0aadfc3cd219dd557dec483176",
+    "dist/index.js": "0491db747345dcbe6673b7048dac46a1570500f32ef6a7e325c7327a632238a6",
+    "dist/values.js": "98ba46360e79281fc9063657e894014b19e896b5c1ae3f5e6bea3e90dfdeea37",
+    "dist/errors.js": "30dbc7d6463599101efe4d6a24e6f64f347387472d2718cec94a5455e2676915",
+    "benchmarks/native.mjs": "17fc5ac100a8387d2bea96be121eea1b0d26a5e97f702902a38aa99179898372",
+    "benchmarks/run.mjs": "47737a09447a90e9389aa2c4dd1c2160a5f989e3d41f56ebf3fa7d0036660d3a",
+    "benchmarks/memory.mjs": "2cda111aabc969eea5711996727bd1f61fcef524c3f1cf81b6144755a9a17aab",
+    "benchmarks/cold.twill": "ca33cb67274e87734a4add59315aa847ab8068ae761f9e86253e4e069daa94b6",
+    "tests/fixtures/child.mjs": "22babd62a8a87f62f89a3ff2e12492a868a4b4e03fbd34ba8e8050097f5dab96"
+  },
+  "scope": "Successful direct-child execution. Paired sequential warm runs; CPU is parent-only. Cold startup and isolated memory observations are separate. Cancellation, concurrency and process trees are not inferred.",
+  "samples": 9,
+  "tolerance": 1.1,
+  "results": [
+    {
+      "name": "native-executable-inherit",
+      "argv": ["/usr/bin/true"],
+      "inputBytes": 0,
+      "outputByteLimit": null,
+      "errorByteLimit": null,
+      "pairs": [
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 443.94038099999995,
+            "cpuUserMs": 49.1,
+            "cpuSystemMs": 153.931,
+            "operations": 128
+          },
+          "sdk": {
+            "wallMs": 458.46314500000005,
+            "cpuUserMs": 90.112,
+            "cpuSystemMs": 97.984,
+            "operations": 128
+          },
+          "wallRatio": 1.0327133205753591
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 331.306644,
+            "cpuUserMs": 49.636,
+            "cpuSystemMs": 74.734,
+            "operations": 128
+          },
+          "native": {
+            "wallMs": 465.10161800000014,
+            "cpuUserMs": 55.276,
+            "cpuSystemMs": 78.916,
+            "operations": 128
+          },
+          "wallRatio": 0.7123317382224198
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 459.3572939999999,
+            "cpuUserMs": 80.002,
+            "cpuSystemMs": 77.788,
+            "operations": 128
+          },
+          "sdk": {
+            "wallMs": 457.0146139999997,
+            "cpuUserMs": 92.368,
+            "cpuSystemMs": 67.313,
+            "operations": 128
+          },
+          "wallRatio": 0.9949000918661799
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 468.8372949999998,
+            "cpuUserMs": 64.619,
+            "cpuSystemMs": 104.943,
+            "operations": 128
+          },
+          "native": {
+            "wallMs": 532.8919129999999,
+            "cpuUserMs": 90.868,
+            "cpuSystemMs": 58.997,
+            "operations": 128
+          },
+          "wallRatio": 0.8797981045736002
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 514.7392030000001,
+            "cpuUserMs": 110.831,
+            "cpuSystemMs": 106.776,
+            "operations": 128
+          },
+          "sdk": {
+            "wallMs": 437.86563299999943,
+            "cpuUserMs": 13.342,
+            "cpuSystemMs": 102.88,
+            "operations": 128
+          },
+          "wallRatio": 0.8506553035945843
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 473.72807699999976,
+            "cpuUserMs": 66.666,
+            "cpuSystemMs": 92.722,
+            "operations": 128
+          },
+          "native": {
+            "wallMs": 520.8683900000005,
+            "cpuUserMs": 82.766,
+            "cpuSystemMs": 104.245,
+            "operations": 128
+          },
+          "wallRatio": 0.909496690709143
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 372.4988119999998,
+            "cpuUserMs": 47.846,
+            "cpuSystemMs": 71.313,
+            "operations": 128
+          },
+          "sdk": {
+            "wallMs": 345.58935500000007,
+            "cpuUserMs": 32.668,
+            "cpuSystemMs": 73.799,
+            "operations": 128
+          },
+          "wallRatio": 0.9277596165863752
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 450.1211060000005,
+            "cpuUserMs": 68.068,
+            "cpuSystemMs": 119.691,
+            "operations": 128
+          },
+          "native": {
+            "wallMs": 368.3351249999996,
+            "cpuUserMs": 44.839,
+            "cpuSystemMs": 77.645,
+            "operations": 128
+          },
+          "wallRatio": 1.2220423072602729
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 368.87196799999947,
+            "cpuUserMs": 46.906,
+            "cpuSystemMs": 84.406,
+            "operations": 128
+          },
+          "sdk": {
+            "wallMs": 449.44096100000024,
+            "cpuUserMs": 52.215,
+            "cpuSystemMs": 127.064,
+            "operations": 128
+          },
+          "wallRatio": 1.2184199396794524
+        }
+      ],
+      "medianWallRatio": 0.9277596165863752,
+      "wallRatio95PercentInterval": {
+        "method": "paired bootstrap median, 10000 deterministic resamples",
+        "lower": 0.8506553035945843,
+        "upper": 1.2184199396794524
+      },
+      "assessment": "inconclusive",
+      "medianParentCPURatio": 0.9268063669965423,
+      "medianNativeWallMs": 459.3572939999999,
+      "medianSDKWallMs": 450.1211060000005,
+      "withinTolerance": true
+    },
+    {
+      "name": "node-inherit",
+      "argv": ["/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node", "-e", ""],
+      "inputBytes": 0,
+      "outputByteLimit": null,
+      "errorByteLimit": null,
+      "pairs": [
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 4633.690671,
+            "cpuUserMs": 24.833,
+            "cpuSystemMs": 65.111,
+            "operations": 64
+          },
+          "sdk": {
+            "wallMs": 2543.6144730000015,
+            "cpuUserMs": 20.603,
+            "cpuSystemMs": 40.047,
+            "operations": 64
+          },
+          "wallRatio": 0.5489392049666237
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 2489.7636329999987,
+            "cpuUserMs": 44.727,
+            "cpuSystemMs": 41.951,
+            "operations": 64
+          },
+          "native": {
+            "wallMs": 3358.262886999997,
+            "cpuUserMs": 41.785,
+            "cpuSystemMs": 71.785,
+            "operations": 64
+          },
+          "wallRatio": 0.7413843754275455
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 2687.0959059999986,
+            "cpuUserMs": 39.51,
+            "cpuSystemMs": 43.884,
+            "operations": 64
+          },
+          "sdk": {
+            "wallMs": 2381.6212349999987,
+            "cpuUserMs": 18.268,
+            "cpuSystemMs": 62.196,
+            "operations": 64
+          },
+          "wallRatio": 0.8863179128374586
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 2322.4693659999975,
+            "cpuUserMs": 24.05,
+            "cpuSystemMs": 46.111,
+            "operations": 64
+          },
+          "native": {
+            "wallMs": 2418.0052600000017,
+            "cpuUserMs": 27.486,
+            "cpuSystemMs": 48.118,
+            "operations": 64
+          },
+          "wallRatio": 0.9604897906632328
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 2284.8986989999976,
+            "cpuUserMs": 37.532,
+            "cpuSystemMs": 35.361,
+            "operations": 64
+          },
+          "sdk": {
+            "wallMs": 2265.573489000002,
+            "cpuUserMs": 29.058,
+            "cpuSystemMs": 38.119,
+            "operations": 64
+          },
+          "wallRatio": 0.9915422027206487
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 2291.8108250000005,
+            "cpuUserMs": 42.069,
+            "cpuSystemMs": 22.911,
+            "operations": 64
+          },
+          "native": {
+            "wallMs": 2399.1016270000036,
+            "cpuUserMs": 30.555,
+            "cpuSystemMs": 39.026,
+            "operations": 64
+          },
+          "wallRatio": 0.955278759018572
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 2373.4552059999987,
+            "cpuUserMs": 19.395,
+            "cpuSystemMs": 52.931,
+            "operations": 64
+          },
+          "sdk": {
+            "wallMs": 2350.021442999998,
+            "cpuUserMs": 45.646,
+            "cpuSystemMs": 21.624,
+            "operations": 64
+          },
+          "wallRatio": 0.990126730455767
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 2325.4018359999973,
+            "cpuUserMs": 59.315,
+            "cpuSystemMs": 30.529,
+            "operations": 64
+          },
+          "native": {
+            "wallMs": 2320.1446119999964,
+            "cpuUserMs": 24.53,
+            "cpuSystemMs": 30.462,
+            "operations": 64
+          },
+          "wallRatio": 1.0022659035875652
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 2400.4470289999954,
+            "cpuUserMs": 18.732,
+            "cpuSystemMs": 37.216,
+            "operations": 64
+          },
+          "sdk": {
+            "wallMs": 2352.2629119999983,
+            "cpuUserMs": 18.588,
+            "cpuSystemMs": 37.961,
+            "operations": 64
+          },
+          "wallRatio": 0.9799270234177714
+        }
+      ],
+      "medianWallRatio": 0.9604897906632328,
+      "wallRatio95PercentInterval": {
+        "method": "paired bootstrap median, 10000 deterministic resamples",
+        "lower": 0.7413843754275455,
+        "upper": 0.9915422027206487
+      },
+      "assessment": "within tolerance in sampled environment",
+      "medianParentCPURatio": 0.9300942952741753,
+      "medianNativeWallMs": 2400.4470289999954,
+      "medianSDKWallMs": 2350.021442999998,
+      "withinTolerance": true
+    },
+    {
+      "name": "dual-binary-capture",
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "/workspace/twill-shell-rfc/packages/shell/tests/fixtures/child.mjs",
+        "large",
+        "1048576"
+      ],
+      "inputBytes": 0,
+      "outputByteLimit": 1048576,
+      "errorByteLimit": 1048576,
+      "pairs": [
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 3663.540495999994,
+            "cpuUserMs": 143.181,
+            "cpuSystemMs": 265.773,
+            "operations": 64
+          },
+          "sdk": {
+            "wallMs": 3408.191579999999,
+            "cpuUserMs": 118.718,
+            "cpuSystemMs": 282.879,
+            "operations": 64
+          },
+          "wallRatio": 0.9302999608496765
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 3439.336436999998,
+            "cpuUserMs": 183.534,
+            "cpuSystemMs": 251.669,
+            "operations": 64
+          },
+          "native": {
+            "wallMs": 3507.365863999992,
+            "cpuUserMs": 168.129,
+            "cpuSystemMs": 260.072,
+            "operations": 64
+          },
+          "wallRatio": 0.980603840706139
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 3470.608886000002,
+            "cpuUserMs": 133.807,
+            "cpuSystemMs": 254.55,
+            "operations": 64
+          },
+          "sdk": {
+            "wallMs": 3376.632669999992,
+            "cpuUserMs": 157.81,
+            "cpuSystemMs": 249.078,
+            "operations": 64
+          },
+          "wallRatio": 0.9729222683722449
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 3511.0925609999977,
+            "cpuUserMs": 107.94,
+            "cpuSystemMs": 288.882,
+            "operations": 64
+          },
+          "native": {
+            "wallMs": 3488.795105000012,
+            "cpuUserMs": 83.459,
+            "cpuSystemMs": 342.305,
+            "operations": 64
+          },
+          "wallRatio": 1.0063911623723703
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 3550.7983149999927,
+            "cpuUserMs": 146.285,
+            "cpuSystemMs": 342.199,
+            "operations": 64
+          },
+          "sdk": {
+            "wallMs": 3618.2292019999877,
+            "cpuUserMs": 143.932,
+            "cpuSystemMs": 330.777,
+            "operations": 64
+          },
+          "wallRatio": 1.0189903455555727
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 4852.271890999997,
+            "cpuUserMs": 273.432,
+            "cpuSystemMs": 365.033,
+            "operations": 64
+          },
+          "native": {
+            "wallMs": 6511.146246000004,
+            "cpuUserMs": 295.58,
+            "cpuSystemMs": 395.249,
+            "operations": 64
+          },
+          "wallRatio": 0.7452254499706401
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 5191.570275999999,
+            "cpuUserMs": 204.413,
+            "cpuSystemMs": 378.499,
+            "operations": 64
+          },
+          "sdk": {
+            "wallMs": 3388.0962819999986,
+            "cpuUserMs": 150.675,
+            "cpuSystemMs": 262.841,
+            "operations": 64
+          },
+          "wallRatio": 0.6526149318757675
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 3549.3625610000017,
+            "cpuUserMs": 145.756,
+            "cpuSystemMs": 249.474,
+            "operations": 64
+          },
+          "native": {
+            "wallMs": 5636.2326859999885,
+            "cpuUserMs": 394.908,
+            "cpuSystemMs": 522.93,
+            "operations": 64
+          },
+          "wallRatio": 0.6297402464976956
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 4248.234628000006,
+            "cpuUserMs": 261.965,
+            "cpuSystemMs": 417.828,
+            "operations": 64
+          },
+          "sdk": {
+            "wallMs": 3679.213619999995,
+            "cpuUserMs": 183.015,
+            "cpuSystemMs": 267.519,
+            "operations": 64
+          },
+          "wallRatio": 0.866057066563695
+        }
+      ],
+      "medianWallRatio": 0.9302999608496765,
+      "wallRatio95PercentInterval": {
+        "method": "paired bootstrap median, 10000 deterministic resamples",
+        "lower": 0.6526149318757675,
+        "upper": 1.0063911623723703
+      },
+      "assessment": "within tolerance in sampled environment",
+      "medianParentCPURatio": 0.9320233744515741,
+      "medianNativeWallMs": 3663.540495999994,
+      "medianSDKWallMs": 3511.0925609999977,
+      "withinTolerance": true
+    },
+    {
+      "name": "stdin-text-capture",
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "/workspace/twill-shell-rfc/packages/shell/tests/fixtures/child.mjs",
+        "echo"
+      ],
+      "inputBytes": 1048576,
+      "outputByteLimit": 1048576,
+      "errorByteLimit": null,
+      "pairs": [
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 3734.38100400001,
+            "cpuUserMs": 142.91,
+            "cpuSystemMs": 235.382,
+            "operations": 64
+          },
+          "sdk": {
+            "wallMs": 5852.711758999998,
+            "cpuUserMs": 351.505,
+            "cpuSystemMs": 508.765,
+            "operations": 64
+          },
+          "wallRatio": 1.5672508382864467
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 3902.969523000007,
+            "cpuUserMs": 135.266,
+            "cpuSystemMs": 308.097,
+            "operations": 64
+          },
+          "native": {
+            "wallMs": 3908.876111999998,
+            "cpuUserMs": 231.518,
+            "cpuSystemMs": 275.001,
+            "operations": 64
+          },
+          "wallRatio": 0.9984889290858162
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 3997.657640999998,
+            "cpuUserMs": 209.603,
+            "cpuSystemMs": 277.367,
+            "operations": 64
+          },
+          "sdk": {
+            "wallMs": 3872.099319000001,
+            "cpuUserMs": 209.604,
+            "cpuSystemMs": 289.657,
+            "operations": 64
+          },
+          "wallRatio": 0.968592027313127
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 3871.950122999988,
+            "cpuUserMs": 203.867,
+            "cpuSystemMs": 278.6,
+            "operations": 64
+          },
+          "native": {
+            "wallMs": 3825.4444530000037,
+            "cpuUserMs": 156.479,
+            "cpuSystemMs": 333.024,
+            "operations": 64
+          },
+          "wallRatio": 1.012156932500618
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 3688.0195830000157,
+            "cpuUserMs": 139.819,
+            "cpuSystemMs": 267.636,
+            "operations": 64
+          },
+          "sdk": {
+            "wallMs": 3518.9558759999927,
+            "cpuUserMs": 189.209,
+            "cpuSystemMs": 194.925,
+            "operations": 64
+          },
+          "wallRatio": 0.9541586742707862
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 4049.2971719999914,
+            "cpuUserMs": 222.111,
+            "cpuSystemMs": 311.976,
+            "operations": 64
+          },
+          "native": {
+            "wallMs": 3682.2242670000123,
+            "cpuUserMs": 241.576,
+            "cpuSystemMs": 202.228,
+            "operations": 64
+          },
+          "wallRatio": 1.0996878186615835
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 3740.455246999976,
+            "cpuUserMs": 161.658,
+            "cpuSystemMs": 302.558,
+            "operations": 64
+          },
+          "sdk": {
+            "wallMs": 3611.6023730000015,
+            "cpuUserMs": 140.065,
+            "cpuSystemMs": 308.115,
+            "operations": 64
+          },
+          "wallRatio": 0.9655515530888062
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "wallMs": 3720.899188999989,
+            "cpuUserMs": 172.57,
+            "cpuSystemMs": 318.735,
+            "operations": 64
+          },
+          "native": {
+            "wallMs": 3590.0043189999997,
+            "cpuUserMs": 143.254,
+            "cpuSystemMs": 262.122,
+            "operations": 64
+          },
+          "wallRatio": 1.0364609227089872
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "wallMs": 3588.4624579999945,
+            "cpuUserMs": 156.172,
+            "cpuSystemMs": 259.811,
+            "operations": 64
+          },
+          "sdk": {
+            "wallMs": 4724.296761999984,
+            "cpuUserMs": 324.594,
+            "cpuSystemMs": 336.633,
+            "operations": 64
+          },
+          "wallRatio": 1.3165239478729391
+        }
+      ],
+      "medianWallRatio": 1.012156932500618,
+      "wallRatio95PercentInterval": {
+        "method": "paired bootstrap median, 10000 deterministic resamples",
+        "lower": 0.9655515530888062,
+        "upper": 1.3165239478729391
+      },
+      "assessment": "inconclusive",
+      "medianParentCPURatio": 1.025239747828408,
+      "medianNativeWallMs": 3734.38100400001,
+      "medianSDKWallMs": 3872.099319000001,
+      "withinTolerance": true
+    }
+  ],
+  "memory": [
+    {
+      "bytesPerStream": 1048576,
+      "pairs": [
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 30932992,
+              "heapTotal": 7335936,
+              "heapUsed": 4372104,
+              "external": 2017650,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 35651584,
+              "heapTotal": 7335936,
+              "heapUsed": 4954296,
+              "external": 6211958,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4718592,
+              "heapTotal": 0,
+              "heapUsed": 582192,
+              "external": 4194308,
+              "arrayBuffers": 4194304
+            }
+          },
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 31195136,
+              "heapTotal": 7335936,
+              "heapUsed": 4487336,
+              "external": 2020658,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 36175872,
+              "heapTotal": 7335936,
+              "heapUsed": 5047432,
+              "external": 6214966,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4980736,
+              "heapTotal": 0,
+              "heapUsed": 560096,
+              "external": 4194308,
+              "arrayBuffers": 4194304
+            }
+          }
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 31457280,
+              "heapTotal": 7598080,
+              "heapUsed": 4487264,
+              "external": 2020658,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 36175872,
+              "heapTotal": 7598080,
+              "heapUsed": 5270784,
+              "external": 6214966,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4718592,
+              "heapTotal": 0,
+              "heapUsed": 783520,
+              "external": 4194308,
+              "arrayBuffers": 4194304
+            }
+          },
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 30932992,
+              "heapTotal": 7598080,
+              "heapUsed": 4371376,
+              "external": 2017650,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 35520512,
+              "heapTotal": 7598080,
+              "heapUsed": 4763072,
+              "external": 6211958,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4587520,
+              "heapTotal": 0,
+              "heapUsed": 391696,
+              "external": 4194308,
+              "arrayBuffers": 4194304
+            }
+          }
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 30932992,
+              "heapTotal": 7335936,
+              "heapUsed": 4371376,
+              "external": 2017650,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 35782656,
+              "heapTotal": 7335936,
+              "heapUsed": 4760760,
+              "external": 6211958,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4849664,
+              "heapTotal": 0,
+              "heapUsed": 389384,
+              "external": 4194308,
+              "arrayBuffers": 4194304
+            }
+          },
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 31457280,
+              "heapTotal": 7335936,
+              "heapUsed": 4487280,
+              "external": 2020658,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 36044800,
+              "heapTotal": 7335936,
+              "heapUsed": 4891704,
+              "external": 6214966,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4587520,
+              "heapTotal": 0,
+              "heapUsed": 404424,
+              "external": 4194308,
+              "arrayBuffers": 4194304
+            }
+          }
+        }
+      ],
+      "scope": "Isolated parent processes; 1ms sampling plus immediate post-settlement observation. Not a hard peak/RSS bound."
+    },
+    {
+      "bytesPerStream": 8388608,
+      "pairs": [
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 31064064,
+              "heapTotal": 7335936,
+              "heapUsed": 4371376,
+              "external": 2017650,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 66387968,
+              "heapTotal": 7335936,
+              "heapUsed": 5140080,
+              "external": 35572086,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 35323904,
+              "heapTotal": 0,
+              "heapUsed": 768704,
+              "external": 33554436,
+              "arrayBuffers": 33554432
+            }
+          },
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 31064064,
+              "heapTotal": 7335936,
+              "heapUsed": 4487264,
+              "external": 2020658,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 66547712,
+              "heapTotal": 7335936,
+              "heapUsed": 5256640,
+              "external": 35575094,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 35483648,
+              "heapTotal": 0,
+              "heapUsed": 769376,
+              "external": 33554436,
+              "arrayBuffers": 33554432
+            }
+          }
+        },
+        {
+          "order": ["sdk", "native"],
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 31457280,
+              "heapTotal": 7598080,
+              "heapUsed": 4487336,
+              "external": 2020658,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 66772992,
+              "heapTotal": 7598080,
+              "heapUsed": 5246896,
+              "external": 35575094,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 35315712,
+              "heapTotal": 0,
+              "heapUsed": 759560,
+              "external": 33554436,
+              "arrayBuffers": 33554432
+            }
+          },
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 30801920,
+              "heapTotal": 7598080,
+              "heapUsed": 4371376,
+              "external": 2017650,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 66158592,
+              "heapTotal": 7598080,
+              "heapUsed": 5277752,
+              "external": 35572086,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 35356672,
+              "heapTotal": 0,
+              "heapUsed": 906376,
+              "external": 33554436,
+              "arrayBuffers": 33554432
+            }
+          }
+        },
+        {
+          "order": ["native", "sdk"],
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 30801920,
+              "heapTotal": 7335936,
+              "heapUsed": 4371376,
+              "external": 2017650,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 66441216,
+              "heapTotal": 7335936,
+              "heapUsed": 5273104,
+              "external": 35572086,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 35639296,
+              "heapTotal": 0,
+              "heapUsed": 901728,
+              "external": 33554436,
+              "arrayBuffers": 33554432
+            }
+          },
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 31457280,
+              "heapTotal": 7598080,
+              "heapUsed": 4487264,
+              "external": 2020658,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 66764800,
+              "heapTotal": 7598080,
+              "heapUsed": 5257648,
+              "external": 35575094,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 35307520,
+              "heapTotal": 0,
+              "heapUsed": 770384,
+              "external": 33554436,
+              "arrayBuffers": 33554432
+            }
+          }
+        }
+      ],
+      "scope": "Isolated parent processes; 1ms sampling plus immediate post-settlement observation. Not a hard peak/RSS bound."
+    }
+  ],
+  "coldStart": {
+    "pairs": [
+      {
+        "order": ["twill", "native", "sdk"],
+        "twill": {
+          "wallMs": 658.3931729999895
+        },
+        "native": {
+          "wallMs": 79.34451799999806
+        },
+        "sdk": {
+          "wallMs": 84.34470799998962
+        }
+      },
+      {
+        "order": ["sdk", "native", "twill"],
+        "sdk": {
+          "wallMs": 95.05675699998392
+        },
+        "native": {
+          "wallMs": 89.81249199999729
+        },
+        "twill": {
+          "wallMs": 589.2237479999894
+        }
+      },
+      {
+        "order": ["twill", "native", "sdk"],
+        "twill": {
+          "wallMs": 584.1647809999995
+        },
+        "native": {
+          "wallMs": 79.45376100001158
+        },
+        "sdk": {
+          "wallMs": 86.51907799998298
+        }
+      },
+      {
+        "order": ["sdk", "native", "twill"],
+        "sdk": {
+          "wallMs": 86.9404429999995
+        },
+        "native": {
+          "wallMs": 90.36317500000587
+        },
+        "twill": {
+          "wallMs": 585.6357649999845
+        }
+      },
+      {
+        "order": ["twill", "native", "sdk"],
+        "twill": {
+          "wallMs": 560.44731399999
+        },
+        "native": {
+          "wallMs": 80.52133700001286
+        },
+        "sdk": {
+          "wallMs": 84.54815099999541
+        }
+      },
+      {
+        "order": ["sdk", "native", "twill"],
+        "sdk": {
+          "wallMs": 92.74212400001124
+        },
+        "native": {
+          "wallMs": 76.19093599999906
+        },
+        "twill": {
+          "wallMs": 664.8279340000008
+        }
+      },
+      {
+        "order": ["twill", "native", "sdk"],
+        "twill": {
+          "wallMs": 564.6711850000138
+        },
+        "native": {
+          "wallMs": 83.96442199999001
+        },
+        "sdk": {
+          "wallMs": 99.1890710000007
+        }
+      },
+      {
+        "order": ["sdk", "native", "twill"],
+        "sdk": {
+          "wallMs": 86.67830800000229
+        },
+        "native": {
+          "wallMs": 96.62668899999699
+        },
+        "twill": {
+          "wallMs": 565.8500500000082
+        }
+      },
+      {
+        "order": ["twill", "native", "sdk"],
+        "twill": {
+          "wallMs": 591.847425999993
+        },
+        "native": {
+          "wallMs": 77.28069300000789
+        },
+        "sdk": {
+          "wallMs": 157.50037300001713
+        }
+      }
+    ],
+    "medianWallMs": {
+      "native": 80.52133700001286,
+      "sdk": 86.9404429999995,
+      "twill": 585.6357649999845
+    },
+    "scope": "Node startup, imports and one empty Node child; Twill additionally loads the existing compiler once. Separate from warm SDK execution."
+  },
+  "execFileReference": {
+    "samples": [
+      {
+        "wallMs": 3489.6399739999906,
+        "cpuUserMs": 177.844,
+        "cpuSystemMs": 245.363,
+        "operations": 64
+      },
+      {
+        "wallMs": 3481.476379000029,
+        "cpuUserMs": 139.395,
+        "cpuSystemMs": 326.704,
+        "operations": 64
+      },
+      {
+        "wallMs": 3688.26424400002,
+        "cpuUserMs": 161.916,
+        "cpuSystemMs": 343.553,
+        "operations": 64
+      },
+      {
+        "wallMs": 3635.968013000005,
+        "cpuUserMs": 166.608,
+        "cpuSystemMs": 309.727,
+        "operations": 64
+      },
+      {
+        "wallMs": 3948.71663000001,
+        "cpuUserMs": 212.387,
+        "cpuSystemMs": 309.557,
+        "operations": 64
+      },
+      {
+        "wallMs": 5127.008786999999,
+        "cpuUserMs": 401.411,
+        "cpuSystemMs": 428.5,
+        "operations": 64
+      },
+      {
+        "wallMs": 5107.756488999992,
+        "cpuUserMs": 334.447,
+        "cpuSystemMs": 406.889,
+        "operations": 64
+      },
+      {
+        "wallMs": 3754.0065880000184,
+        "cpuUserMs": 198.409,
+        "cpuSystemMs": 326.151,
+        "operations": 64
+      },
+      {
+        "wallMs": 3585.780942000012,
+        "cpuUserMs": 223.241,
+        "cpuSystemMs": 302.075,
+        "operations": 64
+      }
+    ],
+    "medianWallMs": 3688.26424400002,
+    "scope": "Native execFile binary capture with same per-stream limit and EOF. It internally creates stdin pipe; reference only, not the spawn gate."
+  }
+}

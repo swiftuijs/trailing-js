@@ -56,6 +56,7 @@ export async function main(args = process.argv.slice(2)): Promise<number> {
   }
   if (values['dry-run']) throw new Error('--dry-run is only supported by twill export');
   if (values.help || !command) {
+    console.log('twill <script> [arguments...]\ntwill run <script> [arguments...]');
     console.log(
       'twill compile <file> [-o output.ts] [--js] [--runtime inline|external]\ntwill check [-p tsconfig.json] [--json]\ntwill doctor [-p tsconfig.json] [--json]\ntwill declarations [-p tsconfig.json] [-o dist] [--build] [--json]\ntwill export [-p tsconfig.json] -o ../native-project [--dry-run] [--json]\n\ncompile keeps TypeScript types by default; --js erases types and lowers JSX.\nexport requires the optional @swiftuijs/twill-export package.\nCommands use the optional twill.config.json from the project root.',
     );

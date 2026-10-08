@@ -126,14 +126,15 @@ Use `@swiftuijs/twill/vite-react` for React Fast Refresh. The [build guide](http
 
 Install only the tools your project needs. Keep Twill packages on the same release version.
 
-| Package                                                                                  | Purpose                                                        |
-| ---------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| [`@swiftuijs/twill`](https://www.npmjs.com/package/@swiftuijs/twill)                     | Compiler, `twill` CLI, checker, build adapters and Node loader |
-| [`@swiftuijs/twill-formatter`](https://www.npmjs.com/package/@swiftuijs/twill-formatter) | Prettier plugin and browser-compatible formatting API          |
-| [`@swiftuijs/twill-linter`](https://www.npmjs.com/package/@swiftuijs/twill-linter)       | ESLint flat configurations and source-mapped fixes             |
-| [`@swiftuijs/twill-export`](https://www.npmjs.com/package/@swiftuijs/twill-export)       | Optional `twill export` command for native TS/TSX output       |
-| [`@swiftuijs/twill-highlight`](https://www.npmjs.com/package/@swiftuijs/twill-highlight) | Browser/SSR Shiki integration and TextMate grammars            |
-| `@swiftuijs/twill-runtime` (unreleased prototype)                                        | Optional, versioned synchronous cleanup helpers                |
+| Package                                                                                  | Purpose                                                          |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| [`@swiftuijs/twill`](https://www.npmjs.com/package/@swiftuijs/twill)                     | Compiler, `twill` CLI, checker, build adapters and Node loader   |
+| [`@swiftuijs/twill-formatter`](https://www.npmjs.com/package/@swiftuijs/twill-formatter) | Prettier plugin and browser-compatible formatting API            |
+| [`@swiftuijs/twill-linter`](https://www.npmjs.com/package/@swiftuijs/twill-linter)       | ESLint flat configurations and source-mapped fixes               |
+| [`@swiftuijs/twill-export`](https://www.npmjs.com/package/@swiftuijs/twill-export)       | Optional `twill export` command for native TS/TSX output         |
+| [`@swiftuijs/twill-highlight`](https://www.npmjs.com/package/@swiftuijs/twill-highlight) | Browser/SSR Shiki integration and TextMate grammars              |
+| `@swiftuijs/twill-shell` (unreleased prototype)                                          | Native argv execution, bounded output and owned process teardown |
+| `@swiftuijs/twill-runtime` (unreleased prototype)                                        | Optional, versioned synchronous cleanup helpers                  |
 
 Install the [Twill VS Code extension](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill) from Marketplace, or run `code --install-extension forth-ink.twill`. The extension bundles its editing tools. Your application installs the compiler for builds and whole-project checks. See the [editor guide](https://twill.evecalm.com/tooling) for configuration.
 
@@ -149,7 +150,7 @@ Install the [official Twill AI skill](https://twill.evecalm.com/ai) with `npx sk
 
 ## Contributing
 
-The repository is a pnpm workspace with Vite builds. See the [development guide](https://github.com/swiftuijs/twill/blob/main/docs/contributing/tooling.md) for checkout, dependency and build commands. Compiler, formatter, linter, export, highlight and optional runtime packages, editor packages, examples and the English documentation site own their code and tests.
+The repository is a pnpm workspace with Vite builds. See the [development guide](https://github.com/swiftuijs/twill/blob/main/docs/contributing/tooling.md) for checkout, dependency and build commands. Compiler, formatter, linter, export, highlight, optional runtime and shell packages, editor packages, examples and the English documentation site own their code and tests.
 
 ```sh
 pnpm check
@@ -165,3 +166,5 @@ See [contributing](https://github.com/swiftuijs/twill/blob/main/CONTRIBUTING.md)
 The RFC 0018 source prototype adds `if const value = lookup() { use(value); }` with branch-local nullish bindings and native destructuring. Group trailing calls in initializers, following Swift’s condition boundary. It emits native branches without a helper, closure or optional wrapper. This is unreleased; see [syntax](https://twill.evecalm.com/syntax#branch-nullish-bindings-unreleased) and [RFC 0018](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0018-optional-branch-bindings.md).
 
 Unreleased source work includes associated-value enums and accepted `match` expressions: `match (state) { case State.loaded({ value }): value; default: 0; }`. Named payload bindings and erased factory descriptors compile to native switches without calling factories. Native switch statements retain JS fallthrough; match and switch expressions return one result without fallthrough. These additions are not included in npm/Marketplace 0.1.2. Compiler, formatter, linter, highlighter, export and editor changes are validated together. See [syntax and compatibility](https://twill.evecalm.com/syntax#match-expressions-unreleased) and [RFC 0016](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0016-pattern-matching.md).
+
+For Node scripts, the unreleased source runner supports `#!/usr/bin/env twill`, `twill script.twill` and `twill run script.twill`, with Swift-inspired guards, callbacks and cleanup. The published 0.1.2 loader remains available through `node --import @swiftuijs/twill/register`. The unreleased [shell SDK](https://twill.evecalm.com/scripting) source prototype adds native argv execution, bounded output and process ownership without command compilation. It works independently with ordinary JS/TS; scoped streams, pipelines and shell templates remain deferred.

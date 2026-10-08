@@ -1,7 +1,16 @@
-import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import {
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+  rmSync,
+  existsSync,
+  chmodSync,
+  symlinkSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, delimiter } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
@@ -86,6 +95,53 @@ try {
   const cli = join(root, 'node_modules/@swiftuijs/twill', installed.bin.twill);
   const help = execFileSync(process.execPath, [cli, '--help'], { cwd: root, encoding: 'utf8' });
   assert(help.includes('twill export'), 'Unified CLI help must list source export');
+  assert(help.includes('twill run'), 'Unified CLI help must list script execution');
+  const script = join(root, 'runner-script');
+  writeFileSync(
+    script,
+    `#!/usr/bin/env twill
+guard const first = process.argv[2] else { throw new Error('Pass an argument'); }
+const values: number[] = [1,2].map { n in n * 2 };
+console.log(JSON.stringify({args:process.argv.slice(2),values,pid:process.pid}));`,
+  );
+  const scriptArgs = ['--help', '-p', '--', '', 'a b', '中文;$(literal)'];
+  for (const prefix of [[], ['run']]) {
+    const result = spawnSync(process.execPath, [cli, ...prefix, script, ...scriptArgs], {
+      cwd: root,
+      encoding: 'utf8',
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout), {
+      args: scriptArgs,
+      values: [2, 4],
+      pid: result.pid,
+    });
+  }
+  if (process.platform !== 'win32') {
+    chmodSync(script, 0o755);
+    const result = spawnSync(script, scriptArgs, {
+      cwd: root,
+      encoding: 'utf8',
+      env: { ...process.env, PATH: join(root, 'node_modules/.bin') + delimiter + process.env.PATH },
+    });
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(JSON.parse(result.stdout).args, scriptArgs);
+    const linked = join(root, 'runner-linked');
+    symlinkSync(script, linked);
+    for (const flags of [[], ['--preserve-symlinks']]) {
+      const preserved = spawnSync(process.execPath, [...flags, cli, linked, ...scriptArgs], {
+        cwd: root,
+        encoding: 'utf8',
+      });
+      assert.equal(preserved.status, 0, preserved.stderr);
+      assert.deepEqual(JSON.parse(preserved.stdout).args, scriptArgs);
+    }
+  }
+  const runnerDirectory = join(root, 'runner-smoke');
+  mkdirSync(runnerDirectory);
+  const exitScript = join(runnerDirectory, 'exit.twill');
+  writeFileSync(exitScript, 'process.exitCode=23;');
+  assert.equal(spawnSync(process.execPath, [cli, exitScript], { cwd: root }).status, 23);
   assert.equal(installed.dependencies['@swiftuijs/twill-export'], undefined);
   assert.throws(
     () =>

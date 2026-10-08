@@ -1,0 +1,2 @@
+import { Command, Subprocess } from '../dist/index.js';
+await Subprocess.run(Command.path(process.execPath, ['-e', '']));

@@ -4,6 +4,8 @@ Install `@swiftuijs/twill` as a development dependency in your application. Sele
 
 The unreleased [optional runtime](./runtime.md) prototype reads `runtime` from the common project configuration, or from the adapter options. External cleanup requires the runtime as a production dependency; inline remains the default.
 
+For Node automation, see [shell scripting](scripting.md): the published loader executes Twill sources; the optional subprocess SDK is an unreleased source prototype.
+
 Run `twill check` separately before production builds. Adapters emit code and source maps; they do not perform project type checking.
 
 ## Adapter support
