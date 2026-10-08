@@ -1,0 +1,3235 @@
+{
+  "schemaVersion": 1,
+  "dateUTC": "2026-10-08T05:01:42.591Z",
+  "node": "v24.19.0",
+  "platform": "linux",
+  "arch": "x64",
+  "kernel": "6.18.44",
+  "cpu": "INTEL(R) XEON(R) PLATINUM 8573C",
+  "rustc": "rustc 1.90.0 (1159e78c4 2025-09-14)",
+  "cc": "cc (Debian 14.2.0-19) 14.2.0",
+  "gitHead": "2ac62ee32cdf7c741395456f1f6f0ec48c533627",
+  "gitStatus": "",
+  "sourceAndBuildSHA256": {
+    "Cargo.toml": "56beb808054a110d72bf217c43000d8475cfcb73487a0b5d032be1c066745969",
+    "Cargo.lock": "902e09b49579d2bd9d989aac0f04cd40f799f1a7ca4ae89e51ed654ed54ce2a4",
+    "rust-toolchain.toml": "c33d1f0b1b8fda448bea32d7dc867aa64947c87169fd9de7122ffccad1dd80f9",
+    "build.rs": "fcbd1ff3f627a7553fa1704dc6f558998daff8bc256015c37aace62cc49ce584",
+    "src/lib.rs": "91bf70798de541a76fdb7b9243f3b05ec71f836a7a4e11103803d58a63be3e59",
+    "build.mjs": "5c0181f0639bd1136d60fd8aa9390321eef4cb904d8fd5a9efd3db298865a2cb",
+    "adapter.mjs": "cd6df58f334c4ee8d96752e891293e30348d5072f3060f820cc077efc304f636",
+    "fixture.c": "1826d4535a6ef60e2be6b4b48fb337366c23a7216755ff49c595dd147606ca40",
+    "target/fixture": "7330ce9105b7cd4240b54a6cae9ef8e5bbfc465d63e952ff18b82ba4bbd6062f",
+    "benchmark.mjs": "8ad41caab199fb57c551e8c161f8c3271b4ccd88003e060d6e94b4e1ab3c56ad",
+    "observe.mjs": "7557a88dfdf7aa0e218fc828a0c44708491a6ff46e917f444507acb57543e094",
+    "cold-sdk.twill": "d90743e9680191bcf2ccd313e265f84fe63c8433db178d8bba4acc573d2d8be7",
+    "cold-rust.twill": "8175a30226226d9e8dde98ed88588031c9535bec8d927669688ce95ffcc762f9",
+    "experiment.node": "47a5bb9cc72bd43854382b8f7135ab56cb4c493b6f90437424c355e6d4506391",
+    "../../src/index.ts": "831b6b4285be1c35a2da67d436fe1fdaf1a8c26933845f024e47b5141e023ead",
+    "../../src/values.ts": "c129ef2e5e68e730db44d318e899ef86d26a0ac85cec50194e1796932187b6c9",
+    "../../src/errors.ts": "607b2246b07f472bbe9157c3caa0c59f9f363d0aadfc3cd219dd557dec483176",
+    "../../dist/index.js": "0491db747345dcbe6673b7048dac46a1570500f32ef6a7e325c7327a632238a6",
+    "../../dist/values.js": "98ba46360e79281fc9063657e894014b19e896b5c1ae3f5e6bea3e90dfdeea37",
+    "../../dist/errors.js": "30dbc7d6463599101efe4d6a24e6f64f347387472d2718cec94a5455e2676915",
+    "../../benchmarks/native.mjs": "b4906480ec60b092d72068ab3fbb63d017c9ec2c4d83010e54bee6e7ed4e46fe",
+    "../../tests/fixtures/child.mjs": "77556f34cc3fe05b75aa0ae24b4e3586b60714916f3a30dd1a01de6f986b0921",
+    "../../../twill/bin/twill.mjs": "86b6b582a0157a25ef56af131217171cf1ccd76b9714b9e5e2951891c7b8b8ee",
+    "../../../twill/bin/run.mjs": "9e3f6d4bf7f1c0e8354e9c33bf6ad06eb9ed376adddef5f44596cb42380bed3a",
+    "../../../twill/dist/cli.js": "eda0b5dbdf9ebd93b211e9431b53b8b67d8ecf6fbc1fff848e68c3a02fe358ce",
+    "../../../twill/dist/compilation-cache-CuCGz02_.js": "d70dd6e7c7a31a6eab83d3ae3a2b8c5269620c3dd6a56973b63a192b7ff619f7",
+    "../../../twill/dist/compiler-DY1N07np.js": "36a91858c1522adefc4db3ca361ddfaa5ef0c53a587b9f7bd9eadeb045d5bfe1",
+    "../../../twill/dist/config.js": "0667c38f1f45c7bb80b75feeb29547f51a6ee4d5220f79f00746a8de8ec3b640",
+    "../../../twill/dist/configuration-CTJjSu_h.js": "5e40bad77ae62c3024e3a7dc57d102f1175daf83076dbc5d23cd505bea264e89",
+    "../../../twill/dist/declarations.js": "1779cbba4d7835363f04b641cc97001eb003981e697a1254a2b15acd6f6fff55",
+    "../../../twill/dist/doctor.js": "e0a2459a11e5a332df2100e323da5b3d01d690e63c9aca5bb5caa0d62830ac5a",
+    "../../../twill/dist/editor.js": "39f5968afabb957f9753552a88857f567301cf84a724ccd3af9ace407fa21ed9",
+    "../../../twill/dist/esbuild.js": "45589cf2b473d808685f9ce2ef560b0f26fde12898c14d68a97a1011d8c848e9",
+    "../../../twill/dist/extensions-B1xTkoYP.js": "aacd7b769c102fb1bbb05f9aeefae08e5fe90e06a7dedd98959c9a0bae22f302",
+    "../../../twill/dist/files-BW9geU0_.js": "96b175bbac921d9357e9d8d5524e2c3d34ab398153d927994bc2c8261e7fcafb",
+    "../../../twill/dist/index.js": "cb6c24e5d64d665618efd8418d265cb9c61f6ab24501b12afddb93afa6066879",
+    "../../../twill/dist/loader-compiler-DIw9aw5n.js": "3c94fcf12f10ac74fee44044232ccb79af194cd39420a860862efb98f084fa53",
+    "../../../twill/dist/loader.js": "fc7f33c52cbbc584cedcaac92603b3ce840cb73746a27a9cea91c71142abd8d2",
+    "../../../twill/dist/plugin-Bks2hxCJ.js": "75bb582e4b3111bb998d2bb907a7c4477b86414c93d41af0c5bba3a1551e143a",
+    "../../../twill/dist/project.js": "f9b46938e706396e9b45f2a0707516ed132c7ffbe9c678f06ce01f80bdd782d5",
+    "../../../twill/dist/register.js": "039fb5d5276aaa5d4ec3a2518e5408a0b27a950dac1f02f52254e99da2450cf9",
+    "../../../twill/dist/rollup.js": "66db294b17110b0dcaaeb500a3951cc50ec6884811edc9309c16b4469af1d397",
+    "../../../twill/dist/rspack.js": "09b74b683ab0cdfa484df541b62b710b25230cfa7a2bf658c91e24006fcf5b32",
+    "../../../twill/dist/syntax.js": "576a7183ace9acda786df27dabbe665d05db1afcbd579f5a31511300700249e8",
+    "../../../twill/dist/transpile-DG81yfVs.js": "efafe479db1deeb99ea4f7598f87ef5388ffa631190f6c9a3492a57ccc4f683e",
+    "../../../twill/dist/vite-react.js": "68ef09c437384cb3b0326974feb3209b80396f81a92176fd2f9323fbe6619f48",
+    "../../../twill/dist/vite.js": "3eddb415605d606febc6b54f8ae6b1922dad342ab935e5fe1003bda1b161b2e8",
+    "../../../twill/dist/webpack.js": "cccb9ffff64ef7432558419983d9e31a4a9fe6b6d0f8ae0acc76fab6b806a5ff"
+  },
+  "nativeArtifactBytes": 495808,
+  "samples": 11,
+  "orderPermutations": [
+    ["native", "sdk", "rust"],
+    ["rust", "sdk", "native"],
+    ["sdk", "rust", "native"],
+    ["native", "rust", "sdk"],
+    ["rust", "native", "sdk"],
+    ["sdk", "native", "rust"]
+  ],
+  "scope": "Linux successful direct-child subset; all individual operations interleaved and checked. Parent CPU includes Rust worker threads, excludes child CPU. Rust snapshots input and uses a hard direct-child deadline, generic errors and libuv pool; it is not full SDK contract parity. No child acceleration, compiler port, containment, pipeline or cross-platform claim.",
+  "results": [
+    {
+      "name": "native-executable-inherit",
+      "argv": ["/usr/bin/true"],
+      "inputBytes": 0,
+      "outputByteLimit": null,
+      "errorByteLimit": null,
+      "pairs": [
+        {
+          "native": {
+            "wallMs": 1748.5381640000037,
+            "parentCPUMs": 649.1469999999995
+          },
+          "sdk": {
+            "wallMs": 1722.463728999996,
+            "parentCPUMs": 678.3020000000001
+          },
+          "rust": {
+            "wallMs": 1054.7884480000007,
+            "parentCPUMs": 303.2739999999998
+          },
+          "operations": 512,
+          "sample": 0
+        },
+        {
+          "native": {
+            "wallMs": 1671.4006450000352,
+            "parentCPUMs": 579.4109999999995
+          },
+          "sdk": {
+            "wallMs": 1688.785646999987,
+            "parentCPUMs": 583.7049999999996
+          },
+          "rust": {
+            "wallMs": 980.7380389999898,
+            "parentCPUMs": 284.2540000000001
+          },
+          "operations": 512,
+          "sample": 1
+        },
+        {
+          "native": {
+            "wallMs": 1989.8386700000065,
+            "parentCPUMs": 683.9390000000004
+          },
+          "sdk": {
+            "wallMs": 1955.89119700001,
+            "parentCPUMs": 676.1590000000001
+          },
+          "rust": {
+            "wallMs": 1269.3523080000068,
+            "parentCPUMs": 322.7609999999999
+          },
+          "operations": 512,
+          "sample": 2
+        },
+        {
+          "native": {
+            "wallMs": 1640.8670769999972,
+            "parentCPUMs": 587.2670000000002
+          },
+          "sdk": {
+            "wallMs": 1658.2970099999438,
+            "parentCPUMs": 599.3279999999995
+          },
+          "rust": {
+            "wallMs": 984.0341960000551,
+            "parentCPUMs": 301.7509999999999
+          },
+          "operations": 512,
+          "sample": 3
+        },
+        {
+          "native": {
+            "wallMs": 1746.3634610000154,
+            "parentCPUMs": 646.7060000000001
+          },
+          "sdk": {
+            "wallMs": 1769.6707739999438,
+            "parentCPUMs": 637.0169999999997
+          },
+          "rust": {
+            "wallMs": 995.4767990000037,
+            "parentCPUMs": 297.75500000000017
+          },
+          "operations": 512,
+          "sample": 4
+        },
+        {
+          "native": {
+            "wallMs": 1515.6836680000124,
+            "parentCPUMs": 524.1340000000001
+          },
+          "sdk": {
+            "wallMs": 1504.265669000004,
+            "parentCPUMs": 525.8779999999998
+          },
+          "rust": {
+            "wallMs": 969.4372039999253,
+            "parentCPUMs": 292.62400000000025
+          },
+          "operations": 512,
+          "sample": 5
+        },
+        {
+          "native": {
+            "wallMs": 1654.6641650000347,
+            "parentCPUMs": 602.6650000000003
+          },
+          "sdk": {
+            "wallMs": 1682.010646000028,
+            "parentCPUMs": 597.5349999999997
+          },
+          "rust": {
+            "wallMs": 984.3301890000221,
+            "parentCPUMs": 295.32199999999995
+          },
+          "operations": 512,
+          "sample": 6
+        },
+        {
+          "native": {
+            "wallMs": 1945.7340250001253,
+            "parentCPUMs": 737.6839999999999
+          },
+          "sdk": {
+            "wallMs": 1923.2763949999317,
+            "parentCPUMs": 749.7189999999998
+          },
+          "rust": {
+            "wallMs": 983.0149690001563,
+            "parentCPUMs": 289.9179999999999
+          },
+          "operations": 512,
+          "sample": 7
+        },
+        {
+          "native": {
+            "wallMs": 1970.1499599999006,
+            "parentCPUMs": 759.9000000000002
+          },
+          "sdk": {
+            "wallMs": 1967.8564229999174,
+            "parentCPUMs": 764.9840000000002
+          },
+          "rust": {
+            "wallMs": 996.742966999911,
+            "parentCPUMs": 288.23900000000003
+          },
+          "operations": 512,
+          "sample": 8
+        },
+        {
+          "native": {
+            "wallMs": 1657.8180650000722,
+            "parentCPUMs": 591.5829999999993
+          },
+          "sdk": {
+            "wallMs": 1652.3849869999613,
+            "parentCPUMs": 601.072
+          },
+          "rust": {
+            "wallMs": 954.8818280000196,
+            "parentCPUMs": 270.25599999999986
+          },
+          "operations": 512,
+          "sample": 9
+        },
+        {
+          "native": {
+            "wallMs": 1690.6303960001096,
+            "parentCPUMs": 609.4540000000003
+          },
+          "sdk": {
+            "wallMs": 1677.4691670000611,
+            "parentCPUMs": 614.5060000000002
+          },
+          "rust": {
+            "wallMs": 955.1006089999864,
+            "parentCPUMs": 281.81
+          },
+          "operations": 512,
+          "sample": 10
+        }
+      ],
+      "medianWallMsPerOperation": {
+        "native": 3.302012492187714,
+        "sdk": 3.2984094667968495,
+        "rust": 1.9219417890626076
+      },
+      "rustVersusSDK": {
+        "wall": {
+          "medianRatio": 0.5807356550798525,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.5625209014160027,
+            "upper": 0.6123719357576111
+          }
+        },
+        "parentCPU": {
+          "medianRatio": 0.4674208066660706,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.44710763052445623,
+            "upper": 0.4942338105717658
+          }
+        }
+      },
+      "rustVersusNative": {
+        "wall": {
+          "medianRatio": 0.5867761520458006,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.564937558948233,
+            "upper": 0.6032401635358292
+          }
+        },
+        "parentCPU": {
+          "medianRatio": 0.46718847965098814,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.45683530459800265,
+            "upper": 0.490591307379391
+          }
+        }
+      },
+      "sdkVersusNative": {
+        "wall": {
+          "medianRatio": 0.9967227537720729,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.988458016506037,
+            "upper": 1.0106223918099533
+          }
+        }
+      }
+    },
+    {
+      "name": "node-inherit",
+      "argv": ["/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node", "-e", ""],
+      "inputBytes": 0,
+      "outputByteLimit": null,
+      "errorByteLimit": null,
+      "pairs": [
+        {
+          "native": {
+            "wallMs": 936.9983610000199,
+            "parentCPUMs": 37.465999999999994
+          },
+          "sdk": {
+            "wallMs": 942.6202689999991,
+            "parentCPUMs": 37.080000000000005
+          },
+          "rust": {
+            "wallMs": 861.8964250000208,
+            "parentCPUMs": 16.589000000000002
+          },
+          "operations": 24,
+          "sample": 0
+        },
+        {
+          "native": {
+            "wallMs": 1060.8533580000149,
+            "parentCPUMs": 58.888
+          },
+          "sdk": {
+            "wallMs": 955.7677850000036,
+            "parentCPUMs": 48.211000000000006
+          },
+          "rust": {
+            "wallMs": 985.6729299999788,
+            "parentCPUMs": 30.719000000000005
+          },
+          "operations": 24,
+          "sample": 1
+        },
+        {
+          "native": {
+            "wallMs": 1282.8579720000125,
+            "parentCPUMs": 52.44600000000001
+          },
+          "sdk": {
+            "wallMs": 1259.9271790000057,
+            "parentCPUMs": 66.337
+          },
+          "rust": {
+            "wallMs": 1446.4162729999807,
+            "parentCPUMs": 45.019999999999996
+          },
+          "operations": 24,
+          "sample": 2
+        },
+        {
+          "native": {
+            "wallMs": 1126.0936760000113,
+            "parentCPUMs": 48.925000000000004
+          },
+          "sdk": {
+            "wallMs": 1028.1427330000151,
+            "parentCPUMs": 46.306
+          },
+          "rust": {
+            "wallMs": 1080.2597869999954,
+            "parentCPUMs": 19.119
+          },
+          "operations": 24,
+          "sample": 3
+        },
+        {
+          "native": {
+            "wallMs": 928.0230069999889,
+            "parentCPUMs": 32.172000000000004
+          },
+          "sdk": {
+            "wallMs": 821.5931909999927,
+            "parentCPUMs": 30.838000000000005
+          },
+          "rust": {
+            "wallMs": 854.233706999963,
+            "parentCPUMs": 16.724
+          },
+          "operations": 24,
+          "sample": 4
+        },
+        {
+          "native": {
+            "wallMs": 870.1409710000153,
+            "parentCPUMs": 33.288
+          },
+          "sdk": {
+            "wallMs": 950.2164709999342,
+            "parentCPUMs": 33.43000000000001
+          },
+          "rust": {
+            "wallMs": 815.5101239999931,
+            "parentCPUMs": 15.718999999999998
+          },
+          "operations": 24,
+          "sample": 5
+        },
+        {
+          "native": {
+            "wallMs": 905.4972350000025,
+            "parentCPUMs": 42.468999999999994
+          },
+          "sdk": {
+            "wallMs": 936.2736650000297,
+            "parentCPUMs": 38.327000000000005
+          },
+          "rust": {
+            "wallMs": 896.9479479999718,
+            "parentCPUMs": 16.852999999999998
+          },
+          "operations": 24,
+          "sample": 6
+        },
+        {
+          "native": {
+            "wallMs": 866.5145109999721,
+            "parentCPUMs": 34.835
+          },
+          "sdk": {
+            "wallMs": 900.0518999999913,
+            "parentCPUMs": 32.855999999999995
+          },
+          "rust": {
+            "wallMs": 862.6108600000152,
+            "parentCPUMs": 16.206
+          },
+          "operations": 24,
+          "sample": 7
+        },
+        {
+          "native": {
+            "wallMs": 872.7694620000402,
+            "parentCPUMs": 33.088
+          },
+          "sdk": {
+            "wallMs": 854.0603909999918,
+            "parentCPUMs": 33.049
+          },
+          "rust": {
+            "wallMs": 841.5974040000292,
+            "parentCPUMs": 16.198999999999998
+          },
+          "operations": 24,
+          "sample": 8
+        },
+        {
+          "native": {
+            "wallMs": 899.8458079999837,
+            "parentCPUMs": 34.937
+          },
+          "sdk": {
+            "wallMs": 904.8671970000141,
+            "parentCPUMs": 31.725999999999996
+          },
+          "rust": {
+            "wallMs": 850.7765020000224,
+            "parentCPUMs": 17.929000000000002
+          },
+          "operations": 24,
+          "sample": 9
+        },
+        {
+          "native": {
+            "wallMs": 982.2813909999968,
+            "parentCPUMs": 38.00700000000001
+          },
+          "sdk": {
+            "wallMs": 906.5129780000279,
+            "parentCPUMs": 37.35
+          },
+          "rust": {
+            "wallMs": 919.303264999995,
+            "parentCPUMs": 16.721999999999998
+          },
+          "operations": 24,
+          "sample": 10
+        }
+      ],
+      "medianWallMsPerOperation": {
+        "native": 38.667625291666205,
+        "sdk": 39.01140270833457,
+        "rust": 35.942119166667304
+      },
+      "rustVersusSDK": {
+        "wall": {
+          "medianRatio": 0.9854073703320089,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.9402225042754082,
+            "upper": 1.0397283185371125
+          }
+        },
+        "parentCPU": {
+          "medianRatio": 0.4901509879270174,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.44738403451995684,
+            "upper": 0.5651200907772806
+          }
+        }
+      },
+      "rustVersusNative": {
+        "wall": {
+          "medianRatio": 0.9454692064310176,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.9291321204452133,
+            "upper": 0.9905584615064774
+          }
+        },
+        "parentCPU": {
+          "medianRatio": 0.472212208603701,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.43997158418186105,
+            "upper": 0.5198309088648514
+          }
+        }
+      },
+      "sdkVersusNative": {
+        "wall": {
+          "medianRatio": 0.9821252285907714,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.9130170561405451,
+            "upper": 1.033988430677016
+          }
+        }
+      }
+    },
+    {
+      "name": "native-dual-capture-1048576",
+      "argv": [
+        "/workspace/twill-shell-rust/packages/shell/experiments/rust-native/target/fixture",
+        "emit",
+        "1048576"
+      ],
+      "inputBytes": 0,
+      "outputByteLimit": 1048576,
+      "errorByteLimit": 1048576,
+      "pairs": [
+        {
+          "native": {
+            "wallMs": 609.5854580000596,
+            "parentCPUMs": 417.39300000000003
+          },
+          "sdk": {
+            "wallMs": 631.721242999949,
+            "parentCPUMs": 441.56900000000013
+          },
+          "rust": {
+            "wallMs": 407.7813719999831,
+            "parentCPUMs": 324.94499999999994
+          },
+          "operations": 64,
+          "sample": 0
+        },
+        {
+          "native": {
+            "wallMs": 467.06363200004853,
+            "parentCPUMs": 325.212
+          },
+          "sdk": {
+            "wallMs": 454.84064399999625,
+            "parentCPUMs": 342.2830000000001
+          },
+          "rust": {
+            "wallMs": 324.49643500005186,
+            "parentCPUMs": 295.99799999999993
+          },
+          "operations": 64,
+          "sample": 1
+        },
+        {
+          "native": {
+            "wallMs": 515.5043089999672,
+            "parentCPUMs": 402.39000000000004
+          },
+          "sdk": {
+            "wallMs": 510.223113,
+            "parentCPUMs": 369.97
+          },
+          "rust": {
+            "wallMs": 310.2347060000902,
+            "parentCPUMs": 242.24100000000007
+          },
+          "operations": 64,
+          "sample": 2
+        },
+        {
+          "native": {
+            "wallMs": 625.1533019999479,
+            "parentCPUMs": 420.86699999999996
+          },
+          "sdk": {
+            "wallMs": 644.5517039999831,
+            "parentCPUMs": 482.206
+          },
+          "rust": {
+            "wallMs": 307.88152699996135,
+            "parentCPUMs": 241.52799999999996
+          },
+          "operations": 64,
+          "sample": 3
+        },
+        {
+          "native": {
+            "wallMs": 607.4901060000557,
+            "parentCPUMs": 417.09400000000005
+          },
+          "sdk": {
+            "wallMs": 612.1938110000483,
+            "parentCPUMs": 429.4919999999999
+          },
+          "rust": {
+            "wallMs": 341.8504070000199,
+            "parentCPUMs": 248.665
+          },
+          "operations": 64,
+          "sample": 4
+        },
+        {
+          "native": {
+            "wallMs": 601.5037110000267,
+            "parentCPUMs": 424.77299999999997
+          },
+          "sdk": {
+            "wallMs": 590.6337899999926,
+            "parentCPUMs": 409.4820000000001
+          },
+          "rust": {
+            "wallMs": 344.5389540000324,
+            "parentCPUMs": 254.61499999999998
+          },
+          "operations": 64,
+          "sample": 5
+        },
+        {
+          "native": {
+            "wallMs": 520.8224209999753,
+            "parentCPUMs": 355.1000000000001
+          },
+          "sdk": {
+            "wallMs": 543.0803190000588,
+            "parentCPUMs": 414.07500000000016
+          },
+          "rust": {
+            "wallMs": 325.2170950000291,
+            "parentCPUMs": 267.9150000000001
+          },
+          "operations": 64,
+          "sample": 6
+        },
+        {
+          "native": {
+            "wallMs": 656.2214090000198,
+            "parentCPUMs": 440.5309999999998
+          },
+          "sdk": {
+            "wallMs": 681.6192379999411,
+            "parentCPUMs": 467.8739999999999
+          },
+          "rust": {
+            "wallMs": 306.4148230000428,
+            "parentCPUMs": 270.36099999999993
+          },
+          "operations": 64,
+          "sample": 7
+        },
+        {
+          "native": {
+            "wallMs": 679.9756670000643,
+            "parentCPUMs": 494.3100000000001
+          },
+          "sdk": {
+            "wallMs": 677.7014159999671,
+            "parentCPUMs": 479.9089999999998
+          },
+          "rust": {
+            "wallMs": 311.4723859999649,
+            "parentCPUMs": 223.46699999999998
+          },
+          "operations": 64,
+          "sample": 8
+        },
+        {
+          "native": {
+            "wallMs": 540.9251219999715,
+            "parentCPUMs": 363.0849999999999
+          },
+          "sdk": {
+            "wallMs": 559.0044649999618,
+            "parentCPUMs": 397.3230000000001
+          },
+          "rust": {
+            "wallMs": 313.13905299994803,
+            "parentCPUMs": 283.7689999999999
+          },
+          "operations": 64,
+          "sample": 9
+        },
+        {
+          "native": {
+            "wallMs": 545.9527740000776,
+            "parentCPUMs": 392.2770000000002
+          },
+          "sdk": {
+            "wallMs": 552.937054999973,
+            "parentCPUMs": 388.582
+          },
+          "rust": {
+            "wallMs": 321.662704999937,
+            "parentCPUMs": 250.57199999999995
+          },
+          "operations": 64,
+          "sample": 10
+        }
+      ],
+      "medianWallMsPerOperation": {
+        "native": 9.398495484375417,
+        "sdk": 9.228652968749884,
+        "rust": 5.025979765624015
+      },
+      "rustVersusSDK": {
+        "wall": {
+          "medianRatio": 0.5817347600260805,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.47766769537540377,
+            "upper": 0.6080373430673851
+          }
+        },
+        "parentCPU": {
+          "medianRatio": 0.644836868408727,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.5778500194496808,
+            "upper": 0.7142022988852894
+          }
+        }
+      },
+      "rustVersusNative": {
+        "wall": {
+          "medianRatio": 0.5788953780556055,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.4924896437641899,
+            "upper": 0.6244299052556428
+          }
+        },
+        "parentCPU": {
+          "medianRatio": 0.6137161743441439,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.5961845531223177,
+            "upper": 0.7785108997994693
+          }
+        }
+      },
+      "sdkVersusNative": {
+        "wall": {
+          "medianRatio": 1.0127928299525306,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.9897552825305918,
+            "upper": 1.0363128495100802
+          }
+        }
+      }
+    },
+    {
+      "name": "native-dual-capture-8388608",
+      "argv": [
+        "/workspace/twill-shell-rust/packages/shell/experiments/rust-native/target/fixture",
+        "emit",
+        "8388608"
+      ],
+      "inputBytes": 0,
+      "outputByteLimit": 8388608,
+      "errorByteLimit": 8388608,
+      "pairs": [
+        {
+          "native": {
+            "wallMs": 519.8678930000169,
+            "parentCPUMs": 540.0590000000001
+          },
+          "sdk": {
+            "wallMs": 542.0831369999796,
+            "parentCPUMs": 587.621
+          },
+          "rust": {
+            "wallMs": 444.38440300000366,
+            "parentCPUMs": 413.22799999999995
+          },
+          "operations": 16,
+          "sample": 0
+        },
+        {
+          "native": {
+            "wallMs": 479.153112999993,
+            "parentCPUMs": 505.0610000000001
+          },
+          "sdk": {
+            "wallMs": 468.138993999979,
+            "parentCPUMs": 482.962
+          },
+          "rust": {
+            "wallMs": 400.1367759999557,
+            "parentCPUMs": 419.922
+          },
+          "operations": 16,
+          "sample": 1
+        },
+        {
+          "native": {
+            "wallMs": 483.86465600001975,
+            "parentCPUMs": 510.52700000000004
+          },
+          "sdk": {
+            "wallMs": 482.4034560000291,
+            "parentCPUMs": 492.59499999999997
+          },
+          "rust": {
+            "wallMs": 432.4848600000405,
+            "parentCPUMs": 413.25700000000006
+          },
+          "operations": 16,
+          "sample": 2
+        },
+        {
+          "native": {
+            "wallMs": 491.94519299997773,
+            "parentCPUMs": 544.006
+          },
+          "sdk": {
+            "wallMs": 481.23038100001577,
+            "parentCPUMs": 479.59999999999997
+          },
+          "rust": {
+            "wallMs": 397.9419449999841,
+            "parentCPUMs": 410.64699999999993
+          },
+          "operations": 16,
+          "sample": 3
+        },
+        {
+          "native": {
+            "wallMs": 490.92971300001955,
+            "parentCPUMs": 529.7869999999999
+          },
+          "sdk": {
+            "wallMs": 470.4117570000235,
+            "parentCPUMs": 467.123
+          },
+          "rust": {
+            "wallMs": 400.6761770000012,
+            "parentCPUMs": 412.488
+          },
+          "operations": 16,
+          "sample": 4
+        },
+        {
+          "native": {
+            "wallMs": 496.4756300000008,
+            "parentCPUMs": 516.78
+          },
+          "sdk": {
+            "wallMs": 476.95456600002944,
+            "parentCPUMs": 465.05699999999996
+          },
+          "rust": {
+            "wallMs": 432.89284900003986,
+            "parentCPUMs": 466.0210000000001
+          },
+          "operations": 16,
+          "sample": 5
+        },
+        {
+          "native": {
+            "wallMs": 493.3417080000363,
+            "parentCPUMs": 511.72799999999995
+          },
+          "sdk": {
+            "wallMs": 555.2560199999862,
+            "parentCPUMs": 483.206
+          },
+          "rust": {
+            "wallMs": 452.4824400000216,
+            "parentCPUMs": 459.76899999999995
+          },
+          "operations": 16,
+          "sample": 6
+        },
+        {
+          "native": {
+            "wallMs": 466.69362599999295,
+            "parentCPUMs": 493.333
+          },
+          "sdk": {
+            "wallMs": 462.1265729999577,
+            "parentCPUMs": 474.40900000000005
+          },
+          "rust": {
+            "wallMs": 417.64701100002276,
+            "parentCPUMs": 434.59999999999997
+          },
+          "operations": 16,
+          "sample": 7
+        },
+        {
+          "native": {
+            "wallMs": 454.52088399993954,
+            "parentCPUMs": 486.1209999999999
+          },
+          "sdk": {
+            "wallMs": 524.7062099999748,
+            "parentCPUMs": 511.91
+          },
+          "rust": {
+            "wallMs": 372.1639809999906,
+            "parentCPUMs": 366.878
+          },
+          "operations": 16,
+          "sample": 8
+        },
+        {
+          "native": {
+            "wallMs": 473.1940099999774,
+            "parentCPUMs": 519.315
+          },
+          "sdk": {
+            "wallMs": 455.94470499998715,
+            "parentCPUMs": 456.303
+          },
+          "rust": {
+            "wallMs": 366.9075509999966,
+            "parentCPUMs": 365.0330000000001
+          },
+          "operations": 16,
+          "sample": 9
+        },
+        {
+          "native": {
+            "wallMs": 480.0852420000301,
+            "parentCPUMs": 515.022
+          },
+          "sdk": {
+            "wallMs": 455.62950400001137,
+            "parentCPUMs": 441.731
+          },
+          "rust": {
+            "wallMs": 646.5973870000307,
+            "parentCPUMs": 660.1310000000001
+          },
+          "operations": 16,
+          "sample": 10
+        }
+      ],
+      "medianWallMsPerOperation": {
+        "native": 30.241541000001234,
+        "sdk": 29.80966037500184,
+        "rust": 26.102938187501422
+      },
+      "rustVersusSDK": {
+        "wall": {
+          "medianRatio": 0.8517562986844761,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.8149077609280722,
+            "upper": 0.9037502610784968
+          }
+        },
+        "parentCPU": {
+          "medianRatio": 0.8694721323830861,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.7999793996533007,
+            "upper": 0.9514968771083139
+          }
+        }
+      },
+      "rustVersusNative": {
+        "wall": {
+          "medianRatio": 0.8548025546174463,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.8161579272753964,
+            "upper": 0.8949061819842148
+          }
+        },
+        "parentCPU": {
+          "medianRatio": 0.8094713893682411,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.7548574831895236,
+            "upper": 0.8984636369321202
+          }
+        }
+      },
+      "sdkVersusNative": {
+        "wall": {
+          "medianRatio": 0.978219500561392,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.9606807206227397,
+            "upper": 1.0427324793454056
+          }
+        }
+      }
+    },
+    {
+      "name": "node-dual-capture-1048576",
+      "argv": [
+        "/opt/codex/runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "/workspace/twill-shell-rust/packages/shell/tests/fixtures/child.mjs",
+        "large",
+        "1048576"
+      ],
+      "inputBytes": 0,
+      "outputByteLimit": 1048576,
+      "errorByteLimit": 1048576,
+      "pairs": [
+        {
+          "native": {
+            "wallMs": 867.4883009999903,
+            "parentCPUMs": 112.29599999999999
+          },
+          "sdk": {
+            "wallMs": 852.1021820000024,
+            "parentCPUMs": 120.283
+          },
+          "rust": {
+            "wallMs": 749.3174549999821,
+            "parentCPUMs": 44.63399999999999
+          },
+          "operations": 16,
+          "sample": 0
+        },
+        {
+          "native": {
+            "wallMs": 826.3939809999865,
+            "parentCPUMs": 112.25200000000001
+          },
+          "sdk": {
+            "wallMs": 855.1676639999787,
+            "parentCPUMs": 121.061
+          },
+          "rust": {
+            "wallMs": 765.4052599999995,
+            "parentCPUMs": 64.15700000000001
+          },
+          "operations": 16,
+          "sample": 1
+        },
+        {
+          "native": {
+            "wallMs": 837.4053679999924,
+            "parentCPUMs": 91.85
+          },
+          "sdk": {
+            "wallMs": 846.7095089999639,
+            "parentCPUMs": 132.76500000000001
+          },
+          "rust": {
+            "wallMs": 766.7652070000331,
+            "parentCPUMs": 45.039
+          },
+          "operations": 16,
+          "sample": 2
+        },
+        {
+          "native": {
+            "wallMs": 861.3782910000155,
+            "parentCPUMs": 138.071
+          },
+          "sdk": {
+            "wallMs": 849.972678999984,
+            "parentCPUMs": 90.10699999999999
+          },
+          "rust": {
+            "wallMs": 742.2628580000019,
+            "parentCPUMs": 62.8
+          },
+          "operations": 16,
+          "sample": 3
+        },
+        {
+          "native": {
+            "wallMs": 905.8439970000036,
+            "parentCPUMs": 131.229
+          },
+          "sdk": {
+            "wallMs": 846.5422400000243,
+            "parentCPUMs": 106.042
+          },
+          "rust": {
+            "wallMs": 825.8622809999943,
+            "parentCPUMs": 49.349000000000004
+          },
+          "operations": 16,
+          "sample": 4
+        },
+        {
+          "native": {
+            "wallMs": 1036.3006940000632,
+            "parentCPUMs": 127.013
+          },
+          "sdk": {
+            "wallMs": 900.998215999949,
+            "parentCPUMs": 130.39000000000001
+          },
+          "rust": {
+            "wallMs": 1002.4165629999479,
+            "parentCPUMs": 67.508
+          },
+          "operations": 16,
+          "sample": 5
+        },
+        {
+          "native": {
+            "wallMs": 1047.7491460000165,
+            "parentCPUMs": 130.69899999999998
+          },
+          "sdk": {
+            "wallMs": 921.8684599999688,
+            "parentCPUMs": 155.215
+          },
+          "rust": {
+            "wallMs": 907.7201920000953,
+            "parentCPUMs": 59.146
+          },
+          "operations": 16,
+          "sample": 6
+        },
+        {
+          "native": {
+            "wallMs": 954.2636379999749,
+            "parentCPUMs": 148.41500000000002
+          },
+          "sdk": {
+            "wallMs": 920.9634359999909,
+            "parentCPUMs": 118.43800000000002
+          },
+          "rust": {
+            "wallMs": 850.6556940000737,
+            "parentCPUMs": 52.88
+          },
+          "operations": 16,
+          "sample": 7
+        },
+        {
+          "native": {
+            "wallMs": 966.2944199999038,
+            "parentCPUMs": 136.214
+          },
+          "sdk": {
+            "wallMs": 922.4084239999647,
+            "parentCPUMs": 103.72800000000001
+          },
+          "rust": {
+            "wallMs": 810.51456900005,
+            "parentCPUMs": 52.623999999999995
+          },
+          "operations": 16,
+          "sample": 8
+        },
+        {
+          "native": {
+            "wallMs": 867.0455929999589,
+            "parentCPUMs": 108.27000000000001
+          },
+          "sdk": {
+            "wallMs": 949.0608939999947,
+            "parentCPUMs": 136.467
+          },
+          "rust": {
+            "wallMs": 813.3039419999695,
+            "parentCPUMs": 67.43200000000002
+          },
+          "operations": 16,
+          "sample": 9
+        },
+        {
+          "native": {
+            "wallMs": 848.8943989999534,
+            "parentCPUMs": 106.282
+          },
+          "sdk": {
+            "wallMs": 853.6627480000316,
+            "parentCPUMs": 127.72500000000001
+          },
+          "rust": {
+            "wallMs": 766.4694630000449,
+            "parentCPUMs": 73.17899999999999
+          },
+          "operations": 16,
+          "sample": 10
+        }
+      ],
+      "medianWallMsPerOperation": {
+        "native": 54.218018812499395,
+        "sdk": 53.44797899999867,
+        "rust": 50.65716056250312
+      },
+      "rustVersusSDK": {
+        "wall": {
+          "medianRatio": 0.8978597986098564,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.8786938062483273,
+            "upper": 0.9755712615119719
+          }
+        },
+        "parentCPU": {
+          "medianRatio": 0.494126785230129,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.381058531714074,
+            "upper": 0.5299559726088502
+          }
+        }
+      },
+      "rustVersusNative": {
+        "wall": {
+          "medianRatio": 0.9029031925560943,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.8637781675397954,
+            "upper": 0.9261989772406293
+          }
+        },
+        "parentCPU": {
+          "medianRatio": 0.45483845268014284,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.3863332697079595,
+            "upper": 0.5715443822827211
+          }
+        }
+      },
+      "sdkVersusNative": {
+        "wall": {
+          "medianRatio": 0.9822636005785303,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.9345342496098928,
+            "upper": 1.0111106775231127
+          }
+        }
+      }
+    },
+    {
+      "name": "native-stdin-text-1048576",
+      "argv": [
+        "/workspace/twill-shell-rust/packages/shell/experiments/rust-native/target/fixture",
+        "echo"
+      ],
+      "inputBytes": 1048576,
+      "outputByteLimit": 1048576,
+      "errorByteLimit": null,
+      "pairs": [
+        {
+          "native": {
+            "wallMs": 560.5808419999667,
+            "parentCPUMs": 357.97700000000003
+          },
+          "sdk": {
+            "wallMs": 593.9087139999319,
+            "parentCPUMs": 399.211
+          },
+          "rust": {
+            "wallMs": 327.4546179998724,
+            "parentCPUMs": 285.92100000000005
+          },
+          "operations": 64,
+          "sample": 0
+        },
+        {
+          "native": {
+            "wallMs": 650.3127890000469,
+            "parentCPUMs": 442.09
+          },
+          "sdk": {
+            "wallMs": 662.3533799998986,
+            "parentCPUMs": 480.5110000000001
+          },
+          "rust": {
+            "wallMs": 390.4882290000387,
+            "parentCPUMs": 297.628
+          },
+          "operations": 64,
+          "sample": 1
+        },
+        {
+          "native": {
+            "wallMs": 520.4951679998776,
+            "parentCPUMs": 396.2559999999998
+          },
+          "sdk": {
+            "wallMs": 520.5257649999403,
+            "parentCPUMs": 335.827
+          },
+          "rust": {
+            "wallMs": 332.8513260000618,
+            "parentCPUMs": 272.602
+          },
+          "operations": 64,
+          "sample": 2
+        },
+        {
+          "native": {
+            "wallMs": 624.4996859999956,
+            "parentCPUMs": 414.5160000000001
+          },
+          "sdk": {
+            "wallMs": 575.4737829999649,
+            "parentCPUMs": 417.24499999999995
+          },
+          "rust": {
+            "wallMs": 361.89553499998874,
+            "parentCPUMs": 253.395
+          },
+          "operations": 64,
+          "sample": 3
+        },
+        {
+          "native": {
+            "wallMs": 751.4640449997969,
+            "parentCPUMs": 510.01199999999994
+          },
+          "sdk": {
+            "wallMs": 741.147784999921,
+            "parentCPUMs": 469.90900000000005
+          },
+          "rust": {
+            "wallMs": 535.3112429999455,
+            "parentCPUMs": 349.79299999999995
+          },
+          "operations": 64,
+          "sample": 4
+        },
+        {
+          "native": {
+            "wallMs": 581.3153450000391,
+            "parentCPUMs": 350.93399999999997
+          },
+          "sdk": {
+            "wallMs": 581.7791239999933,
+            "parentCPUMs": 442.08199999999994
+          },
+          "rust": {
+            "wallMs": 349.2798069998389,
+            "parentCPUMs": 291.15599999999984
+          },
+          "operations": 64,
+          "sample": 5
+        },
+        {
+          "native": {
+            "wallMs": 745.5600510001241,
+            "parentCPUMs": 496.067
+          },
+          "sdk": {
+            "wallMs": 790.6381180000317,
+            "parentCPUMs": 529.721
+          },
+          "rust": {
+            "wallMs": 389.95788600004744,
+            "parentCPUMs": 274.437
+          },
+          "operations": 64,
+          "sample": 6
+        },
+        {
+          "native": {
+            "wallMs": 703.1778769999801,
+            "parentCPUMs": 439.2820000000001
+          },
+          "sdk": {
+            "wallMs": 754.031546000042,
+            "parentCPUMs": 479.5050000000001
+          },
+          "rust": {
+            "wallMs": 405.8740070000349,
+            "parentCPUMs": 307.873
+          },
+          "operations": 64,
+          "sample": 7
+        },
+        {
+          "native": {
+            "wallMs": 1398.6809199999552,
+            "parentCPUMs": 1146.447
+          },
+          "sdk": {
+            "wallMs": 1205.825389999838,
+            "parentCPUMs": 955.927
+          },
+          "rust": {
+            "wallMs": 724.720908000163,
+            "parentCPUMs": 646.752
+          },
+          "operations": 64,
+          "sample": 8
+        },
+        {
+          "native": {
+            "wallMs": 860.9446840001037,
+            "parentCPUMs": 709.8770000000002
+          },
+          "sdk": {
+            "wallMs": 738.5482269999629,
+            "parentCPUMs": 599.034
+          },
+          "rust": {
+            "wallMs": 817.3076360000123,
+            "parentCPUMs": 674.354
+          },
+          "operations": 64,
+          "sample": 9
+        },
+        {
+          "native": {
+            "wallMs": 1122.960493999999,
+            "parentCPUMs": 1004.4450000000002
+          },
+          "sdk": {
+            "wallMs": 922.5838859999785,
+            "parentCPUMs": 815.5079999999998
+          },
+          "rust": {
+            "wallMs": 760.5135219999938,
+            "parentCPUMs": 648.4649999999999
+          },
+          "operations": 64,
+          "sample": 10
+        }
+      ],
+      "medianWallMsPerOperation": {
+        "native": 10.987154328124689,
+        "sdk": 11.53981604687442,
+        "rust": 6.101378578125605
+      },
+      "rustVersusSDK": {
+        "wall": {
+          "medianRatio": 0.6010164606007014,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.5513551330043458,
+            "upper": 0.7222732818394683
+          }
+        },
+        "parentCPU": {
+          "medianRatio": 0.6765704912613619,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.6193989315541162,
+            "upper": 0.7951669388896248
+          }
+        }
+      },
+      "rustVersusNative": {
+        "wall": {
+          "medianRatio": 0.6004621708277839,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.5771996251242222,
+            "upper": 0.6772397836463823
+          }
+        },
+        "parentCPU": {
+          "medianRatio": 0.6858524897453393,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.6113033031294328,
+            "upper": 0.7987133251577616
+          }
+        }
+      },
+      "sdkVersusNative": {
+        "wall": {
+          "medianRatio": 1.00005878440751,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.8621161358230844,
+            "upper": 1.059452392060104
+          }
+        }
+      }
+    },
+    {
+      "name": "native-duplex-1048576",
+      "argv": [
+        "/workspace/twill-shell-rust/packages/shell/experiments/rust-native/target/fixture",
+        "duplex"
+      ],
+      "inputBytes": 1048576,
+      "outputByteLimit": 1048576,
+      "errorByteLimit": 1048576,
+      "pairs": [
+        {
+          "native": {
+            "wallMs": 700.0946909999766,
+            "parentCPUMs": 515.0899999999999
+          },
+          "sdk": {
+            "wallMs": 726.1240779999935,
+            "parentCPUMs": 540.8829999999997
+          },
+          "rust": {
+            "wallMs": 617.3412200000021,
+            "parentCPUMs": 453.09599999999995
+          },
+          "operations": 64,
+          "sample": 0
+        },
+        {
+          "native": {
+            "wallMs": 695.4314550000126,
+            "parentCPUMs": 513.979
+          },
+          "sdk": {
+            "wallMs": 674.1893640000781,
+            "parentCPUMs": 476.67700000000013
+          },
+          "rust": {
+            "wallMs": 430.903694999899,
+            "parentCPUMs": 294.6529999999999
+          },
+          "operations": 64,
+          "sample": 1
+        },
+        {
+          "native": {
+            "wallMs": 660.422028999863,
+            "parentCPUMs": 409.3199999999998
+          },
+          "sdk": {
+            "wallMs": 532.7097540000395,
+            "parentCPUMs": 397.76599999999996
+          },
+          "rust": {
+            "wallMs": 440.3520210000279,
+            "parentCPUMs": 336.40400000000017
+          },
+          "operations": 64,
+          "sample": 2
+        },
+        {
+          "native": {
+            "wallMs": 518.4760749998968,
+            "parentCPUMs": 372.00200000000007
+          },
+          "sdk": {
+            "wallMs": 541.610778000002,
+            "parentCPUMs": 410.3830000000001
+          },
+          "rust": {
+            "wallMs": 407.9694779999554,
+            "parentCPUMs": 302.58699999999993
+          },
+          "operations": 64,
+          "sample": 3
+        },
+        {
+          "native": {
+            "wallMs": 613.9079690000799,
+            "parentCPUMs": 446.797
+          },
+          "sdk": {
+            "wallMs": 608.4900400000333,
+            "parentCPUMs": 434.96700000000004
+          },
+          "rust": {
+            "wallMs": 359.19997399984277,
+            "parentCPUMs": 248.40099999999998
+          },
+          "operations": 64,
+          "sample": 4
+        },
+        {
+          "native": {
+            "wallMs": 684.9025519999268,
+            "parentCPUMs": 445.885
+          },
+          "sdk": {
+            "wallMs": 663.7136669999454,
+            "parentCPUMs": 453.298
+          },
+          "rust": {
+            "wallMs": 358.23718800005736,
+            "parentCPUMs": 273.0709999999999
+          },
+          "operations": 64,
+          "sample": 5
+        },
+        {
+          "native": {
+            "wallMs": 557.1833490000281,
+            "parentCPUMs": 408.77900000000005
+          },
+          "sdk": {
+            "wallMs": 557.1786269999866,
+            "parentCPUMs": 393.28299999999996
+          },
+          "rust": {
+            "wallMs": 340.39605400001165,
+            "parentCPUMs": 242.13500000000008
+          },
+          "operations": 64,
+          "sample": 6
+        },
+        {
+          "native": {
+            "wallMs": 591.76249500009,
+            "parentCPUMs": 437.7739999999999
+          },
+          "sdk": {
+            "wallMs": 583.7384100001073,
+            "parentCPUMs": 441.84799999999996
+          },
+          "rust": {
+            "wallMs": 351.58236099986243,
+            "parentCPUMs": 226.3880000000001
+          },
+          "operations": 64,
+          "sample": 7
+        },
+        {
+          "native": {
+            "wallMs": 627.2007560000056,
+            "parentCPUMs": 452.61800000000005
+          },
+          "sdk": {
+            "wallMs": 663.7879829999292,
+            "parentCPUMs": 474.4089999999999
+          },
+          "rust": {
+            "wallMs": 346.6544720000529,
+            "parentCPUMs": 226.08799999999997
+          },
+          "operations": 64,
+          "sample": 8
+        },
+        {
+          "native": {
+            "wallMs": 759.2798969999421,
+            "parentCPUMs": 558.832
+          },
+          "sdk": {
+            "wallMs": 738.3690299999143,
+            "parentCPUMs": 520.5580000000001
+          },
+          "rust": {
+            "wallMs": 352.9314580000937,
+            "parentCPUMs": 235.68900000000002
+          },
+          "operations": 64,
+          "sample": 9
+        },
+        {
+          "native": {
+            "wallMs": 753.9734869999811,
+            "parentCPUMs": 538.791
+          },
+          "sdk": {
+            "wallMs": 742.9341899999708,
+            "parentCPUMs": 487.92199999999997
+          },
+          "rust": {
+            "wallMs": 349.3498789999867,
+            "parentCPUMs": 249.11
+          },
+          "operations": 64,
+          "sample": 10
+        }
+      ],
+      "medianWallMsPerOperation": {
+        "native": 10.319094203122859,
+        "sdk": 10.370526046874147,
+        "rust": 5.597456062500896
+      },
+      "rustVersusSDK": {
+        "wall": {
+          "medianRatio": 0.6022943753175294,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.5222367395585856,
+            "upper": 0.7532521407835682
+          }
+        },
+        "parentCPU": {
+          "medianRatio": 0.6024094525014447,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.5105529162448097,
+            "upper": 0.7373283006362346
+          }
+        }
+      },
+      "rustVersusNative": {
+        "wall": {
+          "medianRatio": 0.594127481836795,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.5230484058702932,
+            "upper": 0.6667736714762421
+          }
+        },
+        "parentCPU": {
+          "medianRatio": 0.5732782856887146,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.4995117295379325,
+            "upper": 0.8134015408519306
+          }
+        }
+      },
+      "sdkVersusNative": {
+        "wall": {
+          "medianRatio": 0.9864403623619616,
+          "ratio95PercentInterval": {
+            "method": "paired bootstrap median, 10000 deterministic resamples",
+            "lower": 0.9694548027023969,
+            "upper": 1.0371798091524418
+          }
+        }
+      }
+    }
+  ],
+  "memory": [
+    {
+      "bytesPerStream": 1048576,
+      "pairs": [
+        {
+          "order": ["native", "sdk", "rust"],
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 31195136,
+              "heapTotal": 7598080,
+              "heapUsed": 4490584,
+              "external": 2055930,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 35651584,
+              "heapTotal": 7598080,
+              "heapUsed": 5205400,
+              "external": 6252610,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4456448,
+              "heapTotal": 0,
+              "heapUsed": 714816,
+              "external": 4196680,
+              "arrayBuffers": 4194304
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 32243712,
+              "heapTotal": 7598080,
+              "heapUsed": 4616848,
+              "external": 2058938,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 36438016,
+              "heapTotal": 7860224,
+              "heapUsed": 4898112,
+              "external": 6255618,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4194304,
+              "heapTotal": 262144,
+              "heapUsed": 281264,
+              "external": 4196680,
+              "arrayBuffers": 4194304
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "rust": {
+            "mode": "rust",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 33533952,
+              "heapTotal": 7598080,
+              "heapUsed": 4649472,
+              "external": 2082832,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 36032512,
+              "heapTotal": 7598080,
+              "heapUsed": 4751088,
+              "external": 4179988,
+              "arrayBuffers": 137467
+            },
+            "delta": {
+              "rss": 2498560,
+              "heapTotal": 0,
+              "heapUsed": 101616,
+              "external": 2097156,
+              "arrayBuffers": 0
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          }
+        },
+        {
+          "order": ["rust", "sdk", "native"],
+          "rust": {
+            "mode": "rust",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 33538048,
+              "heapTotal": 7860224,
+              "heapUsed": 4649544,
+              "external": 2082832,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 35954688,
+              "heapTotal": 7860224,
+              "heapUsed": 4725200,
+              "external": 4179988,
+              "arrayBuffers": 137467
+            },
+            "delta": {
+              "rss": 2416640,
+              "heapTotal": 0,
+              "heapUsed": 75656,
+              "external": 2097156,
+              "arrayBuffers": 0
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 32112640,
+              "heapTotal": 7335936,
+              "heapUsed": 4616848,
+              "external": 2058938,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 36438016,
+              "heapTotal": 7598080,
+              "heapUsed": 4899272,
+              "external": 6255618,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4325376,
+              "heapTotal": 262144,
+              "heapUsed": 282424,
+              "external": 4196680,
+              "arrayBuffers": 4194304
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 31457280,
+              "heapTotal": 7598080,
+              "heapUsed": 4490584,
+              "external": 2055930,
+              "arrayBuffers": 137503
+            },
+            "observedPeak": {
+              "rss": 35913728,
+              "heapTotal": 7860224,
+              "heapUsed": 4760432,
+              "external": 6252610,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4456448,
+              "heapTotal": 262144,
+              "heapUsed": 269848,
+              "external": 4196680,
+              "arrayBuffers": 4194268
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          }
+        },
+        {
+          "order": ["sdk", "rust", "native"],
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 32243712,
+              "heapTotal": 7335936,
+              "heapUsed": 4616848,
+              "external": 2058938,
+              "arrayBuffers": 137503
+            },
+            "observedPeak": {
+              "rss": 36569088,
+              "heapTotal": 7598080,
+              "heapUsed": 4901616,
+              "external": 6255618,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4325376,
+              "heapTotal": 262144,
+              "heapUsed": 284768,
+              "external": 4196680,
+              "arrayBuffers": 4194268
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "rust": {
+            "mode": "rust",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 33415168,
+              "heapTotal": 7860224,
+              "heapUsed": 4649472,
+              "external": 2082832,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 36110336,
+              "heapTotal": 7860224,
+              "heapUsed": 4731936,
+              "external": 4179988,
+              "arrayBuffers": 137467
+            },
+            "delta": {
+              "rss": 2695168,
+              "heapTotal": 0,
+              "heapUsed": 82464,
+              "external": 2097156,
+              "arrayBuffers": 0
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 31719424,
+              "heapTotal": 7335936,
+              "heapUsed": 4490584,
+              "external": 2055930,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 36044800,
+              "heapTotal": 7598080,
+              "heapUsed": 4753920,
+              "external": 6252610,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4325376,
+              "heapTotal": 262144,
+              "heapUsed": 263336,
+              "external": 4196680,
+              "arrayBuffers": 4194304
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          }
+        },
+        {
+          "order": ["native", "rust", "sdk"],
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 31588352,
+              "heapTotal": 7598080,
+              "heapUsed": 4490584,
+              "external": 2055930,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 35913728,
+              "heapTotal": 7860224,
+              "heapUsed": 5034992,
+              "external": 6252610,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4325376,
+              "heapTotal": 262144,
+              "heapUsed": 544408,
+              "external": 4196680,
+              "arrayBuffers": 4194304
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "rust": {
+            "mode": "rust",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 33660928,
+              "heapTotal": 7860224,
+              "heapUsed": 4649472,
+              "external": 2082832,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 36085760,
+              "heapTotal": 7860224,
+              "heapUsed": 4725072,
+              "external": 4179988,
+              "arrayBuffers": 137467
+            },
+            "delta": {
+              "rss": 2424832,
+              "heapTotal": 0,
+              "heapUsed": 75600,
+              "external": 2097156,
+              "arrayBuffers": 0
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 31981568,
+              "heapTotal": 7860224,
+              "heapUsed": 4616848,
+              "external": 2058938,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 36569088,
+              "heapTotal": 7860224,
+              "heapUsed": 5401248,
+              "external": 6255618,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4587520,
+              "heapTotal": 0,
+              "heapUsed": 784400,
+              "external": 4196680,
+              "arrayBuffers": 4194304
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          }
+        },
+        {
+          "order": ["rust", "native", "sdk"],
+          "rust": {
+            "mode": "rust",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 33759232,
+              "heapTotal": 7598080,
+              "heapUsed": 4649472,
+              "external": 2082832,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 36147200,
+              "heapTotal": 7598080,
+              "heapUsed": 4731936,
+              "external": 4179988,
+              "arrayBuffers": 137467
+            },
+            "delta": {
+              "rss": 2387968,
+              "heapTotal": 0,
+              "heapUsed": 82464,
+              "external": 2097156,
+              "arrayBuffers": 0
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 31457280,
+              "heapTotal": 7598080,
+              "heapUsed": 4490584,
+              "external": 2055930,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 36044800,
+              "heapTotal": 7598080,
+              "heapUsed": 4757312,
+              "external": 6252610,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4587520,
+              "heapTotal": 0,
+              "heapUsed": 266728,
+              "external": 4196680,
+              "arrayBuffers": 4194304
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 1048576,
+            "before": {
+              "rss": 32112640,
+              "heapTotal": 7598080,
+              "heapUsed": 4616848,
+              "external": 2058938,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 36569088,
+              "heapTotal": 7598080,
+              "heapUsed": 5242624,
+              "external": 6255618,
+              "arrayBuffers": 4331771
+            },
+            "delta": {
+              "rss": 4456448,
+              "heapTotal": 0,
+              "heapUsed": 625776,
+              "external": 4196680,
+              "arrayBuffers": 4194304
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          }
+        }
+      ]
+    },
+    {
+      "bytesPerStream": 8388608,
+      "pairs": [
+        {
+          "order": ["native", "sdk", "rust"],
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 31326208,
+              "heapTotal": 7860224,
+              "heapUsed": 4490584,
+              "external": 2055930,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 66846720,
+              "heapTotal": 7860224,
+              "heapUsed": 5420968,
+              "external": 35612738,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 35520512,
+              "heapTotal": 0,
+              "heapUsed": 930384,
+              "external": 33556808,
+              "arrayBuffers": 33554432
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 32112640,
+              "heapTotal": 7598080,
+              "heapUsed": 4616848,
+              "external": 2058938,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 66973696,
+              "heapTotal": 7860224,
+              "heapUsed": 5198408,
+              "external": 35615746,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 34861056,
+              "heapTotal": 262144,
+              "heapUsed": 581560,
+              "external": 33556808,
+              "arrayBuffers": 33554432
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "rust": {
+            "mode": "rust",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 33800192,
+              "heapTotal": 7860224,
+              "heapUsed": 4649544,
+              "external": 2082832,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 50888704,
+              "heapTotal": 7860224,
+              "heapUsed": 4762952,
+              "external": 18860052,
+              "arrayBuffers": 137467
+            },
+            "delta": {
+              "rss": 17088512,
+              "heapTotal": 0,
+              "heapUsed": 113408,
+              "external": 16777220,
+              "arrayBuffers": 0
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          }
+        },
+        {
+          "order": ["rust", "sdk", "native"],
+          "rust": {
+            "mode": "rust",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 33722368,
+              "heapTotal": 7598080,
+              "heapUsed": 4649472,
+              "external": 2082832,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 50753536,
+              "heapTotal": 7598080,
+              "heapUsed": 4760624,
+              "external": 18860052,
+              "arrayBuffers": 137467
+            },
+            "delta": {
+              "rss": 17031168,
+              "heapTotal": 0,
+              "heapUsed": 111152,
+              "external": 16777220,
+              "arrayBuffers": 0
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 32112640,
+              "heapTotal": 7335936,
+              "heapUsed": 4616848,
+              "external": 2058938,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 66584576,
+              "heapTotal": 7598080,
+              "heapUsed": 5170536,
+              "external": 35615746,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 34471936,
+              "heapTotal": 262144,
+              "heapUsed": 553688,
+              "external": 33556808,
+              "arrayBuffers": 33554432
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 31588352,
+              "heapTotal": 7335936,
+              "heapUsed": 4490584,
+              "external": 2055930,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 66547712,
+              "heapTotal": 7598080,
+              "heapUsed": 5041928,
+              "external": 35612738,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 34959360,
+              "heapTotal": 262144,
+              "heapUsed": 551344,
+              "external": 33556808,
+              "arrayBuffers": 33554432
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          }
+        },
+        {
+          "order": ["sdk", "rust", "native"],
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 32374784,
+              "heapTotal": 7335936,
+              "heapUsed": 4616848,
+              "external": 2058938,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 67170304,
+              "heapTotal": 7598080,
+              "heapUsed": 5186544,
+              "external": 35615746,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 34795520,
+              "heapTotal": 262144,
+              "heapUsed": 569696,
+              "external": 33556808,
+              "arrayBuffers": 33554432
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "rust": {
+            "mode": "rust",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 33853440,
+              "heapTotal": 7860224,
+              "heapUsed": 4649544,
+              "external": 2082832,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 50946048,
+              "heapTotal": 7860224,
+              "heapUsed": 4761768,
+              "external": 18860052,
+              "arrayBuffers": 137467
+            },
+            "delta": {
+              "rss": 17092608,
+              "heapTotal": 0,
+              "heapUsed": 112224,
+              "external": 16777220,
+              "arrayBuffers": 0
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 31457280,
+              "heapTotal": 7598080,
+              "heapUsed": 4490656,
+              "external": 2055930,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 66617344,
+              "heapTotal": 7598080,
+              "heapUsed": 5050760,
+              "external": 35612738,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 35160064,
+              "heapTotal": 0,
+              "heapUsed": 560104,
+              "external": 33556808,
+              "arrayBuffers": 33554432
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          }
+        },
+        {
+          "order": ["native", "rust", "sdk"],
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 31326208,
+              "heapTotal": 7598080,
+              "heapUsed": 4490584,
+              "external": 2055930,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 66551808,
+              "heapTotal": 7598080,
+              "heapUsed": 5052104,
+              "external": 35612738,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 35225600,
+              "heapTotal": 0,
+              "heapUsed": 561520,
+              "external": 33556808,
+              "arrayBuffers": 33554432
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "rust": {
+            "mode": "rust",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 33398784,
+              "heapTotal": 7860224,
+              "heapUsed": 4649472,
+              "external": 2082832,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 50638848,
+              "heapTotal": 7860224,
+              "heapUsed": 4760568,
+              "external": 18860052,
+              "arrayBuffers": 137467
+            },
+            "delta": {
+              "rss": 17240064,
+              "heapTotal": 0,
+              "heapUsed": 111096,
+              "external": 16777220,
+              "arrayBuffers": 0
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 31981568,
+              "heapTotal": 7598080,
+              "heapUsed": 4616848,
+              "external": 2058938,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 66981888,
+              "heapTotal": 7598080,
+              "heapUsed": 5253632,
+              "external": 35615746,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 35000320,
+              "heapTotal": 0,
+              "heapUsed": 636784,
+              "external": 33556808,
+              "arrayBuffers": 33554432
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          }
+        },
+        {
+          "order": ["rust", "native", "sdk"],
+          "rust": {
+            "mode": "rust",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 33804288,
+              "heapTotal": 7860224,
+              "heapUsed": 4649544,
+              "external": 2082832,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 50835456,
+              "heapTotal": 7860224,
+              "heapUsed": 4755000,
+              "external": 18860052,
+              "arrayBuffers": 137467
+            },
+            "delta": {
+              "rss": 17031168,
+              "heapTotal": 0,
+              "heapUsed": 105456,
+              "external": 16777220,
+              "arrayBuffers": 0
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "native": {
+            "mode": "native",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 31457280,
+              "heapTotal": 7598080,
+              "heapUsed": 4490584,
+              "external": 2055930,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 66711552,
+              "heapTotal": 7860224,
+              "heapUsed": 5180400,
+              "external": 35612738,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 35254272,
+              "heapTotal": 262144,
+              "heapUsed": 689816,
+              "external": 33556808,
+              "arrayBuffers": 33554432
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          },
+          "sdk": {
+            "mode": "sdk",
+            "bytesPerStream": 8388608,
+            "before": {
+              "rss": 32505856,
+              "heapTotal": 7598080,
+              "heapUsed": 4616848,
+              "external": 2058938,
+              "arrayBuffers": 137467
+            },
+            "observedPeak": {
+              "rss": 67325952,
+              "heapTotal": 7860224,
+              "heapUsed": 5203992,
+              "external": 35615746,
+              "arrayBuffers": 33691899
+            },
+            "delta": {
+              "rss": 34820096,
+              "heapTotal": 262144,
+              "heapUsed": 587144,
+              "external": 33556808,
+              "arrayBuffers": 33554432
+            },
+            "maxRSSKiB": 137120,
+            "scope": "1 ms parent memory observations plus settlement; no hard peak guarantee. Native allocator bytes may be absent from V8 external/arrayBuffers."
+          }
+        }
+      ]
+    }
+  ],
+  "concurrency": [
+    {
+      "poolSize": "4",
+      "children": 32,
+      "pairs": [
+        {
+          "order": ["native", "sdk", "rust"],
+          "native": {
+            "mode": "native",
+            "children": 32,
+            "wallMs": 570.608392,
+            "parentCPUMs": 43.265,
+            "uvThreadpoolSize": "4"
+          },
+          "sdk": {
+            "mode": "sdk",
+            "children": 32,
+            "wallMs": 662.742502,
+            "parentCPUMs": 60.034,
+            "uvThreadpoolSize": "4"
+          },
+          "rust": {
+            "mode": "rust",
+            "children": 32,
+            "wallMs": 1254.548478,
+            "parentCPUMs": 25.942,
+            "uvThreadpoolSize": "4"
+          }
+        },
+        {
+          "order": ["rust", "sdk", "native"],
+          "rust": {
+            "mode": "rust",
+            "children": 32,
+            "wallMs": 1209.636156,
+            "parentCPUMs": 32.801,
+            "uvThreadpoolSize": "4"
+          },
+          "sdk": {
+            "mode": "sdk",
+            "children": 32,
+            "wallMs": 472.867886,
+            "parentCPUMs": 41.307,
+            "uvThreadpoolSize": "4"
+          },
+          "native": {
+            "mode": "native",
+            "children": 32,
+            "wallMs": 495.86544200000003,
+            "parentCPUMs": 40.174,
+            "uvThreadpoolSize": "4"
+          }
+        },
+        {
+          "order": ["sdk", "rust", "native"],
+          "sdk": {
+            "mode": "sdk",
+            "children": 32,
+            "wallMs": 455.28438900000003,
+            "parentCPUMs": 41.325,
+            "uvThreadpoolSize": "4"
+          },
+          "rust": {
+            "mode": "rust",
+            "children": 32,
+            "wallMs": 1178.425412,
+            "parentCPUMs": 23.001,
+            "uvThreadpoolSize": "4"
+          },
+          "native": {
+            "mode": "native",
+            "children": 32,
+            "wallMs": 485.30620899999997,
+            "parentCPUMs": 36.425,
+            "uvThreadpoolSize": "4"
+          }
+        },
+        {
+          "order": ["native", "rust", "sdk"],
+          "native": {
+            "mode": "native",
+            "children": 32,
+            "wallMs": 516.769775,
+            "parentCPUMs": 45.265,
+            "uvThreadpoolSize": "4"
+          },
+          "rust": {
+            "mode": "rust",
+            "children": 32,
+            "wallMs": 1176.811702,
+            "parentCPUMs": 23.521,
+            "uvThreadpoolSize": "4"
+          },
+          "sdk": {
+            "mode": "sdk",
+            "children": 32,
+            "wallMs": 471.513415,
+            "parentCPUMs": 49.01,
+            "uvThreadpoolSize": "4"
+          }
+        },
+        {
+          "order": ["rust", "native", "sdk"],
+          "rust": {
+            "mode": "rust",
+            "children": 32,
+            "wallMs": 1185.033195,
+            "parentCPUMs": 22.958,
+            "uvThreadpoolSize": "4"
+          },
+          "native": {
+            "mode": "native",
+            "children": 32,
+            "wallMs": 470.101601,
+            "parentCPUMs": 38.337,
+            "uvThreadpoolSize": "4"
+          },
+          "sdk": {
+            "mode": "sdk",
+            "children": 32,
+            "wallMs": 490.09848200000005,
+            "parentCPUMs": 41.881,
+            "uvThreadpoolSize": "4"
+          }
+        }
+      ]
+    },
+    {
+      "poolSize": "32",
+      "children": 32,
+      "pairs": [
+        {
+          "order": ["native", "sdk", "rust"],
+          "native": {
+            "mode": "native",
+            "children": 32,
+            "wallMs": 467.30981399999996,
+            "parentCPUMs": 36.423,
+            "uvThreadpoolSize": "32"
+          },
+          "sdk": {
+            "mode": "sdk",
+            "children": 32,
+            "wallMs": 477.64570299999997,
+            "parentCPUMs": 44.899,
+            "uvThreadpoolSize": "32"
+          },
+          "rust": {
+            "mode": "rust",
+            "children": 32,
+            "wallMs": 455.051497,
+            "parentCPUMs": 24.555,
+            "uvThreadpoolSize": "32"
+          }
+        },
+        {
+          "order": ["rust", "sdk", "native"],
+          "rust": {
+            "mode": "rust",
+            "children": 32,
+            "wallMs": 463.463854,
+            "parentCPUMs": 28.62,
+            "uvThreadpoolSize": "32"
+          },
+          "sdk": {
+            "mode": "sdk",
+            "children": 32,
+            "wallMs": 463.52045799999996,
+            "parentCPUMs": 37.265,
+            "uvThreadpoolSize": "32"
+          },
+          "native": {
+            "mode": "native",
+            "children": 32,
+            "wallMs": 508.118345,
+            "parentCPUMs": 36.713,
+            "uvThreadpoolSize": "32"
+          }
+        },
+        {
+          "order": ["sdk", "rust", "native"],
+          "sdk": {
+            "mode": "sdk",
+            "children": 32,
+            "wallMs": 501.34399399999995,
+            "parentCPUMs": 38.951,
+            "uvThreadpoolSize": "32"
+          },
+          "rust": {
+            "mode": "rust",
+            "children": 32,
+            "wallMs": 443.558393,
+            "parentCPUMs": 30.749,
+            "uvThreadpoolSize": "32"
+          },
+          "native": {
+            "mode": "native",
+            "children": 32,
+            "wallMs": 469.56447399999996,
+            "parentCPUMs": 37.77,
+            "uvThreadpoolSize": "32"
+          }
+        },
+        {
+          "order": ["native", "rust", "sdk"],
+          "native": {
+            "mode": "native",
+            "children": 32,
+            "wallMs": 464.810879,
+            "parentCPUMs": 39.843,
+            "uvThreadpoolSize": "32"
+          },
+          "rust": {
+            "mode": "rust",
+            "children": 32,
+            "wallMs": 504.47884899999997,
+            "parentCPUMs": 29.822,
+            "uvThreadpoolSize": "32"
+          },
+          "sdk": {
+            "mode": "sdk",
+            "children": 32,
+            "wallMs": 450.16419900000005,
+            "parentCPUMs": 40.691,
+            "uvThreadpoolSize": "32"
+          }
+        },
+        {
+          "order": ["rust", "native", "sdk"],
+          "rust": {
+            "mode": "rust",
+            "children": 32,
+            "wallMs": 456.333389,
+            "parentCPUMs": 28.745,
+            "uvThreadpoolSize": "32"
+          },
+          "native": {
+            "mode": "native",
+            "children": 32,
+            "wallMs": 461.186281,
+            "parentCPUMs": 35.454,
+            "uvThreadpoolSize": "32"
+          },
+          "sdk": {
+            "mode": "sdk",
+            "children": 32,
+            "wallMs": 476.508652,
+            "parentCPUMs": 38.646,
+            "uvThreadpoolSize": "32"
+          }
+        }
+      ]
+    }
+  ],
+  "cold": {
+    "pairs": [
+      {
+        "order": [
+          "native",
+          "sdk",
+          "rust",
+          "source-sdk-cached",
+          "source-rust-cached",
+          "source-sdk-uncached",
+          "source-rust-uncached"
+        ],
+        "native": {
+          "wallMs": 56.03258499997901
+        },
+        "sdk": {
+          "wallMs": 57.858631000010064
+        },
+        "rust": {
+          "wallMs": 52.37318900000537
+        },
+        "source-sdk-cached": {
+          "wallMs": 177.42901100000017
+        },
+        "source-rust-cached": {
+          "wallMs": 166.53510599999572
+        },
+        "source-sdk-uncached": {
+          "wallMs": 500.50443600001745
+        },
+        "source-rust-uncached": {
+          "wallMs": 519.6378490000207
+        }
+      },
+      {
+        "order": [
+          "sdk",
+          "rust",
+          "source-sdk-cached",
+          "source-rust-cached",
+          "source-sdk-uncached",
+          "source-rust-uncached",
+          "native"
+        ],
+        "sdk": {
+          "wallMs": 58.2098629999964
+        },
+        "rust": {
+          "wallMs": 60.20901500000036
+        },
+        "source-sdk-cached": {
+          "wallMs": 165.66815900002257
+        },
+        "source-rust-cached": {
+          "wallMs": 176.6968020000204
+        },
+        "source-sdk-uncached": {
+          "wallMs": 503.5315669999982
+        },
+        "source-rust-uncached": {
+          "wallMs": 505.83371700000134
+        },
+        "native": {
+          "wallMs": 60.602501000015764
+        }
+      },
+      {
+        "order": [
+          "rust",
+          "source-sdk-cached",
+          "source-rust-cached",
+          "source-sdk-uncached",
+          "source-rust-uncached",
+          "native",
+          "sdk"
+        ],
+        "rust": {
+          "wallMs": 59.098362999997335
+        },
+        "source-sdk-cached": {
+          "wallMs": 169.490564000007
+        },
+        "source-rust-cached": {
+          "wallMs": 177.53482699999586
+        },
+        "source-sdk-uncached": {
+          "wallMs": 513.4797189999954
+        },
+        "source-rust-uncached": {
+          "wallMs": 614.5062069999985
+        },
+        "native": {
+          "wallMs": 56.621288000023924
+        },
+        "sdk": {
+          "wallMs": 50.72721199999796
+        }
+      },
+      {
+        "order": [
+          "source-sdk-cached",
+          "source-rust-cached",
+          "source-sdk-uncached",
+          "source-rust-uncached",
+          "native",
+          "sdk",
+          "rust"
+        ],
+        "source-sdk-cached": {
+          "wallMs": 150.15506800002186
+        },
+        "source-rust-cached": {
+          "wallMs": 173.70145100000082
+        },
+        "source-sdk-uncached": {
+          "wallMs": 516.2606309999828
+        },
+        "source-rust-uncached": {
+          "wallMs": 547.058944999997
+        },
+        "native": {
+          "wallMs": 59.927172000025166
+        },
+        "sdk": {
+          "wallMs": 68.96599200001219
+        },
+        "rust": {
+          "wallMs": 58.892038000019966
+        }
+      },
+      {
+        "order": [
+          "source-rust-cached",
+          "source-sdk-uncached",
+          "source-rust-uncached",
+          "native",
+          "sdk",
+          "rust",
+          "source-sdk-cached"
+        ],
+        "source-rust-cached": {
+          "wallMs": 167.22562600002857
+        },
+        "source-sdk-uncached": {
+          "wallMs": 493.1118079999869
+        },
+        "source-rust-uncached": {
+          "wallMs": 625.7864500000142
+        },
+        "native": {
+          "wallMs": 62.73638300001039
+        },
+        "sdk": {
+          "wallMs": 61.29411099999561
+        },
+        "rust": {
+          "wallMs": 49.031071000004886
+        },
+        "source-sdk-cached": {
+          "wallMs": 184.8826340000087
+        }
+      },
+      {
+        "order": [
+          "source-sdk-uncached",
+          "source-rust-uncached",
+          "native",
+          "sdk",
+          "rust",
+          "source-sdk-cached",
+          "source-rust-cached"
+        ],
+        "source-sdk-uncached": {
+          "wallMs": 530.5087190000049
+        },
+        "source-rust-uncached": {
+          "wallMs": 556.9761500000022
+        },
+        "native": {
+          "wallMs": 57.30082699999912
+        },
+        "sdk": {
+          "wallMs": 74.20312900000135
+        },
+        "rust": {
+          "wallMs": 51.084528000006685
+        },
+        "source-sdk-cached": {
+          "wallMs": 177.84452700000838
+        },
+        "source-rust-cached": {
+          "wallMs": 172.93574700001045
+        }
+      },
+      {
+        "order": [
+          "source-rust-uncached",
+          "native",
+          "sdk",
+          "rust",
+          "source-sdk-cached",
+          "source-rust-cached",
+          "source-sdk-uncached"
+        ],
+        "source-rust-uncached": {
+          "wallMs": 495.2139460000035
+        },
+        "native": {
+          "wallMs": 50.94017700001132
+        },
+        "sdk": {
+          "wallMs": 66.85554499999853
+        },
+        "rust": {
+          "wallMs": 63.89720900001703
+        },
+        "source-sdk-cached": {
+          "wallMs": 188.34746799999266
+        },
+        "source-rust-cached": {
+          "wallMs": 162.41964899998857
+        },
+        "source-sdk-uncached": {
+          "wallMs": 495.95761199999833
+        }
+      },
+      {
+        "order": [
+          "native",
+          "sdk",
+          "rust",
+          "source-sdk-cached",
+          "source-rust-cached",
+          "source-sdk-uncached",
+          "source-rust-uncached"
+        ],
+        "native": {
+          "wallMs": 52.42555000001448
+        },
+        "sdk": {
+          "wallMs": 57.1839049999835
+        },
+        "rust": {
+          "wallMs": 57.92679399999906
+        },
+        "source-sdk-cached": {
+          "wallMs": 165.20711499999743
+        },
+        "source-rust-cached": {
+          "wallMs": 171.08674900000915
+        },
+        "source-sdk-uncached": {
+          "wallMs": 514.3928089999827
+        },
+        "source-rust-uncached": {
+          "wallMs": 507.287107000011
+        }
+      },
+      {
+        "order": [
+          "sdk",
+          "rust",
+          "source-sdk-cached",
+          "source-rust-cached",
+          "source-sdk-uncached",
+          "source-rust-uncached",
+          "native"
+        ],
+        "sdk": {
+          "wallMs": 59.62598499999149
+        },
+        "rust": {
+          "wallMs": 53.84169400000246
+        },
+        "source-sdk-cached": {
+          "wallMs": 206.8270349999948
+        },
+        "source-rust-cached": {
+          "wallMs": 173.94802299997536
+        },
+        "source-sdk-uncached": {
+          "wallMs": 532.7618289999955
+        },
+        "source-rust-uncached": {
+          "wallMs": 542.3276780000015
+        },
+        "native": {
+          "wallMs": 61.533070999983465
+        }
+      },
+      {
+        "order": [
+          "rust",
+          "source-sdk-cached",
+          "source-rust-cached",
+          "source-sdk-uncached",
+          "source-rust-uncached",
+          "native",
+          "sdk"
+        ],
+        "rust": {
+          "wallMs": 51.052502000005916
+        },
+        "source-sdk-cached": {
+          "wallMs": 173.69911399998819
+        },
+        "source-rust-cached": {
+          "wallMs": 176.73000000001048
+        },
+        "source-sdk-uncached": {
+          "wallMs": 515.4222029999946
+        },
+        "source-rust-uncached": {
+          "wallMs": 517.8059000000067
+        },
+        "native": {
+          "wallMs": 52.21372400000109
+        },
+        "sdk": {
+          "wallMs": 53.65447199999471
+        }
+      },
+      {
+        "order": [
+          "source-sdk-cached",
+          "source-rust-cached",
+          "source-sdk-uncached",
+          "source-rust-uncached",
+          "native",
+          "sdk",
+          "rust"
+        ],
+        "source-sdk-cached": {
+          "wallMs": 182.4235570000019
+        },
+        "source-rust-cached": {
+          "wallMs": 184.7149470000004
+        },
+        "source-sdk-uncached": {
+          "wallMs": 544.5777090000047
+        },
+        "source-rust-uncached": {
+          "wallMs": 525.8086909999838
+        },
+        "native": {
+          "wallMs": 52.57813800001168
+        },
+        "sdk": {
+          "wallMs": 58.6197519999987
+        },
+        "rust": {
+          "wallMs": 59.053756000008434
+        }
+      }
+    ],
+    "medianWallMs": {
+      "native": 56.621288000023924,
+      "sdk": 58.6197519999987,
+      "rust": 57.92679399999906,
+      "source-sdk-cached": 177.42901100000017,
+      "source-rust-cached": 173.70145100000082,
+      "source-sdk-uncached": 514.3928089999827,
+      "source-rust-uncached": 525.8086909999838
+    },
+    "sourceRustVersusSDKCached": {
+      "medianRatio": 1.0125608229423926,
+      "ratio95PercentInterval": {
+        "method": "paired bootstrap median, 10000 deterministic resamples",
+        "lower": 0.9044961248227387,
+        "upper": 1.0474614209200963
+      }
+    },
+    "sourceRustVersusSDKUncached": {
+      "medianRatio": 1.0179552071475564,
+      "ratio95PercentInterval": {
+        "method": "paired bootstrap median, 10000 deterministic resamples",
+        "lower": 0.9985005452441874,
+        "upper": 1.0596565225985928
+      }
+    },
+    "scope": "Fresh Node interpreter/backend imports/one /usr/bin/true child. Source modes use the actual Twill runner with validated hit or disabled cache; OS/filesystem caches warm. Each direct mode imports only its backend; Rust uses the same SDK Command constructor. No standalone Rust interpreter."
+  }
+}

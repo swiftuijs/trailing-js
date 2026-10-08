@@ -136,7 +136,7 @@ Install only the tools your project needs. Keep Twill packages on the same relea
 | `@swiftuijs/twill-shell` (unreleased prototype)                                          | Native argv execution, bounded output and owned process teardown |
 | `@swiftuijs/twill-runtime` (unreleased prototype)                                        | Optional, versioned synchronous cleanup helpers                  |
 
-The unreleased [shell scripting](https://twill.evecalm.com/scripting) prototype adds `#!/usr/bin/env twill` executable scripts and content-validated startup caching. Cache settings, source privacy and published-version boundaries are documented in that guide. The SDK remains independent of the compiler; a Rust backend is a separate proposal.
+The unreleased [shell scripting](https://twill.evecalm.com/scripting) prototype adds `#!/usr/bin/env twill` executable scripts and content-validated startup caching. Cache settings, source privacy and published-version boundaries are documented in that guide. The SDK remains independent of the compiler and uses Node/libuv. A separate Linux Rust experiment measures process/capture improvements and concurrency limits; see [performance](https://twill.evecalm.com/performance#rust-subprocess-experiment).
 
 Install the [Twill VS Code extension](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill) from Marketplace, or run `code --install-extension forth-ink.twill`. The extension bundles its editing tools. Your application installs the compiler for builds and whole-project checks. See the [editor guide](https://twill.evecalm.com/tooling) for configuration.
 

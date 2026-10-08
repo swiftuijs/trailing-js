@@ -4,6 +4,8 @@ Swift-inspired subprocess tools for Twill and ordinary Node JS/TS scripts. **Unr
 
 Commands use native Node `spawn` / libuv with explicit argv and `shell: false`. The SDK has no production dependencies, compiler, TS engine, generated command code or global process settings. TypeScript declarations check calls; execution goes directly to the operating system.
 
+A separate Linux Rust/N-API repository experiment measures launch/capture costs, memory and concurrency. It is outside this package's published files and cannot be selected as an SDK backend. See the [measured scope and limits](https://twill.evecalm.com/performance#rust-subprocess-experiment).
+
 ```twill
 #!/usr/bin/env twill
 import { Command, Output, Subprocess } from '@swiftuijs/twill-shell';
