@@ -1,3 +1,4 @@
+import { nativeTarget } from '../src/platform.js';
 import { afterEach, expect, it, vi } from 'vitest';
 import { getEventListeners } from 'node:events';
 import { createRequire } from 'node:module';
@@ -195,7 +196,7 @@ it('checks the prebuild protocol, caches a valid addon, and forwards the exit ba
   const fresh = await import('../src/bindings.js');
   expect(() => fresh.shutdownBackend()).not.toThrow();
   const native = createRequire(import.meta.url)(
-    `../native/${process.platform}-${process.arch}.node`,
+    `../native/${nativeTarget()}.node`,
   ) as NativeBindings;
   vi.spyOn(native, 'protocol').mockReturnValue(0);
   expect(() => fresh.loadBackend()).toThrow('expected protocol 1');

@@ -1,9 +1,8 @@
+import { nativeTarget } from '../src/platform.js';
 import { expect, it } from 'vitest';
 import { createRequire } from 'node:module';
 import type { NativeBindings, NativeOptions } from '../src/bindings.js';
-const native = createRequire(import.meta.url)(
-  `../native/${process.platform}-${process.arch}.node`,
-) as NativeBindings;
+const native = createRequire(import.meta.url)(`../native/${nativeTarget()}.node`) as NativeBindings;
 const valid: NativeOptions = {
   executable: process.execPath,
   arguments: [],

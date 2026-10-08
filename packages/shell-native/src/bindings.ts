@@ -1,5 +1,6 @@
 import { createRequire } from 'node:module';
 import type { Buffer } from 'node:buffer';
+import { nativeTarget } from './platform.js';
 
 export interface NativeFailure {
   kind: string;
@@ -46,7 +47,7 @@ export interface NativeBindings {
 let bindings: NativeBindings | undefined;
 export function loadBackend(): NativeBindings {
   if (bindings) return bindings;
-  const filename = `../native/${process.platform}-${process.arch}.node`;
+  const filename = `../native/${nativeTarget()}.node`;
   const candidate = createRequire(import.meta.url)(filename) as NativeBindings;
   if (candidate.protocol?.() !== 1)
     throw new Error('Incompatible native subprocess backend: expected protocol 1');

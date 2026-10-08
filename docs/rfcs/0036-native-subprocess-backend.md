@@ -6,6 +6,18 @@
 **Dependencies:** RFC 0034, with separate scoped-stream/pipeline ownership acceptance.
 **Review:** Evaluation authorized following PR #20; implementation of the measured scheduling, cancellation, cleanup and platform blockers subsequently authorized by the maintainer. This does not authorize npm publication or process-tree/pipeline semantics.
 
+### Platform coverage amendment
+
+The maintainer authorized expanding release-time prebuilds to the eight mainstream 64-bit targets: Linux glibc x64/arm64, Linux musl x64/arm64, macOS x64/arm64 and Windows x64/arm64. Build and run the real process contract and independently installed Node 20.19 consumers on each actual CPU/ABI; cross-compilation alone is not support evidence. Keep the per-binary 2 MiB and complete-archive 6 MiB budgets. Release assembly must include every validated target from the same source, with exact binary digests; users install the prebuilt archive without Rust or runtime downloads. This amendment expands native-platform coverage and does not change the two existing public package imports or authorize publication.
+
+Linux glibc prebuilds target the Node-supported glibc 2.28 baseline through a RHEL-8-compatible build environment; musl prebuilds target musl 1.2.5 and are tested in Alpine. Choose the Linux ABI from the running Node process, never an environment-selected library or a failed-load retry. Unknown platforms/architectures or an unidentifiable Linux ABI fail explicitly. Windows ARM64 builds and tests must run with native ARM64 Node, using the matching MSVC Rust target.
+
+Retain Linux pidfd readiness when available. Older Node-supported kernels or container policies can deny `pidfd_open`; only ENOSYS/EACCES/EPERM permit an owned-child `try_wait` fallback scheduled on the existing Rust reactor at 1 ms intervals. This adds no per-child thread or libuv worker and never replaces the process's SIGCHLD handler. Other notification/resource errors remain failures. Cancellation, direct-child ownership, descriptor lifetime, worker shutdown and join bounds remain unchanged. Verify unavailable/denied pidfds with an actual syscall-filtered Node process, and measure the readiness fast path separately from fallback polling costs. No general cross-platform speedup follows from build or contract tests.
+
+32-bit targets and other operating systems are outside this amendment and need their own tested implementation and artifact strategy. Published support status follows completed platform validation rather than the presence of a Rust target or CI matrix entry.
+
+Ordinary PRs may select checks from the complete base-to-head diff: native/backend/shared-contract/dependency/build changes require all eight targets; compiler/runner changes retain Linux native contracts and Windows/macOS runner checks; documentation-only PRs validate documentation, skill downloads and subpath hosting. Main, scheduled, manual and release verification always run the full matrix. Unknown paths or an unavailable diff select full validation. Cache build inputs/dependencies by OS/CPU/libc/toolchain, but rerun the selected real-process tests and independent consumers; a cache hit is not validation evidence. Scope selection itself has regression tests and a failure must fail the stable required `verify` check.
+
 ## Problem and native baseline
 
 The current shell SDK calls native Node spawn/libuv with literal argv. Its Linux/Node 24 warm wall ratios were 1.003–1.013 against equivalent handwritten Node coordination; dual capture consumed about 10% more parent CPU. This leaves limited evidence for replacing ordinary command launches. Existing ownership covers the directly launched child; robust pipelines and operating-system containment require new lifecycle contracts.

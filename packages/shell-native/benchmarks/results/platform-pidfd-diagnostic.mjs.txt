@@ -1,0 +1,62 @@
+import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { performance } from 'node:perf_hooks';
+
+const [root, notification, destination] = process.argv.slice(2);
+assert(['readiness', 'denied-pidfd'].includes(notification));
+const load = (file) => import(pathToFileURL(resolve(root, file)).href);
+const sdk = await load('packages/shell/dist/index.js');
+const addon = await load('packages/shell-native/dist/index.js');
+const { nativeRun } = await load('packages/shell/benchmarks/native.mjs');
+const modes = { native: nativeRun, sdk: sdk.Subprocess.run, rust: addon.Subprocess.run };
+const orders = [['native','sdk','rust'],['rust','sdk','native'],['sdk','rust','native'],['native','rust','sdk'],['rust','native','sdk'],['sdk','native','rust']];
+const bytes = 1024 * 1024;
+const workloads = [
+ {name:'native-executable-inherit',count:64,command:sdk.Command.path('/usr/bin/true'),options:{}},
+ {name:'native-dual-capture-1048576',count:16,command:sdk.Command.path(resolve(root,'packages/shell-native/benchmarks/target/fixture'),['emit',String(bytes)]),options:{output:sdk.Output.bytes({limit:bytes}),error:sdk.Output.bytes({limit:bytes})},expected:Buffer.alloc(bytes,97),expectedError:Buffer.alloc(bytes,98)},
+];
+const median = (xs) => [...xs].sort((a,b)=>a-b)[Math.floor(xs.length/2)];
+const compare = (pairs,key) => {
+ const ratios=pairs.map(p=>p.rust[key]/p.native[key]);
+ let seed=123456789;
+ const random=()=> (seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296;
+ const resamples=Array.from({length:10000},()=>median(Array.from({length:ratios.length},()=>ratios[Math.floor(random()*ratios.length)]))).sort((a,b)=>a-b);
+ return {medianRatio:median(ratios),ratio95PercentInterval:{method:'paired bootstrap median, 10000 deterministic resamples',lower:resamples[250],upper:resamples[9750]}};
+};
+async function operation(run,w) {
+ const usage=process.cpuUsage(),start=performance.now();
+ const result=await run(w.command,w.options);
+ const wallMs=performance.now()-start,cpu=process.cpuUsage(usage);
+ assert.deepEqual(result.terminationStatus,{kind:'exited',code:0});
+ if(w.expected) assert(result.standardOutput.equals(w.expected));
+ if(w.expectedError) assert(result.standardError.equals(w.expectedError));
+ return {wallMs,parentCPUMs:(cpu.user+cpu.system)/1000};
+}
+const rows=[];
+for(const w of workloads) {
+ for(const run of Object.values(modes)) for(let n=0;n<4;n++) await operation(run,w);
+ const pairs=[];
+ for(let sample=0;sample<12;sample++) {
+  const values=Object.fromEntries(Object.keys(modes).map(mode=>[mode,{wallMs:0,parentCPUMs:0}]));
+  const operationOrders=[];
+  for(let n=0;n<w.count;n++) {
+   const order=orders[(sample+n)%orders.length]; operationOrders.push(order);
+   for(const mode of order) {
+    const result=await operation(modes[mode],w);
+    values[mode].wallMs+=result.wallMs/w.count;
+    values[mode].parentCPUMs+=result.parentCPUMs/w.count;
+   }
+  }
+  pairs.push({sample,operationOrders,...values});
+ }
+ rows.push({name:w.name,operationsPerModePerPair:w.count,pairs,rustVersusNative:{wall:compare(pairs,'wallMs'),parentCPU:compare(pairs,'parentCPUMs')},medianWallMs:Object.fromEntries(Object.keys(modes).map(mode=>[mode,median(pairs.map(p=>p[mode].wallMs))]))});
+}
+const files=['packages/shell-native/crate/src/platform.rs','packages/shell-native/crate/src/process.rs','packages/shell-native/src/platform.ts','packages/shell-native/dist/index.js','packages/shell-native/dist/platform.js','packages/shell-native/native/linux-x64.node','packages/shell-native/native/linux-x64.json','packages/shell-native/tests/fixtures/deny-pidfd.c','packages/shell/benchmarks/native.mjs','packages/shell/dist/index.js','packages/shell-native/benchmarks/target/fixture'];
+const hashes=Object.fromEntries(files.map(f=>[f,createHash('sha256').update(readFileSync(resolve(root,f))).digest('hex')]));
+const report={notification,node:process.version,platform:process.platform,architecture:process.arch,gitHead:execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8'}).trim(),allowedCPUList:readFileSync('/proc/self/status','utf8').match(/^Cpus_allowed_list:\s*(.*)$/m)?.[1],quota:readFileSync('/sys/fs/cgroup/cpu.max','utf8').trim(),sourceAndBuildSHA256:hashes,diagnosticSHA256:createHash('sha256').update(readFileSync(process.argv[1])).digest('hex'),scope:'Focused single-CPU warm comparison. Denied-pidfd process inherits an actual seccomp ENOSYS filter, verified by the launcher before Node starts; readiness process uses the normal kernel. Twelve paired samples interleave all six native/SDK/Rust orders. Checked output/status; parent CPU includes Rust reactor, excludes child CPU. Separate diagnostic, not the complete seven-workload/default-pool acceptance run or a cross-platform guarantee.',results:rows};
+writeFileSync(destination,JSON.stringify(report,null,2)+'\n');
+console.log(JSON.stringify(rows.map(r=>({name:r.name,medians:r.medianWallMs,...r.rustVersusNative}))));

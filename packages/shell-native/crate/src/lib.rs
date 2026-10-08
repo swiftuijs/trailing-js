@@ -117,11 +117,6 @@ fn state(env: Env) -> Result<Arc<State>> {
     if let Some(state) = registry.get(&key) {
         return Ok(Arc::clone(state));
     }
-    platform::available().map_err(|error| {
-        Error::from_reason(format!(
-            "Native process notifications are unavailable: {error}"
-        ))
-    })?;
     let runtime = Builder::new_current_thread()
         .enable_all()
         .build()

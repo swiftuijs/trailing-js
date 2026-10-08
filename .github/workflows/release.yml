@@ -7,6 +7,7 @@ jobs:
   verify:
     uses: ./.github/workflows/ci.yml
     with:
+      full-validation: true
       minimum-editor: true
   publish:
     needs: verify

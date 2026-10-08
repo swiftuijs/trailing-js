@@ -1,7 +1,17 @@
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 export const root = new URL('../', import.meta.url);
-export const targets = ['linux-x64', 'linux-arm64', 'darwin-x64', 'darwin-arm64', 'win32-x64'];
+export const rustTargets = {
+  'linux-x64': 'x86_64-unknown-linux-gnu',
+  'linux-arm64': 'aarch64-unknown-linux-gnu',
+  'linux-x64-musl': 'x86_64-unknown-linux-musl',
+  'linux-arm64-musl': 'aarch64-unknown-linux-musl',
+  'darwin-x64': 'x86_64-apple-darwin',
+  'darwin-arm64': 'aarch64-apple-darwin',
+  'win32-x64': 'x86_64-pc-windows-msvc',
+  'win32-arm64': 'aarch64-pc-windows-msvc',
+};
+export const targets = Object.keys(rustTargets);
 export const hash = (bytes) => createHash('sha256').update(bytes).digest('hex');
 export function sourceIdentity() {
   const identity = createHash('sha256');

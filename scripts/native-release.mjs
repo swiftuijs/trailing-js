@@ -22,4 +22,4 @@ writeFileSync(
     2,
   ) + '\n',
 );
-console.log('Five validated native targets and separate archive budget verified.');
+console.log(`${targets.length} validated native targets and separate archive budget verified.`);

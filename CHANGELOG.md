@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Expand the source Rust backend prebuild matrix to eight 64-bit OS/CPU/libc targets, including Linux musl and Windows ARM64. Build glibc artifacts against 2.28, select Linux ABI from Node and retain reactor-owned child waiting when pidfds are unavailable or denied. Require actual target contract/installed-package validation and complete verified release assembly; keep performance and publication scope explicit.
+
 - Implement the optional `@swiftuijs/twill-shell-native` Rust backend with caller-thread native launch, an independent async I/O reactor, the shared subprocess API/errors, bounded cancellation/teardown and owner-thread environment cleanup. Preserve Windows exit-code width and eliminate queued inherited-descriptor copies. Add real five-target platform CI, independent Node 20 consumers, validated prebuild assembly and separate native artifact budgets; keep the Node SDK dependency-free. Retain complete performance history: measured warm launch/capture improves and default-pool concurrency matches native Node on the reviewed Linux host; source startup has no demonstrated gain. This source implementation is not an npm publication.
 
 - Implement the isolated RFC 0036 Linux Rust/N-API direct-child experiment outside published SDK files: literal argv, call-time input/environment snapshots, nonblocking bounded dual capture, deadlines and direct-child reaping. Record complete paired Node/SDK/Rust measurements, lower observed capture RSS, default-pool concurrency regression and no demonstrated source-startup gain. Validate real native calls on Node 20.19/24; keep the SDK's Node backend, dependencies and archive gate unchanged.
