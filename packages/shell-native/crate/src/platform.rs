@@ -3,7 +3,7 @@
 #[cfg(target_os = "macos")]
 use std::os::fd::AsRawFd;
 #[cfg(unix)]
-use std::os::fd::{BorrowedFd, FromRawFd, OwnedFd};
+use std::os::fd::{FromRawFd, OwnedFd};
 use std::{
     io,
     process::{Command, ExitStatus, Stdio},
@@ -43,22 +43,97 @@ pub fn available() -> io::Result<()> {
     }
     Ok(())
 }
+#[cfg(windows)]
+pub fn executable(options: &crate::process::Options) -> io::Result<std::ffi::OsString> {
+    use std::path::PathBuf;
+    let cwd = options
+        .cwd
+        .as_ref()
+        .map(PathBuf::from)
+        .map(Ok)
+        .unwrap_or_else(std::env::current_dir)?;
+    let file = &options.executable;
+    let name = file.rsplit(['\\', '/', ':']).next().unwrap_or(file);
+    let extension = name.find('.').is_some_and(|dot| dot + 1 < name.len());
+    let mut directories = vec![cwd.clone()];
+    if !file.contains(['\\', '/', ':']) {
+        let path = options
+            .environment
+            .iter()
+            .find(|(key, _)| key.eq_ignore_ascii_case("PATH"))
+            .map(|(_, value)| value.as_str())
+            .unwrap_or("");
+        let mut remaining = path;
+        while !remaining.is_empty() {
+            // Match libuv: a quoted entry can contain semicolons, and relative
+            // entries resolve from child cwd. No implicit System32/application
+            // directory fallback, PATHEXT expansion or command interpreter.
+            let quoted = remaining.starts_with(['\'', '"']);
+            let after_quote = if quoted {
+                remaining[1..]
+                    .find(remaining.as_bytes()[0] as char)
+                    .map(|n| n + 2)
+                    .unwrap_or(remaining.len())
+            } else {
+                0
+            };
+            let end = remaining[after_quote..]
+                .find(';')
+                .map(|n| n + after_quote)
+                .unwrap_or(remaining.len());
+            let mut entry = &remaining[..end];
+            if entry.starts_with(['\'', '"']) {
+                entry = &entry[1..];
+            }
+            if entry.ends_with(['\'', '"']) {
+                entry = &entry[..entry.len() - 1];
+            }
+            if !entry.is_empty() {
+                directories.push(cwd.join(entry));
+            }
+            remaining = if end == remaining.len() {
+                ""
+            } else {
+                &remaining[end + 1..]
+            };
+        }
+    }
+    for directory in directories {
+        for suffix in if extension {
+            &["", ".com", ".exe"][..]
+        } else {
+            &[".com", ".exe"][..]
+        } {
+            let mut candidate = directory.join(file).into_os_string();
+            candidate.push(suffix);
+            if std::path::Path::new(&candidate).is_file() {
+                return Ok(candidate);
+            }
+        }
+    }
+    Err(io::ErrorKind::NotFound.into())
+}
 pub fn inherited(index: usize) -> io::Result<Stdio> {
     #[cfg(unix)]
     {
-        // SAFETY: Borrow the parent descriptor without closing/changing it. The
-        // child gets a new dup2 descriptor without Node's FD_CLOEXEC flag.
-        Ok(Stdio::from(
-            unsafe { BorrowedFd::borrow_raw(index as i32) }.try_clone_to_owned()?,
-        ))
+        // SAFETY: fcntl validates the possibly closed parent descriptor and
+        // clones it without changing it. Keep new descriptors above stdio, even
+        // if another standard descriptor was closed. dup2 in the child removes
+        // Node's FD_CLOEXEC flag from the child's standard descriptor.
+        let fd = unsafe { libc::fcntl(index as i32, libc::F_DUPFD_CLOEXEC, 3) };
+        if fd == -1 {
+            return Err(io::Error::last_os_error());
+        }
+        Ok(Stdio::from(unsafe { OwnedFd::from_raw_fd(fd) }))
     }
     #[cfg(windows)]
     {
-        use std::os::windows::io::BorrowedHandle;
+        use std::os::windows::io::{FromRawHandle, OwnedHandle};
         use windows_sys::Win32::{
-            Foundation::INVALID_HANDLE_VALUE,
-            System::Console::{
-                GetStdHandle, STD_ERROR_HANDLE, STD_INPUT_HANDLE, STD_OUTPUT_HANDLE,
+            Foundation::{DuplicateHandle, DUPLICATE_SAME_ACCESS, INVALID_HANDLE_VALUE},
+            System::{
+                Console::{GetStdHandle, STD_ERROR_HANDLE, STD_INPUT_HANDLE, STD_OUTPUT_HANDLE},
+                Threading::GetCurrentProcess,
             },
         };
         // SAFETY: Validate the borrowed standard handle before cloning it.
@@ -67,9 +142,25 @@ pub fn inherited(index: usize) -> io::Result<Stdio> {
         if handle.is_null() || handle == INVALID_HANDLE_VALUE {
             return Err(io::Error::last_os_error());
         }
-        Ok(Stdio::from(
-            unsafe { BorrowedHandle::borrow_raw(handle) }.try_clone_to_owned()?,
-        ))
+        let mut copy = std::ptr::null_mut();
+        // SAFETY: DuplicateHandle validates a possibly stale/closed raw standard
+        // handle; only a successful duplication becomes a Rust-owned handle.
+        let copied = unsafe {
+            let process = GetCurrentProcess();
+            DuplicateHandle(
+                process,
+                handle,
+                process,
+                &mut copy,
+                0,
+                0,
+                DUPLICATE_SAME_ACCESS,
+            )
+        };
+        if copied == 0 {
+            return Err(io::Error::last_os_error());
+        }
+        Ok(Stdio::from(unsafe { OwnedHandle::from_raw_handle(copy) }))
     }
 }
 #[cfg(unix)]
@@ -112,15 +203,61 @@ fn named_pipe(read: bool) -> io::Result<(Stdio, NamedPipeServer)> {
             .map(|byte| format!("{byte:02x}"))
             .collect::<String>()
     );
-    let server = ServerOptions::new()
+    // Restrict the local named pipe to its owner and SYSTEM. Default Windows
+    // pipe ACLs can grant other local accounts read access; a random name alone
+    // is not an access boundary for stdin data.
+    use windows_sys::Win32::{
+        Foundation::LocalFree,
+        Security::{
+            Authorization::ConvertStringSecurityDescriptorToSecurityDescriptorW,
+            SECURITY_ATTRIBUTES,
+        },
+    };
+    struct Descriptor(*mut std::ffi::c_void);
+    impl Drop for Descriptor {
+        fn drop(&mut self) {
+            // SAFETY: ConvertStringSecurityDescriptor allocates via LocalAlloc.
+            unsafe {
+                LocalFree(self.0);
+            }
+        }
+    }
+    let sddl: Vec<u16> = "D:P(A;;GA;;;OW)(A;;GA;;;SY)\0".encode_utf16().collect();
+    let mut descriptor = std::ptr::null_mut();
+    // SAFETY: The null-terminated SDDL and output pointer are live for the call.
+    if unsafe {
+        ConvertStringSecurityDescriptorToSecurityDescriptorW(
+            sddl.as_ptr(),
+            1,
+            &mut descriptor,
+            std::ptr::null_mut(),
+        )
+    } == 0
+    {
+        return Err(io::Error::last_os_error());
+    }
+    let descriptor = Descriptor(descriptor);
+    let mut attributes = SECURITY_ATTRIBUTES {
+        nLength: std::mem::size_of::<SECURITY_ATTRIBUTES>() as u32,
+        lpSecurityDescriptor: descriptor.0,
+        bInheritHandle: 0,
+    };
+    let mut options = ServerOptions::new();
+    options
         .first_pipe_instance(true)
         .max_instances(1)
         .access_inbound(read)
         .access_outbound(!read)
         .reject_remote_clients(true)
         .in_buffer_size(64 * 1024)
-        .out_buffer_size(64 * 1024)
-        .create(&name)?;
+        .out_buffer_size(64 * 1024);
+    // SAFETY: Attributes and descriptor remain live through synchronous creation.
+    let server = unsafe {
+        options.create_with_security_attributes_raw(
+            &name,
+            (&mut attributes as *mut SECURITY_ATTRIBUTES).cast(),
+        )
+    }?;
     let file = OpenOptions::new().read(!read).write(read).open(&name)?;
     Ok((Stdio::from(file), server))
 }
@@ -237,17 +374,19 @@ impl Child {
         let inner = command.spawn()?;
         // Keep the child owned even if notification registration fails. Its
         // first wait reports that failure; teardown can still kill/poll/reap it.
-        let notification = exit_notification(inner.id());
-        let (notification, notification_error) = match notification {
-            Ok(fd) => (Some(fd), None),
-            Err(error) => (None, Some(error)),
-        };
-        Ok(Self {
+        let mut child = Self {
             inner: Some(inner),
-            notification,
-            notification_error,
+            notification: None,
+            notification_error: None,
             status: None,
-        })
+        };
+        // Establish the kill/reap Drop guard before notifier registration, so
+        // an unexpected registration panic cannot abandon the spawned child.
+        match exit_notification(child.id().expect("owned child")) {
+            Ok(fd) => child.notification = Some(fd),
+            Err(error) => child.notification_error = Some(error),
+        }
+        Ok(child)
     }
     pub fn id(&self) -> Option<u32> {
         if self.status.is_some() {
@@ -403,24 +542,31 @@ fn consume_exit(fd: &OwnedFd) -> io::Result<()> {
 #[cfg(unix)]
 fn orphan(child: std::process::Child) {
     use std::sync::{mpsc, OnceLock};
-    static REAPER: OnceLock<mpsc::Sender<std::process::Child>> = OnceLock::new();
+    static REAPER: OnceLock<Option<mpsc::Sender<std::process::Child>>> = OnceLock::new();
     // Exceptional panic/unresolved-child fallback only. One maintenance thread
     // polls owned PIDs, never the JS environment or a blocking per-command wait.
     // napi's deferred pins the addon image before any child can be launched.
     let sender = REAPER.get_or_init(|| {
         let (sender, receiver) = mpsc::channel::<std::process::Child>();
-        std::thread::spawn(move || {
-            let mut pending = Vec::new();
-            loop {
-                match receiver.recv_timeout(std::time::Duration::from_millis(20)) {
-                    Ok(child) => pending.push(child),
-                    Err(mpsc::RecvTimeoutError::Disconnected) => break,
-                    Err(mpsc::RecvTimeoutError::Timeout) => {}
+        let thread = std::thread::Builder::new()
+            .name("twill-reaper".into())
+            .spawn(move || {
+                let mut pending = Vec::new();
+                loop {
+                    match receiver.recv_timeout(std::time::Duration::from_millis(20)) {
+                        Ok(child) => pending.push(child),
+                        Err(mpsc::RecvTimeoutError::Disconnected) => break,
+                        Err(mpsc::RecvTimeoutError::Timeout) => {}
+                    }
+                    pending.retain_mut(|child| !matches!(child.try_wait(), Ok(Some(_))));
                 }
-                pending.retain_mut(|child| !matches!(child.try_wait(), Ok(Some(_))));
-            }
-        });
-        sender
+            });
+        thread.ok().map(|_| sender)
     });
-    let _ = sender.send(child);
+    // Thread exhaustion must not panic again while unwinding. An unresolved
+    // child has already been killed/reported; this exceptional reaper is best
+    // effort if the OS refuses a maintenance thread too.
+    if let Some(sender) = sender {
+        let _ = sender.send(child);
+    }
 }

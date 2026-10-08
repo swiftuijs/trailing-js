@@ -317,7 +317,14 @@ pub async fn execute(mut options: Options, mut control: watch::Receiver<Control>
             "Subprocess timed out before launch",
         )));
     }
-    let mut command = Command::new(&options.executable);
+    #[cfg(windows)]
+    let executable = match platform::executable(&options) {
+        Ok(value) => value,
+        Err(error) => return NativeOutcome::empty(Some(Failure::io("launch", None, error))),
+    };
+    #[cfg(not(windows))]
+    let executable = &options.executable;
+    let mut command = Command::new(executable);
     let pipes = match platform::pipes(&mut options).await {
         Ok(value) => value,
         Err(error) => return NativeOutcome::empty(Some(Failure::io("launch", None, error))),

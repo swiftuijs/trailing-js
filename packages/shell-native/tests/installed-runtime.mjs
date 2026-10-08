@@ -5,12 +5,13 @@ import { mkdtempSync, existsSync, readFileSync, rmSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { getEventListeners, setMaxListeners } from 'node:events';
 import { Worker } from 'node:worker_threads';
 import { execFileSync } from 'node:child_process';
 import { Command, Output, Subprocess, ProcessAbortError } from '@swiftuijs/twill-shell-native';
 const apiURL = import.meta.resolve('@swiftuijs/twill-shell-native');
 const childCode =
-  'require("node:fs").writeFileSync(process.argv[1],String(process.pid));process.on("SIGTERM",()=>{});setInterval(()=>{},1000)';
+  'const fs=require("node:fs"),tmp=process.argv[1]+"."+process.pid+".tmp";fs.writeFileSync(tmp,String(process.pid));fs.renameSync(tmp,process.argv[1]);process.on("SIGTERM",()=>{});setInterval(()=>{},1000)';
 const roots = [],
   pids = [],
   workers = [];
@@ -40,6 +41,7 @@ test('installed native lifetime and scheduling contracts', { timeout: 60000 }, a
     await t.test('one libuv worker remains free while 32 native children run', async () => {
       const root = folder(),
         controller = new AbortController();
+      setMaxListeners(0, controller.signal);
       const markers = Array.from({ length: 32 }, (_, i) => join(root, String(i)));
       const tasks = markers.map((marker) =>
         Subprocess.run(Command.path(process.execPath, ['-e', childCode, marker]), {
@@ -55,6 +57,7 @@ test('installed native lifetime and scheduling contracts', { timeout: 60000 }, a
       controller.abort('cancel');
       for (const task of tasks) await assert.rejects(task, ProcessAbortError);
       owned.forEach(gone);
+      assert.equal(getEventListeners(controller.signal, 'abort').length, 0);
     });
     await t.test(
       'large binary input is copied and both outputs drain without deadlock',
@@ -91,8 +94,8 @@ test('installed native lifetime and scheduling contracts', { timeout: 60000 }, a
         const {parentPort,workerData}=require('node:worker_threads');const fs=require('node:fs');
         (async()=>{const {Command,Output,Subprocess}=await import(workerData.apiURL);
         Subprocess.run(Command.path(process.execPath,['-e',workerData.childCode,workerData.direct]),{output:Output.discard()}).catch(()=>{});
-        const descendantCode='require("node:fs").writeFileSync(process.argv[1],String(process.pid));setInterval(()=>{},1000)';
-        const parentCode='require("node:child_process").spawn(process.execPath,["-e",'+JSON.stringify(descendantCode)+','+JSON.stringify(workerData.descendant)+'],{stdio:["ignore",1,2]}).unref()';
+        const descendantCode='const fs=require("node:fs"),tmp=process.argv[1]+"."+process.pid+".tmp";fs.writeFileSync(tmp,String(process.pid));fs.renameSync(tmp,process.argv[1]);setInterval(()=>{},1000)';
+        const parentCode='require("node:child_process").spawn(process.execPath,["-e",'+JSON.stringify(descendantCode)+','+JSON.stringify(workerData.descendant)+'],{detached:true,stdio:["ignore",1,2]}).unref();const fs=require("node:fs");const timer=setInterval(()=>{if(fs.existsSync('+JSON.stringify(workerData.descendant)+'))clearInterval(timer)},5)';
         Subprocess.run(Command.path(process.execPath,['-e',parentCode]),{output:Output.text({limit:4096}),error:Output.text({limit:4096})}).catch(()=>{});
         while(![workerData.direct,workerData.descendant].every(fs.existsSync))await new Promise(r=>setTimeout(r,5));
         parentPort.postMessage('ready');})();

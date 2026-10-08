@@ -64,6 +64,7 @@ const require=createRequire(import.meta.url);assert.throws(()=>require.resolve('
   );
   execFileSync(process.execPath, ['--test', 'installed-runtime.mjs'], {
     ...options,
+    stdio: 'inherit',
     timeout: 90000,
     env: {
       ...process.env,

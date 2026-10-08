@@ -8,6 +8,8 @@ import {
   rmSync,
   existsSync,
   realpathSync,
+  copyFileSync,
+  mkdirSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname, basename } from 'node:path';
@@ -71,6 +73,30 @@ export function defineProcessContracts(api, moduleURL) {
       );
       expect(result.standardOutput).toBe('["found"]');
     });
+    it.runIf(process.platform === 'win32')(
+      'preserves Windows executable suffix order and child-relative quoted PATH without system-directory fallback',
+      async () => {
+        const cwd = root(),
+          folder = join(cwd, 'quoted;path');
+        mkdirSync(folder);
+        const binary = join(folder, 'twill-contract-tool.com');
+        copyFileSync(process.execPath, binary);
+        const environment = Environment.replace({ PATH: '"quoted;path"', PATHEXT: '.CMD;.BAT' });
+        const result = await Subprocess.run(
+          Command.name('twill-contract-tool', [fixture, 'argv', 'literal']),
+          { cwd, environment, output: text() },
+        );
+        expect(result.standardOutput).toBe('["literal"]');
+        await expect(
+          Subprocess.run(Command.name('cmd.exe'), { cwd, environment, check: false }),
+        ).rejects.toBeInstanceOf(api.ProcessLaunchError);
+        const direct = await Subprocess.run(
+          Command.path(join(folder, 'twill-contract-tool'), [fixture, 'argv', 'direct']),
+          { cwd, environment, output: text() },
+        );
+        expect(direct.standardOutput).toBe('["direct"]');
+      },
+    );
     it('isolates simultaneous cwd/environment updates and snapshots replacement values', async () => {
       const originalCwd = process.cwd(),
         original = process.env.TWILL_CONTRACT;

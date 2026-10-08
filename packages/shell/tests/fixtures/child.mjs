@@ -1,6 +1,11 @@
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, renameSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 const [mode, ...args] = process.argv.slice(2);
+function writePid(path) {
+  const temporary = `${path}.${process.pid}.tmp`;
+  writeFileSync(temporary, String(process.pid));
+  renameSync(temporary, path);
+}
 switch (mode) {
   case 'argv':
     process.stdout.write(JSON.stringify(args));
@@ -48,10 +53,10 @@ switch (mode) {
       [
         '-e',
         `
-      const {writeFileSync}=require('node:fs');
+      const {writeFileSync,renameSync}=require('node:fs');
       void process.stdout;void process.stderr;
       setInterval(()=>{},1000);
-      writeFileSync(process.argv[1],String(process.pid));
+      const temporary=process.argv[1]+'.'+process.pid+'.tmp';writeFileSync(temporary,String(process.pid));renameSync(temporary,process.argv[1]);
     `,
         '--',
         args[0],
@@ -87,7 +92,7 @@ switch (mode) {
     if (mode === 'ignore-term') process.on('SIGTERM', () => {});
     if (mode === 'graceful') process.on('SIGTERM', () => setTimeout(() => process.exit(0), 10));
     process.stdout.write('ready');
-    writeFileSync(args[0], String(process.pid));
+    writePid(args[0]);
     setInterval(() => {}, 1000);
     break;
   }
