@@ -30,6 +30,8 @@ The paired hit/uncached median ratio was 0.2923 (deterministic bootstrap 95% int
 
 `startup-profile-original-linux-node24.json` identifies the separately built eager loader from PR #20 (`caf2c7e`) by its path and SHA-256; `startup-profile-cache-first-review-linux-node24.json` identifies the lazy/cache loader at that review. Each preserves five phase observations per mode. The original loader's compiler initialization happens during loader import. The new loader imports only lightweight hooks; compiler initialization moves to misses, while hits load only the cached entry without compiler modules. The ordinary binary measurements above include the additional interpreter and asynchronous-hook worker startup that the phase wrapper excludes.
 
+`script-cache-linux-node24.json` retains the final 21 pairs at source commit `1588908`, after unreadable-configuration and nested-package/symlink fingerprint validation. Uncached/empty-cache/hit/native medians were 513.6/544.3/157.3/43.9 ms. The paired hit ratio was 0.2938 (95% interval 0.2826–0.3046), with paired miss overhead of 7.1%. Interpreter CPU medians were 559.1/585.9/154.8/35.5 ms and peak RSS observations 115.4/127.1/64.1/25.6 MiB, respectively. The completed entry still occupied 1,607 bytes. The earlier two runs remain available; no samples were discarded. `startup-profile-cache-linux-node24.json` retains five final phase observations per mode; the first-review phase report remains separately available. All three mode labels on the original loader still compile because it has no cache.
+
 Reproduce the ordinary binary and instrumented phase observations after building:
 
 ```sh
