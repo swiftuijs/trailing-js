@@ -13,6 +13,7 @@ import {
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { setMaxListeners } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { Command, Output, Subprocess, ProcessAbortError } from '../src/index.js';
 import { Subprocess as NodeSubprocess } from '@swiftuijs/twill-shell';
@@ -216,6 +217,35 @@ it('keeps unrelated filesystem work available with one libuv worker and many liv
     env: { ...process.env, UV_THREADPOOL_SIZE: '1' },
   });
 });
+
+it.runIf(process.platform === 'linux')(
+  'does not retain inherited-descriptor snapshots for a burst of already-started commands',
+  async () => {
+    await Subprocess.run(Command.path(process.execPath, ['-e', '']));
+    const baseline = readdirSync('/proc/self/fd').length;
+    const controller = new AbortController();
+    setMaxListeners(0, controller.signal);
+    const tasks = Array.from({ length: 64 }, () =>
+      Subprocess.run(Command.path(process.execPath, ['-e', 'setInterval(()=>{},10000)']), {
+        signal: controller.signal,
+        gracePeriodMs: 0,
+      }),
+    );
+    tasks.forEach((task) => task.catch(() => {}));
+    try {
+      // One pidfd per child; inherited stdout/stderr duplicates must already
+      // have been closed before each call returns, not accumulate in a queue.
+      expect(readdirSync('/proc/self/fd').length).toBeLessThanOrEqual(baseline + 64 + 3);
+    } finally {
+      controller.abort();
+    }
+    for (const task of tasks) {
+      const failure = await task.catch((error) => error);
+      expect(failure).toBeInstanceOf(ProcessAbortError);
+      gone(failure.processIdentifier);
+    }
+  },
+);
 
 it.runIf(process.platform === 'linux')(
   'releases capture buffers and process/pipe descriptors after repeated concurrent completion/cancellation',

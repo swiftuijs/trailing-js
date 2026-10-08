@@ -4,7 +4,7 @@ mod process;
 
 use napi::{bindgen_prelude::*, JsDeferred};
 use napi_derive::napi;
-use process::{Control, NativeOptions, NativeOutcome, Options};
+use process::{Control, NativeOptions, NativeOutcome, Options, Prepared};
 use std::{
     collections::HashMap,
     ffi::c_void,
@@ -41,10 +41,11 @@ impl Drop for Settlement {
 }
 
 enum Message {
-    Run(u32, Box<Options>, watch::Receiver<Control>, Settlement),
+    Run(u32, Box<Prepared>, watch::Receiver<Control>, Settlement),
     Shutdown,
 }
 struct State {
+    runtime: tokio::runtime::Handle,
     sender: mpsc::UnboundedSender<Message>,
     operations: Mutex<HashMap<u32, watch::Sender<Control>>>,
     sequence: AtomicU32,
@@ -127,6 +128,7 @@ fn state(env: Env) -> Result<Arc<State>> {
         .map_err(|error| Error::from_reason(format!("Native reactor could not start: {error}")))?;
     let (sender, mut receiver) = mpsc::unbounded_channel();
     let state = Arc::new(State {
+        runtime: runtime.handle().clone(),
         sender,
         operations: Mutex::default(),
         sequence: AtomicU32::new(0),
@@ -150,11 +152,11 @@ fn state(env: Env) -> Result<Arc<State>> {
                     }
                     tokio::select! {
                         message = receiver.recv(), if !shutting_down => match message {
-                            Some(Message::Run(id, options, control, settlement)) => {
+                            Some(Message::Run(id, prepared, control, settlement)) => {
                                 let owner = Arc::clone(&owner);
                                 tasks.spawn(async move {
                                 let _registration = Registration { owner, id };
-                                let outcome = process::execute(*options, control).await;
+                                let outcome = process::execute(*prepared, control).await;
                                     settlement.complete(outcome);
                                 });
                             }
@@ -214,13 +216,20 @@ pub fn start<'env>(env: Env, options: NativeOptions) -> Result<Object<'env>> {
     let mut job = Object::new(&env)?;
     job.set_named_property("id", id)?;
     job.set_named_property("promise", promise)?;
+    let prepared = match state.runtime.block_on(process::prepare(options)) {
+        Ok(prepared) => prepared,
+        Err(outcome) => {
+            Settlement(Some(deferred)).complete(outcome);
+            return Ok(Object::from_raw(env.raw(), job.raw()));
+        }
+    };
     let (sender, receiver) = watch::channel(Control::None);
     locked(&state.operations).insert(id, sender);
     if state
         .sender
         .send(Message::Run(
             id,
-            Box::new(options),
+            Box::new(prepared),
             receiver,
             Settlement(Some(deferred)),
         ))

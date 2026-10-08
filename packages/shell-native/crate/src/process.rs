@@ -1,4 +1,4 @@
-use crate::platform::{self, Child, ReadPipe};
+use crate::platform::{self, Child, ReadPipe, WritePipe};
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 #[cfg(unix)]
@@ -316,30 +316,45 @@ impl<R: tokio::io::AsyncRead + Unpin> Reader<R> {
     }
 }
 
-pub async fn execute(mut options: Options, mut control: watch::Receiver<Control>) -> NativeOutcome {
-    if let Some(failure) = canceled(*control.borrow()) {
-        return NativeOutcome::empty(Some(failure));
-    }
+pub struct Prepared {
+    options: Options,
+    child: Child,
+    input: Option<WritePipe>,
+    output: Option<ReadPipe>,
+    error: Option<ReadPipe>,
+}
+
+// Launch on the caller, as Node spawn does. The reactor must never be blocked
+// by a later spawn while already-started children are filling their pipes.
+pub async fn prepare(mut options: Options) -> std::result::Result<Prepared, NativeOutcome> {
     if options
         .deadline
         .is_some_and(|deadline| deadline <= Instant::now())
     {
-        return NativeOutcome::empty(Some(Failure::simple(
+        return Err(NativeOutcome::empty(Some(Failure::simple(
             "timeout",
             "Subprocess timed out before launch",
-        )));
+        ))));
     }
     #[cfg(windows)]
     let executable = match platform::executable(&options) {
         Ok(value) => value,
-        Err(error) => return NativeOutcome::empty(Some(Failure::io("launch", None, error))),
+        Err(error) => {
+            return Err(NativeOutcome::empty(Some(Failure::io(
+                "launch", None, error,
+            ))))
+        }
     };
     #[cfg(not(windows))]
     let executable = &options.executable;
     let mut command = Command::new(executable);
     let pipes = match platform::pipes(&mut options).await {
         Ok(value) => value,
-        Err(error) => return NativeOutcome::empty(Some(Failure::io("launch", None, error))),
+        Err(error) => {
+            return Err(NativeOutcome::empty(Some(Failure::io(
+                "launch", None, error,
+            ))))
+        }
     };
     command
         .args(&options.arguments)
@@ -351,27 +366,44 @@ pub async fn execute(mut options: Options, mut control: watch::Receiver<Control>
     if let Some(cwd) = &options.cwd {
         command.current_dir(cwd);
     }
-    if let Some(failure) = canceled(*control.borrow()) {
-        return NativeOutcome::empty(Some(failure));
-    }
     if options
         .deadline
         .is_some_and(|deadline| deadline <= Instant::now())
     {
-        return NativeOutcome::empty(Some(Failure::simple(
+        return Err(NativeOutcome::empty(Some(Failure::simple(
             "timeout",
             "Subprocess timed out before launch",
-        )));
+        ))));
     }
-    let mut child = match Child::spawn(command) {
+    let child = match Child::spawn(command) {
         Ok(child) => child,
-        Err(error) => return NativeOutcome::empty(Some(Failure::io("launch", None, error))),
+        Err(error) => {
+            return Err(NativeOutcome::empty(Some(Failure::io(
+                "launch", None, error,
+            ))))
+        }
     };
+    Ok(Prepared {
+        options,
+        child,
+        input: pipes.input,
+        output: pipes.output,
+        error: pipes.error,
+    })
+}
+
+pub async fn execute(prepared: Prepared, mut control: watch::Receiver<Control>) -> NativeOutcome {
+    let Prepared {
+        options,
+        mut child,
+        mut input,
+        output,
+        error,
+    } = prepared;
     let mut outcome = NativeOutcome::empty(None);
     outcome.process_identifier = child.id();
-    let mut input = pipes.input;
-    let mut output = Reader::<ReadPipe>::new(pipes.output, options.output_limit, "stdout");
-    let mut error = Reader::<ReadPipe>::new(pipes.error, options.error_limit, "stderr");
+    let mut output = Reader::<ReadPipe>::new(output, options.output_limit, "stdout");
+    let mut error = Reader::<ReadPipe>::new(error, options.error_limit, "stderr");
     let bytes = options.input.as_deref().unwrap_or_default();
     let mut written = 0;
     if bytes.is_empty() {

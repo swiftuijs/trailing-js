@@ -1,6 +1,6 @@
 # <img src="https://twill.evecalm.com/logo.png" alt="Twill hummingbird" align="right" width="40" height="40" /> Twill native shell backend
 
-Optional Rust execution for Twill and ordinary Node scripts. One independent asynchronous reactor per Node environment coordinates direct children and their pipes without occupying libuv's shared worker pool. Commands never invoke a shell or a compiler.
+Optional Rust execution for Twill and ordinary Node scripts. One independent asynchronous reactor per Node environment coordinates direct children and their pipes without occupying libuv's shared worker pool. Native process creation runs synchronously on the calling Node thread, as Node spawn does; the reactor coordinates pipes, waits and cancellation for already-started children. OS launch may block the caller. Commands never invoke a shell or a compiler.
 
 This implements the production direct-child backend contract; it is **not yet published on npm**. Published Twill 0.1.2 does not include this package. Install a validated source archive until a coordinated release provides the prebuilt package.
 
