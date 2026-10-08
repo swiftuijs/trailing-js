@@ -13,7 +13,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const cli = fileURLToPath(new URL('../bin/twill.mjs', import.meta.url));
 const register = fileURLToPath(new URL('../dist/register.js', import.meta.url));
@@ -146,7 +146,7 @@ it('executes without caching when disabled or inaccessible and keeps advanced re
   const blocked = join(root, 'blocked');
   writeFileSync(blocked, 'file');
   expect(execute(file, join(blocked, 'cache')).stdout.trim()).toBe('value');
-  const advanced = spawnSync(process.execPath, ['--import', register, file], {
+  const advanced = spawnSync(process.execPath, ['--import', pathToFileURL(register).href, file], {
     encoding: 'utf8',
     timeout: 15000,
     env: { ...process.env, TWILL_CACHE_DIR: cache },

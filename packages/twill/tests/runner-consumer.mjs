@@ -67,14 +67,19 @@ console.log(JSON.stringify({args:process.argv.slice(2),values,pid:process.pid,cw
     readdirSync(cache)
       .filter((name) => name.endsWith('.json'))
       .map((name) => join(cache, name));
+  // A single-module probe guarantees a hit even when the mixed app's fixed slots collide.
+  const hitFile = join(app, 'cache-hit');
+  writeFileSync(hitFile, 'console.log("cache-hit");');
+  const prime = spawnSync(process.execPath, [cli, hitFile], { cwd: root, encoding: 'utf8' });
+  assert.equal(prime.status, 0, prime.stderr);
   const before = cacheFiles().map((path) => [path, statSync(path).mtimeMs]);
-  const cached = spawnSync(process.execPath, [cli, file, ...args], {
+  const cached = spawnSync(process.execPath, [cli, hitFile], {
     cwd: root,
     encoding: 'utf8',
-    input: 'stdin',
     timeout: 15000,
   });
   assert.equal(cached.status, 0, cached.stderr);
+  assert.equal(cached.stdout.trim(), 'cache-hit');
   assert.deepEqual(
     before.map(([path]) => [path, statSync(path).mtimeMs]),
     before,
