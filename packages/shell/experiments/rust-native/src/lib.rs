@@ -24,8 +24,8 @@ pub struct NativeOptions {
     pub executable: String,
     pub arguments: Vec<String>,
     pub cwd: Option<String>,
-    /// When supplied, replace the child's environment; never mutate the parent.
-    pub environment: Option<HashMap<String, String>>,
+    /// Call-time snapshot replacing the child environment; never mutate the parent.
+    pub environment: HashMap<String, String>,
     pub input: Option<Buffer>,
     pub output_limit: Option<f64>,
     pub error_limit: Option<f64>,
@@ -47,13 +47,13 @@ struct Options {
     executable: String,
     arguments: Vec<String>,
     cwd: Option<String>,
-    environment: Option<HashMap<String, String>>,
+    environment: HashMap<String, String>,
     input: Option<Vec<u8>>,
     output_limit: Option<usize>,
     error_limit: Option<usize>,
     discard_output: bool,
     discard_error: bool,
-    timeout: Duration,
+    deadline: Instant,
 }
 
 pub struct RunTask(Options);
@@ -74,8 +74,10 @@ pub fn run(options: NativeOptions) -> Result<AsyncTask<RunTask>> {
         || options.executable.contains('\0')
         || options.arguments.iter().any(|a| a.contains('\0'))
         || options.cwd.as_ref().is_some_and(|v| v.contains('\0'))
-        || options.environment.as_ref().is_some_and(|env| {
-            env.iter()
+        || ({
+            options
+                .environment
+                .iter()
                 .any(|(k, v)| k.is_empty() || k.contains(['\0', '=']) || v.contains('\0'))
         })
     {
@@ -112,7 +114,7 @@ pub fn run(options: NativeOptions) -> Result<AsyncTask<RunTask>> {
         error_limit: options.error_limit.map(|n| n as usize),
         discard_output: options.discard_output,
         discard_error: options.discard_error,
-        timeout: Duration::from_millis(options.timeout_ms as u64),
+        deadline: Instant::now() + Duration::from_millis(options.timeout_ms as u64),
     })))
 }
 
@@ -196,9 +198,9 @@ fn capture<R: Read>(
     bytes: &mut Vec<u8>,
     limit: usize,
     channel: &str,
+    chunk: &mut [u8; CHUNK],
 ) -> io::Result<()> {
-    let mut chunk = [0_u8; CHUNK];
-    match stream.as_mut().expect("live reader").read(&mut chunk) {
+    match stream.as_mut().expect("live reader").read(chunk) {
         Ok(0) => {
             *stream = None;
         }
@@ -249,8 +251,12 @@ fn perform(options: &Options) -> io::Result<Completed> {
     if let Some(cwd) = &options.cwd {
         command.current_dir(cwd);
     }
-    if let Some(environment) = &options.environment {
-        command.env_clear().envs(environment);
+    command.env_clear().envs(&options.environment);
+    if Instant::now() >= options.deadline {
+        return Err(io::Error::new(
+            io::ErrorKind::TimedOut,
+            "Native experimental deadline exceeded before launch",
+        ));
     }
     let mut owned = OwnedChild {
         child: command.spawn()?,
@@ -293,7 +299,8 @@ fn communicate(options: &Options, owned: &mut OwnedChild) -> io::Result<Complete
     }
     let mut stdout = Vec::new();
     let mut stderr = Vec::new();
-    let deadline = Instant::now() + options.timeout;
+    let deadline = options.deadline;
+    let mut chunk = [0_u8; CHUNK];
     let mut status = None;
     while status.is_none() || input.is_some() || output.is_some() || error.is_some() {
         let remaining = deadline
@@ -339,6 +346,7 @@ fn communicate(options: &Options, owned: &mut OwnedChild) -> io::Result<Complete
                 &mut stdout,
                 options.output_limit.unwrap(),
                 "stdout",
+                &mut chunk,
             )?;
         }
         if error.is_some() && descriptors[3].revents != 0 {
@@ -347,6 +355,7 @@ fn communicate(options: &Options, owned: &mut OwnedChild) -> io::Result<Complete
                 &mut stderr,
                 options.error_limit.unwrap(),
                 "stderr",
+                &mut chunk,
             )?;
         }
         if let Some(writer) = input.as_mut().filter(|_| descriptors[1].revents != 0) {

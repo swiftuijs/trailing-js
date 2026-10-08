@@ -1,0 +1,6 @@
+{
+  "status": "incomplete diagnostic run; not acceptance evidence",
+  "gitHead": "1069b3de6abd577e9e7a88669e33c1ac1a7b7f54",
+  "nativeArtifactSHA256": "11d210bb6db8700effb50c3db5fb2c62b4493bf94f40cecb33544a662dc7b79a",
+  "failure": "Report construction referenced an absent unbundled compilation-cache.js filename after all timings. Raw in-memory samples were not saved; only the diagnostic log survives. No complete data or confidence-interval claim is made for this run."
+}

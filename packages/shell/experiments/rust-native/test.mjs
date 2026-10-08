@@ -31,6 +31,7 @@ const nativeOptions = {
   discardOutput: false,
   discardError: false,
   timeoutMs: 5000,
+  environment: { ...process.env },
 };
 
 test('literal argv and immutable reusable command agree with SDK', async () => {
@@ -127,6 +128,19 @@ test('child-local cwd/environment isolation and PATH lookup', async () => {
     assert.notEqual(process.cwd(), cwd);
   } finally {
     rmSync(cwd, { recursive: true, force: true });
+  }
+});
+
+test('inherited environment is snapshotted at call time, including queued work', async () => {
+  const saved = process.env.TWILL_RUST_SNAPSHOT;
+  try {
+    process.env.TWILL_RUST_SNAPSHOT = 'before';
+    const result = rustRun(command('env'), { output: Output.text({ limit: 64 * 1024 }) });
+    process.env.TWILL_RUST_SNAPSHOT = 'after';
+    assert.equal(JSON.parse((await result).standardOutput).env.TWILL_RUST_SNAPSHOT, 'before');
+  } finally {
+    if (saved === undefined) delete process.env.TWILL_RUST_SNAPSHOT;
+    else process.env.TWILL_RUST_SNAPSHOT = saved;
   }
 });
 

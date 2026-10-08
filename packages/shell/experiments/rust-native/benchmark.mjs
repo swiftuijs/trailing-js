@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync, statSync, mkdtempSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, statSync, mkdtempSync, rmSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
@@ -108,7 +108,49 @@ async function operation(run, workload) {
   assert.deepEqual(result.terminationStatus, { kind: 'exited', code: 0 });
   return { wallMs, parentCPUMs: (usage.user + usage.system) / 1000 };
 }
+const identities = {};
+for (const file of [
+  'Cargo.toml',
+  'Cargo.lock',
+  'rust-toolchain.toml',
+  'build.rs',
+  'src/lib.rs',
+  'build.mjs',
+  'adapter.mjs',
+  'fixture.c',
+  'target/fixture',
+  'benchmark.mjs',
+  'observe.mjs',
+  'cold-sdk.twill',
+  'cold-rust.twill',
+  'experiment.node',
+  '../../src/index.ts',
+  '../../src/values.ts',
+  '../../src/errors.ts',
+  '../../dist/index.js',
+  '../../dist/values.js',
+  '../../dist/errors.js',
+  '../../benchmarks/native.mjs',
+  '../../tests/fixtures/child.mjs',
+  '../../../twill/bin/twill.mjs',
+  '../../../twill/bin/run.mjs',
+  ...readdirSync(resolve(import.meta.dirname, '../../../twill/dist'))
+    .filter((file) => file.endsWith('.js'))
+    .sort()
+    .map((file) => '../../../twill/dist/' + file),
+])
+  identities[file] = createHash('sha256')
+    .update(readFileSync(resolve(import.meta.dirname, file)))
+    .digest('hex');
+const checkpoint = {};
+function save(stage) {
+  writeFileSync(
+    resolve(import.meta.dirname, 'target/benchmark-partial.json'),
+    JSON.stringify({ stage, sourceAndBuildSHA256: identities, ...checkpoint }, null, 2) + '\n',
+  );
+}
 const results = [];
+checkpoint.results = results;
 for (const workload of workloads) {
   for (const run of Object.values(runs)) for (let n = 0; n < 8; n++) await operation(run, workload);
   const pairs = [];
@@ -127,6 +169,8 @@ for (const workload of workloads) {
       }
     }
     pairs.push(pair);
+    checkpoint.activeWorkload = { name: workload.name, pairs };
+    save('warm');
   }
   const result = {
     name: workload.name,
@@ -152,12 +196,15 @@ for (const workload of workloads) {
     sdkVersusNative: { wall: comparison(pairs, 'sdk', 'native', 'wallMs') },
   };
   results.push(result);
+  delete checkpoint.activeWorkload;
+  save('warm');
   console.error(
     `${result.name}: Rust/SDK wall ${result.rustVersusSDK.wall.medianRatio.toFixed(3)}, parent CPU ${result.rustVersusSDK.parentCPU.medianRatio.toFixed(3)}`,
   );
 }
 
 const memory = [];
+checkpoint.memory = memory;
 for (const bytes of [size, 8 * size]) {
   const pairs = [];
   for (let sample = 0; sample < 5; sample++) {
@@ -179,8 +226,10 @@ for (const bytes of [size, 8 * size]) {
     pairs.push(pair);
   }
   memory.push({ bytesPerStream: bytes, pairs });
+  save('memory');
 }
 const concurrency = [];
+checkpoint.concurrency = concurrency;
 for (const poolSize of ['4', '32']) {
   const pairs = [];
   for (let sample = 0; sample < 5; sample++) {
@@ -196,6 +245,7 @@ for (const poolSize of ['4', '32']) {
     pairs.push(pair);
   }
   concurrency.push({ poolSize, children: 32, pairs });
+  save('concurrency');
 }
 const cache = mkdtempSync(resolve(tmpdir(), 'twill-rust-cold-'));
 const coldModes = [
@@ -228,6 +278,7 @@ function cold(mode) {
   return { wallMs: performance.now() - start };
 }
 const coldPairs = [];
+checkpoint.coldPairs = coldPairs;
 try {
   for (const mode of coldModes) cold(mode);
   for (let sample = 0; sample < samples; sample++) {
@@ -238,40 +289,11 @@ try {
     const pair = { order };
     for (const mode of order) pair[mode] = cold(mode);
     coldPairs.push(pair);
+    save('cold');
   }
 } finally {
   rmSync(cache, { recursive: true, force: true });
 }
-const identities = {};
-for (const file of [
-  'Cargo.toml',
-  'Cargo.lock',
-  'rust-toolchain.toml',
-  'build.rs',
-  'src/lib.rs',
-  'build.mjs',
-  'adapter.mjs',
-  'fixture.c',
-  'target/fixture',
-  'benchmark.mjs',
-  'observe.mjs',
-  'cold-sdk.twill',
-  'cold-rust.twill',
-  'experiment.node',
-  '../../src/index.ts',
-  '../../src/values.ts',
-  '../../src/errors.ts',
-  '../../dist/index.js',
-  '../../dist/values.js',
-  '../../dist/errors.js',
-  '../../benchmarks/native.mjs',
-  '../../tests/fixtures/child.mjs',
-  '../../../twill/dist/loader.js',
-  '../../../twill/dist/compilation-cache.js',
-])
-  identities[file] = createHash('sha256')
-    .update(readFileSync(resolve(import.meta.dirname, file)))
-    .digest('hex');
 const report = {
   schemaVersion: 1,
   dateUTC: new Date().toISOString(),

@@ -38,7 +38,7 @@ export async function rustRun(command, options = {}) {
     executable: command.executable,
     arguments: command.arguments,
     cwd: options.cwd,
-    environment: environment?.values,
+    environment: environment?.values ?? { ...process.env },
     input:
       input === undefined
         ? undefined
