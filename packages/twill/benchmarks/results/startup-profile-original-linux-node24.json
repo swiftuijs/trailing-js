@@ -1,0 +1,162 @@
+{
+  "workload": "Instrumented loader hook: dynamic loader import and per-module load, no SDK or subprocess. Five fresh interpreter observations per mode; all retained.",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "arch": "x64",
+    "os": "6.18.44",
+    "cpu": "INTEL(R) XEON(R) PLATINUM 8573C"
+  },
+  "gitHead": "b15fd34e85554aa643dc18bd3141046f48d232a8",
+  "sourceSHA256": "483e565eaccd3ec9b0d823930a385ce066297fe78ddae958306ac0218f1dce52",
+  "loaderPath": "/workspace/twill-shell-rfc/packages/twill/dist/loader.js",
+  "loaderSHA256": "888f8dca309ea31e04f996600392df315e18468e61fb55181502ec9576856c6f",
+  "pairs": [
+    {
+      "uncached": {
+        "loaderImportMs": 329.554296,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-7lIaJb/script.twill",
+            "ms": 67.07978800000001
+          }
+        ]
+      },
+      "miss": {
+        "loaderImportMs": 362.303141,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-7lIaJb/script.twill",
+            "ms": 68.16470199999998
+          }
+        ]
+      },
+      "hit": {
+        "loaderImportMs": 315.334525,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-7lIaJb/script.twill",
+            "ms": 75.18010200000003
+          }
+        ]
+      }
+    },
+    {
+      "uncached": {
+        "loaderImportMs": 545.471816,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-7lIaJb/script.twill",
+            "ms": 62.18292100000008
+          }
+        ]
+      },
+      "miss": {
+        "loaderImportMs": 308.626952,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-7lIaJb/script.twill",
+            "ms": 66.54919699999999
+          }
+        ]
+      },
+      "hit": {
+        "loaderImportMs": 311.09723099999997,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-7lIaJb/script.twill",
+            "ms": 61.29795200000001
+          }
+        ]
+      }
+    },
+    {
+      "uncached": {
+        "loaderImportMs": 313.92935,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-7lIaJb/script.twill",
+            "ms": 72.53501999999997
+          }
+        ]
+      },
+      "miss": {
+        "loaderImportMs": 347.034076,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-7lIaJb/script.twill",
+            "ms": 67.95799800000003
+          }
+        ]
+      },
+      "hit": {
+        "loaderImportMs": 301.83077000000003,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-7lIaJb/script.twill",
+            "ms": 62.128806
+          }
+        ]
+      }
+    },
+    {
+      "uncached": {
+        "loaderImportMs": 312.829337,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-7lIaJb/script.twill",
+            "ms": 61.78154599999999
+          }
+        ]
+      },
+      "miss": {
+        "loaderImportMs": 345.70961800000003,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-7lIaJb/script.twill",
+            "ms": 70.31701300000003
+          }
+        ]
+      },
+      "hit": {
+        "loaderImportMs": 304.6704,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-7lIaJb/script.twill",
+            "ms": 65.843278
+          }
+        ]
+      }
+    },
+    {
+      "uncached": {
+        "loaderImportMs": 317.367743,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-7lIaJb/script.twill",
+            "ms": 62.37001500000002
+          }
+        ]
+      },
+      "miss": {
+        "loaderImportMs": 400.059128,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-7lIaJb/script.twill",
+            "ms": 104.201079
+          }
+        ]
+      },
+      "hit": {
+        "loaderImportMs": 347.543684,
+        "loads": [
+          {
+            "url": "file:///tmp/twill-startup-profile-7lIaJb/script.twill",
+            "ms": 66.377295
+          }
+        ]
+      }
+    }
+  ],
+  "limitations": "Instrumentation changes startup and excludes interpreter/hook-worker initialization. Use script-startup.mjs for ordinary binary wall time. On the original eager loader, compiler imports belong to loaderImportMs; on the lazy loader they belong to a miss load."
+}
