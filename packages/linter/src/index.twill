@@ -14,7 +14,7 @@ import { dirname, resolve } from 'node:path';
 import { statSync } from 'node:fs';
 import type { ESLint, Linter, Rule } from 'eslint';
 import metadata from '../package.json' with { type: 'json' };
-import { SourcePositions } from './positions.js';
+import { SourcePositions } from './positions.twill';
 
 type State = {
   source: string;
@@ -38,7 +38,9 @@ const stamp = (filename: string) => {
 
 function projectFor(filename: string) {
   const config = ts.findConfigFile(dirname(filename), ts.sys.fileExists);
-  if (!config) throw new Error('Typed Twill linting requires a tsconfig.json.');
+  guard config else {
+    throw new Error('Typed Twill linting requires a tsconfig.json.');
+  }
   let cached = projects.get(config);
   if (
     cached &&

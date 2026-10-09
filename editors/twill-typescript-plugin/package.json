@@ -7,7 +7,7 @@
   "main": "dist/index.cjs",
   "scripts": {
     "build": "vite build",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "twill check -p tsconfig.json"
   },
   "devDependencies": {
     "@swiftuijs/twill": "workspace:*",

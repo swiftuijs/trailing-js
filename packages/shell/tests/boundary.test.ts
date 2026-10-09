@@ -10,7 +10,7 @@ import {
   ProcessLaunchError,
   ProcessIOError,
   ProcessTeardownError,
-} from '../src/index.js';
+} from '../src/index.twill';
 import type { NativeBindings, NativeFailure, NativeOutcome } from '@swiftuijs/twill-shell-native';
 
 afterEach(() => vi.restoreAllMocks());

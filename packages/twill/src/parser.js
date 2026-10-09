@@ -179,6 +179,20 @@ function parserFor(language) {
   if (parsers.has(language)) return parsers.get(language);
   const Base = bases[language];
   class TwillParser extends Base {
+    declareName(name, bindingType, position) {
+      // acorn-typescript 1.4.13 passes 6/7 for aliases/interfaces, but its
+      // zero type mask incorrectly registers them as runtime bindings.
+      // TS has separate type/value namespaces; its checker owns type merging.
+      if (bindingType === 6 || bindingType === 7) {
+        const scope = this.currentScope();
+        // Its namespace blocks enter Acorn scopes without initializing types.
+        (scope.types ??= []).push(name);
+        if (this.inModule && scope.flags & 1) delete this.undefinedExports[name];
+        return;
+      }
+      super.declareName(name, bindingType, position);
+    }
+
     skipHeader = null;
     closures = [];
     lineStarts = null;

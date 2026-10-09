@@ -2,6 +2,8 @@
 
 Twill 0.2 is an experimental TypeScript extension language with a tested development workflow. It is ready for a scoped evaluation of the documented compiler, editor and build integrations. A broad production-ready claim would go beyond the current evidence.
 
+The source checkout fixes same-name native type/value declarations (for example, `type Command = { ... }; const Command = { ... };`) and interface/value pairs. The parser keeps their namespaces separate while TypeScript checks merging and duplicate types. This repair is unreleased; 0.2.0 npm consumers must not assume it is available.
+
 ## Adoption status
 
 | Area                     | Current evidence                                                                                                            | Remaining gate                                                                      |

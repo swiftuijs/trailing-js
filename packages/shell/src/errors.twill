@@ -1,4 +1,4 @@
-import type { ExecutionResult, TerminationStatus } from './index.js';
+import type { ExecutionResult, TerminationStatus } from './index.twill';
 
 export class ProcessError extends Error {
   readonly processIdentifier?: number;

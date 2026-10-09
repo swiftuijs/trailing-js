@@ -1,7 +1,7 @@
 import { expect, it } from 'vitest';
 import { transform } from '@swiftuijs/twill';
-import { format } from '../src/index.js';
-import { format as standalone } from '../src/standalone.js';
+import { format } from '../src/index.twill';
+import { format as standalone } from '../src/standalone.twill';
 
 const sources = [
   'function f(v){guard const {nested:{value=2},...rest}=v else{return 0;}return [value,rest];}',

@@ -53,11 +53,11 @@ const workloads = [
 const hash = (path) => createHash('sha256').update(readFileSync(path)).digest('hex');
 const identities = {};
 for (const file of [
-  'src/index.ts',
-  'src/values.ts',
-  'src/errors.ts',
-  'src/cwd.ts',
-  'src/environment.ts',
+  'src/index.twill',
+  'src/values.twill',
+  'src/errors.twill',
+  'src/cwd.twill',
+  'src/environment.twill',
   'dist/index.js',
   'dist/values.js',
   'dist/errors.js',
@@ -72,10 +72,10 @@ for (const file of [
   identities[file] = hash(resolve(import.meta.dirname, '..', file));
 // The public SDK delegates to Rust: identify the implementation actually measured.
 for (const file of [
-  'src/index.ts',
-  'src/bindings.ts',
-  'src/platform.ts',
-  'src/libc.ts',
+  'src/index.twill',
+  'src/bindings.twill',
+  'src/platform.twill',
+  'src/libc.twill',
   'dist/index.js',
   'dist/bindings.js',
   'dist/platform.js',

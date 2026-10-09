@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module';
 import type { Buffer } from 'node:buffer';
-import { nativeTarget } from './platform.js';
+import { nativeTarget } from './platform.twill';
 
 export interface NativeFailure {
   kind: string;
@@ -49,8 +49,9 @@ export function loadBackend(): NativeBindings {
   if (bindings) return bindings;
   const filename = `../native/${nativeTarget()}.node`;
   const candidate = createRequire(import.meta.url)(filename) as NativeBindings;
-  if (candidate.protocol?.() !== 1)
+  guard candidate.protocol?.() === 1 else {
     throw new Error('Incompatible native subprocess backend: expected protocol 1');
+  }
   bindings = candidate;
   process.once('exit', shutdownBackend);
   return bindings;

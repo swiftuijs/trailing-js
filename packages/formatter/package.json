@@ -24,8 +24,8 @@
     }
   },
   "scripts": {
-    "build": "vite build",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "vite build && twill declarations -p tsconfig.build.json -o dist",
+    "typecheck": "twill check -p tsconfig.json",
     "test:unit": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -41,7 +41,6 @@
   },
   "devDependencies": {
     "vite": "catalog:",
-    "vite-plugin-dts": "^5.1.2",
     "@types/node": "catalog:",
     "typescript": "catalog:",
     "prettier": "catalog:",

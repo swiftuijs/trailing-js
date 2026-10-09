@@ -20,9 +20,11 @@ The VS Code extension bundles TypeScript, standard-library declarations and the 
 
 Tests exercise behavior by executing lowered closures, checking actual diagnostics and maps, invoking bundlers, rendering independent components, and installing the packed package into a clean consumer. Example-package tests also build and server-render the real `@swiftuijs/ui` example and the Vue example.
 
+Native type aliases and interfaces occupy TypeScript's type namespace independently of runtime bindings. A narrow hook repairs the pinned parser's mistaken registration as values; TypeScript still validates duplicate aliases and interface/class merging. Namespace type scopes and forward type exports are covered by execution, checking and declaration-consumer regressions.
+
 ## Workspace builds
 
-The private root is a pnpm workspace. `packages/twill` is the public compiler/toolchain; `editors/vscode` is the extension; the sibling `editors/twill-typescript-plugin` package supplies its automatic VS Code TS-server bridge. Workspace dependencies define build order and keep imports on public package APIs. Tests and test dependencies live in their owning packages. The root coordinates shared configuration and validation.
+The private root is a pnpm workspace. `packages/twill` is the public compiler/toolchain; `editors/vscode` is the extension; the sibling `editors/twill-typescript-plugin` package supplies its automatic VS Code TS-server bridge. Workspace dependencies define build order and keep imports on public package APIs. Tests and test dependencies live in their owning packages. The root coordinates shared configuration and validation. The formatter, linter, export, highlight, shell wrappers and editor implementations are written in Twill and build through its public adapter/checker/declaration APIs; the compiler and canonical runtime helper retain a native bootstrap. See [dogfooding](./dogfooding.md).
 
 Vite 8 library mode (Rolldown) builds the compiler's ESM entries and CJS TS-server entry, standalone editor bundles, and extension-host test bundle. `vite-plugin-dts` emits declarations for the tool's own TypeScript API. It does not implement declaration emission for user Twill libraries. Runtime dependencies remain external in the public ESM compiler; the editor embeds its dependencies and standard-library declarations. VSIX staging copies only required production files, avoiding reliance on pnpm hoisting or workspace symlinks.
 

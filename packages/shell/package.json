@@ -39,11 +39,12 @@
     "@swiftuijs/twill": "workspace:*",
     "@swiftuijs/twill-formatter": "workspace:*",
     "@swiftuijs/twill-export": "workspace:*",
-    "prettier": "catalog:"
+    "prettier": "catalog:",
+    "vite": "catalog:"
   },
   "scripts": {
-    "build": "node -e \"require('node:fs').rmSync('dist', {recursive: true, force: true})\" && tsc -p tsconfig.build.json",
-    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "build": "vite build && twill declarations -p tsconfig.build.json -o dist && node scripts/compact-maps.mjs",
+    "typecheck": "twill check -p tsconfig.json",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:package": "node tests/consumer.mjs",

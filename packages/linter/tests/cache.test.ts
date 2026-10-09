@@ -3,7 +3,7 @@ import { ESLint } from 'eslint';
 import { mkdtempSync, writeFileSync, rmSync, utimesSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import plugin, { disposeProjects } from '../src/index';
+import plugin, { disposeProjects } from '../src/index.twill';
 const roots: string[] = [];
 afterEach(() => {
   disposeProjects();

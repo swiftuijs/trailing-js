@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, expect, it } from 'vitest';
-import { twillLanguages } from '../src/index';
-import { createTwillHighlighter } from '../src/shiki';
+import { twillLanguages } from '../src/index.twill';
+import { createTwillHighlighter } from '../src/shiki.twill';
 
 let highlighter: Awaited<ReturnType<typeof createTwillHighlighter>>;
 it.each(['twill', 'twillx'])(

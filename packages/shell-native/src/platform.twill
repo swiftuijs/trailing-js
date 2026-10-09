@@ -1,4 +1,4 @@
-import { processLibc } from './libc.js';
+import { processLibc } from './libc.twill';
 const nodeReport = () => process.report.getReport();
 /** Select the ABI of the running Node process, without load retries or overrides. */
 export function nativeTarget(

@@ -1,6 +1,6 @@
 import * as doc from 'prettier/doc';
 import * as estree from 'prettier/plugins/estree';
-import { parse } from './parser.js';
+import { parse } from './parser.twill';
 import type { Plugin, Printer, ParserOptions, Doc } from 'prettier';
 
 type Node = { type: string; start: number; end: number; [key: string]: any };

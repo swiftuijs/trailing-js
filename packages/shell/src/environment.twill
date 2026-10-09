@@ -1,5 +1,5 @@
-import { childEnvironment } from './values.js';
-import type { Environment } from './values.js';
+import { childEnvironment } from './values.twill';
+import type { Environment } from './values.twill';
 
 // Match Node/libuv's mandatory Windows spawn environment additions (including
 // replacement/removal policies). Explicit empty values still override defaults.
