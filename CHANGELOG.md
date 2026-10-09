@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Retire `@swiftuijs/twill-shell-native`, the Rust experiment, addon dependency and native build/assembly chain. The source SDK uses Node spawn/streams with zero production dependencies, retaining commands, policies, errors, snapshots, bounded I/O and awaited cancellation/timeout teardown. Applications must cancel and await work before worker/process exit; the native abrupt-disposal barrier and unnamed numeric-signal guarantee are removed. Published 0.2.0 remains unchanged.
+
 - Develop the formatter, linter, export, highlight, shell JS wrappers and editor integrations in Twill through the public adapter, checker and declaration emitter. Keep ordinary JS/types for consumers, native bootstrap boundaries and existing coverage/size gates; enforce the source policy in release verification.
 - Preserve TypeScript's separate type/value namespaces for same-name aliases/interfaces and runtime declarations, including checked declarations usable by native TS consumers.
 

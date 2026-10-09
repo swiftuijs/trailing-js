@@ -11,8 +11,8 @@ function cpuState() {
 }
 
 const [mode, measurement, count] = process.argv.slice(2);
-const sdk = mode === 'native' ? undefined : await import('../../shell/dist/index.js');
-let run = sdk ? sdk.Subprocess.run : (await import('../../shell/benchmarks/native.mjs')).nativeRun;
+const sdk = mode === 'native' ? undefined : await import('../dist/index.js');
+let run = sdk ? sdk.Subprocess.run : (await import('./native.mjs')).nativeRun;
 // The success baseline deliberately has no cancellation implementation.
 // Measure this workload with ordinary Node spawn, SIGTERM/grace/SIGKILL/close.
 if (mode === 'native' && measurement === 'cancellation') {

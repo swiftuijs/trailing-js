@@ -1,3 +1,0 @@
-/** Internal Rust process boundary. Applications import @swiftuijs/twill-shell. */
-export { loadBackend, shutdownBackend } from './bindings.twill';
-export type { NativeBindings, NativeFailure, NativeOutcome, NativeOptions } from './bindings.twill';

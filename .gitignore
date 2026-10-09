@@ -17,7 +17,6 @@ editors/twill-typescript-plugin/*.map
 editors/twill-typescript-plugin/THIRD_PARTY_LICENSES.txt
 project-results.json
 release-manifest.json
-native-release-manifest.json
 bundle-results.json
 
 **/.vitepress/cache/
@@ -29,3 +28,5 @@ editors/vscode/CHANGELOG.md
 # Generated from the canonical official skill during docs build/dev.
 apps/docs/public/skills/
 apps/docs/public/.well-known/agent-skills/
+
+packages/shell/benchmarks/target/

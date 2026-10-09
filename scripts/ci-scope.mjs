@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { appendFileSync, readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 
-const complete = () => ({ core: true, native: true, shell: true, experiment: true });
+const complete = () => ({ core: true, shell: true });
 const shared = new Set([
   'package.json',
   'pnpm-lock.yaml',
@@ -16,7 +16,7 @@ const ordinaryPackages = ['formatter', 'linter', 'highlight', 'runtime', 'export
 // to full verification until their owners explicitly classify them.
 export function ciScope(paths, full = false) {
   if (full) return complete();
-  const scope = { core: false, native: false, shell: false, experiment: false };
+  const scope = { core: false, shell: false };
   for (const path of paths) {
     if (shared.has(path) || path.startsWith('.github/') || path.startsWith('scripts/'))
       return complete();
@@ -29,11 +29,8 @@ export function ciScope(paths, full = false) {
     )
       continue;
     scope.core = true;
-    if (path.startsWith('packages/shell/experiments/rust-native/')) {
-      scope.experiment = true;
-    } else if (path.startsWith('packages/shell-native/') || path.startsWith('packages/shell/')) {
-      scope.native = scope.shell = true;
-      if (path.startsWith('packages/shell/')) scope.experiment = true;
+    if (path.startsWith('packages/shell/')) {
+      scope.shell = true;
     } else if (
       ordinaryPackages.some((name) => path.startsWith(`packages/${name}/`)) ||
       path.startsWith('editors/') ||

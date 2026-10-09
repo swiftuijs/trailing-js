@@ -1,3 +1,0 @@
-import { Command } from '../../dist/index.js';
-import { rustRun } from './adapter.mjs';
-await rustRun(Command.path('/usr/bin/true'));

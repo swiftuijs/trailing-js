@@ -5,12 +5,12 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, renameSync, rmSync
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { ciScope, eventScope } from '../scripts/ci-scope.mjs';
+import { ciScope, eventScope } from '../ci-scope.mjs';
 
-const all = { core: true, native: true, shell: true, experiment: true };
-const docs = { core: false, native: false, shell: false, experiment: false };
+const all = { core: true, shell: true };
+const docs = { core: false, shell: false };
 
-test('prose/site/skill/evidence PRs keep documentation checks without unrelated native jobs', () => {
+test('prose/site/skill/evidence PRs keep documentation checks without unrelated platform jobs', () => {
   assert.deepEqual(
     ciScope([
       'AGENTS.md',
@@ -34,33 +34,15 @@ test('compiler/runner/export/runtime changes retain core and Windows/macOS runne
   ])
     assert.deepEqual(ciScope([path]), {
       core: true,
-      native: false,
       shell: true,
-      experiment: false,
     });
 });
-test('native sources, ABI selection, tests, toolchains and shared shell contracts select all targets', () => {
-  for (const path of [
-    'packages/shell-native/crate/src/platform.rs',
-    'packages/shell-native/src/platform.twill',
-    'packages/shell-native/crate/Cargo.lock',
-    'packages/shell-native/ci/Dockerfile.musl',
-    'packages/shell-native/tests/consumer.mjs',
-    'packages/shell/tests/contract.ts',
-  ]) {
+test('shell sources and shared contracts select platform verification', () => {
+  for (const path of ['packages/shell/src/index.twill', 'packages/shell/tests/contract.ts']) {
     const scope = ciScope([path]);
     assert.equal(scope.core, true);
-    assert.equal(scope.native, true);
     assert.equal(scope.shell, true);
   }
-});
-test('historical experiment changes do not invalidate the production native matrix', () => {
-  assert.deepEqual(ciScope(['packages/shell/experiments/rust-native/src/lib.rs']), {
-    core: true,
-    native: false,
-    shell: false,
-    experiment: true,
-  });
 });
 test('mixed paths union their affected checks; tooling/editor/example code keeps core verification', () => {
   for (const path of [
@@ -71,9 +53,7 @@ test('mixed paths union their affected checks; tooling/editor/example code keeps
   ])
     assert.deepEqual(ciScope(['docs/ai.md', path]), {
       core: true,
-      native: false,
       shell: false,
-      experiment: false,
     });
   assert.deepEqual(ciScope(['docs/ai.md', 'packages/shell/src/index.twill']), all);
 });
@@ -129,7 +109,7 @@ test('actual PR CLI writes reduced outputs for docs, and includes every commit i
     commit();
     const result = execFileSync(
       process.execPath,
-      [fileURLToPath(new URL('../scripts/ci-scope.mjs', import.meta.url))],
+      [fileURLToPath(new URL('../ci-scope.mjs', import.meta.url))],
       {
         cwd,
         encoding: 'utf8',
@@ -144,16 +124,13 @@ test('actual PR CLI writes reduced outputs for docs, and includes every commit i
       },
     );
     assert.deepEqual(JSON.parse(result).scope, docs);
-    assert.equal(
-      readFileSync(output, 'utf8'),
-      'core=false\nnative=false\nshell=false\nexperiment=false\n',
-    );
-    mkdirSync(join(cwd, 'packages/shell-native/src'), { recursive: true });
-    writeFileSync(join(cwd, 'packages/shell-native/src/platform.twill'), 'changed ABI\n');
+    assert.equal(readFileSync(output, 'utf8'), 'core=false\nshell=false\n');
+    mkdirSync(join(cwd, 'packages/shell/src'), { recursive: true });
+    writeFileSync(join(cwd, 'packages/shell/src/index.twill'), 'changed ABI\n');
     commit();
     writeFileSync(join(cwd, 'README.md'), '# latest commit only changes docs\n');
     commit();
-    assert.equal(eventScope({ eventName: 'pull_request', eventPath, cwd }).scope.native, true);
+    assert.equal(eventScope({ eventName: 'pull_request', eventPath, cwd }).scope.shell, true);
   } finally {
     rmSync(folder, { recursive: true, force: true });
   }
@@ -182,17 +159,14 @@ test('real git diffs preserve deleted/renamed native owners and filenames with n
   };
   try {
     git('init', '--quiet');
-    mkdirSync(join(cwd, 'packages/shell-native/crate/src'), { recursive: true });
-    writeFileSync(join(cwd, 'packages/shell-native/crate/src/platform.rs'), 'owned native code\n');
+    mkdirSync(join(cwd, 'packages/shell/src'), { recursive: true });
+    writeFileSync(join(cwd, 'packages/shell/src/index.twill'), 'owned native code\n');
     const base = commit();
     mkdirSync(join(cwd, 'docs'));
-    renameSync(
-      join(cwd, 'packages/shell-native/crate/src/platform.rs'),
-      join(cwd, 'docs/moved.rs'),
-    );
+    renameSync(join(cwd, 'packages/shell/src/index.twill'), join(cwd, 'docs/moved.rs'));
     writeFileSync(join(cwd, 'docs/spaces and\nnewlines.md'), '# docs\n');
     commit();
-    assert.equal(select(base).native, true);
+    assert.equal(select(base).shell, true);
     assert.deepEqual(select('f'.repeat(40)), all);
     writeFileSync(eventPath, '{invalid');
     assert.deepEqual(eventScope({ eventName: 'pull_request', eventPath, cwd }).scope, all);

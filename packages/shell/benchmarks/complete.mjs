@@ -1,19 +1,22 @@
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync, statSync, mkdtempSync, rmSync, readdirSync } from 'node:fs';
+import {
+  readFileSync,
+  writeFileSync,
+  statSync,
+  mkdtempSync,
+  rmSync,
+  readdirSync,
+  mkdirSync,
+} from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { cpus, platform, arch, release, tmpdir } from 'node:os';
 import { performance } from 'node:perf_hooks';
-import { Command, Output, Subprocess } from '../../../shell/dist/index.js';
-import { nativeRun } from '../../../shell/benchmarks/native.mjs';
-import { Subprocess as NativeSubprocess } from '../../dist/index.js';
-const rustRun = NativeSubprocess.run;
-const benchmarkRoot = resolve(new URL('../', import.meta.url).pathname);
-const checkpointPath = resolve(benchmarkRoot, 'target/caller-launch-interrupted.partial.json');
-const checkpointBytes = readFileSync(checkpointPath);
-const prior = JSON.parse(checkpointBytes);
-assert.equal(process.version, 'v24.19.0');
+import { Command, Output, Subprocess } from '../dist/index.js';
+import { nativeRun } from './native.mjs';
+
+const sdkRun = Subprocess.run;
 
 assert.equal(
   process.platform,
@@ -23,7 +26,7 @@ assert.equal(
 const samples = 11;
 // Check report dependencies before measuring; a missing tool must not discard
 // a complete run only when the final report is being constructed.
-const rustc = execFileSync('rustc', ['--version'], { encoding: 'utf8' }).trim();
+mkdirSync(resolve(import.meta.dirname, 'target'), { recursive: true });
 const cc = execFileSync('cc', ['--version'], { encoding: 'utf8' }).split('\n')[0];
 function optionalText(path) {
   try {
@@ -48,14 +51,14 @@ if (concurrencyCPUIndex !== -1) {
   execFileSync('taskset', ['-c', concurrencyCPUs, '/usr/bin/true']);
 }
 const size = 1024 * 1024;
-const nativeFixture = resolve(benchmarkRoot, 'target/fixture');
-const nodeFixture = resolve(benchmarkRoot, '../../shell/tests/fixtures/child.mjs');
+const nativeFixture = resolve(import.meta.dirname, 'target/fixture');
+const nodeFixture = resolve(import.meta.dirname, '../tests/fixtures/child.mjs');
 execFileSync('cc', [
   '-O2',
   '-Wall',
   '-Wextra',
   '-Werror',
-  resolve(benchmarkRoot, 'fixture.c'),
+  resolve(import.meta.dirname, 'fixture.c'),
   '-o',
   nativeFixture,
 ]);
@@ -105,14 +108,10 @@ const workloads = [
     expectedError: Buffer.alloc(size, 255),
   },
 ];
-const runs = { native: nativeRun, sdk: Subprocess.run, rust: rustRun };
+const runs = { native: nativeRun, sdk: sdkRun };
 const orders = [
-  ['native', 'sdk', 'rust'],
-  ['rust', 'sdk', 'native'],
-  ['sdk', 'rust', 'native'],
-  ['native', 'rust', 'sdk'],
-  ['rust', 'native', 'sdk'],
-  ['sdk', 'native', 'rust'],
+  ['native', 'sdk'],
+  ['sdk', 'native'],
 ];
 const median = (values) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)];
 function confidence(ratios) {
@@ -150,77 +149,53 @@ async function operation(run, workload) {
 }
 const identities = {};
 for (const file of [
-  '../crate/Cargo.toml',
-  '../crate/Cargo.lock',
-  '../crate/rust-toolchain.toml',
-  '../crate/build.rs',
-  '../crate/src/lib.rs',
-  '../crate/src/process.rs',
-  '../crate/src/platform.rs',
-  '../src/index.ts',
-  '../src/bindings.ts',
-  '../src/environment.ts',
-  '../src/cwd.ts',
-  '../dist/environment.js',
-  '../dist/cwd.js',
+  '../src/index.twill',
+  '../src/values.twill',
+  '../src/errors.twill',
+  '../src/cwd.twill',
+  '../src/environment.twill',
   '../dist/index.js',
-  '../dist/bindings.js',
-  '../scripts/build.mjs',
-  '../scripts/identity.mjs',
-  '../native/linux-x64.node',
-  '../native/linux-x64.json',
+  '../dist/values.js',
+  '../dist/errors.js',
+  '../dist/cwd.js',
+  '../dist/environment.js',
   'fixture.c',
   'target/fixture',
-  'benchmark.mjs',
+  'complete.mjs',
   'observe.mjs',
+  'cold-native.twill',
   'cold-sdk.twill',
-  'cold-rust.twill',
-  '../../shell/src/index.ts',
-  '../../shell/src/values.ts',
-  '../../shell/src/errors.ts',
-  '../../shell/dist/index.js',
-  '../../shell/dist/values.js',
-  '../../shell/dist/errors.js',
-  '../../shell/dist/backend.js',
-  '../../shell/benchmarks/native.mjs',
-  '../../shell/tests/fixtures/child.mjs',
+  'native.mjs',
+  '../tests/fixtures/child.mjs',
   '../../twill/bin/twill.mjs',
   '../../twill/bin/run.mjs',
-  ...readdirSync(resolve(benchmarkRoot, '../../twill/dist'))
+  ...readdirSync(resolve(import.meta.dirname, '../../twill/dist'))
     .filter((file) => file.endsWith('.js'))
     .sort()
     .map((file) => '../../twill/dist/' + file),
 ])
   identities[file] = createHash('sha256')
-    .update(readFileSync(resolve(benchmarkRoot, file)))
+    .update(readFileSync(resolve(import.meta.dirname, file)))
     .digest('hex');
 const gitHead = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
 const gitStatus = execFileSync('git', ['status', '--short'], { encoding: 'utf8' }).trim();
 assert.equal(gitStatus, '', 'Commit the measured sources before timing');
-for (const [name, digest] of Object.entries(prior.sourceAndBuildSHA256)) assert.equal(identities[name], digest, 'Measured source/build changed: ' + name);
-assert.equal(gitHead, prior.gitHead);
-assert.equal(cpuConstraints.allowedCPUList, prior.cpuConstraints.allowedCPUList);
-assert.equal(cpuConstraints.cgroupV2Quota, prior.cpuConstraints.cgroupV2Quota);
-assert.equal(concurrencyCPUs, '0-3');
-const continuation = { checkpointSHA256: createHash('sha256').update(checkpointBytes).digest('hex'), scriptSHA256: createHash('sha256').update(readFileSync(new URL(import.meta.url))).digest('hex'), startedUTC: new Date().toISOString(), reason: 'Original benchmark process terminated with exit 137 (no cgroup OOM event). Preserve all complete checkpointed workloads and the complete 32-child row; complete the previously uncheckpointed 128-child row and remaining observations on the unchanged sources, binaries, Node runtime, quota and workload affinity. No gate changes or discarded checkpointed observations.' };
-const checkpoint = { ...prior, continuation };
+const checkpoint = { gitHead, gitStatus, cpuConstraints };
 function save(stage) {
   writeFileSync(
-    resolve(benchmarkRoot, 'target/benchmark-partial.json'),
+    resolve(import.meta.dirname, 'target/benchmark-partial.json'),
     JSON.stringify({ stage, sourceAndBuildSHA256: identities, ...checkpoint }, null, 2) + '\n',
   );
 }
-const results = prior.results;
+const results = [];
 checkpoint.results = results;
 for (const workload of workloads) {
-  if (results.some(row => row.name === workload.name)) continue;
   for (const run of Object.values(runs)) for (let n = 0; n < 8; n++) await operation(run, workload);
   const pairs = [];
   for (let sample = 0; sample < samples; sample++) {
     const pair = {
       native: { wallMs: 0, parentCPUMs: 0 },
       sdk: { wallMs: 0, parentCPUMs: 0 },
-      rust: { wallMs: 0, parentCPUMs: 0 },
       operations: workload.count,
       sample,
     };
@@ -247,28 +222,22 @@ for (const workload of workloads) {
         median(pairs.map((pair) => pair[mode].wallMs / workload.count)),
       ]),
     ),
-    rustVersusSDK: {
-      wall: comparison(pairs, 'rust', 'sdk', 'wallMs'),
-      parentCPU: comparison(pairs, 'rust', 'sdk', 'parentCPUMs'),
+    sdkVersusNative: {
+      wall: comparison(pairs, 'sdk', 'native', 'wallMs'),
+      parentCPU: comparison(pairs, 'sdk', 'native', 'parentCPUMs'),
     },
-    rustVersusNative: {
-      wall: comparison(pairs, 'rust', 'native', 'wallMs'),
-      parentCPU: comparison(pairs, 'rust', 'native', 'parentCPUMs'),
-    },
-    sdkVersusNative: { wall: comparison(pairs, 'sdk', 'native', 'wallMs') },
   };
   results.push(result);
   delete checkpoint.activeWorkload;
   save('warm');
   console.error(
-    `${result.name}: Rust/SDK wall ${result.rustVersusSDK.wall.medianRatio.toFixed(3)}, parent CPU ${result.rustVersusSDK.parentCPU.medianRatio.toFixed(3)}`,
+    `${result.name}: SDK/Node wall ${result.sdkVersusNative.wall.medianRatio.toFixed(3)}, parent CPU ${result.sdkVersusNative.parentCPU.medianRatio.toFixed(3)}`,
   );
 }
 
-const memory = prior.memory;
+const memory = [];
 checkpoint.memory = memory;
 for (const bytes of [size, 8 * size]) {
-  if (memory.some(row => row.bytesPerStream === bytes)) continue;
   const pairs = [];
   for (let sample = 0; sample < 5; sample++) {
     const pair = { order: orders[sample % orders.length] };
@@ -278,7 +247,7 @@ for (const bytes of [size, 8 * size]) {
           process.execPath,
           [
             '--expose-gc',
-            resolve(benchmarkRoot, 'observe.mjs'),
+            resolve(import.meta.dirname, 'observe.mjs'),
             mode,
             'memory',
             String(bytes),
@@ -291,17 +260,16 @@ for (const bytes of [size, 8 * size]) {
   memory.push({ bytesPerStream: bytes, pairs });
   save('memory');
 }
-const concurrency = prior.concurrency;
-// Eight complete order cycles for the default-pool acceptance workloads;
+const concurrency = [];
+// Forty-eight paired samples for the default-pool acceptance workloads;
 // short initial runs had inconclusive tail intervals even at twelve pairs.
-const concurrencySamples = orders.length * 8;
+const concurrencySamples = 48;
 checkpoint.concurrency = concurrency;
 for (const [poolSize, children] of [
   ['4', 32],
   ['4', 128],
   ['32', 32],
 ]) {
-  if (concurrency.some(row => row.poolSize === poolSize && row.children === children)) continue;
   const pairs = [];
   for (
     let sample = 0;
@@ -315,7 +283,7 @@ for (const [poolSize, children] of [
           concurrencyCPUs ? 'taskset' : process.execPath,
           [
             ...(concurrencyCPUs ? ['-c', concurrencyCPUs, process.execPath] : []),
-            resolve(benchmarkRoot, 'observe.mjs'),
+            resolve(import.meta.dirname, 'observe.mjs'),
             mode,
             'concurrency',
             String(children),
@@ -324,17 +292,12 @@ for (const [poolSize, children] of [
         ),
       );
     pairs.push(pair);
-    checkpoint.activeConcurrency = { poolSize, children, pairs };
-    save('concurrency');
   }
-  console.error('Completed concurrency', poolSize, children, comparison(pairs, 'rust', 'native', 'wallMs'));
-  delete checkpoint.activeConcurrency;
   concurrency.push({
     poolSize,
     children,
     pairs,
-    rustVersusSDK: { wall: comparison(pairs, 'rust', 'sdk', 'wallMs') },
-    rustVersusNative: { wall: comparison(pairs, 'rust', 'native', 'wallMs') },
+    sdkVersusNative: { wall: comparison(pairs, 'sdk', 'native', 'wallMs') },
   });
   save('concurrency');
 }
@@ -348,43 +311,42 @@ for (let sample = 0; sample < 5; sample++) {
     pair[mode] = JSON.parse(
       execFileSync(
         process.execPath,
-        [resolve(benchmarkRoot, 'observe.mjs'), mode, 'contention'],
+        [resolve(import.meta.dirname, 'observe.mjs'), mode, 'contention'],
         { encoding: 'utf8', env: { ...process.env, UV_THREADPOOL_SIZE: '1' } },
       ),
     );
   contention.push(pair);
   save('filesystem');
-  const cancelPair = { order: sample % 2 ? ['rust', 'sdk'] : ['sdk', 'rust'] };
+  const cancelPair = { order: sample % 2 ? ['sdk', 'native'] : ['native', 'sdk'] };
   for (const mode of cancelPair.order)
     cancelPair[mode] = JSON.parse(
       execFileSync(
         process.execPath,
-        [resolve(benchmarkRoot, 'observe.mjs'), mode, 'cancellation'],
+        [resolve(import.meta.dirname, 'observe.mjs'), mode, 'cancellation'],
         { encoding: 'utf8' },
       ),
     );
   cancellation.push(cancelPair);
   save('cancellation');
 }
-const cache = mkdtempSync(resolve(tmpdir(), 'twill-rust-cold-'));
+const cache = mkdtempSync(resolve(tmpdir(), 'twill-sdk-cold-'));
 const coldModes = [
   'native',
   'sdk',
-  'rust',
+  'source-native-cached',
   'source-sdk-cached',
-  'source-rust-cached',
+  'source-native-uncached',
   'source-sdk-uncached',
-  'source-rust-uncached',
 ];
 function cold(mode) {
   const isSource = mode.startsWith('source-');
-  const rust = mode.includes('rust');
+  const sdk = mode.includes('sdk');
   const command = isSource
     ? [
-        resolve(benchmarkRoot, '../../twill/bin/twill.mjs'),
-        resolve(benchmarkRoot, rust ? 'cold-rust.twill' : 'cold-sdk.twill'),
+        resolve(import.meta.dirname, '../../twill/bin/twill.mjs'),
+        resolve(import.meta.dirname, sdk ? 'cold-sdk.twill' : 'cold-native.twill'),
       ]
-    : [resolve(benchmarkRoot, 'observe.mjs'), mode, 'cold'];
+    : [resolve(import.meta.dirname, 'observe.mjs'), mode, 'cold'];
   const start = performance.now();
   execFileSync(process.execPath, command, {
     encoding: 'utf8',
@@ -415,27 +377,24 @@ try {
 }
 const report = {
   schemaVersion: 1,
-  continuation: { ...continuation, completedUTC: new Date().toISOString() },
   dateUTC: new Date().toISOString(),
-  backend: '@swiftuijs/twill-shell-native production-contract source implementation',
+  backend: '@swiftuijs/twill-shell Node SDK',
   node: process.version,
   platform: platform(),
   arch: arch(),
   kernel: release(),
   cpu: cpus()[0]?.model,
   cpuConstraints: { ...cpuConstraints, cgroupV2After: optionalText('/sys/fs/cgroup/cpu.stat') },
-  rustc,
   cc,
   gitHead,
   gitStatus,
   sourceAndBuildSHA256: identities,
-  nativeArtifactBytes: statSync(resolve(benchmarkRoot, '../native/linux-x64.node')).size,
   samples,
   concurrencySamples,
   concurrencyCPUs,
   orderPermutations: orders,
   scope:
-    'Linux production-contract direct-child backend; success workloads interleaved/checked against natural handwritten Node and the SDK. Parent CPU includes Rust reactor, excludes child CPU. Native copies input/snapshots cwd/environment and performs the full shared SDK contract. Independent async scheduling; no libuv worker per child. Failure ownership/cancellation is measured separately; no child acceleration, compiler port, containment, pipeline or cross-platform performance claim.',
+    'Linux Node direct-child SDK; success workloads interleaved/checked against natural handwritten Node. Parent CPU includes Node stream coordination, excludes child CPU. SDK copies input/snapshots cwd/environment and performs the full shared SDK contract. Independent Node/libuv scheduling; no libuv worker per child. Failure ownership/cancellation is measured separately; no child acceleration, compiler port, containment, pipeline or cross-platform performance claim.',
   results,
   memory,
   concurrency,
@@ -446,20 +405,20 @@ const report = {
     medianWallMs: Object.fromEntries(
       coldModes.map((mode) => [mode, median(coldPairs.map((pair) => pair[mode].wallMs))]),
     ),
-    sourceRustVersusSDKCached: comparison(
+    sourceSDKVersusNativeCached: comparison(
       coldPairs,
-      'source-rust-cached',
       'source-sdk-cached',
+      'source-native-cached',
       'wallMs',
     ),
-    sourceRustVersusSDKUncached: comparison(
+    sourceSDKVersusNativeUncached: comparison(
       coldPairs,
-      'source-rust-uncached',
       'source-sdk-uncached',
+      'source-native-uncached',
       'wallMs',
     ),
     scope:
-      'Fresh Node interpreter/backend imports/one /usr/bin/true child. Source modes use the actual Twill runner with validated hit or disabled cache; OS/filesystem caches warm. Each direct mode imports only its backend; Rust uses the same SDK Command constructor. No standalone Rust interpreter.',
+      'Fresh Node interpreter/backend imports/one /usr/bin/true child. Source modes use the actual Twill runner with validated hit or disabled cache; OS/filesystem caches warm. Each direct mode imports only its backend; SDK uses the same SDK Command constructor. No standalone Twill interpreter.',
   },
 };
 save('complete');
@@ -471,7 +430,7 @@ if (outputIndex !== -1) {
 if (process.argv.includes('--verify-performance'))
   for (const result of [...results, ...concurrency.filter((row) => row.poolSize === '4')])
     assert(
-      result.rustVersusNative.wall.medianRatio <= 1.1 &&
-        result.rustVersusNative.wall.ratio95PercentInterval.upper <= 1.1,
+      result.sdkVersusNative.wall.medianRatio <= 1.1 &&
+        result.sdkVersusNative.wall.ratio95PercentInterval.upper <= 1.1,
       `Native parity gate failed: ${result.name ?? 'concurrency-' + result.children}`,
     );

@@ -9,7 +9,6 @@ on:
       - 'packages/twill/**'
       - 'packages/runtime/**'
       - 'packages/shell/**'
-      - 'packages/shell-native/**'
       - 'scripts/generate-runtime-helper.mjs'
       - 'packages/formatter/**'
       - 'packages/highlight/**'

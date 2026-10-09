@@ -637,10 +637,6 @@ importers:
         version: 5.0.3(@types/node@26.6.4)(@vitest/coverage-v8@5.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(sass@1.105.1)(terser@5.51.2))
 
   packages/shell:
-    dependencies:
-      '@swiftuijs/twill-shell-native':
-        specifier: workspace:*
-        version: link:../shell-native
     devDependencies:
       '@swiftuijs/twill':
         specifier: workspace:*
@@ -660,27 +656,6 @@ importers:
       prettier:
         specifier: 'catalog:'
         version: 3.9.9
-      typescript:
-        specifier: 'catalog:'
-        version: 5.9.3
-      vite:
-        specifier: 'catalog:'
-        version: 8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(sass@1.105.1)(terser@5.51.2)
-      vitest:
-        specifier: 'catalog:'
-        version: 5.0.3(@types/node@26.6.4)(@vitest/coverage-v8@5.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(sass@1.105.1)(terser@5.51.2))
-
-  packages/shell-native:
-    devDependencies:
-      '@swiftuijs/twill':
-        specifier: workspace:*
-        version: link:../twill
-      '@types/node':
-        specifier: 'catalog:'
-        version: 26.6.4
-      '@vitest/coverage-v8':
-        specifier: 'catalog:'
-        version: 5.0.3(vitest@5.0.3)
       typescript:
         specifier: 'catalog:'
         version: 5.9.3

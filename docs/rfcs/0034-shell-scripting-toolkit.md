@@ -6,6 +6,46 @@
 **Release:** 0.2.0.
 **Dependencies:** RFC 0026 for executing Twill sources; RFCs 0002, 0007 and 0009 supply optional application syntax. No dependency on proposed typed throws, argument labels or structured-concurrency syntax.
 
+## Accepted simplification amendment (source only)
+
+The maintainer has withdrawn the native subprocess backend: it coordinates child
+processes rather than interpreting Twill, and its addon, reactor and eight-target
+release chain exceed the intended toolkit scope. The next source implementation
+uses Node's `child_process.spawn` and streams directly. Remove
+`@swiftuijs/twill-shell-native`, its Rust experiment, ABI selection, binary builds
+and native release assembly. Keep the Twill runner, shebang, optional
+`@swiftuijs/twill-shell` import, command/policy/result/error API and 16 KiB SDK
+archive gate. The compiler remains a development dependency of the SDK.
+
+Preserve literal argv with `shell: false`, synchronous cwd/environment snapshots,
+byte-input copies, simultaneous bounded capture, single UTF-8 decoding, checked
+status, primary/secondary errors, abort/timeout and bounded failed-operation
+teardown. Reuse Node's platform process behavior rather than recreate OS process
+control, an interpreter, a supervisor or alternate backends. Preserve the public
+signal union for declaration compatibility; emitted statuses follow Node,
+including its limitation for unnamed Unix signals. This is an intentional loss of
+the addon-specific numeric-signal guarantee, not a new status inference.
+
+Normal operations own the direct child and pipes through settlement. Applications
+must cancel and await outstanding operations before leaving a worker or forcing
+process exit. Abrupt `Worker.terminate()` and `process.exit()` do not execute an
+asynchronous join; remove the native 1.1-second environment cleanup guarantee.
+Use `process.exitCode` after awaited work, and cooperative worker cancellation.
+Neither version contains descendants or supplies process-tree semantics.
+
+Validate public contracts on Linux, macOS and Windows and independently installed
+archives on Node 20.19. Keep coverage thresholds and the equivalent handwritten
+Node performance limit (paired median and upper 95% bound at most 1.10) unchanged.
+Retain seven warm and both 32/128-child concurrency workloads, input/capture,
+filesystem, memory, cancellation and cold-start observations. Keep conservative
+base-to-head CI selection and full release validation; remove native compilation
+and assembly rather than skip relevant JS/platform tests.
+
+This amendment changes the execution implementation and abrupt-disposal boundary,
+not Twill syntax or shebang dispatch. RFC 0036 and the 0.2.0 measurements remain
+historical evidence in the tagged source. npm 0.2.0 still uses Rust; this source
+change is neither merged nor published by design acceptance alone.
+
 ## Problem and native baseline
 
 Twill already runs scripts using its published Node ESM loader:
@@ -66,7 +106,7 @@ const result = await Subprocess.run(status, {
 console.log(result.standardOutput);
 ```
 
-The first-stage API below is implemented in 0.2.0. Later scoped/pipeline/shell examples remain proposals. Command construction does not spawn, execute callbacks or schedule work. `Command.name` uses the platform's normal executable search; `Command.path` requires an absolute executable path. Arguments are strings, in order, and go directly to the Rust process engine without a shell. Reject invalid argument/options values and NUL characters before launch; do not coerce arbitrary objects into command text.
+The first-stage API below is implemented in 0.2.0. Later scoped/pipeline/shell examples remain proposals. Command construction does not spawn, execute callbacks or schedule work. `Command.name` uses the platform's normal executable search; `Command.path` requires an absolute executable path. Arguments are strings, in order, and go directly to the process executor without a shell. Reject invalid argument/options values and NUL characters before launch; do not coerce arbitrary objects into command text.
 
 Treat a command as a reusable, readonly SDK value: snapshot the argv array once on construction, without claiming deep value semantics for JS objects. Each run creates a distinct child. `cwd` belongs to that child. Never call global `process.chdir`, modify `process.env`, patch prototypes or inject global `$` names.
 
@@ -74,7 +114,7 @@ Treat a command as a reusable, readonly SDK value: snapshot the argv array once 
 
 ### Output, status and errors
 
-MVP input defaults to no input. Output and error default to inherited terminal streams, avoiding buffering/copies. Explicit input uses `Input.inherit()` or supplies a string/Uint8Array; `Input.none()` explicitly selects EOF. Byte views share their underlying storage, which the caller must preserve until settlement; write respecting backpressure, finish stdin, and account for write errors. Capture is opt-in: `Output.text({ limit })` decodes UTF-8 once after successful close; `Output.bytes({ limit })` returns bytes; `Output.discard()` selects the native null descriptor without retaining output. A finite positive byte limit is required for capture. Exceeding it rejects with an output-limit error after child cleanup, without silently truncating output. Retained stream bytes are bounded; concatenation and decoded strings can require additional memory, so this is not a total RSS cap. Text decoding follows Node's normal replacement of invalid UTF-8. Streaming belongs to a later scoped API.
+MVP input defaults to no input. Output and error default to inherited terminal streams, avoiding buffering/copies. Explicit input uses `Input.inherit()` or supplies a string/Uint8Array; `Input.none()` explicitly selects EOF. Byte views are copied at submission; write respecting backpressure, finish stdin, and account for write errors. Capture is opt-in: `Output.text({ limit })` decodes UTF-8 once after successful close; `Output.bytes({ limit })` returns bytes; `Output.discard()` selects the native null descriptor without retaining output. A finite positive byte limit is required for capture. Exceeding it rejects with an output-limit error after child cleanup, without silently truncating output. Retained stream bytes are bounded; concatenation and decoded strings can require additional memory, so this is not a total RSS cap. Text decoding follows Node's normal replacement of invalid UTF-8. Streaming belongs to a later scoped API.
 
 Return a typed result with `processIdentifier`, `terminationStatus`, `standardOutput` and `standardError`. Capture policy determines the corresponding output type (`string`, bytes or `undefined`). Status uses an ordinary TypeScript discriminated union:
 

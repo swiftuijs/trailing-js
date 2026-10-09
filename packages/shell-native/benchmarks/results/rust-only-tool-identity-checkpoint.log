@@ -1,3 +1,0 @@
-native-executable-inherit: Rust/Node wall 0.619, parent CPU 0.546
-node-inherit: Rust/Node wall 0.939, parent CPU 0.479
-native-dual-capture-1048576: Rust/Node wall 0.546, parent CPU 0.551

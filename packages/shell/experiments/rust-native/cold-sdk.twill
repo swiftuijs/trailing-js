@@ -1,2 +1,0 @@
-import { Command, Subprocess } from '../../dist/index.js';
-await Subprocess.run(Command.path('/usr/bin/true'));
