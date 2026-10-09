@@ -33,7 +33,7 @@ No new syntax, generated runtime dependency or JavaScript wrapper is added. A hi
 
 ## Compatibility and alternatives
 
-### Source refinement (unreleased)
+### Refinement in 0.3.0
 
 The loader may reuse parsed configuration for up to 64 source directories within its process. Every reuse validates the existing content/existence observations, including absent nearer files and inherited configuration probes; same-size/same-timestamp edits still invalidate it. Reuse skips configuration parsing, not dependency hashing. Failed configuration is not cached. Persistent module-cache identity, bounds, emitted bytes and script behavior stay unchanged. This reduces repeated configuration work in module graphs without claiming native startup parity.
 
@@ -47,4 +47,4 @@ Retain all alternating paired startup samples, environment and source/build hash
 
 ## Open questions and decision history
 
-The accepted bounded cache shipped in 0.2.0. Broader native-emitter work remains outside that scope, and the native subprocess design is independent. The parsed-configuration refinement above is unreleased source work.
+The accepted bounded cache shipped in 0.2.0. Broader native-emitter work remains outside that scope, and the native subprocess design is independent. The parsed-configuration refinement above ships in 0.3.0.

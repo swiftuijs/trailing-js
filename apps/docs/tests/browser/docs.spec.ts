@@ -61,7 +61,7 @@ test('shell scripting guide distinguishes the Node replacement from released Rus
   await expect(page.locator('.vp-doc')).toContainText('npm exec --call');
   await expect(page.locator('.vp-doc')).toContainText('node command.mjs');
   await expect(page.locator('.vp-doc')).toContainText('Hello from a child process');
-  await expect(page.locator('.vp-doc')).toContainText('Use compiler and SDK 0.2.0 or newer');
+  await expect(page.locator('.vp-doc')).toContainText('Use compiler and SDK 0.3.0 or newer');
   const exampleCode = page.locator('.language-twill code').filter({ hasText: 'guard const' });
   await expect(exampleCode).toContainText('Subprocess.run');
   await expect(exampleCode).toContainText('guard const');
@@ -74,7 +74,7 @@ test('shell scripting guide distinguishes the Node replacement from released Rus
   await expect(page.locator('.vp-doc')).toContainText('original source');
   await expect(page.locator('.vp-doc')).toContainText('@swiftuijs/twill-shell-native');
   await expect(page.locator('.vp-doc')).toContainText("Node's child_process.spawn");
-  await expect(page.locator('.vp-doc')).toContainText('This simplification is unreleased');
+  await expect(page.locator('.vp-doc')).toContainText('Changed in 0.3.0');
   await expect(page.locator('.vp-doc')).toContainText('process.exitCode');
   await expect(page.locator('.vp-doc')).toContainText('Worker.terminate()');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(

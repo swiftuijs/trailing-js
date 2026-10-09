@@ -1,8 +1,8 @@
 # Compatibility and limitations
 
-Twill 0.2 is an experimental TypeScript extension language with a tested development workflow. It is ready for a scoped evaluation of the documented compiler, editor and build integrations. A broad production-ready claim would go beyond the current evidence.
+Twill 0.3 is an experimental TypeScript extension language with a tested development workflow. It is ready for a scoped evaluation of the documented compiler, editor and build integrations. A broad production-ready claim would go beyond the current evidence.
 
-The source checkout fixes same-name native type/value declarations (for example, `type Command = { ... }; const Command = { ... };`) and interface/value pairs. The parser keeps their namespaces separate while TypeScript checks merging and duplicate types. This repair is unreleased; 0.2.0 npm consumers must not assume it is available.
+Twill 0.3.0 fixes same-name native type/value declarations (for example, `type Command = { ... }; const Command = { ... };`) and interface/value pairs. The parser keeps their namespaces separate while TypeScript checks merging and duplicate types. Older 0.2.0 consumers must upgrade to use this repair.
 
 ## Adoption status
 
@@ -37,7 +37,7 @@ The virtual checker uses TypeScript 5.9. Compatibility with arbitrary workspace 
 
 The [RFC 0018 branch binding](syntax.md#branch-nullish-bindings) evaluates once, destructures only on success and keeps bindings local to that branch. Grouped trailing calls follow Swift's condition boundary. Native lowering adds no closure, wrapper or runtime dependency; declarations, export and mapped tools use normal TS narrowing. Available in 0.2.0.
 
-Ordinary trailing closures and guards lower to arrows and branches without a runtime library. Direct-return switch expressions lower to scoped native switches. Twill 0.2.0 also lowers standalone identifier initializers to native branches without an IIFE; other expression positions retain a synchronous IIFE. Await/yield inside a switch requires a direct return. Expression exhaustiveness requires the checker, not transpile-only builds. `defer` and general child collection allocate local closures or arrays. Use native `try/finally` when those allocations matter in a hot path.
+Ordinary trailing closures and guards lower to arrows and branches without a runtime library. Direct-return switch expressions lower to scoped native switches. Twill 0.2.0 also lowers standalone identifier initializers to native branches without an IIFE; other expression positions retain a synchronous IIFE. Await/yield inside a switch requires a direct return. Expression exhaustiveness requires the checker, not transpile-only builds. Eligible direct synchronous `defer` uses native `try/finally` in 0.3.0; dynamic/async or scope-sensitive cleanup and general child collection retain closures or arrays. Use native `try/finally` when those allocations matter in a hot path.
 
 The checker caches unchanged snapshots and transforms. Disk edits refresh affected files; configuration changes rebuild affected projects. [Performance measurements](performance.md) describe synthetic compiler, checker and formatter workloads, including their limits. They do not establish whole-application latency or a universal performance guarantee.
 
@@ -77,6 +77,6 @@ Install the editor extension from the [VS Code Marketplace](https://marketplace.
 
 The [optional runtime](./runtime.md) in 0.2.0 shares dynamic synchronous cleanup through a versioned, zero-dependency package. Inline remains the default; async/single cleanup and native syntax fast paths retain their existing output. External mode uses module imports and needs a production dependency in applications/libraries.
 
-The [shell SDK](scripting.md) uses a Rust process engine independently of the compiler, with explicit argv, bounded collection, stdin, child-local cwd/environment and owned abort/timeout teardown. Scoped streaming, pipelines and shell templates remain deferred; 0.2.0 supplies the SDK and a separate compiler script runner.
+The [shell SDK](scripting.md) uses Node spawn/streams independently of the compiler, with explicit argv, bounded collection, stdin, child-local cwd/environment and owned abort/timeout teardown. Scoped streaming, pipelines and shell templates remain deferred; 0.2.0 supplies the SDK and a separate compiler script runner.
 
-The source shell SDK replaces the retired Rust addon with dependency-free Node spawn/streams. This is unreleased: npm 0.2.0 retains its native package. The replacement preserves awaited cancellation/timeout teardown, but requires cooperative worker shutdown and awaiting work before process exit; it follows Node's signal-reporting limits. See [scripting](scripting.md#execution-and-version-boundary).
+Twill 0.3.0 replaces the retired Rust addon with dependency-free Node spawn/streams. Older npm 0.2.0 retains its native package. The replacement preserves awaited cancellation/timeout teardown, but requires cooperative worker shutdown and awaiting work before process exit; it follows Node's signal-reporting limits. See [scripting](scripting.md#execution-and-version-boundary).

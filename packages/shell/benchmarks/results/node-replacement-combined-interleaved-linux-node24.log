@@ -1,0 +1,22 @@
+native-executable-inherit: SDK/Node wall 1.024, parent CPU 1.048
+node-inherit: SDK/Node wall 1.000, parent CPU 1.037
+native-dual-capture-1048576: SDK/Node wall 1.058, parent CPU 1.122
+native-dual-capture-8388608: SDK/Node wall 0.965, parent CPU 0.984
+node-dual-capture-1048576: SDK/Node wall 0.993, parent CPU 0.873
+native-stdin-text-1048576: SDK/Node wall 1.000, parent CPU 1.018
+native-duplex-1048576: SDK/Node wall 1.003, parent CPU 1.021
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Native parity gate failed: native-dual-capture-1048576
+    at file:///workspace/twill-release-0.3/packages/shell/benchmarks/complete.mjs:432:5 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

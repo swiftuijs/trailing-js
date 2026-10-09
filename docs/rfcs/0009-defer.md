@@ -19,7 +19,7 @@ A single direct registration uses one optional callback and native try/finally. 
 
 ## Compatibility and alternatives
 
-### Source refinement (unreleased)
+### Refinement in 0.3.0
 
 Direct synchronous registrations whose owning scope permits it use nested native `try/finally`, starting each `try` at the registration point. Original cleanup tokens move into the corresponding `finally`, retaining source mappings. No callback, registration array or helper import is needed. Nesting naturally preserves partial registration, reverse order, return/throw/jump completions and cleanup failure precedence, including thrown `undefined`.
 

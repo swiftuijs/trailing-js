@@ -13,9 +13,9 @@ import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { cpus, platform, arch, release, tmpdir } from 'node:os';
 import { performance } from 'node:perf_hooks';
-import { Command, Output, Subprocess } from '../dist/index.js';
+import { Subprocess } from '../dist/index.js';
 import { nativeRun } from './native.mjs';
-
+import { size, workloads } from './workloads.mjs';
 const sdkRun = Subprocess.run;
 
 assert.equal(
@@ -50,9 +50,7 @@ if (concurrencyCPUIndex !== -1) {
   );
   execFileSync('taskset', ['-c', concurrencyCPUs, '/usr/bin/true']);
 }
-const size = 1024 * 1024;
 const nativeFixture = resolve(import.meta.dirname, 'target/fixture');
-const nodeFixture = resolve(import.meta.dirname, '../tests/fixtures/child.mjs');
 execFileSync('cc', [
   '-O2',
   '-Wall',
@@ -62,52 +60,6 @@ execFileSync('cc', [
   '-o',
   nativeFixture,
 ]);
-const policy = (count) => Output.bytes({ limit: count });
-const workloads = [
-  {
-    name: 'native-executable-inherit',
-    command: Command.path('/usr/bin/true'),
-    options: {},
-    count: 512,
-  },
-  {
-    name: 'node-inherit',
-    command: Command.path(process.execPath, ['-e', '']),
-    options: {},
-    count: 96,
-  },
-  ...[size, 8 * size].map((bytes) => ({
-    name: `native-dual-capture-${bytes}`,
-    command: Command.path(nativeFixture, ['emit', String(bytes)]),
-    options: { output: policy(bytes), error: policy(bytes) },
-    count: bytes === size ? 64 : 16,
-    expected: Buffer.alloc(bytes, 97),
-    expectedError: Buffer.alloc(bytes, 98),
-  })),
-  {
-    name: 'node-dual-capture-1048576',
-    command: Command.path(process.execPath, [nodeFixture, 'large', String(size)]),
-    options: { output: policy(size), error: policy(size) },
-    count: 16,
-    expected: Buffer.alloc(size, 97),
-    expectedError: Buffer.alloc(size, 98),
-  },
-  {
-    name: 'native-stdin-text-1048576',
-    command: Command.path(nativeFixture, ['echo']),
-    options: { input: 'x'.repeat(size), output: Output.text({ limit: size }) },
-    count: 64,
-    expected: 'x'.repeat(size),
-  },
-  {
-    name: 'native-duplex-1048576',
-    command: Command.path(nativeFixture, ['duplex']),
-    options: { input: Buffer.alloc(size, 255), output: policy(size), error: policy(size) },
-    count: 64,
-    expected: Buffer.alloc(size, 255),
-    expectedError: Buffer.alloc(size, 255),
-  },
-];
 const runs = { native: nativeRun, sdk: sdkRun };
 const orders = [
   ['native', 'sdk'],
@@ -132,21 +84,6 @@ function comparison(pairs, mode, baseline, key) {
   const ratios = pairs.map((pair) => pair[mode][key] / pair[baseline][key]);
   return { medianRatio: median(ratios), ratio95PercentInterval: confidence(ratios) };
 }
-async function operation(run, workload) {
-  const cpu = process.cpuUsage(),
-    start = performance.now();
-  const result = await run(workload.command, workload.options);
-  const wallMs = performance.now() - start,
-    usage = process.cpuUsage(cpu);
-  // Consume and verify every result outside the timer, preventing unchecked timings.
-  if (Buffer.isBuffer(workload.expected)) assert(result.standardOutput.equals(workload.expected));
-  else assert.deepEqual(result.standardOutput, workload.expected);
-  if (Buffer.isBuffer(workload.expectedError))
-    assert(result.standardError.equals(workload.expectedError));
-  else assert.deepEqual(result.standardError, workload.expectedError);
-  assert.deepEqual(result.terminationStatus, { kind: 'exited', code: 0 });
-  return { wallMs, parentCPUMs: (usage.user + usage.system) / 1000 };
-}
 const identities = {};
 for (const file of [
   '../src/index.twill',
@@ -162,6 +99,8 @@ for (const file of [
   'fixture.c',
   'target/fixture',
   'complete.mjs',
+  'warm.mjs',
+  'workloads.mjs',
   'observe.mjs',
   'cold-native.twill',
   'cold-sdk.twill',
@@ -190,20 +129,20 @@ function save(stage) {
 const results = [];
 checkpoint.results = results;
 for (const workload of workloads) {
-  for (const run of Object.values(runs)) for (let n = 0; n < 8; n++) await operation(run, workload);
+  // Each coordinator gets a fresh process with identical imports and eight
+  // warmups. Shared V8 heap/GC phases must not favor the alternating variant.
+  // GC remains inside measured operations; no forced collection or filtering.
   const pairs = [];
   for (let sample = 0; sample < samples; sample++) {
-    const pair = {
-      native: { wallMs: 0, parentCPUMs: 0 },
-      sdk: { wallMs: 0, parentCPUMs: 0 },
-      operations: workload.count,
-      sample,
-    };
-    for (let count = 0; count < workload.count; count++) {
-      for (const mode of orders[(sample + count) % orders.length]) {
-        const observation = await operation(runs[mode], workload);
-        for (const key of ['wallMs', 'parentCPUMs']) pair[mode][key] += observation[key];
-      }
+    const pair = { operations: workload.count, sample, order: orders[sample % orders.length] };
+    for (const mode of pair.order) {
+      pair[mode] = JSON.parse(
+        execFileSync(
+          process.execPath,
+          [resolve(import.meta.dirname, 'warm.mjs'), mode, workload.name],
+          { encoding: 'utf8' },
+        ),
+      );
     }
     pairs.push(pair);
     checkpoint.activeWorkload = { name: workload.name, pairs };
@@ -394,7 +333,7 @@ const report = {
   concurrencyCPUs,
   orderPermutations: orders,
   scope:
-    'Linux Node direct-child SDK; success workloads interleaved/checked against natural handwritten Node. Parent CPU includes Node stream coordination, excludes child CPU. SDK copies input/snapshots cwd/environment and performs the full shared SDK contract. Independent Node/libuv scheduling; no libuv worker per child. Failure ownership/cancellation is measured separately; no child acceleration, compiler port, containment, pipeline or cross-platform performance claim.',
+    'Linux Node direct-child SDK; success workloads in paired isolated processes, identical imports/eight warmups per process, checked against natural handwritten Node. Process startup is excluded from warm timings and reported separately. All spontaneous GC during operations is measured. Parent CPU includes Node stream coordination, excludes child CPU. SDK copies input/snapshots cwd/environment and performs the full shared SDK contract. Independent Node/libuv scheduling; no libuv worker per child. Failure ownership/cancellation is measured separately; no child acceleration, compiler port, containment, pipeline or cross-platform performance claim.',
   results,
   memory,
   concurrency,

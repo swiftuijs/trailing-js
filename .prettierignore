@@ -11,10 +11,6 @@ packages/twill/LICENSE
 
 **/dist
 
-# Generated Cargo artifacts; the native source is checked by rustfmt/clippy.
-packages/shell/experiments/rust-native/target
-packages/shell-native/crate/target
-
 **/.vitepress/cache/
 
 # Preserve the pinned React source snapshot and reproducible rewrite.
@@ -22,4 +18,4 @@ examples/react-framework/upstream
 examples/react-framework/src/packages
 examples/react-framework/sources.json
 
-packages/shell-native/benchmarks/target/
+packages/shell/benchmarks/target/

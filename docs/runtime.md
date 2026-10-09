@@ -9,8 +9,8 @@ The optional `@swiftuijs/twill-runtime` package shares dynamic synchronous clean
 With the compiler installed as described in [getting started](./getting-started.md#install), install the matching runtime as a production dependency in the same project:
 
 ```sh
-pnpm add @swiftuijs/twill-runtime@0.2.0
-# npm install @swiftuijs/twill-runtime@0.2.0
+pnpm add @swiftuijs/twill-runtime@0.3.0
+# npm install @swiftuijs/twill-runtime@0.3.0
 ```
 
 `twill.config.json`:
@@ -25,7 +25,7 @@ pnpm add @swiftuijs/twill-runtime@0.2.0
 
 Single direct cleanup retains its existing fast path. Explicit async and mixed cleanup stays inline in both modes, preserving await order and microtask scheduling. External mode can therefore produce no runtime import for an entire project.
 
-**Unreleased source refinement:** eligible direct synchronous registrations, including multiple registrations, lower to native nested `try/finally` with no callbacks, stack or helper import. Observable scope/disposal boundaries and dynamic/async cleanup retain their existing paths. The examples below describe the published 0.2.0 output; inspect the installed compiler's generated code. See [performance](./performance).
+**Changed in 0.3.0:** eligible direct synchronous registrations, including multiple registrations, lower to native nested `try/finally` with no callbacks, stack or helper import. Observable scope/disposal boundaries and dynamic/async cleanup retain their existing paths. The helper example below describes dynamic registration; inspect the installed compiler's generated code. See [performance](./performance).
 
 The project setting is shared by builds, `twill check`, declarations, source export, Node loader and editor projects. Build adapters accept `twill({ runtime: 'external' })`; the React adapter accepts `{ twill: { runtime: 'external' } }`. Prefer the project file when editor and build output must agree. `twill compile --runtime inline|external` overrides it for one emission.
 

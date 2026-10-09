@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 0.3.0
+
+- Provide complete project-local/global script installation, shebang, JavaScript SDK, type-check/build and troubleshooting paths.
 
 - Emit native nested `try/finally` for eligible direct synchronous `defer` registrations, eliminating callbacks, registration arrays and helper imports. Retain existing lowering for dynamic/async cleanup and observable lexical, hoisting, disposal or strict-mode boundaries.
 - Reduce temporary allocations during compiler AST traversal.
@@ -8,9 +10,9 @@
 - Reuse recovered editor transforms and their original strict syntax errors instead of recompiling unchanged source for diagnostics.
 - Reuse open-document text by VS Code document version while preserving immediate full-snapshot synchronization with native TS-server projects.
 
-- Retire `@swiftuijs/twill-shell-native`, the Rust experiment, addon dependency and native build/assembly chain. The source SDK uses Node spawn/streams with zero production dependencies, retaining commands, policies, errors, snapshots, bounded I/O and awaited cancellation/timeout teardown. Applications must cancel and await work before worker/process exit; the native abrupt-disposal barrier and unnamed numeric-signal guarantee are removed. Published 0.2.0 remains unchanged.
+- Retire `@swiftuijs/twill-shell-native`, the Rust experiment, addon dependency and native build/assembly chain. The SDK uses Node spawn/streams with zero production dependencies, retaining commands, policies, errors, snapshots, bounded I/O and awaited cancellation/timeout teardown. Applications must cancel and await work before worker/process exit; the native abrupt-disposal barrier and unnamed numeric-signal guarantee are removed. Published 0.2.0 remains unchanged.
 
-- Develop the formatter, linter, export, highlight, shell JS wrappers and editor integrations in Twill through the public adapter, checker and declaration emitter. Keep ordinary JS/types for consumers, native bootstrap boundaries and existing coverage/size gates; enforce the source policy in release verification.
+- Develop the formatter, linter, export, highlight, shell SDK and editor integrations in Twill through the public adapter, checker and declaration emitter. Keep ordinary JS/types for consumers, native bootstrap boundaries and existing coverage/size gates; enforce the source policy in release verification.
 - Preserve TypeScript's separate type/value namespaces for same-name aliases/interfaces and runtime declarations, including checked declarations usable by native TS consumers.
 
 ## 0.2.0

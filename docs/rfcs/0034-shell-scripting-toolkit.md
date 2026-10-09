@@ -3,14 +3,14 @@
 **Release reference:** 0.2.0 implements the accepted scope; broader/deferred items below remain proposals.
 **Status:** Implemented in 0.2.0 for the accepted scope; deferred capabilities remain proposals.
 **Kind:** Tooling / optional Node SDK.
-**Release:** 0.2.0.
+**Release:** 0.2.0 (initial SDK); 0.3.0 (Node simplification).
 **Dependencies:** RFC 0026 for executing Twill sources; RFCs 0002, 0007 and 0009 supply optional application syntax. No dependency on proposed typed throws, argument labels or structured-concurrency syntax.
 
-## Accepted simplification amendment (source only)
+## Accepted simplification amendment
 
 The maintainer has withdrawn the native subprocess backend: it coordinates child
 processes rather than interpreting Twill, and its addon, reactor and eight-target
-release chain exceed the intended toolkit scope. The next source implementation
+release chain exceed the intended toolkit scope. The 0.3.0 implementation
 uses Node's `child_process.spawn` and streams directly. Remove
 `@swiftuijs/twill-shell-native`, its Rust experiment, ABI selection, binary builds
 and native release assembly. Keep the Twill runner, shebang, optional

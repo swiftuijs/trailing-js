@@ -4,7 +4,7 @@ Twill scripts combine native Node APIs with Swift-inspired `guard`, trailing clo
 
 ## What to install
 
-Use Node **24 LTS** for a new setup. The supported Node range is `^20.19.0 || >=22.12.0`. **Use compiler and SDK 0.2.0 or newer.**
+Use Node **24 LTS** for a new setup. The supported Node range is `^20.19.0 || >=22.12.0`. **Use compiler and SDK 0.3.0 or newer.**
 
 | What you want to do                              | Required package                                       | Installation scope                             |
 | ------------------------------------------------ | ------------------------------------------------------ | ---------------------------------------------- |
@@ -12,7 +12,7 @@ Use Node **24 LTS** for a new setup. The supported Node range is `^20.19.0 || >=
 | Start subprocesses with `Command` / `Subprocess` | `@swiftuijs/twill-shell`                               | In the project containing the script           |
 | Use the subprocess SDK from ordinary JS/TS       | `@swiftuijs/twill-shell` only                          | In the JS/TS project; use your normal runner   |
 
-The SDK is optional for Twill scripts that only use Node APIs. It does not provide the `twill` executable. The source SDK has zero production dependencies; see the version boundary below for npm 0.2.0. Default inline compilation needs no `@swiftuijs/twill-runtime`. The VS Code extension and AI skill supply editing assistance and instructions; install execution packages separately.
+The SDK is optional for Twill scripts that only use Node APIs. It does not provide the `twill` executable. The 0.3.0 SDK has zero production dependencies; older npm 0.2.0 retains its native implementation dependency. Default inline compilation needs no `@swiftuijs/twill-runtime`. The VS Code extension and AI skill supply editing assistance and instructions; install execution packages separately.
 
 For application modules and bundler setup, start with [getting started](./getting-started.md). For scripts, choose either the project-local setup below or the [global command](#install-a-global-command).
 
@@ -27,16 +27,16 @@ npm init -y
 npm pkg set type=module
 ```
 
-Install the compiler locally. These commands pin 0.2.0 so the installed runner matches this guide, including when a package manager delays recently published versions:
+Install the compiler locally. These commands pin 0.3.0 so the installed runner matches this guide, including when a package manager delays recently published versions:
 
 ::: code-group
 
 ```sh [npm]
-npm install --save-dev @swiftuijs/twill@0.2.0
+npm install --save-dev @swiftuijs/twill@0.3.0
 ```
 
 ```sh [pnpm]
-pnpm add -D @swiftuijs/twill@0.2.0
+pnpm add -D @swiftuijs/twill@0.3.0
 ```
 
 :::
@@ -111,7 +111,7 @@ The shebang is `#!/usr/bin/env twill` with an ASCII `#!` at the very start of th
 For a standalone script that you want to run directly from your terminal, install the compiler globally:
 
 ```sh
-npm install --global @swiftuijs/twill@0.2.0
+npm install --global @swiftuijs/twill@0.3.0
 twill --help
 twill hello.twill 'hello world'
 ```
@@ -134,11 +134,11 @@ In the same project, install the SDK as a production dependency. Keep it on the 
 ::: code-group
 
 ```sh [npm]
-npm install @swiftuijs/twill-shell@0.2.0
+npm install @swiftuijs/twill-shell@0.3.0
 ```
 
 ```sh [pnpm]
-pnpm add @swiftuijs/twill-shell@0.2.0
+pnpm add @swiftuijs/twill-shell@0.3.0
 ```
 
 :::
@@ -233,12 +233,11 @@ The default directory is `~/.twill/script-cache-v1`. `TWILL_CACHE_DIR` can selec
 
 Completed storage uses 128 slots of at most 512 KiB each (64 MiB total, excluding filesystem overhead and concurrent temporary files). Collisions or larger modules compile normally. The runner and cache are included in 0.2.0. Native exported/prebuilt JavaScript still avoids compiler work on its first launch.
 
-
 ## Execution and version boundary
 
-The source checkout uses Node's `child_process.spawn` and streams, with zero production dependencies. It has no Rust addon, binary selection or installation-time build. Node starts the child directly and drains both captured streams concurrently. Twill source still runs through the compiler/Node runner; the SDK is a subprocess toolkit.
+The 0.3.0 SDK uses Node's `child_process.spawn` and streams, with zero production dependencies. It has no Rust addon, binary selection or installation-time build. Node starts the child directly and drains both captured streams concurrently. Twill source still runs through the compiler/Node runner; the SDK is a subprocess toolkit.
 
-**This simplification is unreleased.** Installing npm 0.2.0 still installs its retired `@swiftuijs/twill-shell-native` implementation dependency. Existing package versions remain available. Use the source checkout to try the replacement; the command/policy/error API below works in both versions. See the [historical 0.2.0 engine](https://github.com/swiftuijs/twill/tree/v0.2.0/packages/shell-native) for its prebuilds and native cleanup guarantees.
+**Changed in 0.3.0:** the SDK no longer installs `@swiftuijs/twill-shell-native`. Older npm 0.2.0 still requires that retired implementation; its package versions remain downloadable for compatibility. Upgrade the SDK to 0.3.0 instead of installing the native package directly. The command/policy/error API below works in both versions. See the [historical 0.2.0 engine](https://github.com/swiftuijs/twill/tree/v0.2.0/packages/shell-native) for its prebuilds and native cleanup guarantees.
 
 Await each operation. When cancelling a group of commands, abort their shared controller and await `Promise.allSettled(tasks)` before a worker shuts down. Set `process.exitCode` after awaited work. The Node implementation cannot asynchronously join children during `process.exit()` or forced `Worker.terminate()`; the retired native cleanup barrier is absent. Descendants and pipelines remain outside direct-child ownership. Unix cancellation requests SIGTERM before SIGKILL; Windows follows Node's process termination behavior.
 
@@ -292,7 +291,7 @@ type TerminationStatus =
   | { readonly kind: 'signaled'; readonly signal: NodeJS.Signals | number };
 ```
 
-`check` defaults to true. Nonzero/signal exits throw `ProcessExitError`, whose `result` contains status and captured output. Source-checkout statuses follow Node's reported codes/signals, including Node's limitations for unnamed Unix signals. Released 0.2.0 additionally preserves unnamed numeric signals; the public union remains compatible. `check: false` returns status for native `switch`/`if` handling; it does not hide launch, I/O, abort, timeout or output-limit failures. Exported classes distinguish `ProcessLaunchError`, `ProcessIOError`, `ProcessAbortError`, `ProcessTimeoutError`, `OutputLimitError` and `ProcessTeardownError`. They extend `ProcessError`; use native `try/catch` and `instanceof` rather than proposed typed-throws syntax.
+`check` defaults to true. Nonzero/signal exits throw `ProcessExitError`, whose `result` contains status and captured output. From 0.3.0, statuses follow Node's reported codes/signals, including Node's limitations for unnamed Unix signals. Released 0.2.0 additionally preserves unnamed numeric signals; the public union remains compatible. `check: false` returns status for native `switch`/`if` handling; it does not hide launch, I/O, abort, timeout or output-limit failures. Exported classes distinguish `ProcessLaunchError`, `ProcessIOError`, `ProcessAbortError`, `ProcessTimeoutError`, `OutputLimitError` and `ProcessTeardownError`. They extend `ProcessError`; use native `try/catch` and `instanceof` rather than proposed typed-throws syntax.
 
 Pass `signal` and/or `timeoutMs` to bound execution. An already-aborted signal starts nothing. On failure, the SDK requests SIGTERM, then SIGKILL after `gracePeriodMs` (default 250 ms). It waits for the directly owned child and I/O to close; `killTimeoutMs` bounds the join after forced termination (default 1000 ms). Timers are scheduling bounds, not real-time deadlines. Windows termination uses the native process handle and cannot promise POSIX graceful handling. Owned listeners/timers are removed on settlement.
 
@@ -320,7 +319,7 @@ The first stage contains argv execution, bounded collection, status/errors, inpu
 | Cannot find `@swiftuijs/twill-shell` or another imported package               | Install it in the project containing the script. A global compiler installation does not provide project imports.                                                                                                                       |
 | `process`, `Buffer` or Node modules lack types                                 | Install `@types/node` and include Node types in the script's tsconfig. See [type checking](#type-check-your-scripts).                                                                                                                   |
 | A child command is not found, or `git status` fails outside a repository       | The child executable must be installed and on PATH (or supplied as an absolute path); it still has its own working-directory and argument requirements. Try the portable `command.twill` example first.                                 |
-| SDK import reports an unsupported or missing native binary                     | This applies to npm 0.2.0. The source replacement has no native binaries; keep SDK versions coordinated and see the version boundary above.                                                            |
+| SDK import reports an unsupported or missing native binary                     | This applies to npm 0.2.0. The 0.3.0 SDK has no native binaries; keep SDK versions coordinated and see the version boundary above.                                                                                                      |
 
 ## Performance boundaries
 

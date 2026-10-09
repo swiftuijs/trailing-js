@@ -95,3 +95,35 @@ Memory and cleanup observations remain separate and establish no hard RSS or
 real-time deadline guarantee. The replacement stays under review until the
 capture acceptance uncertainty is resolved; this simplification does not justify
 claiming a general speedup or publishing an unaccepted performance result.
+
+## Isolated warm-process protocol
+
+The interleaved coordinator comparison shares one V8 heap between both variants.
+Its 1 MiB capture ratios alternate substantially in both directions, including
+parent CPU, while larger-output ratios are much tighter. A release-candidate
+review retains the failed interleaved run and investigates spontaneous GC rather
+than discarding samples or changing the 1.10 gate.
+
+`complete.mjs` now gives each warm sample its own `warm.mjs` process. Both modes
+load identical modules and workload buffers, perform eight warmups, and run the
+same checked operations. Launch order alternates per pair. All seven workloads,
+eleven pairs, original operation counts, byte bounds, status checks and 10,000
+bootstrap resamples remain. Every individual operation is retained. GC runs
+naturally within the measured operations; no forced GC, filtering or increased
+sample counts are used. Worker startup is outside warmed coordination timings
+and remains a separate cold-start comparison. Memory, filesystem, cancellation
+and the two 48-pair default-pool concurrency workloads keep their protocol.
+
+This change separates variant heap/call-site feedback; it does not optimize the
+SDK, prove GC caused every outlier, or reinterpret the rejected earlier runs.
+Only one complete evaluation is planned after this protocol correction.
+
+The GC diagnostic retains the [trace](node-replacement-gc-diagnostic-linux-node24.log),
+[observations](node-replacement-gc-diagnostic-linux-node24.json) and
+[exact diagnostic source](node-replacement-gc-diagnostic.mjs.txt). It deliberately
+uses `--trace-gc-nvp` and logging, so its timings are not acceptance samples.
+Of 64 interleaved operations per variant, collection fell inside two native
+operations and eight SDK operations; the five longest operations were SDK calls
+with reported GC pauses. This demonstrates unequal GC attribution in that traced
+process, not a causal explanation for every earlier sample. The recorded absolute
+paths identify the inspected checkout; adapt and record those paths for reproduction.

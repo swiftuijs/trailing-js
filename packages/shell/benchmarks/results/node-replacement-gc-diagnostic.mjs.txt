@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import { performance } from 'node:perf_hooks';
+import { Subprocess } from '/workspace/twill-native-engine/packages/shell/dist/index.js';
+import { nativeRun } from '/workspace/twill-native-engine/packages/shell/benchmarks/native.mjs';
+import { workloads } from '/workspace/twill-native-engine/packages/shell/benchmarks/workloads.mjs';
+const workload = workloads.find(row => row.name === 'native-dual-capture-1048576');
+const runs = { native: nativeRun, sdk: Subprocess.run };
+for (const run of Object.values(runs)) for (let n=0; n<8; n++) await run(workload.command, workload.options);
+for (let n=0; n<64; n++) for (const mode of n%2 ? ['sdk','native'] : ['native','sdk']) {
+ console.log('TWILL_BEGIN '+JSON.stringify({n,mode}));
+ const cpu=process.cpuUsage(), start=performance.now();
+ const result = await runs[mode](workload.command, workload.options);
+ const wallMs=performance.now()-start, usage=process.cpuUsage(cpu);
+ assert(result.standardOutput.equals(workload.expected));
+ assert(result.standardError.equals(workload.expectedError));
+ assert.deepEqual(result.terminationStatus,{kind:'exited',code:0});
+ console.log('TWILL_END '+JSON.stringify({n,mode,wallMs,parentCPUMs:(usage.user+usage.system)/1000}));
+}

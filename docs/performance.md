@@ -8,7 +8,7 @@ Single-expression component children are direct JSX values. General child collec
 
 In published 0.2.0, `defer` uses one callback and native `finally` for a single direct cleanup. Multiple or control-flow registrations use a lazy block-local stack with reverse-order draining. Both paths allocate cleanup closures; the dynamic path additionally allocates an array. Native `try/finally` remains useful for allocation-sensitive code. Explicit asynchronous cleanup adds the cost of awaiting cleanup.
 
-## Source refinements (unreleased)
+## Refinements in 0.3.0
 
 The current source removes repeated work in three places:
 
@@ -137,6 +137,7 @@ Distributed builds enforce these compressed artifact size limits:
 | Highlight tarball          | 24 KiB                  |
 | Export tarball             | 28 KiB                  |
 | Optional runtime tarball   | 8 KiB                   |
+| Shell SDK tarball          | 16 KiB                  |
 | VSIX, including its engine | 3 MiB                   |
 
 Tarball budgets cover the package's own files, not installed npm dependencies. Development tools remain outside application bundles. These are distribution limits, not application bundle budgets or build-time guarantees.
@@ -240,9 +241,9 @@ The addon is 495,808 bytes uncompressed, excluded from the SDK's existing 16 KiB
 
 <a id="optional-rust-backend"></a>
 
-## Node shell SDK replacement (source only)
+## Node shell SDK in 0.3.0
 
-The source checkout withdraws the Rust addon and experiment in favor of Node spawn/streams with zero production dependencies. It keeps the 16 KiB SDK archive gate and the complete seven-warm/two-concurrency comparison against equivalent handwritten Node. Historical Rust ratios below describe 0.2.0, not this replacement. Abrupt worker/process-exit cleanup and numeric unnamed-signal guarantees are intentionally retired; see [scripting](scripting.md#execution-and-version-boundary).
+Version 0.3.0 withdraws the Rust addon and experiment in favor of Node spawn/streams with zero production dependencies. It keeps the 16 KiB SDK archive gate and the complete seven-warm/two-concurrency comparison against equivalent handwritten Node. Historical Rust ratios below describe 0.2.0, not this replacement. Abrupt worker/process-exit cleanup and numeric unnamed-signal guarantees are intentionally retired; see [scripting](scripting.md#execution-and-version-boundary).
 
 The [complete first review and one focused recheck](https://github.com/swiftuijs/twill/blob/main/packages/shell/benchmarks/results/README.md#node-replacement-validation) retain every sample and source/build identity on Linux x64 / Node 24.19.0. Eight of nine warm/concurrency wall gates pass; 32/128-child paired ratios are 1.002/1.000 with upper 95% bounds 1.015/1.014. Native 1 MiB dual capture is inconclusive in both runs: median/upper bound 0.919/1.211, then 0.976/1.190. The unchanged 1.10 complete gate rejects the runs. This is not performance acceptance; the replacement remains under review.
 

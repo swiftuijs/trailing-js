@@ -1,7 +1,7 @@
 # RFC 0036: Optional native subprocess backend evaluation
 
 **Release reference:** 0.2.0 implements the accepted scope; broader/deferred items below remain proposals.
-**Status:** Implemented in 0.2.0; retired for the next source implementation by the [RFC 0034 simplification amendment](0034-shell-scripting-toolkit.md#accepted-simplification-amendment-source-only).
+**Status:** Implemented in 0.2.0; retired in 0.3.0 by the [RFC 0034 simplification amendment](0034-shell-scripting-toolkit.md#accepted-simplification-amendment).
 **Kind:** Runtime/tooling.
 **Release:** 0.2.0.
 **Dependencies:** RFC 0034, with separate scoped-stream/pipeline ownership acceptance.

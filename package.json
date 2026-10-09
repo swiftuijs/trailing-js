@@ -1,5 +1,5 @@
 {
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Twill extends TypeScript with Swift-inspired syntax: trailing closures, guards, defer and checked switch expressions. Compiles to ordinary JavaScript.",
   "repository": {
     "type": "git",

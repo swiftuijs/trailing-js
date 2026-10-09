@@ -8,7 +8,7 @@ This extension helps you **write, understand and debug Twill in VS Code**. It pr
 
 [Try the playground](https://twill.evecalm.com/playground) · [Documentation](https://twill.evecalm.com/) · [Report an issue](https://github.com/swiftuijs/twill/issues)
 
-Unreleased source work reuses document text by version and shares recovered compilation with strict diagnostics, reducing repeated work as you edit. Native TS/JS integration still receives immediate complete unsaved-source snapshots. These are workload-specific improvements; see [performance](https://twill.evecalm.com/performance) for measurements and remaining limits.
+Twill 0.3.0 reuses document text by version and shares recovered compilation with strict diagnostics, reducing repeated work as you edit. Native TS/JS integration still receives immediate complete unsaved-source snapshots. These are workload-specific improvements; see [performance](https://twill.evecalm.com/performance) for measurements and remaining limits.
 
 ## What does Twill look like?
 
