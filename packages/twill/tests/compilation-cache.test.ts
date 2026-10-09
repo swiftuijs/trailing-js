@@ -13,6 +13,7 @@ import {
   toolchainIdentity,
 } from '../src/compilation-cache';
 import { loaderConfiguration } from '../src/configuration';
+import ts from 'typescript';
 
 const roots: string[] = [];
 afterEach(() => {
@@ -39,6 +40,41 @@ function entry(directory: string) {
     fs.readdirSync(directory).find((file) => file.endsWith('.json'))!,
   );
 }
+it('reuses parsed runner config while validating bytes, optional probes and cache bounds', () => {
+  const { root, file } = fixture();
+  const inherited = join(root, 'base.json');
+  fs.writeFileSync(inherited, '{"compilerOptions":{"jsxImportSource":"one"}}');
+  fs.writeFileSync(join(root, 'tsconfig.json'), '{"extends":"./base.json"}');
+  const probes = vi.spyOn(ts.sys, 'fileExists');
+  expect(loaderConfiguration(file).config.jsxImportSource).toBe('one');
+  const first = probes.mock.calls.length;
+  expect(first).toBeGreaterThan(0);
+  expect(loaderConfiguration(join(root, 'second.twill')).config.jsxImportSource).toBe('one');
+  expect(probes.mock.calls.length).toBe(first);
+  const time = fs.statSync(inherited);
+  fs.writeFileSync(inherited, '{"compilerOptions":{"jsxImportSource":"two"}}');
+  fs.utimesSync(inherited, time.atime, time.mtime);
+  expect(loaderConfiguration(file).config.jsxImportSource).toBe('two');
+  expect(probes.mock.calls.length).toBeGreaterThan(first);
+  const nested = join(root, 'nested');
+  fs.mkdirSync(nested);
+  const child = join(nested, 'main.twill');
+  expect(loaderConfiguration(child).config.jsxImportSource).toBe('two');
+  fs.writeFileSync(join(nested, 'twill.config.json'), '{"implicitReturn":false}');
+  expect(loaderConfiguration(child).config.implicitReturn).toBe(false);
+  fs.writeFileSync(join(nested, 'twill.config.json'), '{"implicitReturn":"bad"}');
+  expect(() => loaderConfiguration(child)).toThrow('implicitReturn must be a boolean');
+  fs.rmSync(join(nested, 'twill.config.json'));
+  expect(loaderConfiguration(child).config.implicitReturn).toBeUndefined();
+  for (let index = 0; index < 65; index++) {
+    const directory = join(root, 'module' + index);
+    fs.mkdirSync(directory);
+    loaderConfiguration(join(directory, 'main.twill'));
+  }
+  const before = probes.mock.calls.length;
+  loaderConfiguration(file);
+  expect(probes.mock.calls.length).toBeGreaterThan(before);
+});
 it('stores exactly emitted bytes and distinguishes source, URL, dialect and rebuilt code', () => {
   const { directory, url, cache, observations } = fixture();
   expect(cache.read(url, 'source', true)).toBeUndefined();

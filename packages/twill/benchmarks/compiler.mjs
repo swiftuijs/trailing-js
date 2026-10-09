@@ -22,8 +22,8 @@ function measure(task, warmups = 5) {
     task();
     timings.push(performance.now() - start);
   }
-  timings.sort((a, b) => a - b);
-  return { medianMs: timings[Math.floor(samples / 2)], p95Ms: timings.at(-1) };
+  const ordered = [...timings].sort((a, b) => a - b);
+  return { samplesMs: timings, medianMs: ordered[Math.floor(samples / 2)], p95Ms: ordered.at(-1) };
 }
 const plugin = twill({ root: process.cwd() });
 const pluginTransform =
@@ -185,13 +185,13 @@ for (const registrations of [1, 10, 100]) {
   });
   console.log(JSON.stringify(cleanupResults.at(-1)));
 }
-// A single direct statement needs only a callback and native finally.
+// An eligible synchronous statement is the native finally body itself.
 {
   const source =
     'function run(state) { defer { state.cleanup += 1; } state.body++; return state.body; }';
   const output = transform(source, { filename: 'single.twill', language: 'js' }).code;
   const minimal =
-    'function run(state) { let __twillCleanup0; try { __twillCleanup0 = () => { state.cleanup += 1; }; state.body++; return state.body; } finally { __twillCleanup0?.(); } }';
+    'function run(state) { try { state.body++; return state.body; } finally { state.cleanup += 1; } }';
   assert.equal(
     (await minify(output, { minify: true, minifyIdentifiers: false })).code,
     (await minify(minimal, { minify: true, minifyIdentifiers: false })).code,
@@ -207,7 +207,7 @@ for (const registrations of [1, 10, 100]) {
     registrations: 1,
     iterations,
     generatedBytes: Buffer.byteLength(output),
-    matchesMinimalCallbackFinally: true,
+    matchesMinimalNativeFinally: true,
     defer,
     nativeFinally,
     medianRatio: defer.medianMs / nativeFinally.medianMs,

@@ -16,6 +16,14 @@ const languages = ['twill-typescript', 'twill-tsx'];
 const selector = languages.map((language) => ({ language, scheme: 'file' }));
 
 export function activate(context: vscode.ExtensionContext) {
+  const sources = new WeakMap<vscode.TextDocument, { version: number; text: string }>();
+  const source = (document: vscode.TextDocument) => {
+    const cached = sources.get(document);
+    if (cached?.version === document.version) return cached.text;
+    const text = document.getText();
+    sources.set(document, { version: document.version, text });
+    return text;
+  };
   // The bundled TS-server plugin bridges native TS/JS documents. Custom
   // Twill documents use the providers below; share their unsaved sources.
   const nativeExtension = vscode.extensions.getExtension('vscode.typescript-language-features');
@@ -34,7 +42,7 @@ export function activate(context: vscode.ExtensionContext) {
     const overlays = Object.fromEntries(
       vscode.workspace.textDocuments
         .filter((document) => document.uri.scheme === 'file' && isTwillFile(document.fileName))
-        .map((document) => [sourceFilename(document.fileName), document.getText()]),
+        .map((document) => [sourceFilename(document.fileName), source(document)]),
     );
     void bridge?.then((api) =>
       api?.configurePlugin('@swiftuijs/twill-vscode-tsserver', { overlays, reloadFiles }),
@@ -84,10 +92,10 @@ export function activate(context: vscode.ExtensionContext) {
           /\.(?:twillx?|[cm]?tsx?|[cm]?jsx?)$/.test(open.fileName) &&
           sourceFilename(open.fileName).startsWith(root + '/')
         )
-          project.update(open.fileName, open.getText());
+          project.update(open.fileName, source(open));
       }
     }
-    project.update(document.fileName, document.getText());
+    project.update(document.fileName, source(document));
     return project;
   }
 
@@ -186,7 +194,7 @@ export function activate(context: vscode.ExtensionContext) {
           /\.(?:twillx?|[cm]?tsx?|[cm]?jsx?)$/.test(event.document.fileName) &&
           sourceFilename(event.document.fileName).startsWith(project.root + '/')
         )
-          project.update(event.document.fileName, event.document.getText());
+          project.update(event.document.fileName, source(event.document));
       for (const project of projects.values())
         if (sourceFilename(event.document.fileName).startsWith(project.root + '/'))
           scheduleRoot(project.root);

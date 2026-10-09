@@ -9,7 +9,11 @@ import {
 } from './compiler.js';
 
 /** Editor-only recovery; build and CLI compilation always use strict parsing. */
-export function recoverTransform(source: string, options: TransformOptions): TransformResult {
+export function recoverTransform(
+  source: string,
+  options: TransformOptions,
+  onSyntaxError?: (error: TwillSyntaxError) => void,
+): TransformResult {
   const repaired = new MagicString(source);
   let text = source;
   // Complete a missing member name or a few unfinished delimiters. Limit repair
@@ -52,6 +56,7 @@ export function recoverTransform(source: string, options: TransformOptions): Tra
       return { ...result, enumPatterns, map: map as unknown as TransformResult['map'] };
     } catch (error) {
       if (!(error instanceof TwillSyntaxError)) throw error;
+      if (attempt === 0) onSyntaxError?.(error);
       const before = text.slice(0, error.offset);
       let insertion: string;
       let offset = error.offset;

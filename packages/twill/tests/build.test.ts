@@ -208,7 +208,7 @@ function runtimeFixture() {
   writeFileSync(join(root, 'twill.config.json'), '{"runtime":"external"}');
   writeFileSync(
     join(root, 'cleanup.twill'),
-    'export function run(events:string[],early:boolean){defer {events.push("first");}if(early)return 7;defer {events.push("second");}events.push("body");return 8;}',
+    'export function run(events:string[],early:boolean){if(true)defer {events.push("first");}if(early)return 7;defer {events.push("second");}events.push("body");return 8;}',
   );
   writeFileSync(
     join(root, 'entry.twill'),

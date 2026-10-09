@@ -814,10 +814,12 @@ export function parse(source, language = 'ts', sourceType = 'module') {
     if (node.type === 'DeferStatement') defers.push(node);
     if (node.type === 'TwillSwitchExpression') switches.push(node);
     if (node.type === 'TwillEnumDeclaration') enums.push(node);
-    for (const [key, value] of Object.entries(node)) {
+    for (const key of Object.keys(node)) {
       if (key === 'trailing' || key === 'loc') continue;
-      if (Array.isArray(value)) value.forEach(visit);
-      else if (value?.type) visit(value);
+      const value = node[key];
+      if (Array.isArray(value)) {
+        for (const child of value) visit(child);
+      } else if (value?.type) visit(value);
     }
   };
   visit(ast);

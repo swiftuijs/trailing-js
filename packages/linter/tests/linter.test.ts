@@ -57,6 +57,14 @@ describe('ESLint Twill processor', () => {
       filePath: 'cleanup.twill',
     });
     expect(valid!.messages).toEqual([]);
+    const nativeSource = 'export function run(flag){defer {};if(flag){};return 1;}';
+    const [nativeEmpty] = await engine().lintText(nativeSource, { filePath: 'native-empty.twill' });
+    expect(nativeEmpty!.messages).toEqual([
+      expect.objectContaining({
+        ruleId: 'no-empty',
+        column: nativeSource.indexOf('{}', nativeSource.indexOf('if(flag)')) + 1,
+      }),
+    ]);
   });
   it('lints associated enum payloads without leaking generated factories or lowering fixes', async () => {
     const source =
