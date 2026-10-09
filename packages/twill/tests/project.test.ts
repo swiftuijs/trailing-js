@@ -203,6 +203,37 @@ it('explicit invalidation clears compiler caches while retaining unsaved source 
   expect(p.text(file)).toContain('[2]');
   expect(p.diagnostics()).toEqual([]);
 });
+it('retains strict editor errors alongside recovered snapshots and clears them on updates', () => {
+  const { root } = project({ 'main.twill': 'export const values=[1].map { . };' });
+  const p = new TwillProject(join(root, 'tsconfig.json'), {}, { recover: true });
+  cleanups.push(() => p.dispose());
+  const file = join(root, 'main.twill');
+  const snapshot = p.transformed(file);
+  const errors = p.diagnostics(file);
+  expect(errors).toEqual([expect.objectContaining({ code: 90001 })]);
+  expect(p.diagnostics(file)).toEqual(errors);
+  expect(p.transformed(file)).toBe(snapshot);
+  p.update(file, 'export const values=[1].map { n in n+1 };');
+  expect(p.diagnostics(file)).toEqual([]);
+  p.update(file, 'export const values=[1].map { . };');
+  expect(p.diagnostics(file)).toEqual(errors);
+  p.invalidate();
+  expect(p.diagnostics(file)).toEqual(errors);
+});
+it('retains deferred definite-assignment checking for local bindings and instance initialization', () => {
+  const source = `export function run(){let value:number;defer{void value;}value=1;return value;}
+export function later(){defer{void value;}var value=1;return 1;}
+export function conditional(flag:boolean){if(flag){var value=1;}defer{void value;}return 1;}
+export class Resource{value:number;constructor(){defer{void this.value;}this.value=1;}}`;
+  const { project: p, root } = project({ 'main.twill': source });
+  expect(p.diagnostics()).toEqual([]);
+  expect(p.transformed(join(root, 'main.twill'))!.code.match(/let __twillCleanup/g)).toHaveLength(
+    4,
+  );
+  const declarations = p.declarationOutput(join(root, 'out'));
+  expect(declarations.diagnostics).toEqual([]);
+  expect(declarations.files.map((file) => file.text).join('')).toContain('run(): number');
+});
 it('reports unsupported project references and compiler options as configuration diagnostics', () => {
   const { root } = project({ 'main.twill': 'export const value=1;' });
   writeFileSync(

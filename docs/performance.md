@@ -6,7 +6,44 @@ Twill is a build-time syntax layer. Ordinary trailing closures become native arr
 
 Single-expression component children are direct JSX values. General child collection uses a local array and ordered pushes; parameterized render props remain lazy callbacks. These have the costs of their emitted JavaScript and the selected framework.
 
-`defer` uses one callback and native `finally` for a single direct cleanup. Multiple or control-flow registrations use a lazy block-local stack with reverse-order draining. Both paths allocate cleanup closures; the dynamic path additionally allocates an array. Native `try/finally` remains useful for allocation-sensitive code. Explicit asynchronous cleanup adds the cost of awaiting cleanup.
+In published 0.2.0, `defer` uses one callback and native `finally` for a single direct cleanup. Multiple or control-flow registrations use a lazy block-local stack with reverse-order draining. Both paths allocate cleanup closures; the dynamic path additionally allocates an array. Native `try/finally` remains useful for allocation-sensitive code. Explicit asynchronous cleanup adds the cost of awaiting cleanup.
+
+## Source refinements (unreleased)
+
+The current source removes repeated work in three places:
+
+- Eligible direct synchronous `defer` registrations become native nested `try/finally`, with no callback, stack or helper import. Later lexical/type or guard bindings, function hoisting, direct eval/with, `this` or definite-assignment-sensitive declarations, native disposal boundaries and cleanup-local function/var/strict behavior conservatively retain the existing path. Dynamic/async registration also keeps its semantics and costs.
+- Compiler tree walks avoid temporary property-pair arrays. Module compilation reuses parsed configuration for up to 64 source directories, still validating every dependency's contents and absent-file probes before reuse.
+- Editor diagnostics reuse the recovered transform and its first strict syntax error. VS Code caches text by document version; edits still synchronize complete overlays with native TS-server projects immediately. Transporting full snapshots and checking changed dependents remain real costs.
+
+The [refinement report](https://github.com/swiftuijs/twill/blob/main/docs/benchmarks/refinement.json) compares an unchanged build at `a8db852` with the source build on the same Linux x64 / Node 24.19 shared host. It retains three alternating pairs of isolated workers, all 15 timing samples per worker, source/output digests, build identities and generated cleanup code. Compiler/tool samples include high-resolution maps; runtime samples assert observable state. Cold uncached loader runs retain nine alternating pairs of fresh processes and execute an actual 100-import graph.
+
+| Workload                                               | Before, median | Source refinement, median | Paired after / before |
+| ------------------------------------------------------ | -------------: | ------------------------: | --------------------: |
+| Transform 1,000 callbacks                              |      146.33 ms |                 141.97 ms |                 0.97× |
+| Repeat unchanged editor diagnostics, 500 callbacks     |       76.23 ms |                  0.055 ms |               0.0007× |
+| Edit then diagnose, 500 callbacks                      |      222.20 ms |                 143.14 ms |                 0.64× |
+| Compile 100 modules with shared configuration          |      191.65 ms |                 155.46 ms |                 0.82× |
+| One direct cleanup, 100,000 invocations                |       0.178 ms |                  0.176 ms |                 1.02× |
+| Four direct cleanups, 100,000 invocations              |        6.83 ms |                  0.326 ms |                0.048× |
+| 100 dynamic captured-loop cleanups, 10,000 invocations |       21.34 ms |                  20.84 ms |                 0.97× |
+| Cold uncached script with 100 imports                  |       1,180 ms |                  1,110 ms |                 0.95× |
+
+Worker medians and paired ratios are aggregated separately; dividing the two displayed medians need not equal the median paired ratio. Small timing differences and the cold-start result vary across runs. Dynamic-loop output is byte-identical before/after: its timing difference does not demonstrate a generated-code regression or improvement. Its natural reverse-loop reference remains about 13× faster in this fixture. Eligible one/four-cleanup minified output drops from 86/283 bytes to 66/144 bytes, matching the native reference exactly.
+
+The static cleanup outputs match natural handwritten native `try/finally` after ordinary minification. A direct registration already approaches native speed; removing its callback mainly reduces output and allocation dependence. Multiple direct registrations benefit much more. Reusing an unchanged file's diagnostics does not represent end-to-end editor typing latency; edited diagnostics are measured separately. Configuration reuse saves repeated parsing, while cold initialization still loads Node/TypeScript/loader machinery.
+
+Dynamic captured-loop cleanup still allocates and dispatches registrations and remains substantially slower than a native reverse loop doing just the same additions. Its retained closure/stack semantics are not interchangeable with that specialized loop for arbitrary programs. This refinement does not establish native parity for every construct, cold script or editor action. Profile real workloads; prebuilt/exported JavaScript remains the shortest startup path.
+
+To reproduce, build the unchanged revision in a separate worktree, build the current compiler, then pass the unchanged distribution directory:
+
+```sh
+node packages/twill/benchmarks/refinement.mjs \
+  --baseline /absolute/path/to/baseline/packages/twill/dist \
+  --output docs/benchmarks/refinement.json
+```
+
+Each worktree needs its frozen-lockfile dependencies. Keep other builds/tests idle during timing. The older reports below retain their original fixtures, environments and version boundaries; their absolute timings are not directly comparable to this run.
 
 ## Compiler measurements
 
@@ -179,6 +216,8 @@ The [source-only runner cache measurements](https://github.com/swiftuijs/twill/b
 
 ## Rust subprocess experiment (historical)
 
+**Historical prototype, before 0.2.0.** This section compares the experimental addon with the earlier Node SDK. The published SDK now uses the production [Rust shell backend](#rust-shell-backend) described below; its independent reactor addresses the prototype's worker-pool contention. Keep these older measurements separate from production results and compiler startup.
+
 The repository also contains an isolated Linux Rust/N-API experiment. It owns a direct child and nonblocking pipes, drains both output streams in one native loop and transfers captured buffers through N-API. It is outside published SDK files and cannot be selected through `Subprocess.run`; the measurement baseline used the earlier Node SDK. No Rust interpreter or compiler port is involved.
 
 On Linux x64 / Node 24.19.0, eleven paired batches compare the prototype with the then-current Node SDK and handwritten Node `spawn`. All six operation orders rotate; every result is verified, and parent CPU includes native worker threads but excludes child work. Independent C producers expose launch/I/O costs; a Node producer includes its interpreter startup. These are observed paired ratios, not application-wide speed guarantees:
@@ -195,7 +234,7 @@ Short launches and native dual 1 MiB capture reduce paired wall time by about 42
 
 Isolated capture RSS-increase medians were 4.13 MiB for SDK versus 2.31 MiB for Rust at 1 MiB per stream, and 33.21 versus 16.30 MiB at 8 MiB per stream. These 1 ms observations plus settlement are not hard peak bounds. Native allocation accounting differs from V8's `external`/`arrayBuffers`; use RSS to compare the process, and do not infer zero allocation/copying.
 
-Two measured limits prevent adopting this prototype as the default backend. Actual Twill runner startup has no demonstrated Rust improvement: cached SDK/Rust medians were 177.4/173.7 ms, with paired ratio 1.013 and interval 0.904–1.047; uncached medians were 514.4/525.8 ms. This addon leaves Node/compiler initialization intact. Also, each native operation occupies a libuv worker: 32 parallel Node children with a 100 ms wait took observed medians of 473 ms for SDK and 1,185 ms for Rust with the default four-worker pool. Raising the pool to 32 measured 477/456 ms, but does not establish an independent scheduler or eliminate contention with filesystem/DNS work.
+Two measured limits prevented adopting that prototype unchanged. Actual Twill runner startup had no demonstrated Rust improvement: cached SDK/Rust medians were 177.4/173.7 ms, with paired ratio 1.013 and interval 0.904–1.047; uncached medians were 514.4/525.8 ms. This addon leaves Node/compiler initialization intact. Also, each experimental native operation occupies a libuv worker: 32 parallel Node children with a 100 ms wait took observed medians of 473 ms for the earlier SDK and 1,185 ms for Rust with the default four-worker pool. Raising the pool to 32 measured 477/456 ms, but does not establish an independent scheduler or eliminate contention with filesystem/DNS work.
 
 The addon is 495,808 bytes uncompressed, excluded from the SDK's existing 16 KiB archive gate. It snapshots input/environment and tests byte bounds, statuses, failures, deadlines and direct-child reaping on Node 20.19/24. It uses generic errors and immediate termination; graceful cancellation, bounded join, environment shutdown, containment, pipelines and Windows/macOS parity remain unimplemented. A production backend needs independent asynchronous scheduling and the full ownership/platform contract before adoption. See the [experiment and reproduction instructions](https://github.com/swiftuijs/twill/blob/v0.2.0/packages/shell/experiments/rust-native/README.md) and [RFC 0036](https://github.com/swiftuijs/twill/blob/main/docs/rfcs/0036-native-subprocess-backend.md).
 

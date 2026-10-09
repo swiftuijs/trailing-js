@@ -2,15 +2,26 @@
 
 Twill lowers component syntax to ordinary framework code. It does not replace framework runtimes or wrap component libraries.
 
+Start with a working React or Vue application and [install the compiler](./getting-started.md#install) locally. Keep framework runtime dependencies, types, styles and entry points. These configurations extend an existing application; use [getting started](./getting-started.md#build-with-vite) for the basic Vite workflow.
+
 ## React with Vite 8
 
 Install Vite 8 and `@vitejs/plugin-react` 6 alongside the compiler. The optional React subpath composes the standard plugin with Twill compilation and includes `.twill` / `.twillx` in its Fast Refresh filters:
+
+```sh
+npm install --save-dev @swiftuijs/twill@0.2.0 vite@^8 @vitejs/plugin-react@^6
+# pnpm add -D @swiftuijs/twill@0.2.0 vite@^8 @vitejs/plugin-react@^6
+```
+
+Keep React/ReactDOM and their type declarations installed by your React project. Save the following as `vite.config.ts`:
 
 ```ts
 import { defineConfig } from 'vite';
 import twillReact from '@swiftuijs/twill/vite-react';
 export default defineConfig({ plugins: twillReact() });
 ```
+
+Save your component as `src/App.twillx`, update the native entry's import to `./App.twillx`, and keep `"jsx": "react-jsx"` in your tsconfig. The entry still mounts the component with the application's normal ReactDOM API. For example:
 
 ```twillx
 import { useState } from 'react';
@@ -32,6 +43,8 @@ Editing component text preserves compatible hook state. Hook signature changes c
 ## Vue
 
 Use `@swiftuijs/twill/vite` and the standard JSX runtime selection (`jsxImportSource: "vue"` in tsconfig, or the normal file pragma). Twill closures become lazy slots, including scoped/named slots; slot rendering owns reactive reads. Native Vue JSX declarations can require explicit slot parameter types.
+
+Use `"jsx": "react-jsx"` and `"jsxImportSource": "vue"` in the project's `compilerOptions`; Vue supplies that automatic runtime. Include `.twillx` files under your usual source glob, update component imports, and run the project's existing dev/build scripts plus `twill check` through [local commands](./getting-started.md#npm-equivalents).
 
 The compiler does not process `.vue` SFC syntax. Add the standard Vue Vite plugin for SFC files. Vue-specific JSX HMR remains a host integration; the React adapter is not a Vue adapter.
 

@@ -66,13 +66,14 @@ type ClosureMetadata = {
 };
 function walk(node: Node, visit: (node: Node) => void): void {
   visit(node);
-  for (const [key, value] of Object.entries(node)) {
-    if (['loc', 'trailing'].includes(key)) continue;
-    if (Array.isArray(value))
-      value.forEach((child) => {
+  for (const key of Object.keys(node)) {
+    if (key === 'loc' || key === 'trailing') continue;
+    const value = node[key];
+    if (Array.isArray(value)) {
+      for (const child of value) {
         if (child?.type) walk(child, visit);
-      });
-    else if (value?.type) walk(value, visit);
+      }
+    } else if (value?.type) walk(value, visit);
   }
 }
 function calleeName(node: Node): string | undefined {

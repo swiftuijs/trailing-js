@@ -1,12 +1,14 @@
 # CLI reference
 
-The locally installed `@swiftuijs/twill` package provides the `twill` command. Run these commands from your application root; examples use `pnpm exec`, with equivalent npm or Yarn invocation available.
+The `@swiftuijs/twill` package provides the `twill` command. Install it in your application before running commands: `npm install --save-dev @swiftuijs/twill@0.2.0` or `pnpm add -D @swiftuijs/twill@0.2.0`. See [getting started](./getting-started.md#install) for prerequisites and a runnable first module, or [shell scripting](./scripting.md#install-a-global-command) for global installation.
+
+Run project-local commands from your application root. Examples below use `pnpm exec twill ...`; with npm, use `npm exec -- twill ...`. Package scripts use `twill ...` directly. A global installation permits `twill ...` in your terminal.
 
 ```sh
 pnpm exec twill --help
 ```
 
-Your normal `tsconfig.json` supplies project types and JSX settings. Commands work without `twill.config.json`; its optional `implicitReturn` setting changes that language behavior. The [runtime helper option] in 0.2.0(./runtime.md) also selects inline or external cleanup emission.
+Your normal `tsconfig.json` supplies project types and JSX settings. Commands work without `twill.config.json`; its optional `implicitReturn` setting changes that language behavior. The [runtime helper option](./runtime.md) in 0.2.0 also selects inline or external cleanup emission.
 
 ## Run an executable script
 

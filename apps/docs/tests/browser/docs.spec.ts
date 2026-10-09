@@ -46,11 +46,23 @@ test('official AI guide serves the canonical skill and verifiable discovery unde
 test('shell scripting guide distinguishes the Node replacement from released Rust and preserves navigation', async ({
   page,
 }) => {
-  await page.goto('build-tools');
-  await page.locator('.vp-doc').getByRole('link', { name: 'shell scripting', exact: true }).click();
+  await page.goto('getting-started');
+  await page
+    .locator('.vp-doc')
+    .getByRole('link', { name: 'Shell scripting: local and global installation', exact: true })
+    .click();
   await expect(page.locator('h1')).toHaveText('Shell scripting');
+  const base = process.env.TWILL_DOCS_BASE ?? '/';
+  await expect(page).toHaveURL(new RegExp(base + 'scripting#what-to-install$'));
+  await expect(page.locator('.vp-doc')).toContainText('npm install --global @swiftuijs/twill');
+  await expect(page.locator('.vp-doc')).toContainText('npm install --save-dev @swiftuijs/twill');
+  await expect(page.locator('.vp-doc')).toContainText('npm install @swiftuijs/twill-shell');
+  await expect(page.locator('.vp-doc')).toContainText('npm exec -- twill hello.twill');
+  await expect(page.locator('.vp-doc')).toContainText('npm exec --call');
+  await expect(page.locator('.vp-doc')).toContainText('node command.mjs');
+  await expect(page.locator('.vp-doc')).toContainText('Hello from a child process');
   await expect(page.locator('.vp-doc')).toContainText('Use compiler and SDK 0.2.0 or newer');
-  const exampleCode = page.locator('.language-twill code').filter({ hasText: 'Subprocess.run' });
+  const exampleCode = page.locator('.language-twill code').filter({ hasText: 'guard const' });
   await expect(exampleCode).toContainText('Subprocess.run');
   await expect(exampleCode).toContainText('guard const');
   await expect(page.locator('.vp-doc')).toContainText('shell: false');
