@@ -12,7 +12,7 @@ Use Node **24 LTS** for a new setup. The supported Node range is `^20.19.0 || >=
 | Start subprocesses with `Command` / `Subprocess` | `@swiftuijs/twill-shell`                               | In the project containing the script           |
 | Use the subprocess SDK from ordinary JS/TS       | `@swiftuijs/twill-shell` only                          | In the JS/TS project; use your normal runner   |
 
-The SDK is optional for Twill scripts that only use Node APIs. It does not provide the `twill` executable. Its Rust prebuild dependency installs automatically; you do not need Rust or a separate native-package installation. Default inline compilation needs no `@swiftuijs/twill-runtime`. The VS Code extension and AI skill supply editing assistance and instructions; install execution packages separately.
+The SDK is optional for Twill scripts that only use Node APIs. It does not provide the `twill` executable. The source SDK has zero production dependencies; see the version boundary below for npm 0.2.0. Default inline compilation needs no `@swiftuijs/twill-runtime`. The VS Code extension and AI skill supply editing assistance and instructions; install execution packages separately.
 
 For application modules and bundler setup, start with [getting started](./getting-started.md). For scripts, choose either the project-local setup below or the [global command](#install-a-global-command).
 
@@ -233,6 +233,15 @@ The default directory is `~/.twill/script-cache-v1`. `TWILL_CACHE_DIR` can selec
 
 Completed storage uses 128 slots of at most 512 KiB each (64 MiB total, excluding filesystem overhead and concurrent temporary files). Collisions or larger modules compile normally. The runner and cache are included in 0.2.0. Native exported/prebuilt JavaScript still avoids compiler work on its first launch.
 
+
+## Execution and version boundary
+
+The source checkout uses Node's `child_process.spawn` and streams, with zero production dependencies. It has no Rust addon, binary selection or installation-time build. Node starts the child directly and drains both captured streams concurrently. Twill source still runs through the compiler/Node runner; the SDK is a subprocess toolkit.
+
+**This simplification is unreleased.** Installing npm 0.2.0 still installs its retired `@swiftuijs/twill-shell-native` implementation dependency. Existing package versions remain available. Use the source checkout to try the replacement; the command/policy/error API below works in both versions. See the [historical 0.2.0 engine](https://github.com/swiftuijs/twill/tree/v0.2.0/packages/shell-native) for its prebuilds and native cleanup guarantees.
+
+Await each operation. When cancelling a group of commands, abort their shared controller and await `Promise.allSettled(tasks)` before a worker shuts down. Set `process.exitCode` after awaited work. The Node implementation cannot asynchronously join children during `process.exit()` or forced `Worker.terminate()`; the retired native cleanup barrier is absent. Descendants and pipelines remain outside direct-child ownership. Unix cancellation requests SIGTERM before SIGKILL; Windows follows Node's process termination behavior.
+
 ## Run a command
 
 ```twill
@@ -258,7 +267,7 @@ Spaces, quotes, `$`, newlines and shell operators remain one literal argument. T
 
 ## Input, output and environment
 
-Stdin defaults to EOF via `Input.none()`; stdout and stderr default to `Output.inherit()`, without capture buffers. A string or `Uint8Array` supplies stdin data; `Input.inherit()` explicitly inherits stdin. The Rust reactor writes with native backpressure and closes stdin. Byte input is copied at submission; later caller mutation cannot change it.
+Stdin defaults to EOF via `Input.none()`; stdout and stderr default to `Output.inherit()`, without capture buffers. A string or `Uint8Array` supplies stdin data; `Input.inherit()` explicitly inherits stdin. Node streams write with backpressure and close stdin. Byte input is copied at submission; later caller mutation cannot change it.
 
 Capture is explicit and bounded per stream:
 
@@ -283,9 +292,9 @@ type TerminationStatus =
   | { readonly kind: 'signaled'; readonly signal: NodeJS.Signals | number };
 ```
 
-`check` defaults to true. Nonzero/signal exits throw `ProcessExitError`, whose `result` contains status and captured output. Named Unix signals use Node's signal names; signals absent from that table retain their numeric OS value. `check: false` returns status for native `switch`/`if` handling; it does not hide launch, I/O, abort, timeout or output-limit failures. Exported classes distinguish `ProcessLaunchError`, `ProcessIOError`, `ProcessAbortError`, `ProcessTimeoutError`, `OutputLimitError` and `ProcessTeardownError`. They extend `ProcessError`; use native `try/catch` and `instanceof` rather than proposed typed-throws syntax.
+`check` defaults to true. Nonzero/signal exits throw `ProcessExitError`, whose `result` contains status and captured output. Source-checkout statuses follow Node's reported codes/signals, including Node's limitations for unnamed Unix signals. Released 0.2.0 additionally preserves unnamed numeric signals; the public union remains compatible. `check: false` returns status for native `switch`/`if` handling; it does not hide launch, I/O, abort, timeout or output-limit failures. Exported classes distinguish `ProcessLaunchError`, `ProcessIOError`, `ProcessAbortError`, `ProcessTimeoutError`, `OutputLimitError` and `ProcessTeardownError`. They extend `ProcessError`; use native `try/catch` and `instanceof` rather than proposed typed-throws syntax.
 
-Pass `signal` and/or `timeoutMs` to bound execution. An already-aborted signal starts nothing. On failure, the SDK requests SIGTERM, then SIGKILL after `gracePeriodMs` (default 250 ms). It waits for the directly owned child and I/O to close; `killTimeoutMs` bounds the join after forced termination (default 1000 ms). Reactor timers are scheduling bounds, not real-time deadlines. Windows termination uses the native process handle and cannot promise POSIX graceful handling. Owned listeners/timers are removed on settlement.
+Pass `signal` and/or `timeoutMs` to bound execution. An already-aborted signal starts nothing. On failure, the SDK requests SIGTERM, then SIGKILL after `gracePeriodMs` (default 250 ms). It waits for the directly owned child and I/O to close; `killTimeoutMs` bounds the join after forced termination (default 1000 ms). Timers are scheduling bounds, not real-time deadlines. Windows termination uses the native process handle and cannot promise POSIX graceful handling. Owned listeners/timers are removed on settlement.
 
 The first observed failure remains primary. `cleanupErrors` retains secondary failures; `unresolvedProcessIdentifier` identifies a child that could not be reaped within the bound. These cases reject, even with `check: false`. Error objects may contain bounded output and native causes; the SDK does not automatically log arguments, environment values or output. Choose what to expose in your application logs.
 
@@ -311,27 +320,13 @@ The first stage contains argv execution, bounded collection, status/errors, inpu
 | Cannot find `@swiftuijs/twill-shell` or another imported package               | Install it in the project containing the script. A global compiler installation does not provide project imports.                                                                                                                       |
 | `process`, `Buffer` or Node modules lack types                                 | Install `@types/node` and include Node types in the script's tsconfig. See [type checking](#type-check-your-scripts).                                                                                                                   |
 | A child command is not found, or `git status` fails outside a repository       | The child executable must be installed and on PATH (or supplied as an absolute path); it still has its own working-directory and argument requirements. Try the portable `command.twill` example first.                                 |
-| SDK import reports an unsupported or missing native binary                     | Check the supported platforms below and reinstall matching SDK dependencies. npm supplies the prebuilds; installing Rust or the compiler does not add an unsupported target.                                                            |
-
-## Rust process engine
-
-<a id="optional-rust-backend-unreleased"></a>
-
-One Rust async reactor per Node environment multiplexes native child waits and pipe readiness, independently of libuv's shared worker pool. Native creation runs synchronously on the calling Node thread, matching Node spawn; OS launch can block the caller. The reactor handles already-started children, so a launch burst cannot block its pipe draining. Unix cancellation requests SIGTERM before forced termination; Windows uses native process-handle termination. Worker teardown cancels only that environment's commands, with a cleanup barrier bounded to 1.1 seconds on the owning Node thread. Explicit `process.exit()` uses the same bounded native cleanup barrier, during which JS promise callbacks cannot run. OS launch/uninterruptible kernel waits prevent a hard real-time guarantee; SIGKILL and native faults cannot run exit handlers. Descendants and pipelines remain outside direct-child ownership.
-
-Native execution snapshots cwd/environment and copies byte input before returning to JS. Captured bytes transfer native storage through N-API where supported, followed by one UTF-8 decode for text. Allocation/copy costs still apply; output byte bounds do not cap total RSS. Missing or incompatible native binaries reject before launch: there is no automatic fallback, installation-time Rust build, runtime download or library path override.
-
-The release includes eight prebuilds: Linux glibc x64/arm64 (glibc 2.28+), Linux musl x64/arm64 (musl 1.2.5+), macOS x64/arm64 and Windows x64/arm64. Linux uses pidfd readiness when available; older Node-supported kernels or denied pidfds use owned-child polling on the Rust reactor without a libuv worker or SIGCHLD replacement. This fallback can add timer/wakeup costs. Linux ABI selection follows the running Node process: bounded ELF interpreter inspection avoids generating a full diagnostic report on standard dynamically linked Node builds; unavailable/static/unfamiliar layouts retain the Node-report fallback. Other architectures and operating systems are explicit unsupported targets.
-
-Install/import only `@swiftuijs/twill-shell`; its matching native dependency contains the complete eight-target archive. Consumers need neither Rust nor installation-time builds. Contributor source builds require the pinned Rust 1.90.0 toolchain and are described in the repository testing guide. [Performance](performance.md#rust-shell-backend) separates coordination from external-command work and compiler startup.
+| SDK import reports an unsupported or missing native binary                     | This applies to npm 0.2.0. The source replacement has no native binaries; keep SDK versions coordinated and see the version boundary above.                                                            |
 
 ## Performance boundaries
 
-The inherited/discarded path uses native descriptors without output capture. There is one native process launch and one settlement promise per run, no per-chunk JS promises and no per-command compilation. The Rust reactor coordinates native waits and pipes; unavailable/denied Linux pidfds use its owned-child polling path. Capture retains bounded native bytes and text decoding occurs once at settlement. Input snapshots, native buffers and decoded strings still allocate.
+The inherited/discarded path uses Node descriptors without capture buffers. Each run starts one child and returns one settlement promise, without per-chunk promises or compilation. Capture retains bounded chunks and decodes text once; input snapshots and concatenation still allocate.
 
-The [complete SDK comparison](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/benchmark.mjs) retains paired raw samples, workload/environment details and Rust/SDK/loader source/build hashes. It compares equivalent handwritten `spawn` coordination using the same argv, stdio, capture limits and input, with parent CPU reported separately from wall time. Its unchanged gate requires both paired median and upper 95% bound at most 1.10 for seven warm workloads and both default-pool concurrency cases. Memory, filesystem, cancellation and native/Twill cold startup remain separate observations; process trees are outside the direct-child contract. The smaller cross-platform `benchmark:shell` is an additional diagnostic. See [performance](performance.md) and the contributor testing guide for measurement procedures.
-
-[0.2.0 Linux/Node 24 samples](https://github.com/swiftuijs/twill/blob/main/packages/shell-native/benchmarks/results/rust-only-linux-node24.json) pass all seven warm and both default-pool gates. Native launch/capture/input paired wall ratios are 0.561–0.654 of handwritten Node; Node interpreter launch is 0.983 and 32/128-child concurrency is 0.996/0.997. Fresh native/SDK medians are 62.9/70.0 ms; cached Twill source is 207.3/223.8 ms. These observations do not establish cold-source parity, denied-pidfd parity or speedups on other platforms. Build/export scripts when compiler startup matters. Earlier Node SDK measurements remain in the performance history.
+The [complete SDK comparison](https://github.com/swiftuijs/twill/blob/main/packages/shell/benchmarks/complete.mjs) retains equivalent handwritten Node comparisons, all paired samples and source/build hashes. The unchanged gate requires both paired median and upper 95% bound at most 1.10 for seven warm workloads and both 32/128-child default-pool concurrency workloads. Memory, filesystem, cancellation and fresh Node/Twill startup remain separate observations. The smaller cross-platform `benchmark:shell` is an additional diagnostic. See [performance](performance.md) for measured results and historical 0.2.0 Rust observations; those Rust speedups do not describe the replacement.
 
 The executable runner has its own [cold-start report](https://github.com/swiftuijs/twill/blob/main/packages/twill/benchmarks/results/README.md). Fifteen paired Linux/Node 24 launches measured 520.8 ms for the existing loader and 475.0 ms for direct `twill` invocation, with no added regression in that sample. The runner skips compile/check/export tooling initialization and keeps the interpreter PID; source compilation still costs startup time. This is not a general speedup or native-Node cold-start parity claim.
 

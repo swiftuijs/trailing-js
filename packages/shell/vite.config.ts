@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import twill from '@swiftuijs/twill/vite';
 import { builtinModules } from 'node:module';
-import metadata from './package.json' with { type: 'json' };
 
 export default defineConfig({
   plugins: [twill()],
@@ -22,12 +21,7 @@ export default defineConfig({
     minify: false,
     sourcemap: true,
     rolldownOptions: {
-      external: (id) =>
-        builtinModules.includes(id) ||
-        id.startsWith('node:') ||
-        Object.keys(metadata.dependencies ?? {}).some(
-          (name) => id === name || id.startsWith(name + '/'),
-        ),
+      external: (id) => builtinModules.includes(id) || id.startsWith('node:'),
     },
   },
 });

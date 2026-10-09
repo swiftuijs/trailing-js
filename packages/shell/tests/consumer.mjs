@@ -22,7 +22,6 @@ try {
       '--no-audit',
       '--no-fund',
       archive,
-      resolve(import.meta.dirname, `../../../swiftuijs-twill-shell-native-${version}.tgz`),
       'typescript@5.9.3',
       '@types/node@20',
     ],
@@ -49,10 +48,10 @@ await assert.rejects(Subprocess.run(Command.path(process.execPath,['-e','setInte
 const env=await Subprocess.run(Command.path(process.execPath,['-e','process.stdout.write(process.env.VALUE)']),{environment:Environment.replace({VALUE:'isolated'}),output:Output.text({limit:20})});assert.equal(env.standardOutput,'isolated');
 assert.throws(()=>require.resolve('@swiftuijs/twill'),{code:'MODULE_NOT_FOUND'});
 const entry=new URL(import.meta.resolve('@swiftuijs/twill-shell'));
-const code=readFileSync(entry,'utf8');assert(code.includes('@swiftuijs/twill-shell-native'));assert(!code.includes('@swiftuijs/twill/register'));
+const code=readFileSync(entry,'utf8');assert(!code.includes('@swiftuijs/twill-shell-native'));assert(!code.includes('@swiftuijs/twill/register'));
 const manifest=JSON.parse(readFileSync(new URL('../package.json',entry),'utf8'));
-assert.deepEqual(Object.keys(manifest.dependencies),['@swiftuijs/twill-shell-native']);
-assert.equal(manifest.dependencies['@swiftuijs/twill-shell-native'],${JSON.stringify(version)});
+assert.deepEqual(manifest.dependencies ?? {},{});
+assert.throws(()=>require.resolve('@swiftuijs/twill-shell-native'),{code:'MODULE_NOT_FOUND'});
 `,
   );
   execFileSync(process.execPath, ['test.mjs'], options);

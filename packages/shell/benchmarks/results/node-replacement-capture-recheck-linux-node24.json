@@ -1,0 +1,203 @@
+{
+  "dateUTC": "2026-10-09T01:46:42.129Z",
+  "node": "v24.19.0",
+  "platform": "linux",
+  "arch": "x64",
+  "gitHead": "318dbb8fe40b8b5a1a73b3b341e7ae5ca54eb701",
+  "sourceAndBuildSHA256": {
+    "../src/index.twill": "bd26d85bb9bde434cd728ea6d3cf1f03279c4c12ce559ef6486e189dc5ed5eba",
+    "../src/values.twill": "c129ef2e5e68e730db44d318e899ef86d26a0ac85cec50194e1796932187b6c9",
+    "../src/errors.twill": "c3813ea41ca23e6fe98e77ad1f14b57e8fc004f65b5aad020c94cf1b70d16fd7",
+    "../src/cwd.twill": "fa284789cd940ee0c2bd00daf27c4251d70836631d50a7cc6725aebfd0e8c324",
+    "../src/environment.twill": "ecdca4cf22e287706528c487de18a39869e0bd891adc7a85c420380a90688516",
+    "../dist/index.js": "528056a7a74a59661c32db077c862a231ee850d5d964ba36e9868b7057bf1019",
+    "../dist/values.js": "9420c620c4d2ebc9a68c0a1ea61f28259f7368932eb143eaaf36c560aa99c4b6",
+    "../dist/errors.js": "cbad4c5ee5e3f9794a21af2815c64501385b3698d710d51903b1a80bc22cc7f4",
+    "../dist/cwd.js": "a01f469cbc5a7488cee556386cba1a7419dafe5bbe2b7f2a5cd1df3d908ae6ca",
+    "../dist/environment.js": "f97bb6e655897f2ce36553749b7fd5e50680d81844ff50768cedb4755960d5b4",
+    "fixture.c": "1826d4535a6ef60e2be6b4b48fb337366c23a7216755ff49c595dd147606ca40",
+    "target/fixture": "7330ce9105b7cd4240b54a6cae9ef8e5bbfc465d63e952ff18b82ba4bbd6062f",
+    "complete.mjs": "9c4cc265e9668daea1de77e9be96c79c05a2a35d02c53213b7b9718357cf7887",
+    "observe.mjs": "1f15b5daf502d829c0eddd30ebb39358bf41b3d074fb3eaa68b283a580c5ee8d",
+    "cold-native.twill": "7e19b8a1a51e6caac8512367244c76f4b1c86e24b982dc7fcf26044b47601e02",
+    "cold-sdk.twill": "287d8d0427fd0d2a0fcabf3849aa76b953c4c3620fbaad5bf53057fe111427ca",
+    "native.mjs": "307b7b9ccde5cdfa6e49dc9a262e2d4f27584cbdcf459d996ea2446e4f42ed50",
+    "../tests/fixtures/child.mjs": "7bd1c2f773a20277446f97cd4b8dfbba38729d14fa4de3887b0072778b049428",
+    "../../twill/bin/twill.mjs": "86b6b582a0157a25ef56af131217171cf1ccd76b9714b9e5e2951891c7b8b8ee",
+    "../../twill/bin/run.mjs": "9e3f6d4bf7f1c0e8354e9c33bf6ad06eb9ed376adddef5f44596cb42380bed3a",
+    "../../twill/dist/cli.js": "7e44347936dd8c164c5f67f283d8fbc2a1fbe94518105fbbe3853ebcaccc5993",
+    "../../twill/dist/compilation-cache-CuCGz02_.js": "d70dd6e7c7a31a6eab83d3ae3a2b8c5269620c3dd6a56973b63a192b7ff619f7",
+    "../../twill/dist/compiler-B1jVUGX3.js": "bfc8a4dcc98b082c30908ef424bc4b8087a18b83daa4c84bee56bb1242038d59",
+    "../../twill/dist/config.js": "0667c38f1f45c7bb80b75feeb29547f51a6ee4d5220f79f00746a8de8ec3b640",
+    "../../twill/dist/configuration-CTJjSu_h.js": "5e40bad77ae62c3024e3a7dc57d102f1175daf83076dbc5d23cd505bea264e89",
+    "../../twill/dist/declarations.js": "1779cbba4d7835363f04b641cc97001eb003981e697a1254a2b15acd6f6fff55",
+    "../../twill/dist/doctor.js": "bf265a040a7812993ff5941c6560946a67421a5cef94d3bc356f3a5d28732504",
+    "../../twill/dist/editor.js": "39f5968afabb957f9753552a88857f567301cf84a724ccd3af9ace407fa21ed9",
+    "../../twill/dist/esbuild.js": "0e25e86d79986baa094e6ba5e8c39f7a333873a0f6d6e20b486b733c143c8d4f",
+    "../../twill/dist/extensions-B1xTkoYP.js": "aacd7b769c102fb1bbb05f9aeefae08e5fe90e06a7dedd98959c9a0bae22f302",
+    "../../twill/dist/files-BW9geU0_.js": "96b175bbac921d9357e9d8d5524e2c3d34ab398153d927994bc2c8261e7fcafb",
+    "../../twill/dist/index.js": "dad193a50b6171eced113fcbdaa822c1090996f4c5a2ea5600fa25b9945dae8e",
+    "../../twill/dist/loader-compiler-CdALZBul.js": "a6de9709e91afafa07fd281f66598956f949464bbe356fb15c43a53c58bfaa19",
+    "../../twill/dist/loader.js": "d06a6b6c7b49b6bc04f22000412d9b5f7272a839999573b67c6df66dd0d58507",
+    "../../twill/dist/plugin-CQH4P_vh.js": "d9ed58d3b2edf4ed2ceecfa28b9734b0a05964238e26342409d35070edf90e15",
+    "../../twill/dist/project.js": "fd0cf3a9fa4247b6f5a330f069e74c0a2c6d780a2f103b125b435ef8b95fc289",
+    "../../twill/dist/register.js": "039fb5d5276aaa5d4ec3a2518e5408a0b27a950dac1f02f52254e99da2450cf9",
+    "../../twill/dist/rollup.js": "7a1554bd78a3e7930c2f3532c3e1ced9bd3fad50d8d3fd65875efe7939dc4510",
+    "../../twill/dist/rspack.js": "3f8bec1524370b6dd3877cb734dcd04d4ee3d3be80af7cfe6c6dc87403c50d44",
+    "../../twill/dist/syntax.js": "97cc92aa0fdd79373c5d0d20eab29a68ca768b9937ff4e61cd040f0711c0273a",
+    "../../twill/dist/transpile-Bj_5f2Bt.js": "e64ae3caf776085c06457ba37ec50161a8e363284d73b293e0dfa8875bc9e623",
+    "../../twill/dist/vite-react.js": "68ef09c437384cb3b0326974feb3209b80396f81a92176fd2f9323fbe6619f48",
+    "../../twill/dist/vite.js": "092ef72e7b6dae8f44251c90171a5b690b67c45042a1cb1f757b0b6a33c65ac2",
+    "../../twill/dist/webpack.js": "4e363771c0094ad5581f367478bfebc7414094477fee363ceaa11add2192048d"
+  },
+  "diagnosticSHA256": "63fdaedebca7b9952762a50bbd9b0799848e836bde56241a4daac93b6ce52315",
+  "parentReport": "node-replacement-first-review-linux-node24.json",
+  "name": "native-dual-capture-1048576",
+  "samples": 11,
+  "operationsPerSample": 64,
+  "pairs": [
+    {
+      "sample": 0,
+      "operations": 64,
+      "native": {
+        "wallMs": 483.42161999999996,
+        "parentCPUMs": 321.50200000000007
+      },
+      "sdk": {
+        "wallMs": 471.81401400000095,
+        "parentCPUMs": 297.126
+      }
+    },
+    {
+      "sample": 1,
+      "operations": 64,
+      "native": {
+        "wallMs": 409.75684500000034,
+        "parentCPUMs": 244.03199999999998
+      },
+      "sdk": {
+        "wallMs": 501.06901400000106,
+        "parentCPUMs": 336.21700000000004
+      }
+    },
+    {
+      "sample": 2,
+      "operations": 64,
+      "native": {
+        "wallMs": 416.3313589999975,
+        "parentCPUMs": 243.50600000000006
+      },
+      "sdk": {
+        "wallMs": 495.2317609999991,
+        "parentCPUMs": 317.0300000000001
+      }
+    },
+    {
+      "sample": 3,
+      "operations": 64,
+      "native": {
+        "wallMs": 460.4400329999994,
+        "parentCPUMs": 301.49700000000007
+      },
+      "sdk": {
+        "wallMs": 383.3055310000018,
+        "parentCPUMs": 224.23999999999998
+      }
+    },
+    {
+      "sample": 4,
+      "operations": 64,
+      "native": {
+        "wallMs": 391.4925620000031,
+        "parentCPUMs": 227.4579999999999
+      },
+      "sdk": {
+        "wallMs": 455.5741510000007,
+        "parentCPUMs": 292.6879999999999
+      }
+    },
+    {
+      "sample": 5,
+      "operations": 64,
+      "native": {
+        "wallMs": 499.0312870000007,
+        "parentCPUMs": 328.6790000000001
+      },
+      "sdk": {
+        "wallMs": 396.37157000000025,
+        "parentCPUMs": 229.96399999999997
+      }
+    },
+    {
+      "sample": 6,
+      "operations": 64,
+      "native": {
+        "wallMs": 424.3691310000013,
+        "parentCPUMs": 261.416
+      },
+      "sdk": {
+        "wallMs": 451.03337100000135,
+        "parentCPUMs": 285.728
+      }
+    },
+    {
+      "sample": 7,
+      "operations": 64,
+      "native": {
+        "wallMs": 379.35850500000106,
+        "parentCPUMs": 218.72800000000004
+      },
+      "sdk": {
+        "wallMs": 460.29045600000063,
+        "parentCPUMs": 301.15000000000015
+      }
+    },
+    {
+      "sample": 8,
+      "operations": 64,
+      "native": {
+        "wallMs": 438.9202969999915,
+        "parentCPUMs": 272.50699999999995
+      },
+      "sdk": {
+        "wallMs": 417.1994849999992,
+        "parentCPUMs": 257.773
+      }
+    },
+    {
+      "sample": 9,
+      "operations": 64,
+      "native": {
+        "wallMs": 473.47672499999317,
+        "parentCPUMs": 309.98099999999994
+      },
+      "sdk": {
+        "wallMs": 379.45839799999703,
+        "parentCPUMs": 218.582
+      }
+    },
+    {
+      "sample": 10,
+      "operations": 64,
+      "native": {
+        "wallMs": 451.3835780000045,
+        "parentCPUMs": 290.4459999999999
+      },
+      "sdk": {
+        "wallMs": 394.43244299999424,
+        "parentCPUMs": 236.51000000000005
+      }
+    }
+  ],
+  "wall": {
+    "medianRatio": 0.9759886494112551,
+    "ratio95PercentInterval": {
+      "method": "paired bootstrap median, 10000 deterministic resamples",
+      "lower": 0.8324765518379725,
+      "upper": 1.1895134735695037
+    }
+  },
+  "tolerance": 1.1,
+  "passed": false,
+  "scope": "One predeclared independent fresh-process recheck of the inconclusive full-run workload, on identical verified sources/builds and CPU 0. Same 11x64 counts, both operation orders, warmups and confidence method; preserve first-review observations and do not infer other workloads."
+}

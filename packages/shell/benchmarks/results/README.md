@@ -1,6 +1,6 @@
 # Native subprocess measurements
 
-These Linux x64 / Node 24.19.0 samples describe this environment, not universal performance. JSON reports retain the workload, argv, input size, source/build SHA-256 identities, source commit, every paired timing/parent CPU sample, isolated memory observations and separate cold starts. Runtime SDK source/build hashes in both reports match this implementation; later platform-fixture corrections do not change the runtime SDK. Reproduce the recorded fixture exactly from each report's `gitHead`.
+These Linux x64 / Node 24.19.0 samples describe this environment, not universal performance. JSON reports retain the workload, argv, input size, source/build SHA-256 identities, source commit, every paired timing/parent CPU sample, isolated memory observations and separate cold starts. These reports describe historical implementations; the source checkout now replaces the 0.2.0 Rust addon with Node spawn/streams. Their hashes do not identify the replacement. Reproduce the recorded fixture exactly from each report's `gitHead`.
 
 `linux-node24-batched.json` uses adjacent whole batches. Its confidence intervals were inconclusive for two workloads; it failed the acceptance check. Keep that evidence rather than treating its low medians as a speedup.
 
@@ -51,6 +51,47 @@ Five isolated concurrency pairs per pool configuration launch 32 Node children, 
 
 Eleven fresh-interpreter pairs time backend imports plus one `true` child, and actual Twill runner scripts with a validated cache hit or disabled cache. Direct native/SDK/Rust wall medians are 56.6/58.6/57.9 ms. Cached source SDK/Rust medians are 177.4/173.7 ms, but paired Rust/SDK ratio is 1.013 (0.904–1.047): no demonstrated improvement. Uncached source medians are 514.4/525.8 ms, paired ratio 1.018 (0.999–1.060). These are different workloads from the earlier one-Node-child/source startup reports. The addon does not remove the compiler or Node interpreter.
 
-The stripped addon is 495,808 bytes (484 KiB) uncompressed. It is outside SDK tarball files and the existing 16 KiB compressed SDK gate. Windows/macOS, native containment, pipelines, graceful cancellation, bounded join and environment-shutdown ownership are not implemented. Keep the SDK backend until independent scheduling and full contracts/platforms are implemented and tested. See [experiment reproduction](../../experiments/rust-native/README.md) and [RFC 0036](../../../../docs/rfcs/0036-native-subprocess-backend.md).
+The stripped addon is 495,808 bytes (484 KiB) uncompressed. It is outside SDK tarball files and the existing 16 KiB compressed SDK gate. Windows/macOS, native containment, pipelines, graceful cancellation, bounded join and environment-shutdown ownership are not implemented. Keep the SDK backend until independent scheduling and full contracts/platforms are implemented and tested. See [experiment reproduction](https://github.com/swiftuijs/twill/blob/v0.2.0/packages/shell/experiments/rust-native/README.md) and [RFC 0036](../../../../docs/rfcs/0036-native-subprocess-backend.md).
 
 `rust-native-initial-diagnostic.log` and `.json` retain an incomplete diagnostic run at `1069b3d`. It completed timings but failed constructing the final report because the harness expected an unbundled `compilation-cache.js` filename. In-memory raw samples were lost, so those logged medians are not acceptance evidence and cannot supply a confidence interval. The revised harness validates all fingerprints before timing and checkpoints every completed paired batch. It also snapshots inherited environment at call time, includes queue delay in its deadline and reuses the capture read buffer. The complete report above describes that corrected implementation; the incomplete diagnostic is not silently discarded or reconstructed.
+
+## Node replacement validation
+
+The source replacement uses `benchmarks/complete.mjs` and retains seven warm workloads, eleven paired samples each, plus 48 pairs for both default-pool 32/128-child workloads. It retains memory, filesystem, cancellation and direct/cached/uncached startup observations and every source/build hash. The unchanged paired median/upper 95% wall limit is 1.10. The handwritten baseline also copies byte input, matching the public snapshot contract. Historical Rust speedups and numeric-signal/abrupt-disposal guarantees are not replacement results.
+
+The [complete first review](node-replacement-first-review-linux-node24.json) on
+Linux x64 / Node 24.19.0 at `318dbb8` retains every warm, concurrency, memory,
+filesystem, cancellation and cold sample. Eight of nine wall gates pass; 1 MiB
+native dual capture is inconclusive (median 0.919, 95% interval 0.837–1.211), so
+the unchanged complete gate rejects the run. The [failure log](node-replacement-first-review-linux-node24.log) is retained.
+
+| Workload                     | SDK / handwritten Node wall | 95% paired interval | Gate         |
+| ---------------------------- | --------------------------: | ------------------- | ------------ |
+| native-executable-inherit    |                       1.009 | 0.993–1.030         | Pass         |
+| node-inherit                 |                       1.002 | 0.999–1.013         | Pass         |
+| native-dual-capture-1048576  |                       0.919 | 0.837–1.211         | Inconclusive |
+| native-dual-capture-8388608  |                       0.998 | 0.969–1.035         | Pass         |
+| node-dual-capture-1048576    |                       1.003 | 0.973–1.037         | Pass         |
+| native-stdin-text-1048576    |                       1.020 | 1.006–1.040         | Pass         |
+| native-duplex-1048576        |                       1.036 | 1.014–1.064         | Pass         |
+| 32 concurrent Node children  |                       1.002 | 0.978–1.015         | Pass         |
+| 128 concurrent Node children |                       1.000 | 0.993–1.014         | Pass         |
+
+One predeclared [fresh-process recheck](node-replacement-capture-recheck-linux-node24.json)
+verifies every unchanged source/build digest and repeats only that workload with
+the same CPU 0, eleven pairs, 64 operations/pair, eight warmups, alternating
+orders and bootstrap method. Its median is 0.976, interval 0.832–1.190: still
+inconclusive. Retain its [exact diagnostic source](node-replacement-capture-recheck.mjs.txt)
+and [failure log](node-replacement-capture-recheck-linux-node24.log). The diagnostic
+records this workspace's absolute checkout paths; adjust them for reproduction
+and retain the adjusted diagnostic identity. Neither run is a complete performance
+acceptance, and no samples/counts/limits are changed or dropped to produce a pass.
+
+Warm parent CPU is recorded separately. The Node 1 MiB producer has median CPU
+ratio 1.189 with interval 0.777–1.330; those samples do not establish a systematic
+CPU regression or improvement. Direct fresh Node/native-SDK medians are
+52.4/55.6 ms; cached Twill baseline/SDK 166.7/177.0 ms; uncached 503.6/515.0 ms.
+Memory and cleanup observations remain separate and establish no hard RSS or
+real-time deadline guarantee. The replacement stays under review until the
+capture acceptance uncertainty is resolved; this simplification does not justify
+claiming a general speedup or publishing an unaccepted performance result.

@@ -1,212 +1,328 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { getEventListeners } from 'node:events';
-import childProcess from 'node:child_process';
-import * as bindings from '@swiftuijs/twill-shell-native';
+import childProcess, { ChildProcess } from 'node:child_process';
+import { mkdtempSync, readFileSync, writeFileSync, rmSync, existsSync, chmodSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, dirname, basename } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   Command,
+  Environment,
   Output,
+  Input,
   Subprocess,
   ProcessError,
+  ProcessAbortError,
+  ProcessTimeoutError,
   ProcessLaunchError,
+  ProcessExitError,
   ProcessIOError,
+  OutputLimitError,
   ProcessTeardownError,
 } from '../src/index.twill';
-import type { NativeBindings, NativeFailure, NativeOutcome } from '@swiftuijs/twill-shell-native';
 
-afterEach(() => vi.restoreAllMocks());
-const command = Command.path(process.execPath);
-it('executes the public SDK through Rust even when Node spawn is unavailable', async () => {
-  vi.spyOn(childProcess, 'spawn').mockImplementation(() => {
-    throw new Error('Node execution must not be selected');
-  });
-  const result = await Subprocess.run(
-    Command.path(process.execPath, ['-e', 'process.stdout.write("rust")']),
-    { output: Output.text({ limit: 4 }) },
-  );
-  expect(result.standardOutput).toBe('rust');
-  expect(result.terminationStatus).toEqual({ kind: 'exited', code: 0 });
+const fixture = fileURLToPath(new URL('./fixtures/child.mjs', import.meta.url));
+const roots: string[] = [];
+const children: number[] = [];
+afterEach(() => {
+  vi.restoreAllMocks();
+  for (const pid of children.splice(0)) {
+    try {
+      process.kill(pid, 'SIGKILL');
+    } catch {}
+  }
+  for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
 });
-function backend(outcome: Partial<NativeOutcome> = {}) {
-  const native: NativeBindings = {
-    protocol: () => 1,
-    start: vi.fn(() => ({
-      id: 7,
-      promise: Promise.resolve({ processIdentifier: 42, code: 0, cleanupErrors: [], ...outcome }),
-    })),
-    cancel: vi.fn(),
-    shutdown: vi.fn(),
-  };
-  vi.spyOn(bindings, 'loadBackend').mockReturnValue(native);
-  return native;
+const command = (mode: string, ...args: string[]) =>
+  Command.path(process.execPath, [fixture, mode, ...args]);
+const text = () => Output.text({ limit: 4 * 1024 * 1024 });
+const bytes = () => Output.bytes({ limit: 4 * 1024 * 1024 });
+function root() {
+  const path = mkdtempSync(join(tmpdir(), 'twill-shell-'));
+  roots.push(path);
+  return path;
 }
-it('reports unavailable/incompatible addons and synchronous native start failures before launch', async () => {
-  const cause = new Error('native image unavailable');
-  vi.spyOn(bindings, 'loadBackend').mockImplementation(() => {
+function gone(pid: number) {
+  expect(() => process.kill(pid, 0)).toThrow();
+}
+async function ready(file: string) {
+  await vi.waitFor(() => expect(existsSync(file)).toBe(true), { timeout: 5000, interval: 10 });
+  const pid = Number(readFileSync(file, 'utf8'));
+  children.push(pid);
+  return pid;
+}
+
+it('handles native synchronous spawn failure without constructing a child', async () => {
+  const cause = Error('native failure');
+  vi.spyOn(childProcess, 'spawn').mockImplementation(() => {
     throw cause;
   });
-  await expect(Subprocess.run(command)).rejects.toMatchObject({
+  await expect(Subprocess.run(command('argv'))).rejects.toMatchObject({
     name: 'ProcessLaunchError',
     cause,
   });
-  vi.restoreAllMocks();
-  const native = backend();
-  vi.mocked(native.start).mockImplementation(() => {
+});
+it.each(['stdout', 'stderr'] as const)(
+  'joins a real child after a native %s stream error',
+  async (stream) => {
+    const original = childProcess.spawn;
+    const cause = Error('read failure');
+    vi.spyOn(childProcess, 'spawn').mockImplementation((...args: any[]) => {
+      const child = Reflect.apply(original, childProcess, args);
+      children.push(child.pid!);
+      queueMicrotask(() => child[stream]!.destroy(cause));
+      return child;
+    });
+    await expect(
+      Subprocess.run(command('wait', join(root(), 'pid')), { output: text(), error: text() }),
+    ).rejects.toMatchObject({ name: 'ProcessIOError', stream, cause });
+    for (const pid of children) gone(pid);
+  },
+);
+it('handles native synchronous stdin failure through owned teardown', async () => {
+  const original = childProcess.spawn,
+    cause = Error('write failure');
+  vi.spyOn(childProcess, 'spawn').mockImplementation((...args: any[]) => {
+    const child = Reflect.apply(original, childProcess, args);
+    children.push(child.pid!);
+    vi.spyOn(child.stdin!, 'end').mockImplementation(() => {
+      throw cause;
+    });
+    return child;
+  });
+  await expect(
+    Subprocess.run(command('wait', join(root(), 'pid')), { input: 'payload' }),
+  ).rejects.toMatchObject({ name: 'ProcessIOError', stream: 'stdin', cause });
+  for (const pid of children) gone(pid);
+});
+it('reports a failed termination attempt as secondary and preserves the abort cause', async () => {
+  const marker = join(root(), 'pid'),
+    controller = new AbortController();
+  const pending = Subprocess.run(command('wait', marker), {
+    signal: controller.signal,
+    gracePeriodMs: 5,
+    killTimeoutMs: 20,
+  });
+  const pid = await ready(marker);
+  const original = ChildProcess.prototype.kill;
+  const kill = vi.spyOn(ChildProcess.prototype, 'kill').mockImplementation(function (
+    this: ChildProcess,
+    signal,
+  ) {
+    if (signal === 'SIGTERM') throw Error('signal unavailable');
+    return original.call(this, signal);
+  });
+  controller.abort('primary');
+  await expect(pending).rejects.toMatchObject({
+    name: 'ProcessAbortError',
+    cause: 'primary',
+    cleanupErrors: [expect.objectContaining({ message: 'Subprocess termination signal failed' })],
+  });
+  kill.mockRestore();
+  gone(pid);
+});
+it('reports an unresolved pid when the native backend cannot terminate the owned child', async () => {
+  const marker = join(root(), 'pid'),
+    controller = new AbortController();
+  const pending = Subprocess.run(command('ignore-term', marker), {
+    signal: controller.signal,
+    gracePeriodMs: 5,
+    killTimeoutMs: 20,
+    output: text(),
+  });
+  const pid = await ready(marker);
+  const kill = vi.spyOn(ChildProcess.prototype, 'kill').mockReturnValue(false);
+  controller.abort('primary');
+  await expect(pending).rejects.toMatchObject({
+    name: 'ProcessAbortError',
+    cause: 'primary',
+    unresolvedProcessIdentifier: pid,
+    cleanupErrors: expect.arrayContaining([expect.any(ProcessTeardownError)]),
+  });
+  kill.mockRestore();
+  process.kill(pid, 'SIGKILL');
+  await vi.waitFor(() => gone(pid));
+});
+
+it('joins the child when cancellation happens during native launch', async () => {
+  const original = childProcess.spawn,
+    controller = new AbortController();
+  vi.spyOn(childProcess, 'spawn').mockImplementation((...args: any[]) => {
+    const child = Reflect.apply(original, childProcess, args);
+    children.push(child.pid!);
+    controller.abort('launch race');
+    return child;
+  });
+  await expect(
+    Subprocess.run(command('wait', join(root(), 'pid')), {
+      signal: controller.signal,
+      output: text(),
+    }),
+  ).rejects.toMatchObject({ name: 'ProcessAbortError', cause: 'launch race' });
+  for (const pid of children) gone(pid);
+});
+it('joins after cancellation registration fails on a modified native signal', async () => {
+  const original = childProcess.spawn,
+    controller = new AbortController(),
+    cause = Error('listener unavailable');
+  vi.spyOn(controller.signal, 'addEventListener').mockImplementation(() => {
     throw cause;
   });
-  await expect(Subprocess.run(command)).rejects.toBeInstanceOf(ProcessLaunchError);
+  vi.spyOn(childProcess, 'spawn').mockImplementation((...args: any[]) => {
+    const child = Reflect.apply(original, childProcess, args);
+    children.push(child.pid!);
+    return child;
+  });
+  await expect(
+    Subprocess.run(command('wait', join(root(), 'pid')), {
+      signal: controller.signal,
+      output: text(),
+    }),
+  ).rejects.toMatchObject({ message: 'Subprocess cancellation setup failed', cause });
+  for (const pid of children) gone(pid);
 });
-it.each([
-  ['launch', 'ProcessLaunchError'],
-  ['io', 'ProcessIOError'],
-  ['process', 'ProcessError'],
-  ['shutdown', 'ProcessError'],
-  ['teardown', 'ProcessTeardownError'],
-])('preserves typed %s failures and native OS error metadata', async (kind, name) => {
-  backend({
-    failure: { kind, stream: 'stderr', message: 'native fault', code: 'EACCES', osCode: 13 },
+it('retains the first failure when both native output streams fail', async () => {
+  const original = childProcess.spawn,
+    first = Error('first'),
+    second = Error('second');
+  vi.spyOn(childProcess, 'spawn').mockImplementation((...args: any[]) => {
+    const child = Reflect.apply(original, childProcess, args);
+    children.push(child.pid!);
+    queueMicrotask(() => {
+      child.stdout!.emit('error', first);
+      child.stderr!.emit('error', second);
+    });
+    return child;
   });
-  const failure = await Subprocess.run(command, { check: false }).catch((error) => error);
-  expect(failure).toBeInstanceOf(ProcessError);
-  expect(failure).toMatchObject({
-    name,
-    cause: { message: 'native fault', code: 'EACCES', errno: 13 },
+  await expect(
+    Subprocess.run(command('wait', join(root(), 'pid')), { output: text(), error: text() }),
+  ).rejects.toMatchObject({
+    name: 'ProcessIOError',
+    cause: first,
+    cleanupErrors: [expect.objectContaining({ cause: second })],
   });
-  if (kind === 'io') expect(failure.stream).toBe('stderr');
+  for (const pid of children) gone(pid);
 });
-it('maps Windows and Unix signals independently of the host platform', async () => {
-  backend({ code: undefined, windowsSignal: 'SIGKILL' });
-  expect((await Subprocess.run(command, { check: false })).terminationStatus).toEqual({
-    kind: 'signaled',
-    signal: 'SIGKILL',
-  });
-  vi.restoreAllMocks();
-  backend({ code: undefined, signal: 15 });
-  expect((await Subprocess.run(command, { check: false })).terminationStatus).toEqual({
-    kind: 'signaled',
-    signal: 'SIGTERM',
-  });
+it('joins a write-enabled launch failure with all three owned pipes', async () => {
+  await expect(
+    Subprocess.run(Command.path(join(root(), 'missing')), {
+      input: 'payload',
+      output: text(),
+      error: text(),
+    }),
+  ).rejects.toBeInstanceOf(ProcessLaunchError);
 });
-it('retains unnamed native signal numbers in unchecked results and checked errors', async () => {
-  backend({ code: undefined, signal: 32767 });
-  const result = await Subprocess.run(command, { check: false });
-  expect(result.terminationStatus).toEqual({ kind: 'signaled', signal: 32767 });
-  await expect(Subprocess.run(command)).rejects.toMatchObject({
-    name: 'ProcessExitError',
-    result: { terminationStatus: { kind: 'signaled', signal: 32767 } },
+it('handles an I/O error observed after the native exit event', async () => {
+  const original = childProcess.spawn,
+    cause = Error('late read');
+  vi.spyOn(childProcess, 'spawn').mockImplementation((...args: any[]) => {
+    const child = Reflect.apply(original, childProcess, args);
+    children.push(child.pid!);
+    child.once('exit', () => child.stdout!.emit('error', cause));
+    return child;
   });
-});
-it('preserves primary failure, secondary I/O/reaping errors, partial captures and the unresolved PID', async () => {
-  const failure: NativeFailure = {
-    kind: 'io',
-    stream: 'stdin',
-    message: 'write failed',
-    code: 'EPIPE',
-  };
-  backend({
-    code: undefined,
-    failure,
-    standardOutput: Buffer.from('partial'),
-    cleanupErrors: [
-      { kind: 'io', stream: 'stderr', message: 'reader failed' },
-      { kind: 'teardown', message: 'reap failed' },
-    ],
-    unresolvedProcessIdentifier: 42,
-  });
-  const error = await Subprocess.run(command, {
-    output: Output.text({ limit: 1024 }),
-    check: false,
-  }).catch((error) => error);
-  expect(error).toBeInstanceOf(ProcessIOError);
-  expect(error).toMatchObject({
-    stream: 'stdin',
-    cause: { code: 'EPIPE' },
-    standardOutput: 'partial',
-    unresolvedProcessIdentifier: 42,
-  });
-  expect(error.cleanupErrors[0]).toBeInstanceOf(ProcessIOError);
-  expect(error.cleanupErrors[1]).toBeInstanceOf(ProcessTeardownError);
-});
-it('disposes cancellation after a rejected native deferred, preserving its original exception', async () => {
-  const controller = new AbortController(),
-    cause = new Error('native task panic');
-  const native = backend();
-  vi.mocked(native.start).mockReturnValue({ id: 7, promise: Promise.reject(cause) });
-  await expect(Subprocess.run(command, { signal: controller.signal })).rejects.toMatchObject({
-    name: 'ProcessError',
+  await expect(Subprocess.run(command('argv'), { output: text() })).rejects.toMatchObject({
+    name: 'ProcessIOError',
     cause,
   });
-  expect(getEventListeners(controller.signal, 'abort')).toHaveLength(0);
+  for (const pid of children) gone(pid);
 });
-it('handles abort during native submission and keeps the exact arbitrary abort reason', async () => {
-  const controller = new AbortController(),
-    reason = { reason: 'during launch' };
-  const native = backend({ code: undefined, failure: { kind: 'abort', message: 'abort' } });
-  const original = vi.mocked(native.start).getMockImplementation()!;
-  vi.mocked(native.start).mockImplementation((options) => {
-    const job = original(options);
-    controller.abort(reason);
-    return job;
+it('bounds a lost backend close notification separately from an unresolved live pid', async () => {
+  const original = childProcess.spawn,
+    marker = join(root(), 'pid'),
+    controller = new AbortController();
+  vi.spyOn(childProcess, 'spawn').mockImplementation((...args: any[]) => {
+    const child = Reflect.apply(original, childProcess, args);
+    child.once('exit', () => child.removeAllListeners('close'));
+    return child;
   });
-  await expect(Subprocess.run(command, { signal: controller.signal })).rejects.toMatchObject({
+  const pending = Subprocess.run(command('wait', marker), {
+    signal: controller.signal,
+    gracePeriodMs: 5,
+    killTimeoutMs: 20,
+    output: text(),
+  });
+  const pid = await ready(marker);
+  controller.abort('primary');
+  await expect(pending).rejects.toMatchObject({
     name: 'ProcessAbortError',
-    cause: reason,
+    cause: 'primary',
+    unresolvedProcessIdentifier: undefined,
+    cleanupErrors: [expect.objectContaining({ message: 'Subprocess I/O did not close' })],
   });
-  expect(native.cancel).toHaveBeenCalledWith(7, false);
+  gone(pid);
 });
-it.each(['setup', 'io', 'completed'])(
-  'handles cancellation registration failure after native %s settlement without abandoning ownership',
-  async (kind) => {
-    const controller = new AbortController(),
-      cause = new Error('registration failure');
-    const native = backend({
-      failure:
-        kind === 'completed' ? undefined : { kind, stream: 'stdin', message: 'earlier failure' },
-    });
-    vi.spyOn(controller.signal, 'addEventListener').mockImplementation(() => {
-      throw cause;
-    });
-    const error = await Subprocess.run(command, { signal: controller.signal }).catch(
-      (error) => error,
-    );
-    expect(native.cancel).toHaveBeenCalledWith(7, true);
-    if (kind === 'io') {
-      expect(error).toBeInstanceOf(ProcessIOError);
-      expect(error.cleanupErrors[0].cause).toBe(cause);
-    } else expect(error).toMatchObject({ name: 'ProcessError', cause, processIdentifier: 42 });
-  },
-);
-it.each(['success', 'failed'])(
-  'preserves final decode errors after native %s cleanup',
-  async (kind) => {
-    const cause = new Error('decode failure'),
-      bytes = Buffer.from('partial');
-    vi.spyOn(bytes, 'toString').mockImplementation(() => {
-      throw cause;
-    });
-    backend({
-      standardOutput: bytes,
-      failure:
-        kind === 'failed'
-          ? { kind: 'io', stream: 'stdin', message: 'earlier write failure' }
-          : undefined,
-    });
-    const error = await Subprocess.run(command, { output: Output.text({ limit: 1024 }) }).catch(
-      (error) => error,
-    );
-    expect(error).toBeInstanceOf(ProcessIOError);
-    if (kind === 'failed') {
-      expect(error.stream).toBe('stdin');
-      expect(error.cleanupErrors[0].cause).toBe(cause);
-    } else {
-      expect(error.stream).toBe('stdout');
-      expect(error.cause).toBe(cause);
-    }
-  },
-);
-it('rejects a malformed native success report rather than returning invalid checked metadata', async () => {
-  backend({ code: undefined });
-  await expect(Subprocess.run(command)).rejects.toMatchObject({
-    name: 'ProcessError',
-    message: 'Native subprocess operation failed',
+
+it('closes owned pipes held by an unowned descendant after the direct child exits', async () => {
+  const marker = join(root(), 'descendant');
+  const pending = Subprocess.run(command('descendant', marker), {
+    output: text(),
+    error: text(),
+    timeoutMs: 1000,
   });
+  pending.catch(() => {});
+  const descendant = await ready(marker);
+  const error = await pending.catch((error) => error);
+  expect(error).toBeInstanceOf(ProcessTimeoutError);
+  expect(error.terminationStatus).toEqual({ kind: 'exited', code: 0 });
+  gone(error.processIdentifier);
+  // Direct-child ownership never implies process-tree termination.
+  expect(() => process.kill(descendant, 0)).not.toThrow();
+  process.kill(descendant, 'SIGKILL');
+});
+
+it('rejects a final UTF-8 decoding failure after joining the child', async () => {
+  const original = Buffer.prototype.toString,
+    cause = Error('decode allocation failed');
+  vi.spyOn(Buffer.prototype, 'toString').mockImplementation(function (
+    this: Buffer,
+    ...args: any[]
+  ) {
+    if (this.length === 4 && this[0] === 240 && this[1] === 159) throw cause;
+    return Reflect.apply(original, this, args);
+  });
+  const error = await Subprocess.run(command('unicode'), { output: text() }).catch(
+    (error) => error,
+  );
+  expect(error).toMatchObject({ name: 'ProcessIOError', stream: 'stdout', cause });
+  gone(error.processIdentifier);
+});
+it('preserves an abort when captured output cannot be decoded during cleanup', async () => {
+  const controller = new AbortController(),
+    marker = join(root(), 'pid');
+  const pending = Subprocess.run(command('wait', marker), {
+    signal: controller.signal,
+    output: text(),
+  });
+  const pid = await ready(marker),
+    original = Buffer.prototype.toString,
+    cause = Error('decode allocation failed');
+  vi.spyOn(Buffer.prototype, 'toString').mockImplementation(function (
+    this: Buffer,
+    ...args: any[]
+  ) {
+    if (this.length === 5 && this[0] === 114 && this[1] === 101) throw cause;
+    return Reflect.apply(original, this, args);
+  });
+  controller.abort('primary');
+  await expect(pending).rejects.toMatchObject({
+    name: 'ProcessAbortError',
+    cause: 'primary',
+    cleanupErrors: [expect.objectContaining({ name: 'ProcessIOError', cause })],
+  });
+  gone(pid);
+});
+it('rejects a final byte concatenation failure without leaking the child', async () => {
+  const original = Buffer.concat,
+    cause = Error('buffer allocation failed');
+  vi.spyOn(Buffer, 'concat').mockImplementation((chunks, length) => {
+    if (length === 1048576 && chunks[0]?.[0] === 97) throw cause;
+    return original(chunks, length);
+  });
+  const error = await Subprocess.run(command('large', '1048576'), {
+    output: bytes(),
+    error: Output.discard(),
+  }).catch((error) => error);
+  expect(error).toMatchObject({ name: 'ProcessIOError', stream: 'stdout', cause });
+  gone(error.processIdentifier);
 });

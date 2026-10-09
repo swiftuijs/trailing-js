@@ -65,6 +65,7 @@ export function nativeRun(command, options = {}) {
       if (signal !== null || code !== 0) reject(Error('Nonzero status'));
       else resolve(result);
     });
-    child.stdin?.end(options.input);
+    const input = options.input instanceof Uint8Array ? Buffer.from(options.input) : options.input;
+    child.stdin?.end(input);
   });
 }

@@ -49,7 +49,8 @@
     "test:coverage": "vitest run --coverage",
     "test:package": "node tests/consumer.mjs",
     "prepack": "pnpm run build",
-    "benchmark": "node benchmarks/run.mjs"
+    "benchmark": "node benchmarks/run.mjs",
+    "benchmark:complete": "node benchmarks/complete.mjs"
   },
   "author": {
     "name": "forth.ink",
@@ -71,8 +72,5 @@
     "@types/node": {
       "optional": true
     }
-  },
-  "dependencies": {
-    "@swiftuijs/twill-shell-native": "workspace:*"
   }
 }

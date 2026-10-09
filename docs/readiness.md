@@ -78,3 +78,5 @@ Install the editor extension from the [VS Code Marketplace](https://marketplace.
 The [optional runtime](./runtime.md) in 0.2.0 shares dynamic synchronous cleanup through a versioned, zero-dependency package. Inline remains the default; async/single cleanup and native syntax fast paths retain their existing output. External mode uses module imports and needs a production dependency in applications/libraries.
 
 The [shell SDK](scripting.md) uses a Rust process engine independently of the compiler, with explicit argv, bounded collection, stdin, child-local cwd/environment and owned abort/timeout teardown. Scoped streaming, pipelines and shell templates remain deferred; 0.2.0 supplies the SDK and a separate compiler script runner.
+
+The source shell SDK replaces the retired Rust addon with dependency-free Node spawn/streams. This is unreleased: npm 0.2.0 retains its native package. The replacement preserves awaited cancellation/timeout teardown, but requires cooperative worker shutdown and awaiting work before process exit; it follows Node's signal-reporting limits. See [scripting](scripting.md#execution-and-version-boundary).
