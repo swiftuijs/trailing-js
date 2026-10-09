@@ -4,6 +4,8 @@ Build a Twill library as ordinary JavaScript with standard TypeScript declaratio
 
 Install the reviewed compiler in your library project following [getting started](./getting-started.md), alongside Vite. The examples below describe **your library's configuration**, not Twill's repository build.
 
+From your library's root (create `package.json` with `npm init -y` if needed), run `npm install --save-dev @swiftuijs/twill@0.2.0 vite` or `pnpm add -D @swiftuijs/twill@0.2.0 vite`. Set `"type": "module"` in the manifest for the ESM configuration below. Then create the listed files before running the package scripts.
+
 ## Write the public API
 
 `src/index.twill`:
@@ -70,7 +72,7 @@ Choose your normal externals and peer dependencies for framework or application 
 }
 ```
 
-Run `pnpm run typecheck`, then `pnpm run build`. Vite may clear its output directory at the start of a build, so emit declarations afterward.
+Run `npm run typecheck`, then `npm run build` (or `pnpm run typecheck`, then `pnpm run build`). Vite may clear its output directory at the start of a build, so emit declarations afterward.
 
 The declaration command checks the project and emits `.d.ts` plus composed `.d.ts.map` files. Module specifiers use ordinary `.js` / `.mjs` / `.cjs` names. Maps point to original Twill/native sources; include those sources in the package if consumers need navigation into them.
 

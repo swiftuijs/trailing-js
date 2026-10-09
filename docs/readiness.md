@@ -1,6 +1,6 @@
 # Compatibility and limitations
 
-Twill 0.1 is an experimental TypeScript extension language with a tested development workflow. It is ready for a scoped evaluation of the documented compiler, editor and build integrations. A broad production-ready claim would go beyond the current evidence.
+Twill 0.2 is an experimental TypeScript extension language with a tested development workflow. It is ready for a scoped evaluation of the documented compiler, editor and build integrations. A broad production-ready claim would go beyond the current evidence.
 
 ## Adoption status
 

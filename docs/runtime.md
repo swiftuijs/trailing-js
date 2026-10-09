@@ -6,10 +6,11 @@ The optional `@swiftuijs/twill-runtime` package shares dynamic synchronous clean
 
 ## Choose an emission mode
 
-After a coordinated release, install the runtime as a production dependency:
+With the compiler installed as described in [getting started](./getting-started.md#install), install the matching runtime as a production dependency in the same project:
 
 ```sh
-pnpm add @swiftuijs/twill-runtime
+pnpm add @swiftuijs/twill-runtime@0.2.0
+# npm install @swiftuijs/twill-runtime@0.2.0
 ```
 
 `twill.config.json`:
@@ -26,7 +27,7 @@ Single direct cleanup retains its existing fast path. Explicit async and mixed c
 
 The project setting is shared by builds, `twill check`, declarations, source export, Node loader and editor projects. Build adapters accept `twill({ runtime: 'external' })`; the React adapter accepts `{ twill: { runtime: 'external' } }`. Prefer the project file when editor and build output must agree. `twill compile --runtime inline|external` overrides it for one emission.
 
-External emission uses static ESM imports and ordinary package resolution. Global scripts should use inline emission; explicit script-mode compilation diagnoses a required external import. Adding an import also makes a file a module to TypeScript, so ambient global-script projects should retain inline mode.
+External emission uses static ESM imports and ordinary package resolution. Non-module TypeScript source files using global declarations should use inline emission; explicit script-mode compilation diagnoses a required external import. Adding an import also makes a file a module to TypeScript, so ambient global-script projects should retain inline mode.
 
 ## Generated behavior
 
