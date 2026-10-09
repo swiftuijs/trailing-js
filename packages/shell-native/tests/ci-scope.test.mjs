@@ -42,7 +42,7 @@ test('compiler/runner/export/runtime changes retain core and Windows/macOS runne
 test('native sources, ABI selection, tests, toolchains and shared shell contracts select all targets', () => {
   for (const path of [
     'packages/shell-native/crate/src/platform.rs',
-    'packages/shell-native/src/platform.ts',
+    'packages/shell-native/src/platform.twill',
     'packages/shell-native/crate/Cargo.lock',
     'packages/shell-native/ci/Dockerfile.musl',
     'packages/shell-native/tests/consumer.mjs',
@@ -64,9 +64,9 @@ test('historical experiment changes do not invalidate the production native matr
 });
 test('mixed paths union their affected checks; tooling/editor/example code keeps core verification', () => {
   for (const path of [
-    'packages/highlight/src/index.ts',
-    'packages/formatter/src/index.ts',
-    'editors/vscode/src/extension.ts',
+    'packages/highlight/src/index.twill',
+    'packages/formatter/src/index.twill',
+    'editors/vscode/src/extension.twill',
     'examples/react/src/App.twillx',
   ])
     assert.deepEqual(ciScope(['docs/ai.md', path]), {
@@ -75,7 +75,7 @@ test('mixed paths union their affected checks; tooling/editor/example code keeps
       shell: false,
       experiment: false,
     });
-  assert.deepEqual(ciScope(['docs/ai.md', 'packages/shell/src/index.ts']), all);
+  assert.deepEqual(ciScope(['docs/ai.md', 'packages/shell/src/index.twill']), all);
 });
 test('dependency/build/workflow and unknown paths never fall through to a reduced run', () => {
   for (const path of [
@@ -149,7 +149,7 @@ test('actual PR CLI writes reduced outputs for docs, and includes every commit i
       'core=false\nnative=false\nshell=false\nexperiment=false\n',
     );
     mkdirSync(join(cwd, 'packages/shell-native/src'), { recursive: true });
-    writeFileSync(join(cwd, 'packages/shell-native/src/platform.ts'), 'changed ABI\n');
+    writeFileSync(join(cwd, 'packages/shell-native/src/platform.twill'), 'changed ABI\n');
     commit();
     writeFileSync(join(cwd, 'README.md'), '# latest commit only changes docs\n');
     commit();

@@ -2,7 +2,7 @@ import { afterEach, expect, it } from 'vitest';
 import { join } from 'node:path';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { processors, configs, disposeProjects } from '../src/index';
+import { processors, configs, disposeProjects } from '../src/index.twill';
 import type { Linter } from 'eslint';
 
 const roots: string[] = [];

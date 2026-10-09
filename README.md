@@ -167,7 +167,7 @@ Install the [official Twill AI skill](https://twill.evecalm.com/ai) with `npx sk
 
 ## Contributing
 
-The repository is a pnpm workspace with Vite builds. See the [development guide](https://github.com/swiftuijs/twill/blob/main/docs/contributing/tooling.md) for checkout, dependency and build commands. Compiler, formatter, linter, export, highlight, optional runtime and shell packages, editor packages, examples and the English documentation site own their code and tests.
+The repository is a pnpm workspace with Vite builds. Tooling packages and editor integrations are developed in Twill, exercising the same public adapters, checker and declaration emitter as applications. The compiler remains bootstrapped from JS/TS; see [developing tooling in Twill](https://github.com/swiftuijs/twill/blob/main/docs/contributing/dogfooding.md). See the [development guide](https://github.com/swiftuijs/twill/blob/main/docs/contributing/tooling.md) for checkout, dependency and build commands. Compiler, formatter, linter, export, highlight, optional runtime and shell packages, editor packages, examples and the English documentation site own their code and tests.
 
 ```sh
 pnpm check

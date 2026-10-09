@@ -26,7 +26,9 @@ export async function parse(source: string, options: ParserOptions<any>) {
     }
   }
   const implicitMembers = new Set<number>(
-    parsed.closures.flatMap((closure: any) => closure.implicitMembers),
+    parsed.closures.flatMap { (closure: any) in
+      closure.implicitMembers;
+    },
   );
   for (const offset of implicitMembers) layout.appendLeft(offset, '__twillImplicit');
   const labels = new Map<string, any>();

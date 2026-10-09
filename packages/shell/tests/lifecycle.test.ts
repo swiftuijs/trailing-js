@@ -15,7 +15,7 @@ import { join } from 'node:path';
 import { execFileSync, spawn } from 'node:child_process';
 import { setMaxListeners } from 'node:events';
 import { fileURLToPath } from 'node:url';
-import { Command, Output, Subprocess, ProcessAbortError } from '../src/index.js';
+import { Command, Output, Subprocess, ProcessAbortError } from '../src/index.twill';
 const apiURL = new URL('../dist/index.js', import.meta.url).href;
 const fixture = fileURLToPath(new URL('./fixtures/child.mjs', import.meta.url));
 const roots: string[] = [],

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const report = JSON.parse(readFileSync('coverage/coverage-summary.json', 'utf8'));
-const extension = report[resolve('src/extension.ts')];
+const extension = report[resolve('src/extension.twill')];
 assert(extension, 'The packaged extension must be present in the remapped coverage report');
 assert(extension.lines.total >= 600, 'Coverage must include the complete extension source');
 assert(extension.functions.total >= 20, 'Empty function coverage must not pass the gate');

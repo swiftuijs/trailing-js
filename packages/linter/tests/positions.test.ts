@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import ts from 'typescript';
-import { SourcePositions } from '../src/positions';
+import { SourcePositions } from '../src/positions.twill';
 
 it('matches TypeScript coordinates across mixed newlines and UTF-16 characters', () => {
   const text = 'const a = "📦";\r\n// comment\rconst b = 2;\u2028\u2029\n';

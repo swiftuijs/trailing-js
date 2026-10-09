@@ -18,9 +18,11 @@ Twill extends TypeScript/TSX with Swift-inspired syntax and emits ordinary JavaS
 ## Establish the project's contract
 
 1. Read the application's instructions, manifest, lockfile, tsconfig and existing build/test setup. Check the installed `@swiftuijs/twill` version and keep Twill tooling packages on the same version. Metadata records this skill's released-language baseline, not a compiler installation.
-2. Write dialect syntax in `.twill` (TS including JS) or `.twillx` (TSX). Native `.ts`, `.tsx`, `.js`, `.jsx` files retain native syntax. Change imports when renaming a module. Adopt an appropriate module, respecting the user's requested scope.
+2. Write dialect syntax in `.twill` (TS including JS) or `.twillx` (TSX). Native `.ts`, `.tsx`, `.js`, `.jsx` files retain native syntax. Change relative source imports to the actual `.twill` / `.twillx` path when renaming a module; do not leave a `.js` specifier targeting a renamed source. Declaration emission rewrites those dialect imports for ordinary JS/TS consumers. Adopt an appropriate module, respecting the user's requested scope.
 3. The 0.2.0 baseline includes associated-value enums, `match`, branch-local `if const`, external cleanup helpers, executable scripts/caching and the Rust-backed shell SDK. Use the installed version's actual support; proposals or later source work do not prove npm availability. Keep compiler, tooling and editor versions coordinated.
 4. Use [syntax](https://twill.evecalm.com/syntax) and [compatibility](https://twill.evecalm.com/readiness) for detailed contracts. The parser targets documented TS 5.9 syntax; avoid claiming every TS program is compatible inside dialect files.
+
+The source checkout fixes native same-name type/value declarations such as `type Command = {...}; const Command = {...};`, including interface/value pairs. This parser compatibility repair is unreleased; do not assume the 0.2.0 npm compiler accepts these pairs in dialect files.
 
 ## Choose syntax that clarifies the task
 

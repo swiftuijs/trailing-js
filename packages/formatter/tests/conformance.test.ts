@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { format } from '../src/index.js';
+import { format } from '../src/index.twill';
 import { transform } from '@swiftuijs/twill';
 import { corpus, syntaxErrors } from '../../twill/tests/fixtures/typescript.js';
 

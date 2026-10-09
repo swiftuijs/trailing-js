@@ -19,6 +19,8 @@ Use Node 22.13+ and the pnpm version pinned in the root `packageManager`. `corep
 
 Workspace dependencies order builds and use public compiler exports. Vite 8 uses Rolldown for repository bundles; there is no separate tsup/esbuild build pipeline. esbuild remains a supported consumer adapter and is used in adapter/native-output tests. Examples exercise ordinary functions, cleanup, mixed TS/JS, React and Vue. No compiler special case exists for `@swiftuijs/ui`.
 
+Handwritten tooling and editor sources use `.twill`; their Vite builds use `@swiftuijs/twill/vite`, type checks use `twill check`, and public declarations use `twill declarations`. The compiler's own JS/TS API retains `vite-plugin-dts`. See [developing tooling in Twill](./dogfooding.md) for the complete bootstrap boundary and import rules. Production SDK dependencies remain independent of the compiler.
+
 ## Commands
 
 ```sh

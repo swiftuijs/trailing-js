@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
-import { Environment } from '../src/index.js';
-import { environmentSnapshot } from '../src/environment.js';
+import { Environment } from '../src/index.twill';
+import { environmentSnapshot } from '../src/environment.twill';
 it('snapshots the complete inherited environment and follows Node coverage propagation', () => {
   const parent = { PATH: '/path', CUSTOM: 'before', NODE_V8_COVERAGE: '/coverage' };
   const snapshot = environmentSnapshot(undefined, 'linux', parent);
@@ -35,7 +35,7 @@ it('matches mandatory Windows defaults while retaining case-insensitive explicit
   });
 });
 
-import { cwdSnapshot } from '../src/cwd.js';
+import { cwdSnapshot } from '../src/cwd.twill';
 it('preserves POSIX symlink traversal and snapshots Windows absolute/relative drive resolution', () => {
   expect(cwdSnapshot(undefined, 'linux', '/work')).toBe('/work');
   expect(cwdSnapshot('/path/link/..', 'linux', '/work')).toBe('/path/link/..');

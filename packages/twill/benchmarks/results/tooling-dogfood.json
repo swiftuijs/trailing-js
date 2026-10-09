@@ -1,0 +1,236 @@
+{
+  "baseline": "a8db852e1718f8b78dbb26af4377a8d39e7f2381",
+  "sourceHead": "e2ee4f0cba9a16068ae61bbac7d2acc67e676625",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "linux",
+    "arch": "x64",
+    "esbuild": "0.28.2"
+  },
+  "method": "Compare native TypeScript and public Twill transform with identical esbuild options. Normalize only dialect module specifiers to original JS imports. Retain identifier names so optimizer naming order cannot obscure native-output identity. This is a structural/byte comparison, not a timing speedup claim.",
+  "options": {
+    "loader": "ts",
+    "target": "es2022",
+    "format": "esm",
+    "minifySyntax": true,
+    "minifyWhitespace": true,
+    "minifyIdentifiers": false
+  },
+  "files": [
+    {
+      "file": "packages/export/src/cli.twill",
+      "nativeSourceSHA256": "24fc4d84c6e2ef84fcdf9b63335d7586efa99127441db5fd28a98dfc78a4599f",
+      "twillSourceSHA256": "8a539a1d599da70b10e78a85485db7d0120228107bc648e1aca227fb9026b7c3",
+      "identical": false,
+      "nativeBytes": 1315,
+      "twillBytes": 1321,
+      "nativeOutputSHA256": "1b5e525e018121141c9bafbe199f31a248b6090094b8806057a0ba8db35a8a8f",
+      "twillOutputSHA256": "1e1aab8529c9caa2bb69b90cb735917717161fb8ab056e0685b17bba8db122d0"
+    },
+    {
+      "file": "packages/export/src/index.twill",
+      "nativeSourceSHA256": "2a369c159b4437e4594917542b4dceff172c3c88b7be58057d39c6563377c91c",
+      "twillSourceSHA256": "2a369c159b4437e4594917542b4dceff172c3c88b7be58057d39c6563377c91c",
+      "identical": true,
+      "nativeBytes": 8323,
+      "twillBytes": 8323,
+      "nativeOutputSHA256": "ea1ddbd293c64022dbacd18a713d218f45dd809abf3b65b9a3924bcade95558d",
+      "twillOutputSHA256": "ea1ddbd293c64022dbacd18a713d218f45dd809abf3b65b9a3924bcade95558d"
+    },
+    {
+      "file": "packages/formatter/src/index.twill",
+      "nativeSourceSHA256": "c7a02c38d1a6586cac9c4151cdd2d895aa5d050897d93d7141a9727ce82b5707",
+      "twillSourceSHA256": "cca85fa87358b22c8cff5f3f4d94d09176b0aeb0e797cf6dac6e09a2dd508a25",
+      "identical": true,
+      "nativeBytes": 550,
+      "twillBytes": 550,
+      "nativeOutputSHA256": "f0dbaa5ad51a87434d927b0617e82cb497bf71540726827c4415a12021584acf",
+      "twillOutputSHA256": "f0dbaa5ad51a87434d927b0617e82cb497bf71540726827c4415a12021584acf"
+    },
+    {
+      "file": "packages/formatter/src/parser.twill",
+      "nativeSourceSHA256": "dae49fd69b489c6532f096ab1fab835a66b861bc807129b01410dff8c8066b81",
+      "twillSourceSHA256": "0e2be1dbfb6f59812fdaae95bf7a0a4f80d82475553381578bf72be0ebce0b80",
+      "identical": true,
+      "nativeBytes": 12385,
+      "twillBytes": 12385,
+      "nativeOutputSHA256": "4ff1db1deafe476dc354b61ff77557000e8228b19fa57ec94d1db18d69ff24a0",
+      "twillOutputSHA256": "4ff1db1deafe476dc354b61ff77557000e8228b19fa57ec94d1db18d69ff24a0"
+    },
+    {
+      "file": "packages/formatter/src/plugin.twill",
+      "nativeSourceSHA256": "94139dda4a0ed12c5e36680349d2f929ea6d067276d8cc78ca8b423abf7567ca",
+      "twillSourceSHA256": "c08a0497836b9029bbaa61adc75256f849444df925c6bd8601a227c5836cf1e8",
+      "identical": true,
+      "nativeBytes": 4433,
+      "twillBytes": 4433,
+      "nativeOutputSHA256": "8bcde7d6046bc3bfb736a1fd43aaae4e72a16f784b68adc8e8bb6567f355b744",
+      "twillOutputSHA256": "8bcde7d6046bc3bfb736a1fd43aaae4e72a16f784b68adc8e8bb6567f355b744"
+    },
+    {
+      "file": "packages/formatter/src/standalone.twill",
+      "nativeSourceSHA256": "de0723ad2b9e4b38caa05a9abf32b58c83630594f15f1ae8deb0756857086ced",
+      "twillSourceSHA256": "f9106d040b6bbba62364c9a896d146fbb7f80b8dd3e4d982445f404fe7f8f2c4",
+      "identical": true,
+      "nativeBytes": 568,
+      "twillBytes": 568,
+      "nativeOutputSHA256": "ea5232703860a3c060df788f25c80f55f1dd544bd72a49bbf69b50f6ddcf7656",
+      "twillOutputSHA256": "ea5232703860a3c060df788f25c80f55f1dd544bd72a49bbf69b50f6ddcf7656"
+    },
+    {
+      "file": "packages/highlight/src/index.twill",
+      "nativeSourceSHA256": "b36be753c3db677bab1752d1b3e9df26b7212ddbfa4e5d1004152629dcb18b69",
+      "twillSourceSHA256": "b36be753c3db677bab1752d1b3e9df26b7212ddbfa4e5d1004152629dcb18b69",
+      "identical": true,
+      "nativeBytes": 269,
+      "twillBytes": 269,
+      "nativeOutputSHA256": "9cccb0afaf89aa4190fc2fafe9469cae64d231d7f4b18397cf510677444c6daa",
+      "twillOutputSHA256": "9cccb0afaf89aa4190fc2fafe9469cae64d231d7f4b18397cf510677444c6daa"
+    },
+    {
+      "file": "packages/highlight/src/shiki.twill",
+      "nativeSourceSHA256": "a42f631b1a963cb5e08e465b4ad727974fe9b38b7fd39a154f8bedeee8a568e8",
+      "twillSourceSHA256": "ca82b138a534a71d5f7b11b3059859825d62108a6bed2e8be266ecc4e444a58c",
+      "identical": true,
+      "nativeBytes": 567,
+      "twillBytes": 567,
+      "nativeOutputSHA256": "8df270353e04bb4e3e5cd9fc5bcd818708e843e3240cdd8b15efaf25e2826188",
+      "twillOutputSHA256": "8df270353e04bb4e3e5cd9fc5bcd818708e843e3240cdd8b15efaf25e2826188"
+    },
+    {
+      "file": "packages/linter/src/index.twill",
+      "nativeSourceSHA256": "2e6f27ab83ef30770afbfd8329a2ecf9ed2e9de20503326fe73732899350ed1f",
+      "twillSourceSHA256": "9188a1b36d451164b5021f25cc69ad2a437cbec5223cc1f8bb98569efe2a9191",
+      "identical": true,
+      "nativeBytes": 6570,
+      "twillBytes": 6570,
+      "nativeOutputSHA256": "826c8d6d369e2e922c8ee4bd742ccbacebad9a27c5534f9fe1db3b81c85210cc",
+      "twillOutputSHA256": "826c8d6d369e2e922c8ee4bd742ccbacebad9a27c5534f9fe1db3b81c85210cc"
+    },
+    {
+      "file": "packages/linter/src/positions.twill",
+      "nativeSourceSHA256": "580c334ba36ab04439d1ed0e5e930f5bc5b36b989b8a2b68769eec7b5c37b41b",
+      "twillSourceSHA256": "580c334ba36ab04439d1ed0e5e930f5bc5b36b989b8a2b68769eec7b5c37b41b",
+      "identical": true,
+      "nativeBytes": 798,
+      "twillBytes": 798,
+      "nativeOutputSHA256": "54b1848f924cac28e1b2a630dcf0588ff9f474b8291b4c27252b07591d879690",
+      "twillOutputSHA256": "54b1848f924cac28e1b2a630dcf0588ff9f474b8291b4c27252b07591d879690"
+    },
+    {
+      "file": "packages/shell/src/cwd.twill",
+      "nativeSourceSHA256": "fa284789cd940ee0c2bd00daf27c4251d70836631d50a7cc6725aebfd0e8c324",
+      "twillSourceSHA256": "fa284789cd940ee0c2bd00daf27c4251d70836631d50a7cc6725aebfd0e8c324",
+      "identical": true,
+      "nativeBytes": 245,
+      "twillBytes": 245,
+      "nativeOutputSHA256": "a69fb8716bb8cfe4e5f49c781601896b455f4f121c87b530497b62e40c880f32",
+      "twillOutputSHA256": "a69fb8716bb8cfe4e5f49c781601896b455f4f121c87b530497b62e40c880f32"
+    },
+    {
+      "file": "packages/shell/src/environment.twill",
+      "nativeSourceSHA256": "e96f6f7540046f236892003bf3f861f82db1d8ee04c15069679a6cc61cdf8c48",
+      "twillSourceSHA256": "ecdca4cf22e287706528c487de18a39869e0bd891adc7a85c420380a90688516",
+      "identical": true,
+      "nativeBytes": 829,
+      "twillBytes": 829,
+      "nativeOutputSHA256": "7d29ffbc68586b6665676e100c7d241758072ef7ab285c8aa0f305cccfec1348",
+      "twillOutputSHA256": "7d29ffbc68586b6665676e100c7d241758072ef7ab285c8aa0f305cccfec1348"
+    },
+    {
+      "file": "packages/shell/src/errors.twill",
+      "nativeSourceSHA256": "607b2246b07f472bbe9157c3caa0c59f9f363d0aadfc3cd219dd557dec483176",
+      "twillSourceSHA256": "c3813ea41ca23e6fe98e77ad1f14b57e8fc004f65b5aad020c94cf1b70d16fd7",
+      "identical": true,
+      "nativeBytes": 1661,
+      "twillBytes": 1661,
+      "nativeOutputSHA256": "2cd5edf2b711499180a18eb9d3ff238ccdfa7f73821faba7ea3f640c3c9f0bfb",
+      "twillOutputSHA256": "2cd5edf2b711499180a18eb9d3ff238ccdfa7f73821faba7ea3f640c3c9f0bfb"
+    },
+    {
+      "file": "packages/shell/src/index.twill",
+      "nativeSourceSHA256": "e33d8b0fd9fc82dfb5a7aa5c9120ddb0e51cdb1c4005f88738c684733646e8b4",
+      "twillSourceSHA256": "175cf38acb4f59402bd5178b0c460fd607f8fbe9cf516274a7c053e26987de31",
+      "identical": true,
+      "nativeBytes": 5121,
+      "twillBytes": 5121,
+      "nativeOutputSHA256": "624d40dbaa75e9ac8853b5ab31d46e3db3d839e08c043c53db148144c9f428d7",
+      "twillOutputSHA256": "624d40dbaa75e9ac8853b5ab31d46e3db3d839e08c043c53db148144c9f428d7"
+    },
+    {
+      "file": "packages/shell/src/values.twill",
+      "nativeSourceSHA256": "c129ef2e5e68e730db44d318e899ef86d26a0ac85cec50194e1796932187b6c9",
+      "twillSourceSHA256": "c129ef2e5e68e730db44d318e899ef86d26a0ac85cec50194e1796932187b6c9",
+      "identical": true,
+      "nativeBytes": 5356,
+      "twillBytes": 5356,
+      "nativeOutputSHA256": "cd1f8f005b9b886edc3f1ae39d0236e9ab5881d487858e8900b5c04671fb60de",
+      "twillOutputSHA256": "cd1f8f005b9b886edc3f1ae39d0236e9ab5881d487858e8900b5c04671fb60de"
+    },
+    {
+      "file": "packages/shell-native/src/bindings.twill",
+      "nativeSourceSHA256": "dfe97ca6dffe5f1769cb828c315754be35852b0579e88ba8ec0f2e2bb9074cb6",
+      "twillSourceSHA256": "4358bcc5adea327d9588dd4b1b41b3d4533d06c3fb465654e61756117b04f9e6",
+      "identical": true,
+      "nativeBytes": 510,
+      "twillBytes": 510,
+      "nativeOutputSHA256": "ade005de46efa3a874f7a67fcf32b0215b4bb2a028da8373af18f02cd7aca54a",
+      "twillOutputSHA256": "ade005de46efa3a874f7a67fcf32b0215b4bb2a028da8373af18f02cd7aca54a"
+    },
+    {
+      "file": "packages/shell-native/src/index.twill",
+      "nativeSourceSHA256": "29f51262f46292b4b4403ea3c37814dbb8580ac66e3fac699902247aaa27d6a9",
+      "twillSourceSHA256": "9ab51a0692e0a3b6130b0a6ef76ce228f3bf61744b6c1d8228f6bcec55df094d",
+      "identical": true,
+      "nativeBytes": 92,
+      "twillBytes": 92,
+      "nativeOutputSHA256": "0f310a93669673194c5ccfd1cbf2367d96011e016697c85ded2eab005f6527d4",
+      "twillOutputSHA256": "0f310a93669673194c5ccfd1cbf2367d96011e016697c85ded2eab005f6527d4"
+    },
+    {
+      "file": "packages/shell-native/src/libc.twill",
+      "nativeSourceSHA256": "8a2122a51e89559e7661c8a75d13f75ac85507b65d6eedf705502a39b0c60a39",
+      "twillSourceSHA256": "8a2122a51e89559e7661c8a75d13f75ac85507b65d6eedf705502a39b0c60a39",
+      "identical": true,
+      "nativeBytes": 1610,
+      "twillBytes": 1610,
+      "nativeOutputSHA256": "28ea70f63bd1e7e2811f753f3ee08342e1e246407eaa9772ea168cd93b31a005",
+      "twillOutputSHA256": "28ea70f63bd1e7e2811f753f3ee08342e1e246407eaa9772ea168cd93b31a005"
+    },
+    {
+      "file": "packages/shell-native/src/platform.twill",
+      "nativeSourceSHA256": "68c5c52cc799d1430d1a4b25aea26362247a9551c4891076de1cadd47a81a43e",
+      "twillSourceSHA256": "e81ae415c09201d19d353030ae2f3c740505b3ae154435ab6997daaed56c4a44",
+      "identical": true,
+      "nativeBytes": 946,
+      "twillBytes": 946,
+      "nativeOutputSHA256": "f47f02f76ff4e4d3357010ebb520b409efe9b4a304265f8fbf4fc1e2ac630b42",
+      "twillOutputSHA256": "f47f02f76ff4e4d3357010ebb520b409efe9b4a304265f8fbf4fc1e2ac630b42"
+    },
+    {
+      "file": "editors/twill-typescript-plugin/src/index.twill",
+      "nativeSourceSHA256": "141054cc50817f784a5ccfb81af2edff5bb981f8ed2e686ce1420d27f53be861",
+      "twillSourceSHA256": "141054cc50817f784a5ccfb81af2edff5bb981f8ed2e686ce1420d27f53be861",
+      "identical": true,
+      "nativeBytes": 110,
+      "twillBytes": 110,
+      "nativeOutputSHA256": "17e9935e4c9a386bb3355c7a1802eb385b76e6407300959c806496700c204605",
+      "twillOutputSHA256": "17e9935e4c9a386bb3355c7a1802eb385b76e6407300959c806496700c204605"
+    },
+    {
+      "file": "editors/vscode/src/extension.twill",
+      "nativeSourceSHA256": "b5a3a19a9c859de96a166ba6cbb3c09ce3d565aa87e493f7a83a4cf67b56e1ac",
+      "twillSourceSHA256": "717a3d15a8915acc0fbddf2b2c4cbb550af30acfbfbf2bc0f5a1300ab4e01134",
+      "identical": true,
+      "nativeBytes": 16506,
+      "twillBytes": 16506,
+      "nativeOutputSHA256": "df65ba6f3ae6f1a72a4393a73b4134a8ae729c906dbad7e1b0e451a7e548c813",
+      "twillOutputSHA256": "df65ba6f3ae6f1a72a4393a73b4134a8ae729c906dbad7e1b0e451a7e548c813"
+    }
+  ],
+  "summary": {
+    "modules": 21,
+    "identical": 20,
+    "byteDelta": 6
+  }
+}

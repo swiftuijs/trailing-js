@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { format, formatGenerated } from '../src/index.js';
+import { format, formatGenerated } from '../src/index.twill';
 import { transform } from '@swiftuijs/twill';
 import { parseSyntax } from '@swiftuijs/twill/syntax';
 import { readFileSync, readdirSync } from 'node:fs';

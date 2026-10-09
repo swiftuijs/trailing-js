@@ -1,5 +1,5 @@
 import { expectTypeOf, it } from 'vitest';
-import { Command, Subprocess, Output, type RunOptions } from '../src/index.js';
+import { Command, Subprocess, Output, type RunOptions } from '../src/index.twill';
 
 it('infers captured output and accounts for omitted policies in typed options', () => {
   // This is a compile-only function: tsc verifies every branch without launching a process.

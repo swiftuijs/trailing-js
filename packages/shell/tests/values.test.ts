@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
-import { Command, Environment, Output, Input, Subprocess } from '../src/index.js';
-import { childEnvironment } from '../src/values.js';
+import { Command, Environment, Output, Input, Subprocess } from '../src/index.twill';
+import { childEnvironment } from '../src/values.twill';
 
 it.each([null, 0, ''] as unknown[])('rejects invalid argument collections %j', (value) => {
   expect(() => Command.path(process.execPath, value as string[])).toThrow(TypeError);

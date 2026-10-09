@@ -1,7 +1,7 @@
 import { addAbortListener } from 'node:events';
 import { constants } from 'node:os';
-import { cwdSnapshot } from './cwd.js';
-import { environmentSnapshot } from './environment.js';
+import { cwdSnapshot } from './cwd.twill';
+import { environmentSnapshot } from './environment.twill';
 import {
   settings,
   type Command,
@@ -9,7 +9,7 @@ import {
   type OutputPolicy,
   type OutputValue,
   type InheritedOutput,
-} from './values.js';
+} from './values.twill';
 import {
   ProcessError,
   ProcessLaunchError,
@@ -19,9 +19,9 @@ import {
   ProcessIOError,
   OutputLimitError,
   ProcessTeardownError,
-} from './errors.js';
+} from './errors.twill';
 import { loadBackend, type NativeFailure, type NativeOutcome } from '@swiftuijs/twill-shell-native';
-export { Command, Environment, Input, Output } from './values.js';
+export { Command, Environment, Input, Output } from './values.twill';
 export type {
   OutputPolicy,
   OutputValue,
@@ -32,7 +32,7 @@ export type {
   DiscardedOutput,
   TextOutput,
   ByteOutput,
-} from './values.js';
+} from './values.twill';
 export {
   ProcessError,
   ProcessLaunchError,
@@ -42,7 +42,7 @@ export {
   ProcessIOError,
   OutputLimitError,
   ProcessTeardownError,
-} from './errors.js';
+} from './errors.twill';
 
 export type TerminationStatus =
   | { readonly kind: 'exited'; readonly code: number }

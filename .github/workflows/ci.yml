@@ -314,8 +314,10 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @swiftuijs/twill-shell-native exec tsc -p tsconfig.build.json
-      - run: pnpm --filter @swiftuijs/twill-shell exec tsc -p tsconfig.build.json
+      # Bootstrap the compiler, then build JS without recompiling downloaded Rust binaries.
+      - run: pnpm --filter @swiftuijs/twill... run build
+      - run: pnpm --filter @swiftuijs/twill-shell-native build:js
+      - run: pnpm --filter @swiftuijs/twill-shell build
       - uses: actions/download-artifact@v8.0.1
         with:
           pattern: native-binary-*

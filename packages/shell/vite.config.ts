@@ -4,23 +4,30 @@ import { builtinModules } from 'node:module';
 import metadata from './package.json' with { type: 'json' };
 
 export default defineConfig({
-  publicDir: false,
   plugins: [twill()],
   build: {
     ssr: true,
-    target: 'node20',
-    minify: false,
-    sourcemap: true,
     lib: {
-      entry: { index: 'src/index.twill', cli: 'src/cli.twill' },
+      entry: {
+        cwd: 'src/cwd.twill',
+        environment: 'src/environment.twill',
+        errors: 'src/errors.twill',
+        index: 'src/index.twill',
+        values: 'src/values.twill',
+      },
       formats: ['es'],
       fileName: (_format, name) => name + '.js',
     },
+    target: 'node20',
+    minify: false,
+    sourcemap: true,
     rolldownOptions: {
       external: (id) =>
         builtinModules.includes(id) ||
         id.startsWith('node:') ||
-        Object.keys(metadata.dependencies).some((name) => id === name || id.startsWith(name + '/')),
+        Object.keys(metadata.dependencies ?? {}).some(
+          (name) => id === name || id.startsWith(name + '/'),
+        ),
     },
   },
 });
