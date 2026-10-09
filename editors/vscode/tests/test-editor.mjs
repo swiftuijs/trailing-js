@@ -62,7 +62,7 @@ const fixture = {
   'consumer.ts': 'import { twice } from "./api.twill"; export const result: number = twice(21);\n',
   'settings.twill': 'export const values = [1].map { n in n + 1 };\n',
   'runtime.twill':
-    'export function run(input:number,events:number[]){\nlet value=input;\ndefer {events.push(value);}\ndefer {events.push(value+1);}\nreturn value;}\n',
+    'export function run(input:number,events:number[]){\nlet value=input;\nif(true)defer {events.push(value);}\ndefer {events.push(value+1);}\nreturn value;}\n',
   'settings-consumer.ts':
     'import { values } from "./settings.twill"; export const checked: number[] = values;\n',
   'imports.twill':

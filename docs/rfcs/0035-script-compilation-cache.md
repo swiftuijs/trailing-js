@@ -33,6 +33,10 @@ No new syntax, generated runtime dependency or JavaScript wrapper is added. A hi
 
 ## Compatibility and alternatives
 
+### Source refinement (unreleased)
+
+The loader may reuse parsed configuration for up to 64 source directories within its process. Every reuse validates the existing content/existence observations, including absent nearer files and inherited configuration probes; same-size/same-timestamp edits still invalidate it. Reuse skips configuration parsing, not dependency hashing. Failed configuration is not cached. Persistent module-cache identity, bounds, emitted bytes and script behavior stay unchanged. This reduces repeated configuration work in module graphs without claiming native startup parity.
+
 Exported/prebuilt JavaScript remains the smallest startup path. A Rust launcher alone retains the compiler work. A separate native emitter requires TypeScript/JSX, Twill syntax and source-map conformance; it is outside this proposal. Source-only version boundaries must remain explicit in guides and the official skill. Parser/checker, editor, formatter, linter, highlighter, declaration/export and bundler contracts are unchanged because cached output is the existing emitter result.
 
 ## Validation and completion
@@ -43,4 +47,4 @@ Retain all alternating paired startup samples, environment and source/build hash
 
 ## Open questions and decision history
 
-The user authorized proceeding with startup profiling/caching and a scoped Rust-backend evaluation. This RFC records the cache prototype before implementation. It stays proposed pending design review; the native subprocess proposal is independent.
+The accepted bounded cache shipped in 0.2.0. Broader native-emitter work remains outside that scope, and the native subprocess design is independent. The parsed-configuration refinement above is unreleased source work.

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- Emit native nested `try/finally` for eligible direct synchronous `defer` registrations, eliminating callbacks, registration arrays and helper imports. Retain existing lowering for dynamic/async cleanup and observable lexical, hoisting, disposal or strict-mode boundaries.
+- Reduce temporary allocations during compiler AST traversal.
+- Reuse parsed runner configuration in a bounded session cache while validating exact dependency contents and optional-file probes.
+- Reuse recovered editor transforms and their original strict syntax errors instead of recompiling unchanged source for diagnostics.
+- Reuse open-document text by VS Code document version while preserving immediate full-snapshot synchronization with native TS-server projects.
+
 - Develop the formatter, linter, export, highlight, shell JS wrappers and editor integrations in Twill through the public adapter, checker and declaration emitter. Keep ordinary JS/types for consumers, native bootstrap boundaries and existing coverage/size gates; enforce the source policy in release verification.
 - Preserve TypeScript's separate type/value namespaces for same-name aliases/interfaces and runtime declarations, including checked declarations usable by native TS consumers.
 

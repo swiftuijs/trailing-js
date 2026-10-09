@@ -39,7 +39,7 @@ export async function bundleScopes(count, runtime) {
                     (_, i) => `export {run${i}} from 'scope${i}';`,
                   ).join('\n')
                 : emittedRuntime(
-                    `export function run${args.path.slice(5)}(events,early,bad){defer {events.push(1);if(bad)throw undefined;}if(early)return 7;defer {events.push(2);}return 8;}`,
+                    `export function run${args.path.slice(5)}(events,early,bad){if(true)defer {events.push(1);if(bad)throw undefined;}if(early)return 7;defer {events.push(2);}return 8;}`,
                     runtime,
                   ),
             loader: 'js',

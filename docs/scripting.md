@@ -1,28 +1,212 @@
 # Shell scripting
 
-Twill scripts combine native Node APIs with Swift-inspired `guard`, trailing closures and `defer`. The 0.2.0 runner supports a standard executable script:
+Twill scripts combine native Node APIs with Swift-inspired `guard`, trailing closures and `defer`. This guide takes you from installation to a runnable script, then adds subprocess execution.
+
+## What to install
+
+Use Node **24 LTS** for a new setup. The supported Node range is `^20.19.0 || >=22.12.0`. **Use compiler and SDK 0.2.0 or newer.**
+
+| What you want to do                              | Required package                                       | Installation scope                             |
+| ------------------------------------------------ | ------------------------------------------------------ | ---------------------------------------------- |
+| Run `.twill` scripts with Node APIs              | `@swiftuijs/twill`, which provides the `twill` command | Project-local, or global for a command on PATH |
+| Start subprocesses with `Command` / `Subprocess` | `@swiftuijs/twill-shell`                               | In the project containing the script           |
+| Use the subprocess SDK from ordinary JS/TS       | `@swiftuijs/twill-shell` only                          | In the JS/TS project; use your normal runner   |
+
+The SDK is optional for Twill scripts that only use Node APIs. It does not provide the `twill` executable. Its Rust prebuild dependency installs automatically; you do not need Rust or a separate native-package installation. Default inline compilation needs no `@swiftuijs/twill-runtime`. The VS Code extension and AI skill supply editing assistance and instructions; install execution packages separately.
+
+For application modules and bundler setup, start with [getting started](./getting-started.md). For scripts, choose either the project-local setup below or the [global command](#install-a-global-command).
+
+## Run your first project-local script
+
+Run installation commands from the directory containing your application's `package.json`. If you are starting from an empty directory, create a project first:
+
+```sh
+mkdir twill-scripts
+cd twill-scripts
+npm init -y
+npm pkg set type=module
+```
+
+Install the compiler locally. These commands pin 0.2.0 so the installed runner matches this guide, including when a package manager delays recently published versions:
+
+::: code-group
+
+```sh [npm]
+npm install --save-dev @swiftuijs/twill@0.2.0
+```
+
+```sh [pnpm]
+pnpm add -D @swiftuijs/twill@0.2.0
+```
+
+:::
+
+Save this as `hello.twill` in the project root:
 
 ```twill
 #!/usr/bin/env twill
 console.log(process.argv.slice(2));
 ```
 
-Save it as `hello.twill`, give it executable permission and run it with `twill` on PATH:
+Run it through the installed local command. These forms work on Linux, macOS and Windows:
+
+::: code-group
+
+```sh [npm]
+npm exec -- twill hello.twill 'hello world'
+npm exec -- twill run hello.twill 'hello world'
+```
+
+```sh [pnpm]
+pnpm exec twill hello.twill 'hello world'
+pnpm exec twill run hello.twill 'hello world'
+```
+
+:::
+
+Expected output:
+
+```text
+[ 'hello world' ]
+```
+
+No bundler or tsconfig is needed to execute this example. Type checking is a separate step, described [below](#type-check-your-scripts).
+
+### Use a package script
+
+Add a script to your existing `package.json`:
+
+```json
+{
+  "scripts": {
+    "hello": "twill hello.twill"
+  }
+}
+```
+
+Run `npm run hello -- 'hello world'` or `pnpm run hello 'hello world'`. Package scripts put `node_modules/.bin` on PATH automatically, so this setup needs no global installation. Commit your manifest and lockfile; teammates install the project dependencies before running it.
+
+### Use the shebang locally
+
+On Linux/macOS, give the file executable permission and let the package manager supply the local command on PATH:
+
+::: code-group
+
+```sh [npm]
+chmod +x hello.twill
+npm exec --call './hello.twill "hello world"'
+```
+
+```sh [pnpm]
+chmod +x hello.twill
+pnpm exec ./hello.twill 'hello world'
+```
+
+:::
+
+The shebang is `#!/usr/bin/env twill` with an ASCII `#!` at the very start of the file. Running `./hello.twill` directly requires `twill` on your shell's PATH; a local dependency alone does not add it there. Windows uses the explicit CLI or package-script forms above.
+
+## Install a global command
+
+For a standalone script that you want to run directly from your terminal, install the compiler globally:
+
+```sh
+npm install --global @swiftuijs/twill@0.2.0
+twill --help
+twill hello.twill 'hello world'
+```
+
+On Linux/macOS, the same `hello.twill` can be executed directly:
 
 ```sh
 chmod +x hello.twill
 ./hello.twill 'hello world'
 ```
 
-With a project-local compiler, the package manager supplies PATH:
+Your Node installation must make npm's global executable directory available on PATH. If `twill --help` is not found, fix that PATH or use the project-local setup. A global compiler supplies the command; SDK and other imports still resolve from the script's directory. Install them in that script's project, even when the compiler is global.
 
-```sh
-pnpm exec ./hello.twill 'hello world'
-pnpm exec twill hello.twill 'hello world'
-pnpm exec twill run hello.twill 'hello world'
+<a id="optional-subprocess-sdk"></a>
+
+## Add subprocess execution
+
+In the same project, install the SDK as a production dependency. Keep it on the same release version as the compiler:
+
+::: code-group
+
+```sh [npm]
+npm install @swiftuijs/twill-shell@0.2.0
 ```
 
-The explicit `twill` forms work on Windows too. POSIX executable permission and shebang execution apply to Linux/macOS. Extensionless entry scripts work as well. The runner is supplied by `@swiftuijs/twill`; the subprocess SDK is optional. **Use compiler and SDK 0.2.0 or newer.** Install the compiler for Twill source and the SDK as an application dependency when importing it.
+```sh [pnpm]
+pnpm add @swiftuijs/twill-shell@0.2.0
+```
+
+:::
+
+Save this as `command.twill`. It starts the current Node executable, so no Git installation or repository is needed:
+
+```twill
+#!/usr/bin/env twill
+import { Command, Output, Subprocess } from '@swiftuijs/twill-shell';
+
+const result = await Subprocess.run(
+  Command.path(process.execPath, ['-e', 'console.log("Hello from a child process")']),
+  { output: Output.text({ limit: 64 * 1024 }), timeoutMs: 5000 },
+);
+console.log(result.standardOutput.trim());
+```
+
+Run `npm exec -- twill command.twill` or `pnpm exec twill command.twill`. With a global compiler, use `twill command.twill`. Expected output is `Hello from a child process`.
+
+The SDK follows [Swift Subprocess](https://github.com/swiftlang/swift-subprocess): immutable commands, explicit input/output policies, typed status and owned teardown. Commands execute as literal argv without shell interpretation (`shell: false`). For example, use `Command.name('git', ['status', '--short'])` in a Git repository with Git installed. Each argument is separate; a string such as `'git status | head'` is not a command pipeline. See [command arguments](#run-a-command) and [results and errors](#results-errors-and-cancellation).
+
+### Use the SDK in ordinary JavaScript
+
+Install only `@swiftuijs/twill-shell` in your JS project. Copy the `command.twill` example to `command.mjs`, **omit the Twill shebang**, and run:
+
+```sh
+node command.mjs
+```
+
+This example uses ordinary JavaScript and needs no compiler. Native TypeScript uses your existing TS runner/build. SDK imports always come from `@swiftuijs/twill-shell`; `@swiftuijs/twill-shell-native` is its automatically installed implementation dependency.
+
+## Type-check your scripts
+
+Running a script emits and executes code without checking types. For a new Node script project, install Node type declarations:
+
+::: code-group
+
+```sh [npm]
+npm install --save-dev @types/node
+```
+
+```sh [pnpm]
+pnpm add -D @types/node
+```
+
+:::
+
+Create `tsconfig.json` in the project root, or add your script directory to the existing config:
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": ["node"]
+  },
+  "include": ["**/*.twill"]
+}
+```
+
+Run `npm exec -- twill check -p tsconfig.json` or `pnpm exec twill check -p tsconfig.json`; a globally installed compiler can use `twill check -p tsconfig.json`. A successful check exits with status 0. Native `tsc` cannot parse Twill files. Continue with [editor, formatting and lint setup](./tooling.md).
+
+## Arguments, imports and execution
+
+Extensionless entry scripts work as well. The [CLI reference](./cli.md#run-an-executable-script) covers direct and explicit invocation.
 
 All arguments after the script path are forwarded unchanged, including `--help`, `-p`, `--` and shell metacharacters. Use `twill run -- <file>` for a filename beginning with a dash, or `twill run check` for a filename matching a compiler subcommand. `process.argv` has the normal Node shape: executable, absolute script path, then arguments.
 
@@ -48,37 +232,6 @@ TWILL_CACHE=0 twill scripts/build.twill
 The default directory is `~/.twill/script-cache-v1`. `TWILL_CACHE_DIR` can select an absolute private directory; deleting that directory clears it. Cache files include original source through maps, so disable caching for source you do not want stored. POSIX ownership/permissions and regular-file checks reject unsafe locations; Windows uses the selected directory's inherited user-profile ACL, which Node does not validate. Treat custom directories as user-trusted. Unavailable locations, corrupt entries and cache I/O errors fall back to compilation without changing script output.
 
 Completed storage uses 128 slots of at most 512 KiB each (64 MiB total, excluding filesystem overhead and concurrent temporary files). Collisions or larger modules compile normally. The runner and cache are included in 0.2.0. Native exported/prebuilt JavaScript still avoids compiler work on its first launch.
-
-## Optional subprocess SDK
-
-Install the SDK as a production dependency:
-
-```sh
-npm install @swiftuijs/twill-shell
-```
-
-The SDK takes its API direction from [Swift Subprocess](https://github.com/swiftlang/swift-subprocess): immutable commands, explicit input/output policies, typed status and owned teardown. One Rust engine executes literal argv without shell interpretation (`shell: false`); it never translates a command into TypeScript or loads the compiler. Native JS/TS can use it independently. `@swiftuijs/twill-shell-native` is the automatically installed prebuild dependency, not a second user-selected backend.
-
-<a id="optional-rust-backend-unreleased"></a>
-
-## Rust process engine
-
-```ts
-import { Command, Output, Subprocess } from '@swiftuijs/twill-shell';
-const result = await Subprocess.run(Command.name('git', ['status', '--short']), {
-  output: Output.text({ limit: 1024 * 1024 }),
-  timeoutMs: 10_000,
-});
-console.log(result.standardOutput);
-```
-
-The same import works in a Twill shebang script. One Rust async reactor per Node environment multiplexes native child waits and pipe readiness, independently of libuv's shared worker pool. Native creation runs synchronously on the calling Node thread, matching Node spawn; OS launch can block the caller. The reactor handles already-started children, so a launch burst cannot block its pipe draining. It implements the input/output, status/error, cancellation and bounded direct-child ownership contract below. Unix cancellation requests SIGTERM before forced termination; Windows uses native process-handle termination. Worker teardown cancels only that environment's commands, with a cleanup barrier bounded to 1.1 seconds on the owning Node thread. Explicit `process.exit()` uses the same bounded native cleanup barrier, during which JS promise callbacks cannot run. OS launch/uninterruptible kernel waits prevent a hard real-time guarantee; SIGKILL and native faults cannot run exit handlers. Descendants and pipelines remain outside direct-child ownership.
-
-Native execution snapshots cwd/environment and copies byte input before returning to JS. Captured bytes transfer native storage through N-API where supported, followed by one UTF-8 decode for text. Allocation/copy costs still apply; output byte bounds do not cap total RSS. Missing or incompatible native binaries reject before launch: there is no automatic fallback, installation-time Rust build, runtime download or library path override.
-
-The release includes eight prebuilds: Linux glibc x64/arm64 (glibc 2.28+), Linux musl x64/arm64 (musl 1.2.5+), macOS x64/arm64 and Windows x64/arm64. Linux uses pidfd readiness when available; older Node-supported kernels or denied pidfds use owned-child polling on the Rust reactor without a libuv worker or SIGCHLD replacement. This fallback can add timer/wakeup costs. Linux ABI selection follows the running Node process: bounded ELF interpreter inspection avoids generating a full diagnostic report on standard dynamically linked Node builds; unavailable/static/unfamiliar layouts retain the Node-report fallback. Other architectures and operating systems are explicit unsupported targets. Source development requires the pinned Rust 1.90.0 toolchain. Platform CI tests real children on Node 22 and independently installed archives on Node 20.19.0; release assembly requires all eight validated binaries from one pinned source. The original SDK retains its 16 KiB compressed budget; native has separate 2 MiB-per-binary and 6 MiB compressed-archive gates.
-
-Install/import only `@swiftuijs/twill-shell`; its matching native dependency contains the complete eight-target archive. Consumers need neither Rust nor installation-time builds. Contributor source builds require Rust and are described in the repository testing guide. [Performance](performance.md#rust-shell-backend) separates coordination from external-command work and compiler startup.
 
 ## Run a command
 
@@ -142,20 +295,35 @@ Ownership covers the direct child. Detached grandchildren and arbitrary process 
 
 The [complete example](https://github.com/swiftuijs/twill/blob/main/packages/shell/examples/build.twill) checks input with `guard`, trims a list using a trailing closure, gives a child an isolated working directory/environment and passes JSON on stdin. `defer` removes the temporary directory on success and failure. Real-process tests execute it through the loader, check types/declarations and export it for native JS execution.
 
-For a source checkout:
-
-```sh
-pnpm install --frozen-lockfile
-pnpm --filter @swiftuijs/twill-shell... build
-pnpm --filter @swiftuijs/twill-shell exec twill examples/main.twill 'app, tests'
-# POSIX: examples/main.twill has an executable shebang.
-pnpm --filter @swiftuijs/twill-shell exec ./examples/main.twill 'app, tests'
-pnpm --filter @swiftuijs/twill-shell test:coverage
-```
+To use it in your application, save [build.twill](https://github.com/swiftuijs/twill/blob/main/packages/shell/examples/build.twill) and [main.twill](https://github.com/swiftuijs/twill/blob/main/packages/shell/examples/main.twill) together in a `scripts` directory. With the compiler and SDK installed as above, run `npm exec -- twill scripts/main.twill 'app, tests'` or `pnpm exec twill scripts/main.twill 'app, tests'`. The example prints its JSON result. You do not need to clone or build the Twill repository; source-development commands belong in the [contributor testing guide](https://github.com/swiftuijs/twill/blob/main/docs/contributing/testing.md).
 
 A distributed JS application importing the SDK needs it as a production dependency. The compiler is only needed to load `.twill` source or build/export it. [Native source export](libraries.md) retains the ordinary SDK import, and the emitted JS runs without a compiler loader.
 
 The first stage contains argv execution, bounded collection, status/errors, input, environment/cwd and cancellation. `withProcess`, `Output.stream`, pipelines and shell-tagged templates are not implemented. Continue using native Node APIs for those needs.
+
+## Troubleshooting
+
+| Symptom                                                                        | What to do                                                                                                                                                                                                                              |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `twill: command not found` or `/usr/bin/env: twill: No such file or directory` | Install `@swiftuijs/twill`. For a local installation, use `npm exec -- twill ...` / `pnpm exec twill ...`, a package script, or the local shebang commands above. For global installation, check npm's executable directory is on PATH. |
+| `Permission denied` when running `./hello.twill`                               | On Linux/macOS, run `chmod +x hello.twill`. On Windows, use the explicit CLI.                                                                                                                                                           |
+| The shebang mentions `twill\r` or reports a bad interpreter                    | Save the script with LF line endings and put ASCII `#!/usr/bin/env twill` at the start of the file, without a BOM.                                                                                                                      |
+| Cannot find `@swiftuijs/twill-shell` or another imported package               | Install it in the project containing the script. A global compiler installation does not provide project imports.                                                                                                                       |
+| `process`, `Buffer` or Node modules lack types                                 | Install `@types/node` and include Node types in the script's tsconfig. See [type checking](#type-check-your-scripts).                                                                                                                   |
+| A child command is not found, or `git status` fails outside a repository       | The child executable must be installed and on PATH (or supplied as an absolute path); it still has its own working-directory and argument requirements. Try the portable `command.twill` example first.                                 |
+| SDK import reports an unsupported or missing native binary                     | Check the supported platforms below and reinstall matching SDK dependencies. npm supplies the prebuilds; installing Rust or the compiler does not add an unsupported target.                                                            |
+
+## Rust process engine
+
+<a id="optional-rust-backend-unreleased"></a>
+
+One Rust async reactor per Node environment multiplexes native child waits and pipe readiness, independently of libuv's shared worker pool. Native creation runs synchronously on the calling Node thread, matching Node spawn; OS launch can block the caller. The reactor handles already-started children, so a launch burst cannot block its pipe draining. Unix cancellation requests SIGTERM before forced termination; Windows uses native process-handle termination. Worker teardown cancels only that environment's commands, with a cleanup barrier bounded to 1.1 seconds on the owning Node thread. Explicit `process.exit()` uses the same bounded native cleanup barrier, during which JS promise callbacks cannot run. OS launch/uninterruptible kernel waits prevent a hard real-time guarantee; SIGKILL and native faults cannot run exit handlers. Descendants and pipelines remain outside direct-child ownership.
+
+Native execution snapshots cwd/environment and copies byte input before returning to JS. Captured bytes transfer native storage through N-API where supported, followed by one UTF-8 decode for text. Allocation/copy costs still apply; output byte bounds do not cap total RSS. Missing or incompatible native binaries reject before launch: there is no automatic fallback, installation-time Rust build, runtime download or library path override.
+
+The release includes eight prebuilds: Linux glibc x64/arm64 (glibc 2.28+), Linux musl x64/arm64 (musl 1.2.5+), macOS x64/arm64 and Windows x64/arm64. Linux uses pidfd readiness when available; older Node-supported kernels or denied pidfds use owned-child polling on the Rust reactor without a libuv worker or SIGCHLD replacement. This fallback can add timer/wakeup costs. Linux ABI selection follows the running Node process: bounded ELF interpreter inspection avoids generating a full diagnostic report on standard dynamically linked Node builds; unavailable/static/unfamiliar layouts retain the Node-report fallback. Other architectures and operating systems are explicit unsupported targets.
+
+Install/import only `@swiftuijs/twill-shell`; its matching native dependency contains the complete eight-target archive. Consumers need neither Rust nor installation-time builds. Contributor source builds require the pinned Rust 1.90.0 toolchain and are described in the repository testing guide. [Performance](performance.md#rust-shell-backend) separates coordination from external-command work and compiler startup.
 
 ## Performance boundaries
 

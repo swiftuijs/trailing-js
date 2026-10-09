@@ -6,6 +6,8 @@ Use Twill in your application's normal development loop: edit source, check type
 
 Install the compiler, formatter/linter packages and VS Code extension following [getting started](./getting-started.md). The examples below run from **your application root**, with Twill installed locally.
 
+For npm commands, replace `pnpm add -D` with `npm install --save-dev`, `pnpm exec <tool>` with `npm exec -- <tool>`, and `pnpm run` with `npm run`. Install each named tool locally before invoking it. The extension does not install the CLI or application dependencies. See [shell scripting](./scripting.md) for standalone scripts and global commands.
+
 ## Set up VS Code
 
 Install [Twill from the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill), published by **forth.ink** with extension ID `forth-ink.twill`. You can also install it from the command line:
@@ -46,7 +48,7 @@ The bundled provider uses editor indentation and Prettier defaults. To apply a p
 Install `@swiftuijs/twill-formatter` alongside Prettier 3.9:
 
 ```sh
-pnpm add -D @swiftuijs/twill-formatter prettier
+pnpm add -D @swiftuijs/twill-formatter@0.2.0 prettier
 ```
 
 Configure `.prettierrc.json`:
@@ -67,7 +69,7 @@ The plugin recognizes both dialect extensions and preserves their syntax. Native
 Install `@swiftuijs/twill-linter` alongside ESLint 9 or 10:
 
 ```sh
-pnpm add -D @swiftuijs/twill-linter eslint
+pnpm add -D @swiftuijs/twill-linter@0.2.0 eslint
 ```
 
 Use a flat `eslint.config.mjs`:
@@ -200,8 +202,8 @@ See [support and limitations](./readiness.md) for tested versions and [libraries
 
 Use the [web highlighting package](./highlighting.md) for static or browser-rendered code blocks. It integrates with Shiki and VitePress independently of the VS Code extension.
 
-## Unreleased match tooling
+## Branch bindings and match tooling (0.2.0)
 
 Twill 0.2.0 also supports `if const` branch bindings across the checker, formatter/standalone, ESLint, shared grammar, declarations/export and packaged editor. Original binding tokens move into the native success scope, preserving narrowing, completion, diagnostics and safe local rename; outer names in the initializer and else keep their own references. Required grouping around initializer trailing calls survives formatting. See [syntax and status](syntax.md#branch-nullish-bindings).
 
-The accepted RFC 0016 source implementation supports formatting and highlighting `match (state) { case State.loaded({ value }): value; default: 0; }`, checked descriptors and bindings, mapped navigation/completion, native export and declarations. Descriptor method rename is withheld because its name determines the literal tag; owner/import aliases and local bindings can be edited safely. Typed ESLint still reports omitted variants but withholds native statement-case suggestions inside match/switch expressions. Safe source edits remain available. See [syntax and status](syntax.md#match-expressions); Use 0.2.0 or newer.
+Twill 0.2.0 supports formatting and highlighting `match (state) { case State.loaded({ value }): value; default: 0; }`, checked descriptors and bindings, mapped navigation/completion, native export and declarations. Descriptor method rename is withheld because its name determines the literal tag; owner/import aliases and local bindings can be edited safely. Typed ESLint still reports omitted variants but withholds native statement-case suggestions inside match/switch expressions. Safe source edits remain available. See [syntax and status](syntax.md#match-expressions); use 0.2.0 or newer.

@@ -34,6 +34,8 @@ Bare packages, package exports and host aliases retain host resolution. The chec
 
 ## Node
 
+Install the compiler in this application using [getting started](./getting-started.md#install). For ordinary script execution, run `npm exec -- twill src/main.js` or `pnpm exec twill src/main.js`. To register the loader explicitly in an existing Node ESM workflow:
+
 ```sh
 node --enable-source-maps --import @swiftuijs/twill/register src/main.js
 ```
@@ -46,7 +48,7 @@ This integration supports ESM `import` and `import()`. Use dynamic `import()` to
 
 ## Editor
 
-Install the VSIX. It automatically supplies cross-file types and mapped navigation for native TS/JS documents in projects with a tsconfig. If VS Code already has the project open during installation, restart its TS server. Hover, signatures, completion, diagnostics and definitions read the virtual mixed project, while Twill documents retain their own providers. Unsaved Twill and native TS/JS edits participate in the same mixed project. Definitions and related diagnostics map to original dialect files.
+Install [Twill from the VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill), or use the [offline VSIX instructions](./tooling.md#set-up-vs-code). It automatically supplies cross-file types and mapped navigation for native TS/JS documents in projects with a tsconfig. If VS Code already has the project open during installation, restart its TS server. Hover, signatures, completion, diagnostics and definitions read the virtual mixed project, while Twill documents retain their own providers. Unsaved Twill and native TS/JS edits participate in the same mixed project. Definitions and related diagnostics map to original dialect files.
 
 Other TS-server editors can load the installed npm package with this tsconfig setting:
 

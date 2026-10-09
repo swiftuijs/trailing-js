@@ -2,28 +2,57 @@
 
 Swift-inspired subprocess tools for Twill and ordinary Node JS/TS scripts, available in 0.2.0.
 
+## Install in your project
+
+Use Node 24 LTS for a new setup (supported range: `^20.19.0 || >=22.12.0`). Run from the directory containing your `package.json`; for a new project, run `npm init -y` first. Install the SDK as a production dependency:
+
 ```sh
-npm install @swiftuijs/twill-shell
-# For .twill source scripts:
-npm install --save-dev @swiftuijs/twill
+npm install @swiftuijs/twill-shell@0.2.0
 ```
+
+With pnpm, use `pnpm add @swiftuijs/twill-shell@0.2.0`. This package supplies the process API; `@swiftuijs/twill` supplies the optional Twill source runner. A global compiler does not make this SDK available to project imports. Keep Twill packages on the same version.
+
+## Run ordinary JavaScript
 
 Commands execute through one Rust process engine with literal argv, without shell interpretation or command compilation (`shell: false`). The prebuilt implementation dependency installs automatically; users need no Rust toolchain and do not choose a backend. Native JS/TS needs no Twill compiler. One async reactor per Node environment coordinates already-started children and pipes independently of libuv's worker pool.
 
 Supported prebuilds: Linux glibc x64/ARM64 (glibc 2.28+), Linux musl x64/ARM64 (musl 1.2.5+), macOS x64/ARM64 and Windows x64/ARM64. Missing/incompatible binaries and unsupported platforms reject before launch, without fallback, install-time builds or downloads. See [performance](https://twill.evecalm.com/performance#rust-shell-backend) for measured warm gains and cold/polling limits.
 
-```twill
-#!/usr/bin/env twill
+Save this as `command.mjs`:
+
+```js
 import { Command, Output, Subprocess } from '@swiftuijs/twill-shell';
 
-const result = await Subprocess.run(Command.name('git', ['status', '--short']), {
-  output: Output.text({ limit: 64 * 1024 }),
-  timeoutMs: 5000,
-});
-console.log(result.standardOutput);
+const result = await Subprocess.run(
+  Command.path(process.execPath, ['-e', 'console.log("Hello from a child process")']),
+  { output: Output.text({ limit: 64 * 1024 }), timeoutMs: 5000 },
+);
+console.log(result.standardOutput.trim());
 ```
 
-The compiler runner supplies the `twill` binary. Save this as `status.twill`, then use `twill status.twill` or `twill run status.twill`. On Linux/macOS, `chmod +x status.twill` enables `./status.twill` when `twill` is on PATH; `pnpm exec ./status.twill` uses a project-local binary. Windows uses the explicit CLI. Arguments after the script path pass through unchanged. Application dependencies resolve from the script's location. Use the compiler and SDK from 0.2.0 or newer.
+Run `node command.mjs`. Expected output is `Hello from a child process`. This works without Git, a Twill compiler or a global installation. Native TypeScript uses your existing TS runner/build.
+
+## Run Twill source
+
+Install the compiler as well:
+
+```sh
+npm install --save-dev @swiftuijs/twill@0.2.0
+# pnpm add -D @swiftuijs/twill@0.2.0
+```
+
+Copy the JavaScript example to `command.twill` and add `#!/usr/bin/env twill` as its first line. Use the local command:
+
+```sh
+npm exec -- twill command.twill
+# pnpm exec twill command.twill
+```
+
+On Linux/macOS, `chmod +x command.twill` enables `npm exec --call './command.twill'` or `pnpm exec ./command.twill`. To run `./command.twill` directly, install the compiler globally with `npm install --global @swiftuijs/twill@0.2.0` and keep its executable directory on PATH. Windows uses the explicit CLI. Arguments after the script path pass through unchanged. Application dependencies resolve from the script's location. Use compiler and SDK 0.2.0 or newer.
+
+For package scripts, Node type declarations, error handling and troubleshooting, follow the [complete shell scripting guide](https://twill.evecalm.com/scripting). [Getting started](https://twill.evecalm.com/getting-started) covers application modules and build integration.
+
+## Process contracts
 
 Use `Command.path(absolutePath, args)` for a trusted executable; `Command.name(name, args)` uses native PATH search. Arguments are immutable snapshots and remain literal strings, including spaces, quotes, newlines and shell metacharacters. Tool-specific options still matter: use `--` before user-supplied filenames when the executable supports it.
 

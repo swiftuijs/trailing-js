@@ -169,7 +169,7 @@ it('declarations builds a reference-only solution and compile honors the selecte
 });
 it('uses external config for compile and allows an inline CLI override', async () => {
   const { root, input, config, stdout } = fixture(
-    'export function run(events:number[]){defer {events.push(1);}defer {events.push(2);}return 3;}',
+    'export function run(events:number[]){if(true)defer {events.push(1);}defer {events.push(2);}return 3;}',
   );
   writeFileSync(join(root, 'twill.config.json'), '{"runtime":"external"}');
   expect(await main(['compile', input, '-p', config])).toBe(0);
