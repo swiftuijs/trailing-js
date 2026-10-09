@@ -58,3 +58,40 @@ The stripped addon is 495,808 bytes (484 KiB) uncompressed. It is outside SDK ta
 ## Node replacement validation
 
 The source replacement uses `benchmarks/complete.mjs` and retains seven warm workloads, eleven paired samples each, plus 48 pairs for both default-pool 32/128-child workloads. It retains memory, filesystem, cancellation and direct/cached/uncached startup observations and every source/build hash. The unchanged paired median/upper 95% wall limit is 1.10. The handwritten baseline also copies byte input, matching the public snapshot contract. Historical Rust speedups and numeric-signal/abrupt-disposal guarantees are not replacement results.
+
+The [complete first review](node-replacement-first-review-linux-node24.json) on
+Linux x64 / Node 24.19.0 at `318dbb8` retains every warm, concurrency, memory,
+filesystem, cancellation and cold sample. Eight of nine wall gates pass; 1 MiB
+native dual capture is inconclusive (median 0.919, 95% interval 0.837–1.211), so
+the unchanged complete gate rejects the run. The [failure log](node-replacement-first-review-linux-node24.log) is retained.
+
+| Workload                     | SDK / handwritten Node wall | 95% paired interval | Gate         |
+| ---------------------------- | --------------------------: | ------------------- | ------------ |
+| native-executable-inherit    |                       1.009 | 0.993–1.030         | Pass         |
+| node-inherit                 |                       1.002 | 0.999–1.013         | Pass         |
+| native-dual-capture-1048576  |                       0.919 | 0.837–1.211         | Inconclusive |
+| native-dual-capture-8388608  |                       0.998 | 0.969–1.035         | Pass         |
+| node-dual-capture-1048576    |                       1.003 | 0.973–1.037         | Pass         |
+| native-stdin-text-1048576    |                       1.020 | 1.006–1.040         | Pass         |
+| native-duplex-1048576        |                       1.036 | 1.014–1.064         | Pass         |
+| 32 concurrent Node children  |                       1.002 | 0.978–1.015         | Pass         |
+| 128 concurrent Node children |                       1.000 | 0.993–1.014         | Pass         |
+
+One predeclared [fresh-process recheck](node-replacement-capture-recheck-linux-node24.json)
+verifies every unchanged source/build digest and repeats only that workload with
+the same CPU 0, eleven pairs, 64 operations/pair, eight warmups, alternating
+orders and bootstrap method. Its median is 0.976, interval 0.832–1.190: still
+inconclusive. Retain its [exact diagnostic source](node-replacement-capture-recheck.mjs.txt)
+and [failure log](node-replacement-capture-recheck-linux-node24.log). The diagnostic
+records this workspace's absolute checkout paths; adjust them for reproduction
+and retain the adjusted diagnostic identity. Neither run is a complete performance
+acceptance, and no samples/counts/limits are changed or dropped to produce a pass.
+
+Warm parent CPU is recorded separately. The Node 1 MiB producer has median CPU
+ratio 1.189 with interval 0.777–1.330; those samples do not establish a systematic
+CPU regression or improvement. Direct fresh Node/native-SDK medians are
+52.4/55.6 ms; cached Twill baseline/SDK 166.7/177.0 ms; uncached 503.6/515.0 ms.
+Memory and cleanup observations remain separate and establish no hard RSS or
+real-time deadline guarantee. The replacement stays under review until the
+capture acceptance uncertainty is resolved; this simplification does not justify
+claiming a general speedup or publishing an unaccepted performance result.

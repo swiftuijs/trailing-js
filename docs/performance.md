@@ -177,11 +177,11 @@ The [recorded source/build-identified samples](https://github.com/swiftuijs/twil
 
 The [source-only runner cache measurements](https://github.com/swiftuijs/twill/blob/main/packages/twill/benchmarks/results/README.md#compilation-cache-prototype) retain 21 fresh-interpreter pairs and compiler/dependency validation. On this Linux/Node 24 workload, uncached/empty-cache/cached/native medians were 513.6/544.3/157.3/43.9 ms. The paired cache-hit ratio was 0.2938 (95% interval 0.2826–0.3046); empty-cache paired overhead was about 7%. These are source-startup observations, not native parity, external-command acceleration or Rust measurements. A valid hit skips compiler initialization; prebuilt JavaScript remains the faster first-launch path.
 
-## Rust subprocess experiment
+## Rust subprocess experiment (historical)
 
 The repository also contains an isolated Linux Rust/N-API experiment. It owns a direct child and nonblocking pipes, drains both output streams in one native loop and transfers captured buffers through N-API. It is outside published SDK files and cannot be selected through `Subprocess.run`; the measurement baseline used the earlier Node SDK. No Rust interpreter or compiler port is involved.
 
-On Linux x64 / Node 24.19.0, eleven paired batches compare the prototype with the current SDK and handwritten Node `spawn`. All six operation orders rotate; every result is verified, and parent CPU includes native worker threads but excludes child work. Independent C producers expose launch/I/O costs; a Node producer includes its interpreter startup. These are observed paired ratios, not application-wide speed guarantees:
+On Linux x64 / Node 24.19.0, eleven paired batches compare the prototype with the then-current Node SDK and handwritten Node `spawn`. All six operation orders rotate; every result is verified, and parent CPU includes native worker threads but excludes child work. Independent C producers expose launch/I/O costs; a Node producer includes its interpreter startup. These are observed paired ratios, not application-wide speed guarantees:
 
 | Successful workload                       | Rust / SDK wall ratio | 95% paired bootstrap interval | Rust / SDK parent CPU ratio |
 | ----------------------------------------- | --------------------: | ----------------------------- | --------------------------: |
@@ -203,7 +203,11 @@ The addon is 495,808 bytes uncompressed, excluded from the SDK's existing 16 KiB
 
 ## Node shell SDK replacement (source only)
 
-The source checkout withdraws the Rust addon and experiment in favor of Node spawn/streams with zero production dependencies. It keeps the 16 KiB SDK archive gate and the complete seven-warm/two-concurrency comparison against equivalent handwritten Node. Historical Rust ratios below describe 0.2.0, not this replacement. Raw replacement samples and exact source/build identities belong in the [SDK report directory](https://github.com/swiftuijs/twill/tree/main/packages/shell/benchmarks/results). Abrupt worker/process-exit cleanup and numeric unnamed-signal guarantees are intentionally retired; see [scripting](scripting.md#execution-and-version-boundary).
+The source checkout withdraws the Rust addon and experiment in favor of Node spawn/streams with zero production dependencies. It keeps the 16 KiB SDK archive gate and the complete seven-warm/two-concurrency comparison against equivalent handwritten Node. Historical Rust ratios below describe 0.2.0, not this replacement. Abrupt worker/process-exit cleanup and numeric unnamed-signal guarantees are intentionally retired; see [scripting](scripting.md#execution-and-version-boundary).
+
+The [complete first review and one focused recheck](https://github.com/swiftuijs/twill/blob/main/packages/shell/benchmarks/results/README.md#node-replacement-validation) retain every sample and source/build identity on Linux x64 / Node 24.19.0. Eight of nine warm/concurrency wall gates pass; 32/128-child paired ratios are 1.002/1.000 with upper 95% bounds 1.015/1.014. Native 1 MiB dual capture is inconclusive in both runs: median/upper bound 0.919/1.211, then 0.976/1.190. The unchanged 1.10 complete gate rejects the runs. This is not performance acceptance; the replacement remains under review.
+
+Fresh handwritten Node/SDK medians are 52.4/55.6 ms, cached Twill baseline/SDK 166.7/177.0 ms, and uncached 503.6/515.0 ms. Parent CPU, memory, filesystem availability and cancellation observations remain separate in the raw reports. No universal speedup or native-source startup parity follows.
 
 <a id="rust-shell-backend"></a>
 
@@ -244,7 +248,7 @@ The [measurement history and reproduction instructions](https://github.com/swift
 
 ### Expanded platform coverage
 
-The eight-target source matrix adds Linux musl and Windows ARM64, glibc 2.28 builds and Rust-reactor owned-child polling when Linux pidfds are unavailable/denied. The historical measurements above used the earlier readiness implementation and identified five-target archive. The [expanded-platform evidence](https://github.com/swiftuijs/twill/blob/v0.2.0/packages/shell-native/benchmarks/results/platform-package-validation.json) identifies eight successful actual OS/CPU/libc jobs, each with real process contracts, 100% JavaScript adapter coverage and independent Node 20.19 archive consumers. The inspected complete archive is 2,891,605 bytes; every binary remains below 2 MiB and the archive below 6 MiB.
+The released 0.2.0 eight-target matrix added Linux musl and Windows ARM64, glibc 2.28 builds and Rust-reactor owned-child polling when Linux pidfds are unavailable/denied. The historical measurements above used the earlier readiness implementation and identified five-target archive. The [expanded-platform evidence](https://github.com/swiftuijs/twill/blob/v0.2.0/packages/shell-native/benchmarks/results/platform-package-validation.json) identifies eight successful actual OS/CPU/libc jobs, each with real process contracts, 100% JavaScript adapter coverage and independent Node 20.19 archive consumers. The inspected complete archive is 2,891,605 bytes; every binary remains below 2 MiB and the archive below 6 MiB.
 
 The [new complete Linux/Node 24 report](https://github.com/swiftuijs/twill/blob/v0.2.0/packages/shell-native/benchmarks/results/platform-linux-node24.json) uses the same controlled-host method and unchanged performance gate. All seven warm and both default-pool concurrency workloads pass: 32/128-child Rust/native median ratios are 1.002/0.999, with upper 95% bounds 1.023/1.022. Warm native launch/capture wall ratios against the SDK are 0.588–0.730. These are readiness-path observations on the identified Linux host, not cross-platform guarantees.
 
@@ -268,7 +272,7 @@ The [Rust-only report](https://github.com/swiftuijs/twill/blob/v0.2.0/packages/s
 | 32 concurrent Node children  |                   0.996 | 0.960–1.011         |
 | 128 concurrent Node children |                   0.997 | 0.981–1.010         |
 
-Ordinary Linux startup now reads the current Node ELF interpreter with bounded descriptor reads, retaining the conservative report fallback for unknown/static layouts. Fresh native/SDK medians are 62.9/70.0 ms. Cached Twill source medians are 207.3/223.8 ms; its paired ratio is 1.110 with interval 1.039–1.191. Uncached source medians are 689.8/635.4 ms, with an interval spanning parity. These observations do not establish cold-source parity, isolate the ELF optimization's contribution or demonstrate a general startup speedup. The historical denied-pidfd latency tradeoff above also remains separately scoped.
+In that released implementation, ordinary Linux startup reads the current Node ELF interpreter with bounded descriptor reads, retaining the conservative report fallback for unknown/static layouts. Fresh native/SDK medians are 62.9/70.0 ms. Cached Twill source medians are 207.3/223.8 ms; its paired ratio is 1.110 with interval 1.039–1.191. Uncached source medians are 689.8/635.4 ms, with an interval spanning parity. These observations do not establish cold-source parity, isolate the ELF optimization's contribution or demonstrate a general startup speedup. The historical denied-pidfd latency tradeoff above also remains separately scoped.
 
 The report preserves memory, filesystem, cancellation and cold observations alongside every warm/concurrency sample and source/build hash. Cold warmup initially failed on a workspace-only import after the dependency direction changed. A retained completion script verifies every unchanged runtime/build identity before fixing the unexecuted fixture's import and measuring only the eleven cold pairs; no earlier sample is repeated or removed. The [measurement history](https://github.com/swiftuijs/twill/blob/v0.2.0/packages/shell-native/benchmarks/results/README.md#rust-only-sdk-release) retains the incomplete checkpoints, failure logs, completion source and exact serialized report.
 

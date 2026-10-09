@@ -1,0 +1,16 @@
+{"wall":{"medianRatio":0.9759886494112551,"ratio95PercentInterval":{"method":"paired bootstrap median, 10000 deterministic resamples","lower":0.8324765518379725,"upper":1.1895134735695037}},"passed":false}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Independent capture recheck does not establish parity
+    at file:///workspace/.twill-remove-shell/recheck.mjs:49:1 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.19.0
