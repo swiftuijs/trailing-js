@@ -1,0 +1,115 @@
+diff --git a/docs/rfcs/0034-shell-scripting-toolkit.md b/docs/rfcs/0034-shell-scripting-toolkit.md
+index 10d7d1f..4e8fc79 100644
+--- a/docs/rfcs/0034-shell-scripting-toolkit.md
++++ b/docs/rfcs/0034-shell-scripting-toolkit.md
+@@ -32,6 +32,16 @@ signal union for declaration compatibility; emitted statuses follow Node,
+ including its limitation for unnamed Unix signals. This is an intentional loss of
+ the addon-specific numeric-signal guarantee, not a new status inference.
+ 
++For multi-chunk capture, permit a single geometrically growing buffer rather than
++retaining every chunk until a final concatenation. Adopt the first chunk without
++copying; on growth allocate at most the byte limit, copy initialized bytes, then
++copy incoming bytes. Returned subviews expose only initialized bytes; their backing
++storage can retain unused capacity (less than twice the collected size). Never
++reserve the full configured limit merely because it is large. Catch allocation
++and copy failures as stream I/O errors and join the owned child. Text still decodes
++once after close; the output-limit check still precedes storage. Measure this
++candidate against the unchanged native baseline before accepting it for delivery.
++
+ Normal operations own the direct child and pipes through settlement. Applications
+ must cancel and await outstanding operations before leaving a worker or forcing
+ process exit. Abrupt `Worker.terminate()` and `process.exit()` do not execute an
+diff --git a/packages/shell/src/index.twill b/packages/shell/src/index.twill
+index fa1101d..830ffb5 100644
+--- a/packages/shell/src/index.twill
++++ b/packages/shell/src/index.twill
+@@ -59,7 +59,7 @@ export interface ExecutionResult<
+ }
+ 
+ class Capture {
+-  private readonly chunks: Buffer[] = [];
++  private buffer: Buffer = Buffer.alloc(0);
+   private size = 0;
+   constructor(
+     private readonly reader: Readable,
+@@ -75,8 +75,23 @@ class Capture {
+         fail(new OutputLimitError(channel, policy.limit, pid));
+         return;
+       }
+-      this.size += chunk.length;
+-      this.chunks.push(chunk);
++      try {
++        if (this.size === 0) this.buffer = chunk;
++        else {
++          const required = this.size + chunk.length;
++          if (required > this.buffer.length) {
++            const next = Buffer.allocUnsafe(
++              Math.min(policy.limit, Math.max(required, this.buffer.length * 2)),
++            );
++            this.buffer.copy(next, 0, 0, this.size);
++            this.buffer = next;
++          }
++          chunk.copy(this.buffer, this.size);
++        }
++        this.size += chunk.length;
++      } catch (cause) {
++        fail(new ProcessIOError(channel, pid, cause));
++      }
+     };
+     this.onError = (cause: Error) =>
+       fail(
+@@ -87,8 +102,7 @@ class Capture {
+   private readonly onData: (chunk: Buffer) => void;
+   private readonly onError: (cause: Error) => void;
+   value(): string | Buffer {
+-    const bytes =
+-      this.chunks.length === 1 ? this.chunks[0]! : Buffer.concat(this.chunks, this.size);
++    const bytes = this.buffer.subarray(0, this.size);
+     return this.policy.kind === 'text' ? bytes.toString('utf8') : bytes;
+   }
+   detach() {
+diff --git a/packages/shell/tests/boundary.test.ts b/packages/shell/tests/boundary.test.ts
+index 57fef2c..8f854b2 100644
+--- a/packages/shell/tests/boundary.test.ts
++++ b/packages/shell/tests/boundary.test.ts
+@@ -312,12 +312,12 @@ it('preserves an abort when captured output cannot be decoded during cleanup', a
+   });
+   gone(pid);
+ });
+-it('rejects a final byte concatenation failure without leaking the child', async () => {
+-  const original = Buffer.concat,
++it('joins the real child after a capture-buffer allocation failure', async () => {
++  const original = Buffer.allocUnsafe,
+     cause = Error('buffer allocation failed');
+-  vi.spyOn(Buffer, 'concat').mockImplementation((chunks, length) => {
+-    if (length === 1048576 && chunks[0]?.[0] === 97) throw cause;
+-    return original(chunks, length);
++  vi.spyOn(Buffer, 'allocUnsafe').mockImplementation((size) => {
++    if (size > 65536) throw cause;
++    return original(size);
+   });
+   const error = await Subprocess.run(command('large', '1048576'), {
+     output: bytes(),
+@@ -326,3 +326,22 @@ it('rejects a final byte concatenation failure without leaking the child', async
+   expect(error).toMatchObject({ name: 'ProcessIOError', stream: 'stdout', cause });
+   gone(error.processIdentifier);
+ });
++
++it('does not reserve a large output limit for tiny output or expose capacity bytes', async () => {
++  const tiny = await Subprocess.run(command('binary'), {
++    output: Output.bytes({ limit: 1024 * 1024 * 1024 }),
++    error: Output.discard(),
++  });
++  expect(tiny.standardOutput).toEqual(Buffer.from([255, 97]));
++  expect(tiny.standardOutput.buffer.byteLength).toBeLessThanOrEqual(65536);
++  const size = 1024 * 1024 + 17;
++  const result = await Subprocess.run(command('large', String(size)), {
++    output: Output.bytes({ limit: size }),
++    error: Output.bytes({ limit: size }),
++  });
++  expect(result.standardOutput).toEqual(Buffer.alloc(size, 97));
++  expect(result.standardError).toEqual(Buffer.alloc(size, 98));
++  expect(tiny.standardOutput).toEqual(Buffer.from([255, 97]));
++  gone(tiny.processIdentifier);
++  gone(result.processIdentifier);
++});

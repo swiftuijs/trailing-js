@@ -1,0 +1,44 @@
+{
+  "acceptance": false,
+  "purpose": "CPU-profile diagnostics; not acceptance samples. Profiling, process startup and host load affect the comparison.",
+  "baselineCommit": "502be6fd8c7a538f66e189fd6d9ef37fc91221a0",
+  "command": "taskset -c 0 node --cpu-prof --cpu-prof-dir=OUTPUT --cpu-prof-name=NAME.cpuprofile packages/shell/benchmarks/warm.mjs MODE native-dual-capture-1048576",
+  "modes": [
+    {
+      "name": "native",
+      "wallMs": 427.08863400000047,
+      "parentCPUMs": 264.61899999999997
+    },
+    {
+      "name": "sdk",
+      "wallMs": 508.7151769999997,
+      "parentCPUMs": 326.27399999999994
+    },
+    {
+      "name": "sdk-release",
+      "wallMs": 508.9259649999997,
+      "parentCPUMs": 329.94200000000006
+    },
+    {
+      "name": "sdk-growing",
+      "wallMs": 664.0158219999995,
+      "parentCPUMs": 466.0240000000001
+    }
+  ],
+  "sourceSnapshotNotes": "Original source comes from baselineCommit. Release-only source is reconstructed from the exact applied patch; no contemporaneous digest was recorded. Growing source/build snapshots are copied directly before withdrawal. These diagnostics cannot supply complete performance acceptance.",
+  "retainedSHA256": {
+    "node-replacement-capture-profiles-growing-index.js.txt": "81f0a9ff8d40f7d6d74f629ad227f5dfc9a1611a6513877ccbf690926bdcbc17",
+    "node-replacement-capture-profiles-growing-index.twill.txt": "8a3250d66ec19aaea9f056ff7bcb6be0887132708de503c0f2f000adf9f6dd5d",
+    "node-replacement-capture-profiles-native-observations.json": "81d4aa0099b3443e9580c9d4fdf42bcc52ea457d3cdceb39a1e69c8b2c1504b5",
+    "node-replacement-capture-profiles-native.cpuprofile": "6a766c4b0e4106db4cff1824c6320abf822571c64143d63cbd76c5e44631238e",
+    "node-replacement-capture-profiles-original-index.twill.txt": "95c69d40cf75e4693dba78d28c58e98d6a4f828e6ed8fc68c8060295d29d567c",
+    "node-replacement-capture-profiles-rejected-growing.diff.txt": "d15a452f3848201416a37e7d27d26111855cf3dd8ddd4bf73e4916ffc619304a",
+    "node-replacement-capture-profiles-release-index.twill.txt": "82b20fee155e9ce744ef914b603b35de764a940f0bfc715a5efe22771b2f3b52",
+    "node-replacement-capture-profiles-sdk-growing-observations.json": "cbd9e13610e180f1090bdfc28a9bfe25d0333dd3db98b3cfe0f394a27e400a7f",
+    "node-replacement-capture-profiles-sdk-growing.cpuprofile": "c598ddf3bd8968fbae89676cba4f76c2c0c11491f4be3ea8fb7833e233718a74",
+    "node-replacement-capture-profiles-sdk-observations.json": "952efd875b2671c6e8ae121879764ed43204d9f7a81dab5616e99f1040232fd5",
+    "node-replacement-capture-profiles-sdk-release-observations.json": "10f1bd606cc79698e31150851b6004ca274bddc5b2c2307525a62e000f497d91",
+    "node-replacement-capture-profiles-sdk-release.cpuprofile": "13a51b655e73e5455ce0ad105be0280bbbffac7e0711b80bc48751e3fc96b5d2",
+    "node-replacement-capture-profiles-sdk.cpuprofile": "333cd72e7ccaf56aa260d7024b027fcc5ad7cfc927999e6f625d3c2c33fda768"
+  }
+}

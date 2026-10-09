@@ -12,41 +12,62 @@ const shared = new Set([
 ]);
 const ordinaryPackages = ['formatter', 'linter', 'highlight', 'runtime', 'export', 'twill'];
 
-// Optimize only known unaffected paths. New build/dependency locations default
-// to full verification until their owners explicitly classify them.
+const essentialPlatforms = [
+  { os: 'macos-15', arch: 'arm64' },
+  { os: 'windows-latest', arch: 'x64' },
+];
+const additionalPlatforms = [
+  { os: 'macos-15-intel', arch: 'x64' },
+  { os: 'windows-11-arm', arch: 'arm64' },
+  { os: 'ubuntu-24.04-arm', arch: 'arm64' },
+];
+
+function pathScope(path) {
+  if (shared.has(path) || path.startsWith('.github/') || path.startsWith('scripts/')) return 'full';
+  if (
+    path.endsWith('.md') ||
+    path.startsWith('docs/') ||
+    path.startsWith('skills/') ||
+    path.startsWith('apps/docs/') ||
+    /^packages\/[^/]+\/benchmarks\/results\/.*\.(json|txt|log|cpuprofile)$/.test(path)
+  )
+    return 'docs';
+  if (path.startsWith('packages/shell/')) return 'shell';
+  if (
+    ordinaryPackages.some((name) => path.startsWith(`packages/${name}/`)) ||
+    path.startsWith('editors/') ||
+    path.startsWith('examples/')
+  )
+    return /^packages\/(twill|export|runtime)\//.test(path) ? 'shell' : 'core';
+  return 'full';
+}
+
+// Classify once: unknown/shared inputs retain full coverage; known shell/runner
+// PRs keep all three OS families without repeating every CPU/libc combination.
+export function ciSelection(paths, full = false) {
+  const kinds = paths.map(pathScope);
+  const extendedShell = full || kinds.includes('full');
+  const scope = extendedShell
+    ? complete()
+    : {
+        core: kinds.includes('core') || kinds.includes('shell'),
+        shell: kinds.includes('shell'),
+      };
+  return {
+    scope,
+    extendedShell,
+    shellPlatforms: {
+      include: extendedShell ? [...essentialPlatforms, ...additionalPlatforms] : essentialPlatforms,
+    },
+  };
+}
 export function ciScope(paths, full = false) {
-  if (full) return complete();
-  const scope = { core: false, shell: false };
-  for (const path of paths) {
-    if (shared.has(path) || path.startsWith('.github/') || path.startsWith('scripts/'))
-      return complete();
-    if (
-      path.endsWith('.md') ||
-      path.startsWith('docs/') ||
-      path.startsWith('skills/') ||
-      path.startsWith('apps/docs/') ||
-      /^packages\/[^/]+\/benchmarks\/results\/.*\.(json|txt|log)$/.test(path)
-    )
-      continue;
-    scope.core = true;
-    if (path.startsWith('packages/shell/')) {
-      scope.shell = true;
-    } else if (
-      ordinaryPackages.some((name) => path.startsWith(`packages/${name}/`)) ||
-      path.startsWith('editors/') ||
-      path.startsWith('examples/')
-    ) {
-      if (/^packages\/(twill|export|runtime)\//.test(path)) scope.shell = true;
-    } else {
-      return complete();
-    }
-  }
-  return scope;
+  return ciSelection(paths, full).scope;
 }
 
 export function eventScope({ eventName, eventPath, forceFull = false, cwd }) {
   if (forceFull || eventName !== 'pull_request')
-    return { scope: complete(), reason: 'Full main/manual/scheduled/release verification' };
+    return { ...ciSelection([], true), reason: 'Full main/manual/scheduled/release verification' };
   try {
     const event = JSON.parse(readFileSync(eventPath, 'utf8'));
     const base = event.pull_request?.base?.sha;
@@ -64,9 +85,9 @@ export function eventScope({ eventName, eventPath, forceFull = false, cwd }) {
     )
       .split('\0')
       .filter(Boolean);
-    return { scope: ciScope(paths), reason: `Complete PR diff: ${paths.length} changed paths` };
+    return { ...ciSelection(paths), reason: `Complete PR diff: ${paths.length} changed paths` };
   } catch {
-    return { scope: complete(), reason: 'Diff unavailable or invalid: full verification' };
+    return { ...ciSelection([], true), reason: 'Diff unavailable or invalid: full verification' };
   }
 }
 
@@ -80,7 +101,11 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
   if (process.env.GITHUB_OUTPUT)
     appendFileSync(
       process.env.GITHUB_OUTPUT,
-      Object.entries(result.scope)
+      Object.entries({
+        ...result.scope,
+        'extended-shell': result.extendedShell,
+        'shell-matrix': JSON.stringify(result.shellPlatforms),
+      })
         .map(([name, enabled]) => `${name}=${enabled}\n`)
         .join(''),
     );
@@ -89,7 +114,9 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
       process.env.GITHUB_STEP_SUMMARY,
       `${result.reason}\n\n| Checks | Required |\n| --- | --- |\n${Object.entries(result.scope)
         .map(([name, enabled]) => `| ${name} | ${enabled} |`)
-        .join('\n')}\n`,
+        .join(
+          '\n',
+        )}\n\nShell platforms: ${result.extendedShell ? 'full OS/CPU/libc matrix' : 'three OS families for affected code'}.\n`,
     );
   console.log(JSON.stringify(result));
 }

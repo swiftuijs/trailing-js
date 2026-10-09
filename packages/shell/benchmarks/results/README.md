@@ -141,3 +141,39 @@ environment and byte-input mutation tests remain, and an unlinked-current-direct
 case compares actual SDK launch with natural Node. The production SDK changes,
 so a new complete assessment is required with the unchanged isolated protocol,
 workloads, operation counts, bootstrap and 1.10 gate. Earlier failures remain.
+
+## Inherited-state fast-path review and withdrawn capture candidates
+
+The [complete fast-path report](node-replacement-inheritance-fastpath-linux-node24.json)
+and [failure log](node-replacement-inheritance-fastpath-linux-node24.log) identify
+`502be6fd8c7a538f66e189fd6d9ef37fc91221a0`. This is the changed production SDK
+with native default inheritance, evaluated once with the unchanged isolated
+protocol. Seven of nine gates pass. Native 1 MiB capture is 1.171 (95% interval
+1.043–1.232), and duplex is 1.113 (1.078–1.157); both fail the original 1.10 limit.
+Native inherited launch is 0.993 (0.959–1.026); the default-pool 32/128-child
+comparisons are 1.000/1.009 with upper bounds 1.009/1.025. Every operation and
+remaining cold, memory, filesystem and cancellation observation is retained.
+Functional/platform CI success does not replace this failed performance gate.
+
+The [CPU diagnostic summary](node-replacement-capture-profiles-summary.json)
+records four profiled worker executions (one natural baseline and three SDK
+implementations), with the exact raw profiles and checked per-operation records.
+All use the unchanged warm-worker 1 MiB capture workload. These are diagnostic
+runs with profiling enabled, not new acceptance measurements. They include module
+initialization and cannot demonstrate portable speedups or prove a single cause
+of the remaining regression.
+
+The original SDK profile records 508.7 ms wall / 326.3 ms parent CPU across its
+64 measured operations. Clearing captured chunk references at settlement records
+508.9/329.9 ms; a geometrically growing capture buffer records 664.0/466.0 ms.
+These results did not justify adopting either candidate. Both changes and the
+candidate-only tests/RFC text were withdrawn. The exact growing-source/build
+snapshots and rejected patch remain here; the release-only source is reconstructed
+from the recorded patch, explicitly without a contemporaneous digest. SHA-256
+identities of the diagnostic files are retained in the summary. To reproduce,
+use the baseline commit, apply the appropriate recorded source candidate, rebuild
+and run the recorded profiling command; keep any changed output paths and identities.
+
+No unchanged-source complete run is repeated to seek a pass. The replacement
+remains draft, the prepared 0.3.0 version is not published, and npm deprecation
+waits until an accepted replacement SDK is available.

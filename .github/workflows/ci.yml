@@ -26,6 +26,8 @@ jobs:
     outputs:
       core: ${{ steps.scope.outputs.core }}
       shell: ${{ steps.scope.outputs.shell }}
+      extended-shell: ${{ steps.scope.outputs.extended-shell }}
+      shell-matrix: ${{ steps.scope.outputs.shell-matrix }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -157,18 +159,7 @@ jobs:
     if: needs.changes.outputs.shell == 'true'
     strategy:
       fail-fast: false
-      matrix:
-        include:
-          - os: macos-15
-            arch: arm64
-          - os: macos-15-intel
-            arch: x64
-          - os: windows-latest
-            arch: x64
-          - os: windows-11-arm
-            arch: arm64
-          - os: ubuntu-24.04-arm
-            arch: arm64
+      matrix: ${{ fromJSON(needs.changes.outputs.shell-matrix) }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
@@ -199,7 +190,7 @@ jobs:
 
   shell-musl:
     needs: changes
-    if: needs.changes.outputs.shell == 'true'
+    if: needs.changes.outputs.shell == 'true' && needs.changes.outputs.extended-shell == 'true'
     strategy:
       fail-fast: false
       matrix:

@@ -44,8 +44,14 @@ archives on Node 20.19. Keep coverage thresholds and the equivalent handwritten
 Node performance limit (paired median and upper 95% bound at most 1.10) unchanged.
 Retain seven warm and both 32/128-child concurrency workloads, input/capture,
 filesystem, memory, cancellation and cold-start observations. Keep conservative
-base-to-head CI selection and full release validation; remove native compilation
-and assembly rather than skip relevant JS/platform tests.
+base-to-head CI selection and full release validation. Known ordinary PR changes
+that affect the shell or runner exercise Linux x64 (the required verify job),
+macOS ARM64 and Windows x64. Shared dependency/build/workflow changes, unknown
+paths and unavailable history retain the full eight-platform matrix; so do main,
+scheduled, manual and release runs. Remove native compilation and assembly, while
+preserving real process tests and independent minimum-Node consumers on selected
+systems. CPU architecture/libc coverage belongs to full validation; operating-system
+behavior remains a required ordinary-PR check.
 
 This amendment changes the execution implementation and abrupt-disposal boundary,
 not Twill syntax or shebang dispatch. RFC 0036 and the 0.2.0 measurements remain
