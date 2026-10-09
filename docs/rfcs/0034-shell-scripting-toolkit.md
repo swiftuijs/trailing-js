@@ -20,7 +20,13 @@ archive gate. The compiler remains a development dependency of the SDK.
 Preserve literal argv with `shell: false`, synchronous cwd/environment snapshots,
 byte-input copies, simultaneous bounded capture, single UTF-8 decoding, checked
 status, primary/secondary errors, abort/timeout and bounded failed-operation
-teardown. Reuse Node's platform process behavior rather than recreate OS process
+teardown. Default cwd/environment inheritance delegates to Node's synchronous
+spawn: it captures inherited state before returning to JS, without materializing
+another environment object or forcing an unnecessary child chdir. Explicit
+cwd/environment policies keep their normalization/snapshot handling. Default cwd
+uses native directory inheritance, including an unlinked current directory where
+Node can still launch an absolute executable; do not require a serializable path
+for native default inheritance. Reuse Node's platform process behavior rather than recreate OS process
 control, an interpreter, a supervisor or alternate backends. Preserve the public
 signal union for declaration compatibility; emitted statuses follow Node,
 including its limitation for unnamed Unix signals. This is an intentional loss of

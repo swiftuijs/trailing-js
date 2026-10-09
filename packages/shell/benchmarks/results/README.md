@@ -116,7 +116,7 @@ and the two 48-pair default-pool concurrency workloads keep their protocol.
 
 This change separates variant heap/call-site feedback; it does not optimize the
 SDK, prove GC caused every outlier, or reinterpret the rejected earlier runs.
-Only one complete evaluation is planned after this protocol correction.
+Exactly one complete evaluation ran after this protocol correction.
 
 The GC diagnostic retains the [trace](node-replacement-gc-diagnostic-linux-node24.log),
 [observations](node-replacement-gc-diagnostic-linux-node24.json) and
@@ -127,3 +127,17 @@ operations and eight SDK operations; the five longest operations were SDK calls
 with reported GC pauses. This demonstrates unequal GC attribution in that traced
 process, not a causal explanation for every earlier sample. The recorded absolute
 paths identify the inspected checkout; adapt and record those paths for reproduction.
+
+The [isolated pre-fast-path report](node-replacement-isolated-before-fastpath-linux-node24.json)
+and [log](node-replacement-isolated-before-fastpath-linux-node24.log) identify
+`2d1578a` and reject three gates: inherited native launch upper bound 1.129,
+1 MiB capture median/upper 1.218/1.240, and full duplex 1.124/1.173. Isolation
+exposes a supported capture regression; it does not grant acceptance.
+
+The runtime refinement removes duplicate materialization of default cwd/environment
+state. Synchronous Node spawn captures inherited state before returning to JS;
+explicit policies retain their existing handling. Real default/relative cwd,
+environment and byte-input mutation tests remain, and an unlinked-current-directory
+case compares actual SDK launch with natural Node. The production SDK changes,
+so a new complete assessment is required with the unchanged isolated protocol,
+workloads, operation counts, bootstrap and 1.10 gate. Earlier failures remain.

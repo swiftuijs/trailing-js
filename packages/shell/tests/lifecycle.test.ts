@@ -37,7 +37,7 @@ const root = () => {
 };
 const gone = (pid: number) => expect(() => process.kill(pid, 0)).toThrow();
 
-it('snapshots default and relative cwd before asynchronous launch without normalizing Unix symlink traversal', () => {
+it('snapshots default and relative cwd before returning to JS without normalizing Unix symlink traversal', () => {
   const folder = root();
   mkdirSync(join(folder, 'child'));
   mkdirSync(join(folder, 'real'));
@@ -67,6 +67,33 @@ it('snapshots default and relative cwd before asynchronous launch without normal
     ].map(canonical),
   );
 });
+
+it.skipIf(process.platform === 'win32')(
+  'inherits an unlinked cwd like native Node without requiring a serialized path',
+  () => {
+    const folder = root();
+    const code = `
+    import assert from 'node:assert/strict';
+    import {rmdirSync} from 'node:fs';
+    import {spawn} from 'node:child_process';
+    import {Command,Output,Subprocess} from ${JSON.stringify(apiURL)};
+    process.chdir(${JSON.stringify(folder)});
+    rmdirSync(${JSON.stringify(folder)});
+    const native = new Promise((resolve,reject) => {
+      const child=spawn(process.execPath,['--version'],{stdio:['ignore','pipe','inherit']});
+      let output='';
+      child.stdout.on('data',chunk=>output+=chunk);
+      child.on('error',reject);
+      child.on('close',(code,signal)=>{assert.equal(code,0);assert.equal(signal,null);resolve(output)});
+    });
+    const sdk=Subprocess.run(Command.path(process.execPath,['--version']),{output:Output.text({limit:4096})});
+    const [expected,result]=await Promise.all([native,sdk]);
+    assert.deepEqual(result.terminationStatus,{kind:'exited',code:0});
+    assert.equal(result.standardOutput,expected);
+  `;
+    execFileSync(process.execPath, ['--input-type=module', '-e', code], { timeout: 10000 });
+  },
+);
 
 it('coexists with handwritten Node spawn completion across concurrent commands', async () => {
   const native = (i: number) =>

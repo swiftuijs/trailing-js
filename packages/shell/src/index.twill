@@ -126,8 +126,9 @@ function run<Options extends RunOptions = RunOptions<InheritedOutput, InheritedO
     try {
       child = childProcess.spawn(cmd.executable, cmd.arguments as string[], {
         shell: false,
-        cwd: cwdSnapshot(config.cwd),
-        env: environmentSnapshot(config.environment),
+        // Native spawn captures inherited state synchronously before returning.
+        cwd: config.cwd === undefined ? undefined : cwdSnapshot(config.cwd),
+        env: config.environment === undefined ? undefined : environmentSnapshot(config.environment),
         stdio: [
           typeof config.input === 'object' && !(config.input instanceof Uint8Array)
             ? config.input.kind === 'inherit'
