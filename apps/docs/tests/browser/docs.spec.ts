@@ -43,7 +43,7 @@ test('official AI guide serves the canonical skill and verifiable discovery unde
   );
 });
 
-test('getting started leads to script installation and released Rust ownership guidance', async ({
+test('shell scripting guide distinguishes the Node replacement from released Rust and preserves navigation', async ({
   page,
 }) => {
   await page.goto('getting-started');
@@ -61,7 +61,7 @@ test('getting started leads to script installation and released Rust ownership g
   await expect(page.locator('.vp-doc')).toContainText('npm exec --call');
   await expect(page.locator('.vp-doc')).toContainText('node command.mjs');
   await expect(page.locator('.vp-doc')).toContainText('Hello from a child process');
-  await expect(page.locator('.vp-doc')).toContainText('Use compiler and SDK 0.2.0 or newer');
+  await expect(page.locator('.vp-doc')).toContainText('Use compiler and SDK 0.3.0 or newer');
   const exampleCode = page.locator('.language-twill code').filter({ hasText: 'guard const' });
   await expect(exampleCode).toContainText('Subprocess.run');
   await expect(exampleCode).toContainText('guard const');
@@ -73,9 +73,10 @@ test('getting started leads to script installation and released Rust ownership g
   await expect(page.locator('.vp-doc')).toContainText('64 MiB');
   await expect(page.locator('.vp-doc')).toContainText('original source');
   await expect(page.locator('.vp-doc')).toContainText('@swiftuijs/twill-shell-native');
-  await expect(page.locator('.vp-doc')).toContainText(
-    'One Rust async reactor per Node environment',
-  );
+  await expect(page.locator('.vp-doc')).toContainText("Node's child_process.spawn");
+  await expect(page.locator('.vp-doc')).toContainText('Changed in 0.3.0');
+  await expect(page.locator('.vp-doc')).toContainText('process.exitCode');
+  await expect(page.locator('.vp-doc')).toContainText('Worker.terminate()');
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
     'href',
     'https://twill.evecalm.com/scripting',

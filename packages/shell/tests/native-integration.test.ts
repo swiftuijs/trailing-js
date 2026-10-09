@@ -19,7 +19,7 @@ function fixture() {
   roots.push(root);
   const modules = join(root, 'node_modules');
   mkdirSync(join(modules, '@swiftuijs'), { recursive: true });
-  for (const name of ['shell', 'shell-native', 'twill'])
+  for (const name of ['shell', 'twill'])
     symlinkSync(
       resolve(import.meta.dirname, '../../', name),
       join(modules, '@swiftuijs', `twill${name === 'twill' ? '' : '-' + name}`),

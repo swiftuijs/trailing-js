@@ -31,13 +31,13 @@ afterEach(async () => {
   for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
 });
 const root = () => {
-  const path = mkdtempSync(join(tmpdir(), 'twill-native-lifecycle-'));
+  const path = mkdtempSync(join(tmpdir(), 'twill-shell-lifecycle-'));
   roots.push(path);
   return path;
 };
 const gone = (pid: number) => expect(() => process.kill(pid, 0)).toThrow();
 
-it('snapshots default and relative cwd before asynchronous launch without normalizing Unix symlink traversal', () => {
+it('snapshots default and relative cwd before returning to JS without normalizing Unix symlink traversal', () => {
   const folder = root();
   mkdirSync(join(folder, 'child'));
   mkdirSync(join(folder, 'real'));
@@ -67,6 +67,33 @@ it('snapshots default and relative cwd before asynchronous launch without normal
     ].map(canonical),
   );
 });
+
+it.skipIf(process.platform === 'win32')(
+  'inherits an unlinked cwd like native Node without requiring a serialized path',
+  () => {
+    const folder = root();
+    const code = `
+    import assert from 'node:assert/strict';
+    import {rmdirSync} from 'node:fs';
+    import {spawn} from 'node:child_process';
+    import {Command,Output,Subprocess} from ${JSON.stringify(apiURL)};
+    process.chdir(${JSON.stringify(folder)});
+    rmdirSync(${JSON.stringify(folder)});
+    const native = new Promise((resolve,reject) => {
+      const child=spawn(process.execPath,['--version'],{stdio:['ignore','pipe','inherit']});
+      let output='';
+      child.stdout.on('data',chunk=>output+=chunk);
+      child.on('error',reject);
+      child.on('close',(code,signal)=>{assert.equal(code,0);assert.equal(signal,null);resolve(output)});
+    });
+    const sdk=Subprocess.run(Command.path(process.execPath,['--version']),{output:Output.text({limit:4096})});
+    const [expected,result]=await Promise.all([native,sdk]);
+    assert.deepEqual(result.terminationStatus,{kind:'exited',code:0});
+    assert.equal(result.standardOutput,expected);
+  `;
+    execFileSync(process.execPath, ['--input-type=module', '-e', code], { timeout: 10000 });
+  },
+);
 
 it('coexists with handwritten Node spawn completion across concurrent commands', async () => {
   const native = (i: number) =>
@@ -127,40 +154,23 @@ it.skipIf(process.platform !== 'darwin')(
 );
 
 it.skipIf(process.platform !== 'linux')(
-  'preserves a real unnamed realtime signal in results and errors',
+  'matches Node status for unnamed realtime signals',
   async () => {
-    const command = Command.path(process.execPath, ['-e', 'process.kill(process.pid,34)']);
-    const result = await Subprocess.run(command, { check: false });
-    expect(result.terminationStatus).toEqual({ kind: 'signaled', signal: 34 });
-    gone(result.processIdentifier);
-    const error = await Subprocess.run(command).catch((error) => error);
-    expect(error).toMatchObject({
-      name: 'ProcessExitError',
-      result: { terminationStatus: { kind: 'signaled', signal: 34 } },
+    const arguments_ = ['-e', 'process.kill(process.pid,34)'];
+    const expected = await new Promise((resolve, reject) => {
+      const child = spawn(process.execPath, arguments_, { stdio: 'ignore' });
+      child.once('error', reject);
+      child.once('close', (code, signal) =>
+        resolve(signal === null ? { kind: 'exited', code } : { kind: 'signaled', signal }),
+      );
     });
-    gone(error.result.processIdentifier);
+    const result = await Subprocess.run(Command.path(process.execPath, arguments_), {
+      check: false,
+    });
+    expect(result.terminationStatus).toEqual(expected);
+    gone(result.processIdentifier);
   },
 );
-
-it('terminates a worker even when an unowned descendant keeps its capture pipes open', async () => {
-  const marker = join(root(), 'descendant');
-  const worker = new Worker(
-    `
-    const {parentPort,workerData}=require('node:worker_threads');const fs=require('node:fs');
-    (async()=>{const {Command,Output,Subprocess}=await import(workerData.apiURL);
-    Subprocess.run(Command.path(process.execPath,[workerData.fixture,'descendant',workerData.marker]),{output:Output.text({limit:4096}),error:Output.text({limit:4096})}).catch(()=>{});
-    while(!fs.existsSync(workerData.marker))await new Promise(r=>setTimeout(r,5));
-    parentPort.postMessage(Number(fs.readFileSync(workerData.marker,'utf8')));
-    })();
-  `,
-    { eval: true, workerData: { apiURL, fixture, marker } },
-  );
-  workers.push(worker);
-  const pid = (await message(worker)) as number;
-  pids.push(pid);
-  await worker.terminate();
-  expect(() => process.kill(pid, 0)).not.toThrow();
-});
 
 it('copies byte input before returning to JS and snapshots the inherited environment at submission', async () => {
   const bytes = Uint8Array.from([1, 255, 128]);
@@ -212,7 +222,7 @@ const message = (worker: Worker) =>
     worker.once('error', reject);
   });
 
-it('terminating a worker kills and reaps all its live direct children, without affecting another environment', async () => {
+it('cooperatively cancels and joins worker children before termination without affecting another worker', async () => {
   const first = startWorker(root(), 8),
     second = startWorker(root());
   const [owned, other] = (await Promise.all([message(first), message(second)])) as [
@@ -220,28 +230,31 @@ it('terminating a worker kills and reaps all its live direct children, without a
     number[],
   ];
   pids.push(...owned, ...other);
-  await first.terminate();
-  owned.forEach(gone);
-  for (const pid of other) expect(() => process.kill(pid, 0)).not.toThrow();
-  const joined = message(second);
-  second.postMessage('cancel');
+  const joined = message(first);
+  first.postMessage('cancel');
   expect(await joined).toBe('joined');
+  owned.forEach(gone);
+  await first.terminate();
+  for (const pid of other) expect(() => process.kill(pid, 0)).not.toThrow();
+  const otherJoined = message(second);
+  second.postMessage('cancel');
+  expect(await otherJoined).toBe('joined');
   other.forEach(gone);
   await second.terminate();
-  const result = await Subprocess.run(Command.path(process.execPath, ['-e', '']), {
-    output: Output.discard(),
-  });
-  expect(result.terminationStatus).toEqual({ kind: 'exited', code: 0 });
 });
 
-it('process.exit waits for native environment teardown without leaving the direct child alive', () => {
+it('cancels and awaits outstanding work before setting process.exitCode', () => {
   const marker = join(root(), 'pid');
   const code = `
     import fs from 'node:fs';
     import {Command,Output,Subprocess} from ${JSON.stringify(apiURL)};
-    Subprocess.run(Command.path(process.execPath,[${JSON.stringify(fixture)},'ignore-term',${JSON.stringify(marker)}]),{output:Output.discard()}).catch(()=>{});
+    const controller = new AbortController();
+    const task = Subprocess.run(Command.path(process.execPath,[${JSON.stringify(fixture)},'ignore-term',${JSON.stringify(marker)}]),{signal:controller.signal,output:Output.discard(),gracePeriodMs:10});
+    task.catch(()=>{});
     while(!fs.existsSync(${JSON.stringify(marker)})) await new Promise(r=>setTimeout(r,5));
-    process.exit(23);
+    controller.abort();
+    await task.catch(error=>{if(error.name!=='ProcessAbortError')throw error});
+    process.exitCode=23;
   `;
   try {
     execFileSync(process.execPath, ['--input-type=module', '-e', code], { timeout: 10000 });
@@ -253,7 +266,7 @@ it('process.exit waits for native environment teardown without leaving the direc
   gone(pid);
 });
 
-it('keeps unrelated filesystem work available with one libuv worker and many live native commands', () => {
+it('keeps unrelated filesystem work available with one libuv worker and many live commands', () => {
   const folder = root();
   const code = `
     import fs from 'node:fs';
@@ -291,8 +304,8 @@ it.runIf(process.platform === 'linux')(
     );
     tasks.forEach((task) => task.catch(() => {}));
     try {
-      // One pidfd per child; inherited stdout/stderr duplicates must already
-      // have been closed before each call returns, not accumulate in a queue.
+      // Node may retain one process handle/descriptor per live child; no
+      // accumulated copies of inherited output descriptors are needed.
       expect(readdirSync('/proc/self/fd').length).toBeLessThanOrEqual(baseline + 64 + 3);
     } finally {
       controller.abort();
@@ -335,7 +348,7 @@ it.runIf(process.platform === 'linux')(
       () => expect(readdirSync('/proc/self/fd').length).toBeLessThanOrEqual(baseline + 3),
       { timeout: 5000 },
     );
-    // Reading through the host pool still works after all native operations finish.
+    // Reading through the host pool still works after all operations finish.
     expect((await readFile(fixture)).byteLength).toBeGreaterThan(0);
   },
 );

@@ -3,8 +3,68 @@
 **Release reference:** 0.2.0 implements the accepted scope; broader/deferred items below remain proposals.
 **Status:** Implemented in 0.2.0 for the accepted scope; deferred capabilities remain proposals.
 **Kind:** Tooling / optional Node SDK.
-**Release:** 0.2.0.
+**Release:** 0.2.0 (initial SDK); 0.3.0 (Node simplification).
 **Dependencies:** RFC 0026 for executing Twill sources; RFCs 0002, 0007 and 0009 supply optional application syntax. No dependency on proposed typed throws, argument labels or structured-concurrency syntax.
+
+## Accepted simplification amendment
+
+The maintainer has withdrawn the native subprocess backend: it coordinates child
+processes rather than interpreting Twill, and its addon, reactor and eight-target
+release chain exceed the intended toolkit scope. The 0.3.0 implementation
+uses Node's `child_process.spawn` and streams directly. Remove
+`@swiftuijs/twill-shell-native`, its Rust experiment, ABI selection, binary builds
+and native release assembly. Keep the Twill runner, shebang, optional
+`@swiftuijs/twill-shell` import, command/policy/result/error API and 16 KiB SDK
+archive gate. The compiler remains a development dependency of the SDK.
+
+Preserve literal argv with `shell: false`, synchronous cwd/environment snapshots,
+byte-input copies, simultaneous bounded capture, single UTF-8 decoding, checked
+status, primary/secondary errors, abort/timeout and bounded failed-operation
+teardown. Default cwd/environment inheritance delegates to Node's synchronous
+spawn: it captures inherited state before returning to JS, without materializing
+another environment object or forcing an unnecessary child chdir. Explicit
+cwd/environment policies keep their normalization/snapshot handling. Default cwd
+uses native directory inheritance, including an unlinked current directory where
+Node can still launch an absolute executable; do not require a serializable path
+for native default inheritance. Reuse Node's platform process behavior rather than recreate OS process
+control, an interpreter, a supervisor or alternate backends. Preserve the public
+signal union for declaration compatibility; emitted statuses follow Node,
+including its limitation for unnamed Unix signals. This is an intentional loss of
+the addon-specific numeric-signal guarantee, not a new status inference.
+
+Normal operations own the direct child and pipes through settlement. Applications
+must cancel and await outstanding operations before leaving a worker or forcing
+process exit. Abrupt `Worker.terminate()` and `process.exit()` do not execute an
+asynchronous join; remove the native 1.1-second environment cleanup guarantee.
+Use `process.exitCode` after awaited work, and cooperative worker cancellation.
+Neither version contains descendants or supplies process-tree semantics.
+
+Validate public contracts on Linux, macOS and Windows and independently installed
+archives on Node 20.19. Keep coverage and archive-size thresholds unchanged.
+Node owns OS-process execution; the SDK owns policy merging, public status/error
+mapping and awaited cleanup. Test those observable contracts on one representative
+runner per OS family, rather than repeating the Rust prebuild CPU/libc matrix.
+Linux supplies type checking and original-source coverage once; macOS ARM64 and
+Windows x64 execute the real-process/runner suites and installed consumers without
+repeating coverage instrumentation. Unknown paths or unavailable history select
+all three OS families. Main, scheduled, manual and release runs retain all checks,
+including minimum-editor validation on release; no native compilation or assembly
+remains.
+
+Retain equivalent handwritten Node comparisons: seven warm and both 32/128-child
+concurrency workloads, input/capture, filesystem, memory, cancellation and cold
+observations. On 2026-10-09 the maintainer explicitly accepted the measured 0.3.0
+shell overhead rather than require further optimization: native 1 MiB dual capture
+has paired median/upper 95% ratio 1.171/1.232, and duplex 1.113/1.157. The historical
+1.10 target still rejects that report; this release decision does not turn it into
+a passing measurement. Preserve the exact report, rejected candidates and review
+decision. Benchmark timing is diagnostic for this accepted shell release; language
+output performance requirements, correctness, coverage and size gates stay intact.
+
+This amendment changes the execution implementation and abrupt-disposal boundary,
+not Twill syntax or shebang dispatch. RFC 0036 and the 0.2.0 measurements remain
+historical evidence in the tagged source. npm 0.2.0 still uses Rust; this source
+change is neither merged nor published by design acceptance alone.
 
 ## Problem and native baseline
 
@@ -66,7 +126,7 @@ const result = await Subprocess.run(status, {
 console.log(result.standardOutput);
 ```
 
-The first-stage API below is implemented in 0.2.0. Later scoped/pipeline/shell examples remain proposals. Command construction does not spawn, execute callbacks or schedule work. `Command.name` uses the platform's normal executable search; `Command.path` requires an absolute executable path. Arguments are strings, in order, and go directly to the Rust process engine without a shell. Reject invalid argument/options values and NUL characters before launch; do not coerce arbitrary objects into command text.
+The first-stage API below is implemented in 0.2.0. Later scoped/pipeline/shell examples remain proposals. Command construction does not spawn, execute callbacks or schedule work. `Command.name` uses the platform's normal executable search; `Command.path` requires an absolute executable path. Arguments are strings, in order, and go directly to the process executor without a shell. Reject invalid argument/options values and NUL characters before launch; do not coerce arbitrary objects into command text.
 
 Treat a command as a reusable, readonly SDK value: snapshot the argv array once on construction, without claiming deep value semantics for JS objects. Each run creates a distinct child. `cwd` belongs to that child. Never call global `process.chdir`, modify `process.env`, patch prototypes or inject global `$` names.
 
@@ -74,7 +134,7 @@ Treat a command as a reusable, readonly SDK value: snapshot the argv array once 
 
 ### Output, status and errors
 
-MVP input defaults to no input. Output and error default to inherited terminal streams, avoiding buffering/copies. Explicit input uses `Input.inherit()` or supplies a string/Uint8Array; `Input.none()` explicitly selects EOF. Byte views share their underlying storage, which the caller must preserve until settlement; write respecting backpressure, finish stdin, and account for write errors. Capture is opt-in: `Output.text({ limit })` decodes UTF-8 once after successful close; `Output.bytes({ limit })` returns bytes; `Output.discard()` selects the native null descriptor without retaining output. A finite positive byte limit is required for capture. Exceeding it rejects with an output-limit error after child cleanup, without silently truncating output. Retained stream bytes are bounded; concatenation and decoded strings can require additional memory, so this is not a total RSS cap. Text decoding follows Node's normal replacement of invalid UTF-8. Streaming belongs to a later scoped API.
+MVP input defaults to no input. Output and error default to inherited terminal streams, avoiding buffering/copies. Explicit input uses `Input.inherit()` or supplies a string/Uint8Array; `Input.none()` explicitly selects EOF. Byte views are copied at submission; write respecting backpressure, finish stdin, and account for write errors. Capture is opt-in: `Output.text({ limit })` decodes UTF-8 once after successful close; `Output.bytes({ limit })` returns bytes; `Output.discard()` selects the native null descriptor without retaining output. A finite positive byte limit is required for capture. Exceeding it rejects with an output-limit error after child cleanup, without silently truncating output. Retained stream bytes are bounded; concatenation and decoded strings can require additional memory, so this is not a total RSS cap. Text decoding follows Node's normal replacement of invalid UTF-8. Streaming belongs to a later scoped API.
 
 Return a typed result with `processIdentifier`, `terminationStatus`, `standardOutput` and `standardError`. Capture policy determines the corresponding output type (`string`, bytes or `undefined`). Status uses an ordinary TypeScript discriminated union:
 

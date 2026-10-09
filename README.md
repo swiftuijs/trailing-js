@@ -52,9 +52,9 @@ function describe(outcome: Outcome): string {
 }
 ```
 
-Ordinary closures become arrows; guards become branches. Direct-return switch expressions become native switches. Twill 0.2.0 also removes the IIFE from standalone identifier initializers; other expression contexts retain it. Inline emission introduces no runtime library. `defer` allocates callbacks and dynamic registrations use a local stack; general component child collection uses arrays. These costs are [documented and measured](https://twill.evecalm.com/performance).
+Ordinary closures become arrows; guards become branches. Direct-return switch expressions become native switches. Twill 0.2.0 also removes the IIFE from standalone identifier initializers; other expression contexts retain it. Inline emission introduces no runtime library. Dynamic/async `defer` and scope-sensitive registrations retain callbacks; dynamic registrations use a local stack; general component child collection uses arrays. These costs are [documented and measured](https://twill.evecalm.com/performance).
 
-Unreleased source refinements emit native `try/finally` for eligible direct synchronous cleanup and reduce repeated editor/configuration work. Published 0.2.0 retains the behavior above. Dynamic registration, general expression lowering and cold initialization still have measured costs; use the [performance guide](https://twill.evecalm.com/performance) to choose and profile hot paths.
+Twill 0.3.0 emits native `try/finally` for eligible direct synchronous cleanup and reduces repeated editor/configuration work. The older 0.2.0 retains callback-based cleanup. Dynamic registration, general expression lowering and cold initialization still have measured costs; use the [performance guide](https://twill.evecalm.com/performance) to choose and profile hot paths.
 
 | File                         | Use                                                         |
 | ---------------------------- | ----------------------------------------------------------- |
@@ -73,8 +73,8 @@ The [playground](https://twill.evecalm.com/playground) runs the actual compiler 
 Install the compiler as a development dependency in your application. Use Node 24 LTS for a new setup; the package supports `^20.19.0 || >=22.12.0`. Run from the directory containing your `package.json` (run `npm init -y` first for a new project). Default inline emission introduces no language runtime dependency into your application bundle. The [optional runtime](https://twill.evecalm.com/runtime) in 0.2.0 shares dynamic synchronous cleanup when explicitly selected.
 
 ```sh
-pnpm add -D @swiftuijs/twill@0.2.0
-# npm install --save-dev @swiftuijs/twill@0.2.0
+pnpm add -D @swiftuijs/twill@0.3.0
+# npm install --save-dev @swiftuijs/twill@0.3.0
 ```
 
 Add the Vite adapter to your existing configuration:
@@ -103,7 +103,7 @@ For a project-local command, install the compiler above, save this as `hello.twi
 console.log(process.argv.slice(2));
 ```
 
-Expected output is `[ 'hello world' ]`. On Linux/macOS, use `chmod +x hello.twill` then `npm exec --call './hello.twill "hello world"'` or `pnpm exec ./hello.twill 'hello world'` for a local shebang. For direct `./hello.twill` execution, install `@swiftuijs/twill` globally with `npm install --global @swiftuijs/twill@0.2.0` and keep `twill` on PATH. Windows uses the explicit CLI.
+Expected output is `[ 'hello world' ]`. On Linux/macOS, use `chmod +x hello.twill` then `npm exec --call './hello.twill "hello world"'` or `pnpm exec ./hello.twill 'hello world'` for a local shebang. For direct `./hello.twill` execution, install `@swiftuijs/twill` globally with `npm install --global @swiftuijs/twill@0.3.0` and keep `twill` on PATH. Windows uses the explicit CLI.
 
 Install `@swiftuijs/twill-shell` in the script's project only when using its subprocess API; a global compiler does not install project imports. Follow [shell scripting](https://twill.evecalm.com/scripting) for complete installation, a portable subprocess example, Node type checking and troubleshooting. Native JS/TS consumers need only the SDK.
 
@@ -151,7 +151,7 @@ Install only the tools your project needs. Keep Twill packages on the same relea
 | `@swiftuijs/twill-shell`                                                                 | Native argv execution, bounded output and owned process teardown |
 | `@swiftuijs/twill-runtime`                                                               | Optional, versioned synchronous cleanup helpers                  |
 
-The [shell scripting](https://twill.evecalm.com/scripting) toolkit adds `#!/usr/bin/env twill` executable scripts and content-validated startup caching in 0.2.0. Install/import `@swiftuijs/twill-shell` for subprocesses; its Rust engine and eight-platform prebuilds install automatically. Native JS/TS consumers need no compiler. See [performance](https://twill.evecalm.com/performance#rust-shell-backend) for measured warm gains and cold/polling limits.
+The [shell scripting](https://twill.evecalm.com/scripting) toolkit adds `#!/usr/bin/env twill` executable scripts and content-validated startup caching in 0.2.0. Install/import `@swiftuijs/twill-shell` for subprocesses; native JS/TS consumers need no compiler. npm 0.2.0 still uses the retired Rust addon. Twill 0.3.0 simplifies the SDK to Node spawn/streams with zero production dependencies; cancel and await work before worker/process exit. See the [version and ownership boundary](https://twill.evecalm.com/scripting#execution-and-version-boundary).
 
 Install the [Twill VS Code extension](https://marketplace.visualstudio.com/items?itemName=forth-ink.twill) from Marketplace, or run `code --install-extension forth-ink.twill`. The extension bundles its editing tools. Your application installs the compiler for builds and whole-project checks. See the [editor guide](https://twill.evecalm.com/tooling) for configuration.
 

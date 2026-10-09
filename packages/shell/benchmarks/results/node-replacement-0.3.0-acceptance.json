@@ -1,0 +1,32 @@
+{
+  "release": "0.3.0",
+  "decisionDate": "2026-10-09",
+  "decision": "Maintainer accepted the recorded shell overhead and ended further optimization as a release blocker.",
+  "report": "node-replacement-inheritance-fastpath-linux-node24.json",
+  "reportSHA256": "78e1bc6e3aa46c75a453b1cae4a2999d2ce6095d07f2b953eb33f895f74c3470",
+  "implementationGitHead": "502be6fd8c7a538f66e189fd6d9ef37fc91221a0",
+  "verifiedRuntimeBuildBenchmarkIdentities": 46,
+  "historicalStrictTimingTarget": 1.1,
+  "historicalStrictTimingTargetPassed": false,
+  "failedWorkloads": [
+    {
+      "name": "native-dual-capture-1048576",
+      "medianRatio": 1.170823454323525,
+      "ratio95PercentInterval": {
+        "method": "paired bootstrap median, 10000 deterministic resamples",
+        "lower": 1.0431684317346157,
+        "upper": 1.2323161452763547
+      }
+    },
+    {
+      "name": "native-duplex-1048576",
+      "medianRatio": 1.1129485414919071,
+      "ratio95PercentInterval": {
+        "method": "paired bootstrap median, 10000 deterministic resamples",
+        "lower": 1.0775455714772688,
+        "upper": 1.1574772385099408
+      }
+    }
+  ],
+  "scope": "Explicit acceptance of this measured Node shell SDK release; no relaxation of language-output performance, correctness, original-source coverage or archive-size requirements. All raw measurements and rejected diagnostics remain available."
+}

@@ -15,7 +15,6 @@ for (const path of [
   'packages/highlight/package.json',
   'packages/runtime/package.json',
   'packages/shell/package.json',
-  'packages/shell-native/package.json',
   'editors/vscode/package.json',
   'editors/twill-typescript-plugin/package.json',
 ])

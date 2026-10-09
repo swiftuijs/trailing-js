@@ -1,2 +1,0 @@
-import { nativeRun } from '../../shell/benchmarks/native.mjs';
-await nativeRun({ executable: '/usr/bin/true', arguments: [] });

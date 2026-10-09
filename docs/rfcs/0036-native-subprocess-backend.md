@@ -1,11 +1,18 @@
 # RFC 0036: Optional native subprocess backend evaluation
 
 **Release reference:** 0.2.0 implements the accepted scope; broader/deferred items below remain proposals.
-**Status:** Implemented in 0.2.0 for the accepted scope; deferred capabilities remain proposals.
+**Status:** Implemented in 0.2.0; retired in 0.3.0 by the [RFC 0034 simplification amendment](0034-shell-scripting-toolkit.md#accepted-simplification-amendment).
 **Kind:** Runtime/tooling.
 **Release:** 0.2.0.
 **Dependencies:** RFC 0034, with separate scoped-stream/pipeline ownership acceptance.
 **Review:** Evaluation authorized following PR #20; implementation of the measured scheduling, cancellation, cleanup and platform blockers subsequently authorized by the maintainer. This does not authorize npm publication or process-tree/pipeline semantics.
+
+The following records the released 0.2.0 implementation and evaluation history.
+The maintainer has withdrawn this backend and its standalone experiment. It is
+not a Twill interpreter. New source development uses the Node SDK described in
+RFC 0034; existing 0.2.0 npm packages remain unchanged. Historical native source,
+tests and raw reports remain available in the
+[0.2.0 tag](https://github.com/swiftuijs/twill/tree/v0.2.0/packages/shell-native).
 
 ### Rust-only SDK amendment (0.2.0)
 
@@ -81,7 +88,7 @@ Performance acceptance retains RFC 0034's wall-time tolerance and requires a rep
 
 ## Historical adoption decision (superseded in 0.2.0)
 
-The [isolated experiment](../../packages/shell/experiments/rust-native/README.md) and [complete Linux/Node 24 report](../../packages/shell/benchmarks/results/rust-native-linux-node24.json) demonstrate sequential benefits: paired Rust/SDK wall ratios of 0.581 for a short native launch, 0.582 for dual 1 MiB capture and 0.852 for dual 8 MiB capture. Corresponding handwritten Node comparisons also improve. Capture RSS-increase medians approximately halve. This establishes gains for the measured successful subset, not the SDK's complete contract or external-command execution.
+The [isolated experiment](https://github.com/swiftuijs/twill/blob/v0.2.0/packages/shell/experiments/rust-native/README.md) and [complete Linux/Node 24 report](../../packages/shell/benchmarks/results/rust-native-linux-node24.json) demonstrate sequential benefits: paired Rust/SDK wall ratios of 0.581 for a short native launch, 0.582 for dual 1 MiB capture and 0.852 for dual 8 MiB capture. Corresponding handwritten Node comparisons also improve. Capture RSS-increase medians approximately halve. This establishes gains for the measured successful subset, not the SDK's complete contract or external-command execution.
 
 Default-pool concurrency fails adoption requirements: 32 parallel Node children take median 1,185 ms versus SDK 473 ms. A 32-worker configuration measures 456 versus 477 ms, without eliminating shared-pool ownership/contention costs. Source startup has no demonstrated improvement; the compiler/Node initialization remains. The 495,808-byte native artifact needs its own package/budget. Keep the SDK backend. The subsequent `packages/shell-native` implementation adds independent asynchronous scheduling, full graceful cancellation/join/error/environment-shutdown ownership and real platform tests; the complete-contract acceptance results below assess that implementation. Raising the global pool alone is not that implementation.
 
@@ -89,7 +96,7 @@ The initial diagnostic run failed while constructing build fingerprints and lost
 
 ### Complete-contract production decision
 
-The [2026-10-08 report](../../packages/shell-native/benchmarks/results/production-linux-node24.json) verifies the full direct-child backend on Linux/Node 24.19.0. All seven warm workloads and both 48-pair default-pool concurrency workloads pass the unchanged 1.10× median and upper-95%-confidence target against handwritten Node. Paired Rust/SDK wall ratios are 0.648 for native inherited launch, 0.575 for dual 1 MiB capture and 0.737 for dual 8 MiB capture. Default-pool 32/128-child Rust/native ratios are 0.998/1.003, with upper bounds 1.040/1.022. Source startup has no demonstrated improvement. The [history](../../packages/shell-native/benchmarks/results/README.md) retains all failures and the checkpoint/continuation; atomic PID markers fix an independent benchmark cleanup race without changing warm/concurrency samples or lowering gates.
+The [2026-10-08 report](https://github.com/swiftuijs/twill/blob/v0.2.0/packages/shell-native/benchmarks/results/production-linux-node24.json) verifies the full direct-child backend on Linux/Node 24.19.0. All seven warm workloads and both 48-pair default-pool concurrency workloads pass the unchanged 1.10× median and upper-95%-confidence target against handwritten Node. Paired Rust/SDK wall ratios are 0.648 for native inherited launch, 0.575 for dual 1 MiB capture and 0.737 for dual 8 MiB capture. Default-pool 32/128-child Rust/native ratios are 0.998/1.003, with upper bounds 1.040/1.022. Source startup has no demonstrated improvement. The [history](https://github.com/swiftuijs/twill/blob/v0.2.0/packages/shell-native/benchmarks/results/README.md) retains all failures and the checkpoint/continuation; atomic PID markers fix an independent benchmark cleanup race without changing warm/concurrency samples or lowering gates.
 
 Real Linux x64/arm64, macOS x64/arm64 and Windows x64 CI jobs pass the shared SDK contract, native boundary validation, worker/process-exit ownership and independently installed Node 20.19 consumers. Node cleanup hooks are removed only on their owning Node thread. Native launch runs on the caller; the reactor handles already-started children, eliminating queued inherited-descriptor snapshots and keeping pipe draining independent of launch work. Both backend APIs share error identities and preserve Windows exit-code width. Five-platform archive assembly verifies identical source fingerprints, each binary digest and the separate artifact budgets.
 
