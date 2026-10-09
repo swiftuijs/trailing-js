@@ -348,7 +348,7 @@ it.skipIf(process.platform === 'win32')(
 it('exports configured external cleanup with native types and an explicit runtime dependency', async () => {
   const { directory, root, tsconfig, outDir } = fixture({
     'main.twill':
-      'export function run(events:number[]){defer {events.push(1);}defer {events.push(2);}return 3;}',
+      'export function run(events:number[]){if(true)defer {events.push(1);}defer {events.push(2);}return 3;}',
     'twill.config.json': '{"runtime":"external"}',
   });
   const runtime = join(import.meta.dirname, '../../runtime');

@@ -8,17 +8,18 @@ type Scope = { block: Node; functionBody: boolean; defers: Node[] };
 const functions = new Set(['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression']);
 
 function children(node: Node, visit: (child: Node) => void) {
-  for (const [key, value] of Object.entries(node)) {
+  for (const key of Object.keys(node)) {
     if (key === 'loc' || key === 'trailing') continue;
-    if (Array.isArray(value))
-      value.forEach((child) => {
+    const value = node[key];
+    if (Array.isArray(value)) {
+      for (const child of value) {
         if (child?.type) visit(child);
-      });
-    else if (value?.type) visit(value);
+      }
+    } else if (value?.type) visit(value);
   }
 }
 
-/** Scope-local cleanup callbacks; dynamic registrations use lazy stacks. */
+/** Native finally where scope permits; callbacks retain dynamic registration semantics. */
 export function lowerDefers(
   source: string,
   ast: Node,
@@ -90,6 +91,70 @@ export function lowerDefers(
     if (!scope.defers.length) continue;
     const { block } = scope;
     const statements = block.body as Node[];
+    // A direct synchronous cleanup can be the original finally body. Moving
+    // lexical declarations into a new try would change TDZ/closure visibility;
+    // retain the callback lowering whenever that or hoisting is observable.
+    const first = statements.indexOf(scope.defers[0]!);
+    let native =
+      first >= 0 && scope.defers.every((node) => !node.awaited && statements.includes(node));
+    if (native) {
+      native = !statements.some(
+        (node, index) =>
+          node.type === 'FunctionDeclaration' ||
+          node.type === 'TSDeclareFunction' ||
+          (node.type === 'VariableDeclaration' && node.kind.endsWith('using')) ||
+          (index > first &&
+            ((node.type === 'VariableDeclaration' && node.kind !== 'var') ||
+              (node.type.endsWith('Declaration') && node.type !== 'VariableDeclaration') ||
+              (node.type === 'GuardStatement' && node.binding))),
+      );
+      const check = (node: Node) => {
+        if (
+          node.type === 'WithStatement' ||
+          node.type === 'ThisExpression' ||
+          (node.type === 'VariableDeclarator' && !node.init) ||
+          (node.type === 'VariableDeclaration' &&
+            node.kind === 'var' &&
+            (!statements.includes(node) || node.start > scope.defers[0]!.start)) ||
+          (node.type === 'CallExpression' &&
+            node.callee.type === 'Identifier' &&
+            node.callee.name === 'eval')
+        )
+          native = false;
+        children(node, check);
+      };
+      if (native) check(block);
+      const cleanupScope = (node: Node) => {
+        if (
+          node.type === 'FunctionDeclaration' ||
+          node.directive ||
+          (node.type === 'VariableDeclaration' && node.kind === 'var')
+        )
+          native = false;
+        if (!functions.has(node.type)) children(node, cleanupScope);
+      };
+      if (native) for (const node of scope.defers) cleanupScope(node.cleanup.body);
+    }
+    if (native) {
+      for (const node of [...scope.defers].reverse()) {
+        code.overwrite(node.start, node.cleanup.body.start, ';try {');
+        if (!node.cleanup.body.body.length) {
+          // Empty cleanup has no executable tokens to map. Keep its comments,
+          // but mark the emitted empty finally as scaffolding for source lint.
+          code.remove(node.cleanup.body.start, node.cleanup.body.end);
+          code.appendLeft(
+            block.end - 1,
+            '\n} finally ' + source.slice(node.cleanup.body.start, node.cleanup.body.end) + '\n',
+          );
+          continue;
+        }
+        code.prependRight(node.cleanup.body.start, '\n} finally ');
+        code.appendLeft(node.cleanup.body.end, '\n');
+        if (node.cleanup.body.end !== block.end - 1)
+          code.move(node.cleanup.body.start, node.cleanup.body.end, block.end - 1);
+      }
+      continue;
+    }
     // A direct statement executes at most once per block entry. Nested or
     // unbraced-loop registrations still require the dynamic stack.
     const single = scope.defers.length === 1 && statements.includes(scope.defers[0]!);

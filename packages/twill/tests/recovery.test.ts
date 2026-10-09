@@ -1,6 +1,22 @@
 import { expect, it } from 'vitest';
 import { transform, TwillSyntaxError } from '../src/compiler';
 import { recoverTransform } from '../src/recovery';
+it('retains the first strict syntax failure through successive repairs', () => {
+  const errors: TwillSyntaxError[] = [];
+  const source = 'const values=[1].map { . };';
+  const strict = (() => {
+    try {
+      transform(source);
+    } catch (error) {
+      return error as TwillSyntaxError;
+    }
+  })()!;
+  recoverTransform(source, {}, (error) => errors.push(error));
+  expect(errors).toHaveLength(1);
+  expect(errors[0]).toMatchObject({ message: strict.message, offset: strict.offset });
+  recoverTransform('const value=1;', {}, (error) => errors.push(error));
+  expect(errors).toHaveLength(1);
+});
 it.each([
   'users.map { .',
   'users.map { .name',
