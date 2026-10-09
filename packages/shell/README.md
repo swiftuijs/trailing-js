@@ -66,6 +66,8 @@ This first stage does not implement scoped streaming, pipelines, shell templates
 
 Cancel and await outstanding work before a worker shuts down. Set `process.exitCode` after awaited work; forced `Worker.terminate()` and `process.exit()` cannot perform an asynchronous join. Version 0.3.0 removes the old native cleanup barrier. OS creation and event-loop scheduling are not hard real-time deadlines.
 
+Bounded capture and lifecycle checks add overhead. The reviewed Linux/Node 24 report measured about 17% median overhead for native dual 1 MiB capture and 11% for full duplex, accepted for 0.3.0. See the [recorded costs](https://twill.evecalm.com/performance#node-shell-sdk); this is not a universal native-parity guarantee.
+
 ## Development
 
 This package's implementation uses Twill and emits ordinary JavaScript. Build and check a checkout with the workspace tools; see [developing tooling in Twill](https://github.com/swiftuijs/twill/blob/main/docs/contributing/dogfooding.md) for bootstrap and contribution instructions.

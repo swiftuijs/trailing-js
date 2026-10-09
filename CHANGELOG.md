@@ -10,6 +10,8 @@
 - Reuse recovered editor transforms and their original strict syntax errors instead of recompiling unchanged source for diagnostics.
 - Reuse open-document text by VS Code document version while preserving immediate full-snapshot synchronization with native TS-server projects.
 
+- Simplify Node shell CI to representative Linux/macOS/Windows contracts, with type checks and coverage once on Linux; remove the native CPU/libc matrix. Retain measured shell capture costs: about 17% median overhead for native dual 1 MiB capture and 11% for full duplex on the reviewed host, explicitly accepted for this release.
+
 - Retire `@swiftuijs/twill-shell-native`, the Rust experiment, addon dependency and native build/assembly chain. The SDK uses Node spawn/streams with zero production dependencies, retaining commands, policies, errors, snapshots, bounded I/O and awaited cancellation/timeout teardown. Applications must cancel and await work before worker/process exit; the native abrupt-disposal barrier and unnamed numeric-signal guarantee are removed. Published 0.2.0 remains unchanged.
 
 - Develop the formatter, linter, export, highlight, shell SDK and editor integrations in Twill through the public adapter, checker and declaration emitter. Keep ordinary JS/types for consumers, native bootstrap boundaries and existing coverage/size gates; enforce the source policy in release verification.

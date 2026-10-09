@@ -213,11 +213,11 @@ The earlier [shell implementation](scripting.md) executed through native Node `s
 
 The [recorded source/build-identified samples](https://github.com/swiftuijs/twill/blob/main/packages/shell/benchmarks/results/README.md) include both an inconclusive whole-batch run and the accepted operation-interleaved run. The latter measured warm wall ratios 1.003–1.013 (all 95% upper bounds below 1.04), with comparable capture RSS observations. Dual capture adds about 10% parent CPU in this environment; child CPU is outside that metric. Native/SDK/Twill-source cold medians were 84.8/91.3/567.5 ms including one child. Native export avoids the source loader's compiler startup; warm SDK parity does not establish cold-source parity.
 
-The [source-only runner cache measurements](https://github.com/swiftuijs/twill/blob/main/packages/twill/benchmarks/results/README.md#compilation-cache-prototype) retain 21 fresh-interpreter pairs and compiler/dependency validation. On this Linux/Node 24 workload, uncached/empty-cache/cached/native medians were 513.6/544.3/157.3/43.9 ms. The paired cache-hit ratio was 0.2938 (95% interval 0.2826–0.3046); empty-cache paired overhead was about 7%. These are source-startup observations, not native parity, external-command acceleration or Rust measurements. A valid hit skips compiler initialization; prebuilt JavaScript remains the faster first-launch path.
+The [early runner cache measurements](https://github.com/swiftuijs/twill/blob/main/packages/twill/benchmarks/results/README.md#compilation-cache-prototype) retain 21 fresh-interpreter pairs and compiler/dependency validation. On this Linux/Node 24 workload, uncached/empty-cache/cached/native medians were 513.6/544.3/157.3/43.9 ms. The paired cache-hit ratio was 0.2938 (95% interval 0.2826–0.3046); empty-cache paired overhead was about 7%. These are source-startup observations, not native parity, external-command acceleration or Rust measurements. A valid hit skips compiler initialization; prebuilt JavaScript remains the faster first-launch path.
 
 ## Rust subprocess experiment (historical)
 
-**Historical prototype, before 0.2.0.** This section compares the experimental addon with the earlier Node SDK. The published SDK now uses the production [Rust shell backend](#rust-shell-backend) described below; its independent reactor addresses the prototype's worker-pool contention. Keep these older measurements separate from production results and compiler startup.
+**Historical prototype, before 0.2.0.** This section compares the experimental addon with the earlier Node SDK. Version 0.2.0 used the production [Rust shell backend](#rust-shell-backend) described below; its independent reactor addressed the prototype's worker-pool contention. Version 0.3.0 uses the [Node SDK](#node-shell-sdk) above. Keep these older measurements separate from production results and compiler startup.
 
 The repository also contains an isolated Linux Rust/N-API experiment. It owns a direct child and nonblocking pipes, drains both output streams in one native loop and transfers captured buffers through N-API. It is outside published SDK files and cannot be selected through `Subprocess.run`; the measurement baseline used the earlier Node SDK. No Rust interpreter or compiler port is involved.
 
@@ -241,11 +241,29 @@ The addon is 495,808 bytes uncompressed, excluded from the SDK's existing 16 KiB
 
 <a id="optional-rust-backend"></a>
 
+<a id="node-shell-sdk"></a>
+
 ## Node shell SDK in 0.3.0
 
 Version 0.3.0 withdraws the Rust addon and experiment in favor of Node spawn/streams with zero production dependencies. It keeps the 16 KiB SDK archive gate and the complete seven-warm/two-concurrency comparison against equivalent handwritten Node. Historical Rust ratios below describe 0.2.0, not this replacement. Abrupt worker/process-exit cleanup and numeric unnamed-signal guarantees are intentionally retired; see [scripting](scripting.md#execution-and-version-boundary).
 
-The [complete first review and one focused recheck](https://github.com/swiftuijs/twill/blob/main/packages/shell/benchmarks/results/README.md#node-replacement-validation) retain every sample and source/build identity on Linux x64 / Node 24.19.0. Eight of nine warm/concurrency wall gates pass; 32/128-child paired ratios are 1.002/1.000 with upper 95% bounds 1.015/1.014. Native 1 MiB dual capture is inconclusive in both runs: median/upper bound 0.919/1.211, then 0.976/1.190. The unchanged 1.10 complete gate rejects the runs. This is not performance acceptance; the replacement remains under review. The complete isolated-process review then identifies a supported 1 MiB capture regression (median/upper 1.218/1.240). The SDK now delegates default cwd/environment capture to synchronous Node spawn, avoiding duplicate environment copies and unnecessary child chdir; explicit policies retain their handling. The [complete inherited-state fast-path report](https://github.com/swiftuijs/twill/blob/refactor/remove-shell-native/packages/shell/benchmarks/results/node-replacement-inheritance-fastpath-linux-node24.json) at `502be6f` still rejects two gates: native 1 MiB capture has median/upper 1.171/1.232, and full duplex 1.113/1.157. Native inherited launch passes at 0.993/1.026; 32/128-child concurrency passes at 1.000/1.009 and 1.009/1.025. The complete gate has not passed, so this candidate must remain unmerged and unpublished. CPU-profile diagnostics investigated retained chunks and growing buffers; neither candidate provided sufficient evidence of an improvement, and both were withdrawn. Their exact source snapshots and profiles remain in the measurement history.
+The [measurement history](https://github.com/swiftuijs/twill/blob/main/packages/shell/benchmarks/results/README.md#node-replacement-validation) retains every failed assessment, individual sample and source/build identity. The final [inherited-state fast-path report](https://github.com/swiftuijs/twill/blob/main/packages/shell/benchmarks/results/node-replacement-inheritance-fastpath-linux-node24.json) at `502be6f`, Linux x64 / Node 24.19.0, records:
+
+| Workload                     | Paired SDK / handwritten Node wall median | Upper 95% bound |
+| ---------------------------- | ----------------------------------------: | --------------: |
+| Native inherited launch      |                                     0.993 |           1.026 |
+| Empty Node child             |                                     1.016 |           1.039 |
+| Native dual 1 MiB capture    |                                     1.171 |           1.232 |
+| Native dual 8 MiB capture    |                                     1.050 |           1.095 |
+| Node dual 1 MiB capture      |                                     1.028 |           1.064 |
+| 1 MiB stdin/text capture     |                                     1.028 |           1.062 |
+| Native full-duplex 1 MiB     |                                     1.113 |           1.157 |
+| 32 concurrent Node children  |                                     1.000 |           1.009 |
+| 128 concurrent Node children |                                     1.009 |           1.025 |
+
+The native 1 MiB capture and duplex workloads exceed the historical 1.10 target. The maintainer [accepted these measured costs for 0.3.0](https://github.com/swiftuijs/twill/blob/main/packages/shell/benchmarks/results/node-replacement-0.3.0-acceptance.json) on 2026-10-09; the report still fails the optional strict comparison. This is a documented release tradeoff, with roughly 17%/11% median overhead in those two synthetic workloads, not a claim of universal native parity or a general speedup. Node interpreter launches and concurrency have separate, much smaller observed wall differences. Parent CPU excludes child CPU and is retained independently.
+
+Default cwd/environment capture delegates to synchronous Node spawn, avoiding duplicate environment copies and unnecessary child chdir; explicit policies retain their handling. CPU-profile diagnostics investigated retained chunks and growing buffers; both candidates were withdrawn. Their exact snapshots and profiles remain in the measurement history.
 
 Fresh handwritten Node/SDK medians are 52.4/55.6 ms, cached Twill baseline/SDK 166.7/177.0 ms, and uncached 503.6/515.0 ms. Parent CPU, memory, filesystem availability and cancellation observations remain separate in the raw reports. No universal speedup or native-source startup parity follows.
 

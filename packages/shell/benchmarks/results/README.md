@@ -1,6 +1,6 @@
 # Native subprocess measurements
 
-These Linux x64 / Node 24.19.0 samples describe this environment, not universal performance. JSON reports retain the workload, argv, input size, source/build SHA-256 identities, source commit, every paired timing/parent CPU sample, isolated memory observations and separate cold starts. These reports describe historical implementations; the source checkout now replaces the 0.2.0 Rust addon with Node spawn/streams. Their hashes do not identify the replacement. Reproduce the recorded fixture exactly from each report's `gitHead`.
+These Linux x64 / Node 24.19.0 samples describe this environment, not universal performance. JSON reports retain the workload, argv, input size, source/build SHA-256 identities, source commit, every paired timing/parent CPU sample, isolated memory observations and separate cold starts. The initial sections describe historical implementations; 0.3.0 replaces the 0.2.0 Rust addon with Node spawn/streams. Their hashes do not identify the replacement; the Node replacement sections below retain its exact identities. Reproduce the recorded fixture exactly from each report's `gitHead`.
 
 `linux-node24-batched.json` uses adjacent whole batches. Its confidence intervals were inconclusive for two workloads; it failed the acceptance check. Keep that evidence rather than treating its low medians as a speedup.
 
@@ -92,9 +92,9 @@ ratio 1.189 with interval 0.777–1.330; those samples do not establish a system
 CPU regression or improvement. Direct fresh Node/native-SDK medians are
 52.4/55.6 ms; cached Twill baseline/SDK 166.7/177.0 ms; uncached 503.6/515.0 ms.
 Memory and cleanup observations remain separate and establish no hard RSS or
-real-time deadline guarantee. The replacement stays under review until the
-capture acceptance uncertainty is resolved; this simplification does not justify
-claiming a general speedup or publishing an unaccepted performance result.
+real-time deadline guarantee. At this first review the replacement stayed under review while capture uncertainty
+remained; subsequent assessments and the explicit 0.3.0 release decision below
+preserve the result rather than convert it into a passing comparison.
 
 ## Isolated warm-process protocol
 
@@ -174,6 +174,22 @@ identities of the diagnostic files are retained in the summary. To reproduce,
 use the baseline commit, apply the appropriate recorded source candidate, rebuild
 and run the recorded profiling command; keep any changed output paths and identities.
 
-No unchanged-source complete run is repeated to seek a pass. The replacement
-remains draft, the prepared 0.3.0 version is not published, and npm deprecation
-waits until an accepted replacement SDK is available.
+No unchanged-source complete run is repeated to seek a pass.
+
+## 0.3.0 release acceptance
+
+On 2026-10-09 the maintainer explicitly accepted the measured shell overhead and
+ended further optimization as a release blocker. The [review decision](node-replacement-0.3.0-acceptance.json)
+identifies the unchanged final report, its SHA-256, runtime source/build hashes
+and the two failed strict comparisons. All 46 recorded runtime/build/benchmark
+identities match the accepted implementation. Native 1 MiB capture is about 17%
+slower at the paired median (upper 95% bound about 23%); duplex is about 11%
+slower (upper bound about 16%). These are synthetic direct-child coordination
+costs, not acceleration or a universal scripting performance guarantee.
+
+The optional 1.10 timing check still fails that report. This is explicit release
+acceptance of the known costs, not a passing benchmark or relaxed correctness,
+coverage, language-output performance or size check. Node OS contracts remain
+validated on Linux, macOS and Windows; the retired Rust CPU/libc build matrix is
+removed. Publish the accepted SDK before marking the old native registry package
+deprecated, and keep 0.2.0 available for compatibility.

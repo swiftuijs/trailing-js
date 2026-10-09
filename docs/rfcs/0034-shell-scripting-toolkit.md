@@ -40,18 +40,26 @@ Use `process.exitCode` after awaited work, and cooperative worker cancellation.
 Neither version contains descendants or supplies process-tree semantics.
 
 Validate public contracts on Linux, macOS and Windows and independently installed
-archives on Node 20.19. Keep coverage thresholds and the equivalent handwritten
-Node performance limit (paired median and upper 95% bound at most 1.10) unchanged.
-Retain seven warm and both 32/128-child concurrency workloads, input/capture,
-filesystem, memory, cancellation and cold-start observations. Keep conservative
-base-to-head CI selection and full release validation. Known ordinary PR changes
-that affect the shell or runner exercise Linux x64 (the required verify job),
-macOS ARM64 and Windows x64. Shared dependency/build/workflow changes, unknown
-paths and unavailable history retain the full eight-platform matrix; so do main,
-scheduled, manual and release runs. Remove native compilation and assembly, while
-preserving real process tests and independent minimum-Node consumers on selected
-systems. CPU architecture/libc coverage belongs to full validation; operating-system
-behavior remains a required ordinary-PR check.
+archives on Node 20.19. Keep coverage and archive-size thresholds unchanged.
+Node owns OS-process execution; the SDK owns policy merging, public status/error
+mapping and awaited cleanup. Test those observable contracts on one representative
+runner per OS family, rather than repeating the Rust prebuild CPU/libc matrix.
+Linux supplies type checking and original-source coverage once; macOS ARM64 and
+Windows x64 execute the real-process/runner suites and installed consumers without
+repeating coverage instrumentation. Unknown paths or unavailable history select
+all three OS families. Main, scheduled, manual and release runs retain all checks,
+including minimum-editor validation on release; no native compilation or assembly
+remains.
+
+Retain equivalent handwritten Node comparisons: seven warm and both 32/128-child
+concurrency workloads, input/capture, filesystem, memory, cancellation and cold
+observations. On 2026-10-09 the maintainer explicitly accepted the measured 0.3.0
+shell overhead rather than require further optimization: native 1 MiB dual capture
+has paired median/upper 95% ratio 1.171/1.232, and duplex 1.113/1.157. The historical
+1.10 target still rejects that report; this release decision does not turn it into
+a passing measurement. Preserve the exact report, rejected candidates and review
+decision. Benchmark timing is diagnostic for this accepted shell release; language
+output performance requirements, correctness, coverage and size gates stay intact.
 
 This amendment changes the execution implementation and abrupt-disposal boundary,
 not Twill syntax or shebang dispatch. RFC 0036 and the 0.2.0 measurements remain

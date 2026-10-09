@@ -5,7 +5,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, renameSync, rmSync
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { ciScope, ciSelection, eventScope } from '../ci-scope.mjs';
+import { ciScope, eventScope } from '../ci-scope.mjs';
 
 const all = { core: true, shell: true };
 const docs = { core: false, shell: false };
@@ -125,22 +125,7 @@ test('actual PR CLI writes reduced outputs for docs, and includes every commit i
       },
     );
     assert.deepEqual(JSON.parse(result).scope, docs);
-    const values = Object.fromEntries(
-      readFileSync(output, 'utf8')
-        .trim()
-        .split('\n')
-        .map((line) => {
-          const index = line.indexOf('=');
-          return [line.slice(0, index), line.slice(index + 1)];
-        }),
-    );
-    assert.equal(values.core, 'false');
-    assert.equal(values.shell, 'false');
-    assert.equal(values['extended-shell'], 'false');
-    assert.deepEqual(
-      JSON.parse(values['shell-matrix']).include.map((row) => row.os),
-      ['macos-15', 'windows-latest'],
-    );
+    assert.equal(readFileSync(output, 'utf8'), 'core=false\nshell=false\n');
     mkdirSync(join(cwd, 'packages/shell/src'), { recursive: true });
     writeFileSync(join(cwd, 'packages/shell/src/index.twill'), 'changed ABI\n');
     commit();
@@ -191,46 +176,4 @@ test('real git diffs preserve deleted/renamed native owners and filenames with n
   } finally {
     rmSync(cwd, { recursive: true, force: true });
   }
-});
-
-test('known shell/runner PRs keep both non-Linux OS families without the full CPU/libc matrix', () => {
-  for (const path of [
-    'packages/shell/src/index.twill',
-    'packages/twill/bin/run.mjs',
-    'packages/runtime/src/index.js',
-  ]) {
-    const selected = ciSelection([path]);
-    assert.deepEqual(selected.scope, all);
-    assert.equal(selected.extendedShell, false);
-    assert.deepEqual(selected.shellPlatforms.include, [
-      { os: 'macos-15', arch: 'arm64' },
-      { os: 'windows-latest', arch: 'x64' },
-    ]);
-  }
-});
-test('dependency/build/unknown inputs and every non-PR event retain all eight platforms', () => {
-  const full = [
-    { os: 'macos-15', arch: 'arm64' },
-    { os: 'windows-latest', arch: 'x64' },
-    { os: 'macos-15-intel', arch: 'x64' },
-    { os: 'windows-11-arm', arch: 'arm64' },
-    { os: 'ubuntu-24.04-arm', arch: 'arm64' },
-  ];
-  for (const path of [
-    'pnpm-lock.yaml',
-    '.github/workflows/ci.yml',
-    'scripts/new-build.mjs',
-    'unknown/new-package.js',
-  ]) {
-    const selected = ciSelection([path]);
-    assert.equal(selected.extendedShell, true);
-    assert.deepEqual(selected.shellPlatforms.include, full);
-  }
-  for (const eventName of ['push', 'schedule', 'workflow_dispatch', 'workflow_call']) {
-    const selected = eventScope({ eventName });
-    assert.equal(selected.extendedShell, true);
-    assert.deepEqual(selected.shellPlatforms.include, full);
-  }
-  assert.equal(eventScope({ eventName: 'pull_request', forceFull: true }).extendedShell, true);
-  assert.equal(eventScope({ eventName: 'pull_request', eventPath: '/absent' }).extendedShell, true);
 });

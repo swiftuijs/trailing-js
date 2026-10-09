@@ -26,8 +26,6 @@ jobs:
     outputs:
       core: ${{ steps.scope.outputs.core }}
       shell: ${{ steps.scope.outputs.shell }}
-      extended-shell: ${{ steps.scope.outputs.extended-shell }}
-      shell-matrix: ${{ steps.scope.outputs.shell-matrix }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -159,7 +157,10 @@ jobs:
     if: needs.changes.outputs.shell == 'true'
     strategy:
       fail-fast: false
-      matrix: ${{ fromJSON(needs.changes.outputs.shell-matrix) }}
+      matrix:
+        include:
+          - { os: macos-15, arch: arm64 }
+          - { os: windows-latest, arch: x64 }
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     steps:
@@ -177,8 +178,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @swiftuijs/twill-shell... build
       - run: pnpm --filter @swiftuijs/twill exec vitest run tests/runner.test.ts tests/runner-cache.test.ts tests/compilation-cache.test.ts tests/config.test.ts
-      - run: pnpm --filter @swiftuijs/twill-shell typecheck
-      - run: pnpm --filter @swiftuijs/twill-shell test:coverage
+      # Types and coverage run once in verify; these suites keep real OS contracts.
+      - run: pnpm --filter @swiftuijs/twill-shell test:unit
       - run: pnpm --filter @swiftuijs/twill --config.ignore-scripts=true pack --out swiftuijs-twill-%v.tgz
       - run: pnpm package:shell
       - uses: actions/setup-node@v7.0.0
@@ -187,28 +188,3 @@ jobs:
           architecture: ${{ matrix.arch }}
       - run: node packages/shell/tests/consumer.mjs
       - run: node packages/twill/tests/runner-consumer.mjs
-
-  shell-musl:
-    needs: changes
-    if: needs.changes.outputs.shell == 'true' && needs.changes.outputs.extended-shell == 'true'
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v7.0.1
-      - name: Node musl build and real process contracts
-        run: |
-          docker run --rm -v "$GITHUB_WORKSPACE:/workspace" -w /workspace node:22-alpine3.21 sh -c '
-            corepack enable && corepack prepare pnpm@11.19.0 --activate &&
-            pnpm install --frozen-lockfile && pnpm --filter @swiftuijs/twill-shell... build &&
-            pnpm --filter @swiftuijs/twill-shell typecheck && pnpm --filter @swiftuijs/twill-shell test:coverage &&
-            pnpm --filter @swiftuijs/twill --config.ignore-scripts=true pack --out swiftuijs-twill-%v.tgz && pnpm package:shell
-          '
-      - name: Independent minimum-runtime musl consumers
-        run: |
-          docker run --rm -v "$GITHUB_WORKSPACE:/workspace" -w /workspace node:20.19.0-alpine3.21 sh -c '
-            node packages/shell/tests/consumer.mjs && node packages/twill/tests/runner-consumer.mjs
-          '
